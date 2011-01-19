@@ -1,0 +1,130 @@
+/*
+ * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+package com.amazonaws.eclipse.elasticbeanstalk.jobs;
+
+import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
+
+import java.util.List;
+import java.util.Random;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.ui.progress.IProgressConstants;
+import org.eclipse.ui.statushandlers.StatusManager;
+import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.ServerCore;
+
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
+import com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
+
+public class SyncEnvironmentsJob extends Job {
+
+    private static final int SHORT_DELAY = 1000 * 30;
+    private static final int LONG_DELAY = 1000 * 60 * 4;
+    private static final Random RANDOM = new Random();
+    private String previousErrorMessage;
+
+
+    public SyncEnvironmentsJob() {
+        super("Synchronizing AWS Elastic Beanstalk environments");
+        setProperty(IProgressConstants.ICON_PROPERTY,
+            AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_ICON));
+
+        setSystem(true);
+        setPriority(LONG);
+        setUser(false);
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
+        monitor.beginTask("Syncing", IProgressMonitor.UNKNOWN);
+        trace("Syncing environment statuses");
+
+        boolean transitioningEnvironment = false;
+        for (IServer server : ServerCore.getServers()) {
+            if (server.getServerType() == null) continue;
+            String id = server.getServerType().getId();
+            if (id.equals(ElasticBeanstalkPlugin.ELASTIC_BEANSTALK_SERVER_TYPE_ID)) {
+                Environment environment = (Environment)server.loadAdapter(Environment.class, monitor);
+                EnvironmentBehavior behavior = (EnvironmentBehavior)server.loadAdapter(EnvironmentBehavior.class, monitor);
+
+                monitor.setTaskName("Syncing environment " + environment.getEnvironmentName());
+                try {
+                    trace("Syncing server: " + server.getName() + ", " + "environment: " + environment.getEnvironmentName());
+                    transitioningEnvironment |= syncEnvironment(environment, behavior);
+                    previousErrorMessage = null;
+                } catch (AmazonClientException ace) {
+                    schedule(LONG_DELAY);
+                    if (previousErrorMessage != null && previousErrorMessage.equals(ace.getMessage())) {
+                        // Don't keep complaining about the same error over and over
+                        return Status.OK_STATUS;
+                    }
+                    previousErrorMessage = ace.getMessage();
+                    return new Status(Status.WARNING, ElasticBeanstalkPlugin.PLUGIN_ID, "Unable to connect to AWS Elastic Beanstalk", ace);
+                }
+            }
+        }
+
+        if (transitioningEnvironment) schedule(SHORT_DELAY + RANDOM.nextInt(5 * 1000));
+        else schedule(LONG_DELAY + RANDOM.nextInt(5 * 1000));
+
+        return Status.OK_STATUS;
+    }
+
+    /**
+     * Synchronizes the environment given with its AWS Elastic Beanstalk state and returns whether
+     * it should be considered in a "transitioning" state.
+     */
+    private boolean syncEnvironment(Environment environment, EnvironmentBehavior behavior) {
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(
+            environment.getRegionEndpoint());
+
+        EnvironmentDescription environmentDescription = describeEnvironment(client, environment.getEnvironmentName());
+        behavior.updateServer(environmentDescription);
+
+        if (environmentDescription == null) return false;
+
+        EnvironmentStatus environmentStatus = null;
+        try {
+            environmentStatus = EnvironmentStatus.fromValue(environmentDescription.getStatus());
+        } catch (IllegalArgumentException e) {
+            Status status = new Status(Status.INFO, ElasticBeanstalkPlugin.PLUGIN_ID,
+                "Unknown environment status: " + environmentDescription.getStatus());
+            StatusManager.getManager().handle(status, StatusManager.LOG);
+        }
+
+        return (environmentStatus == EnvironmentStatus.Launching ||
+                environmentStatus == EnvironmentStatus.Updating ||
+                environmentStatus == EnvironmentStatus.Terminating);
+    }
+
+    static EnvironmentDescription describeEnvironment(AWSElasticBeanstalk client, String environmentName) {
+        List<EnvironmentDescription> environments = client.describeEnvironments(
+            new DescribeEnvironmentsRequest().withEnvironmentNames(environmentName)).getEnvironments();
+
+        if (environments.isEmpty()) return null;
+        return environments.get(0);
+    }
+
+}

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+	<extension
+         point="org.eclipse.datatools.connectivity.sqm.core.databaseRecognition">
+      <recognizer
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBDatabaseRecognizer">
+      </recognizer>
+	</extension>
+	<extension point="org.eclipse.datatools.connectivity.connectionProfile">
+		<configurationType
+			id="com.amazonaws.eclipse.datatools.enablement.simpledb.configurationType"
+			name="SimpleDB">
+		</configurationType>
+		<connectionProfile category="org.eclipse.datatools.connectivity.db.category"
+			configurationType="com.amazonaws.eclipse.datatools.enablement.simpledb.configurationType"
+			icon="icons/jdbc_16.gif"
+			id="com.amazonaws.eclipse.datatools.enablement.simpledb.connectionProfile"
+			name="%profile.simpledb.title"
+			pingFactory="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBConnectionFactory"
+			propertiesPersistenceHook="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBPropertiesPersistenceHook" />
+		<connectionFactory
+			class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBConnectionFactory"
+			id="java.sql.Connection" 
+			name="%jdbc.connection.name"
+			profile="com.amazonaws.eclipse.datatools.enablement.simpledb.connectionProfile" />
+	</extension>
+	<extension point="org.eclipse.datatools.connectivity.driverExtension">
+		<category parentCategory="org.eclipse.datatools.connectivity.db.driverCategory"
+			id="com.amazonaws.eclipse.datatools.enablement.simpledb.driverCategory"
+			name="%SIMPLEDB_CATEGORY_NAME" />
+		<driverTemplate createDefault="true" emptyJarListIsOK="true"
+			id="com.amazonaws.eclipse.datatools.enablement.simpledb.driverTemplate"
+            jarList="."
+			name="%com.amazonaws.eclipse.datatools.enablement.simpledb.driverTemplate"
+			parentCategory="com.amazonaws.eclipse.datatools.enablement.simpledb.driverCategory"
+			valuesProvider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.driver.SimpleDBDriverValuesProvider">
+			<properties>
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.driverClass" name="%driverClass"
+					value="com.amazonaws.services.simpledb.AmazonSimpleDBClient" required="true"
+					visible="true" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.vendor" name="%driverVendor"
+					value="SimpleDB" required="true" visible="false" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.version" name="%driverVersion"
+					value="1.0" required="true" visible="false" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.username" name="%driverUID"
+					value="" required="false" visible="true" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.password" name="%driverPWD"
+					required="false" visible="true" />
+			</properties>
+		</driverTemplate>
+		<!--driverTemplate createDefault="false" emptyJarListIsOK="false"
+			id="com.amazonaws.eclipse.datatools.enablement.simpledb.other.driverTemplate"
+			jarList=""
+			name="%com.amazonaws.eclipse.datatools.enablement.simpledb.other.driverTemplate"
+			parentCategory="com.amazonaws.eclipse.datatools.enablement.simpledb.driverCategory"
+			valuesProvider="com.amazonaws.eclipse.datatools.enablement.internal.simpledb.driver.SimpleDBDriverValuesProvider">
+			<properties>
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.driverClass" name="%driverClass"
+					value="" required="true" visible="true" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.vendor" name="%driverVendor"
+					value="SimpleDB" required="true" visible="false" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.version" name="%driverVersion"
+					value="1.0" required="true" visible="false" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.username" name="%driverUID"
+					value="" required="false" visible="true" />
+				<property generated="false"
+					id="org.eclipse.datatools.connectivity.db.password" name="%driverPWD"
+					required="false" visible="true" />
+			</properties>
+		</driverTemplate-->
+	</extension>
+	<!--extension point="org.eclipse.datatools.connectivity.sqm.core.catalog"-->
+		<!--catalog
+            version="1.0"
+            product="SimpleDB"
+            provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBCatalogProvider">
+		</catalog-->
+		<!--overrideLoader
+			provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBSchemaLoader"
+			eclass="org.eclipse.datatools.modelbase.sql.schema.Schema" 
+			product="SimpleDB"
+			version="1.0" />
+			
+		<overrideLoader
+			provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBColumnLoader"
+			eclass="org.eclipse.datatools.modelbase.sql.tables.Column" 
+			product="SimpleDB"
+			version="1.0" />
+			
+		<overrideLoader 
+			provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBTableLoader"
+			eclass="org.eclipse.datatools.modelbase.sql.tables.Table"
+			product="SimpleDB"
+			version="1.0" /-->
+			
+	<!--/extension-->
+	<!--extension point="org.eclipse.datatools.connectivity.sqm.core.ddlGeneration">
+		<generator
+			class="com.amazonaws.eclipse.datatools.enablement.internal.simpledb.ddl.SimpleDBDdlGenerator"
+			product="SimpleDB"
+			version="1.0">
+		</generator>
+	</extension-->
+</plugin>

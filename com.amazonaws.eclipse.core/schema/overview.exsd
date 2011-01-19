@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="com.amazonaws.eclipse.core" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="com.amazonaws.eclipse.core" id="overview" name="AWS Toolkit Overview"/>
+      </appInfo>
+      <documentation>
+         Internal extension point for features of the AWS Toolkit to contribute to the AWS Toolkit Overview view.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="overviewSection">
+      <annotation>
+         <documentation>
+            An overviewSection extension allows components of the AWS Toolkit to hook into the AWS Toolkit Overview and provide new sections.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="title" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The title to display for the contributed overview section.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The class extending OverviewSection that provides overview content specific to a component of the AWS Toolkit for Eclipse.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="com.amazonaws.eclipse.core.ui.overview.OverviewSection:"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;extension point=&quot;com.amazonaws.eclipse.core.overview&quot;&gt;
+    &lt;overviewSection title=&quot;Foo&quot; class=&quot;com.amazonaws.FooOverviewSection&quot;/&gt;
+&lt;/extension&gt;
+      </documentation>
+   </annotation>
+
+
+
+
+</schema>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension-point id="overview" name="AWS Toolkit Overview" schema="schema/overview.exsd"/>
+
+    <extension point="org.eclipse.ui.preferencePages">
+       <page
+             class="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+             id="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+             name="AWS Toolkit">
+       </page>
+    </extension>
+
+    <extension point="org.eclipse.core.runtime.preferences">
+       <initializer class="com.amazonaws.eclipse.core.preferences.PreferenceInitializer">
+       </initializer>
+    </extension>
+
+    <extension point="org.eclipse.ui.startup">
+       <startup class="com.amazonaws.eclipse.core.ui.Startup"/>
+    </extension>
+
+    <extension point="org.eclipse.ui.views">
+       <category
+             id="com.amazonaws.eclipse.core.category"
+             name="AWS Toolkit"/>
+    </extension>
+
+    <extension point="org.eclipse.ui.editors">
+       <editor
+             class="com.amazonaws.eclipse.core.ui.overview.OverviewEditor"
+             default="false"
+             icon="icons/aws-box.gif"
+             id="com.amazonaws.eclipse.core.ui.overview"
+             name="AWS Toolkit Overview">
+       </editor>
+    </extension>
+
+   <!--
+    |
+    | Adds AWS specififc commands
+    |
+    -->
+   <extension point="org.eclipse.ui.commands">
+      <category id="com.amazonaws.commands.category"
+            name="AWS Toolkit for Eclipse Commands">
+      </category>
+
+      <command id="com.amazonaws.eclipse.command.displayOverviewEditor"
+            name="Open AWS Toolkit Overview"
+            defaultHandler="com.amazonaws.eclipse.core.ui.DisplayAwsOverviewEditorCmdHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+
+      <command id="com.amazonaws.eclipse.command.openPreferences"
+            name="Open AWS Toolkit Preferences"
+            defaultHandler="com.amazonaws.eclipse.core.ui.menu.OpenPreferencesHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+
+      <command id="com.amazonaws.eclipse.command.openWebConsole"
+            name="Open AWS Management Console"
+            defaultHandler="com.amazonaws.eclipse.core.ui.menu.OpenWebConsoleHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+   </extension>
+
+
+   <!--
+    |
+    | Inserts toolbar button handlers to perform the commands
+    |
+    -->
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <menu id="com.amazonaws.eclipse.popup.menu"
+               icon="icons/aws-box.gif"
+               label="Amazon Web Services">
+            <separator name="additions" visible="false"/>
+         </menu>
+      </menuContribution>
+
+      <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar id="com.amazonaws.eclipse.toolbar">
+           <command commandId="com.amazonaws.eclipse.command.displayOverviewEditor"
+                    icon="icons/aws-box.gif"
+                    id="com.amazonaws.eclipse.toolbar.dropDownMenu"
+                    style="pulldown"
+                    tooltip="AWS Toolkit for Eclipse">
+           </command>
+         </toolbar>
+      </menuContribution>
+
+       <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu">
+         <separator name="java"       visible="false"/>
+         <separator name="javaWeb"    visible="false"/>
+         <separator name="separator1" visible="true"/>
+
+         <separator name="simpleDB"   visible="false"/>
+         <separator name="separator2" visible="true"/>
+
+         <separator name="EC2"        visible="false"/>
+         <separator name="separator3" visible="true"/>
+
+         <command commandId="com.amazonaws.eclipse.command.openWebConsole"
+                  id="com.amazonaws.eclipse.toolbar.openWebConsole"
+                  label="Go to AWS Management Console">
+         </command>
+
+         <separator name="separator4" visible="true"/>
+
+         <command commandId="com.amazonaws.eclipse.command.openPreferences"
+                  id="com.amazonaws.toolbar.openPreferences"
+                  label="Preferences...">
+         </command>
+     </menuContribution>
+   </extension>
+</plugin>

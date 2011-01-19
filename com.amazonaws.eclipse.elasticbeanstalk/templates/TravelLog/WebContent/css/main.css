@@ -1,0 +1,349 @@
+a {
+  text-decoration: none;
+  color: #1779b6; }
+
+a:hover {
+  text-decoration: underline;
+  color: orange; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  color: white;
+  margin: 0;
+  background-color: #ebe1d2; }
+
+#actions {
+  float: right;
+  line-height: 15px; }
+  #actions a:hover {
+    text-decoration: none; }
+  #actions .addJournal, #actions .signOut, #actions .sep {
+    float: left;
+    padding: 7px;
+    font-weight: bold; }
+  #actions .addJournal {
+    padding-bottom: 8px; }
+    #actions .addJournal img {
+      margin-right: 1px; }
+  #actions .signOut {
+    padding-right: 0;
+    font-weight: bold; }
+  #actions .sep {
+    color: #777777; }
+
+#header .mtllogo {
+  margin-bottom: 13px;
+  float: left; }
+
+#field {
+  width: 940px;
+  color: #373532;
+  margin: auto;
+  background-color: #ebe1d2; 
+  display: none;}
+
+#main {
+  padding: 17px 29px 31px 34px; }
+
+img {
+  border: 0;
+  vertical-align: top; }
+
+#entries .entry:last-child {
+  margin-bottom: 0; }
+#entries .entry {
+  background-color: white;
+  border-radius: 12px;
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  overflow: auto;
+  margin-bottom: 13px; }
+  #entries .entry .liner {
+    margin: 12px 17px;
+    float: left; }
+  #entries .entry .header {
+    overflow: auto; }
+  #entries .entry .expando {
+    float: left;
+    height: 16px;
+    width: 16px;
+    margin-right: 7px;
+    background: transparent url(../images/expando-icons-16x16.png) no-repeat -32px 0px; }
+  #entries .entry .header:hover {
+    cursor: pointer; }
+  #entries .entry h2 {
+    line-height: 16px;
+    margin: 0;
+    float: left;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 15px; }
+  #entries .entry .meta {
+    font-size: 11px;
+    font-weight: bold;
+    color: #7f7f7f;
+    line-height: 18px;
+    float: left; }
+    #entries .entry .meta span.first {
+      border-right: 1px solid #dddddd;
+      padding-right: 8px;
+      margin-right: 7px; }
+  #entries .entry .body {
+    margin-top: 14px;
+    margin-bottom: 20px; }
+  #entries .entry .mainPhoto {
+    float: left;
+    width: 148px;
+    padding: 6px;
+    padding-bottom: 19px;
+    background-color: #f8f4ee;
+    box-shadow: 0 0 7px rgba(0, 0, 0, 0.3);
+    -moz-box-shadow: 0 0 7px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow: 0 0 7px rgba(0, 0, 0, 0.3); }
+  #entries .entry .content {
+    float: left;
+    margin-left: 16px;
+    margin-bottom: 9px;
+    width: 664px; }
+    #entries .entry .content .liner {
+      margin: 0 0 0 5px; }
+    #entries .entry .content .synopsis {
+      font-family: Georgia, serif;
+      font-size: 13px;
+      line-height: 16px;
+      margin-bottom: 8px; }
+    #entries .entry .content .actions {
+      font-weight: bold;
+      overflow: visible; }
+      #entries .entry .content .actions ul {
+        margin: 0;
+        padding: 0;
+        list-style: none; }
+        #entries .entry .content .actions ul li {
+          float: left;
+          padding-right: 8px;
+          margin-right: 8px;
+          border-right: 1.5px solid #bfbec2; }
+        #entries .entry .content .actions ul li.last {
+          border-right: 0;
+          margin-right: 0;
+          padding-right: 0; }
+    #entries .entry .content .commentsBlock {
+      margin-top: 29px;
+      border-top: 1px solid #dcdcdc; }
+      #entries .entry .content .commentsBlock .head {
+        overflow: auto; }
+      #entries .entry .content .commentsBlock h3 {
+        font-size: 12px;
+        font-weight: normal;
+        margin-top: 11px;
+        float: left; }
+      #entries .entry .content .commentsBlock .manage {
+        float: right;
+        font-weight: bold;
+        margin-top: 11px; }
+      #entries .entry .content .commentsBlock .addComment {
+        margin-top: 19px;
+        font-weight: bold; }
+      #entries .entry .content .commentsBlock .comment {
+        margin-bottom: 21px; }
+        #entries .entry .content .commentsBlock .comment .action {
+          display: inline; }
+        #entries .entry .content .commentsBlock .comment .user {
+          font-weight: bold;
+          display: inline;
+          color: black; }
+        #entries .entry .content .commentsBlock .comment .text {
+          font-family: Georgia, serif;
+          font-size: 13px;
+          display: inline;
+          line-height: 15px; }
+        #entries .entry .content .commentsBlock .comment .date {
+          font-weight: bold;
+          color: #797979;
+          margin-top: 2px; }
+        #entries .entry .content .commentsBlock .comment .thumbnail img {
+          padding: 3px;
+          background-color: white;
+          float: left;
+          margin-right: 7px;
+          box-shadow: 0 0 3px rgba(0, 0, 0, 0.31);
+          -moz-box-shadow: 0 0 3px rgba(0, 0, 0, 0.31);
+          -webkit-box-shadow: 0 0 3px rgba(0, 0, 0, 0.31); }
+      #entries .entry .content .commentsBlock .comment.onPhoto .text {
+        display: block; }
+  #entries .entry .photoStrip {
+    position: relative;
+    height: 66px;
+    margin-bottom: 14px; }
+    #entries .entry .photoStrip .ctl {
+      width: 7px;
+      height: 64px;
+      cursor: pointer;
+      position: absolute;
+      background: transparent url(../images/left-right-arrows.png) no-repeat;
+      top: 0;
+      display: none; }
+    #entries .entry .photoStrip .prev {
+      background-position: 0 30px;
+      left: -7px; }
+    #entries .entry .photoStrip .next {
+      background-position: -7px 30px;
+      right: -13px; }
+    #entries .entry .photoStrip .photos {
+      padding-left: 5px;
+      padding-right: 5px;
+      background-color: #dad1c0;
+      border-radius: 5px;
+      -webkit-border-radius: 5px;
+      -moz-border-radius: 5px;
+      margin: 0 0 15px 5px;
+      display: inline-block;
+      overflow: hidden;
+      height: 66px; }
+      #entries .entry .photoStrip .photos .photo {
+        margin: 6px 2px;
+        padding: 3px 4px 7px;
+        background-color: white;
+        text-align: center;
+        display: inline;
+        width: 57px; }
+  #entries .entry .photoStrip.scroll .ctl {
+    display: block; }
+#entries .entry.open .expando {
+  background-position: -48px 0px; }
+#entries .entry.closedDefault .body {
+  display: none; }
+
+#intro {
+  overflow: auto;
+  width: 100%;
+  margin-bottom: 13px; }
+  #intro .text {
+    float: right;
+    margin-top: 20px;
+    margin-left: 13px;
+    width: 533px;
+    font-family: Georgia, Times New Roman, serif;
+    font-size: 14.5px; }
+  #intro #titleBox {
+    background-color: #dbaa2c;
+    border-radius: 12px;
+    -webkit-border-radius: 12px;
+    -moz-border-radius: 12px;
+    padding: 22px;
+    padding-top: 13px;
+    width: 287px;
+    float: left; }
+    #intro #titleBox h1 {
+      color: white;
+      margin: 0;
+      margin-bottom: 11px;
+      font-size: 32px;
+      line-height: 33px; }
+    #intro #titleBox .dates {
+      font-weight: bold;
+      line-height: 16px; }
+
+#footer {
+  margin-left: 32px;
+  margin-right: 30px;
+  background-color: #d5c8af;
+  height: 61px;
+  padding: 0 29px 0 34px; }
+  #footer .pbawslogo {
+    margin-top: 4px; }
+    
+.error {
+	color: #ff0000;	
+}
+
+.travellog_popup {
+  font-weight: bold;
+  font-size: 11px;
+  display: none;
+  color: #000000;
+  background-color: #ffffff;
+  border: 2px #dbaa2c solid;
+  border-top: 10px #dbaa2c solid;
+  margin-left: 20%;
+  margin-right: 20%;
+  border-radius: 12px;
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+}
+
+.travellog_popup h1 {
+  background-color: #dbaa2c;
+  color: white;
+  margin: 0;
+  margin-bottom: 0px;
+  font-size: 22px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+}
+
+.popupFieldLabel {
+    padding-top: 0px;
+    padding-left: 10px;
+    padding-bottom: 0px;
+}
+
+.popupFieldInput {
+    padding-top: 2px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    width: 95%;
+}
+
+.popupFieldDateInput {
+	padding-top: 2px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    width: 50%;
+}
+	
+
+.popupSubmitButtons {
+	padding-top: 2px;
+	padding-bottom: 30px;
+	width: 95%;
+}
+
+.popupFieldInput input {
+	width: 95%;
+	
+}
+
+.popupFieldInput textarea {
+	width: 95%;
+}
+
+.popupForm {
+	padding: 5px;
+}
+
+.saveButton {
+	font-size: 18x;
+	color: #fff;
+	background-color: #1779b6;
+	padding: 3px;
+	border: 2px #1779b6 solid;
+	border-radius: 5px;
+   -webkit-border-radius: 5px;
+   -moz-border-radius: 5px;
+   float: right;
+	
+}
+.cancelButton {
+   float: right;
+   padding: 5px;
+}
+
+
+
+
+
+
+

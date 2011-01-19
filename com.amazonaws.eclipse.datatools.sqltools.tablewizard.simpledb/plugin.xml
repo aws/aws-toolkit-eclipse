@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+	<extension point="org.eclipse.ui.navigator.viewer">
+		<viewerActionBinding
+			viewerId="org.eclipse.datatools.connectivity.DataSourceExplorerNavigator">
+			<includes>
+				<actionExtension
+					pattern="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.*" />
+			</includes>
+		</viewerActionBinding>
+	</extension>
+
+	<!-- New Table... action -->
+
+	<extension point="org.eclipse.ui.navigator.navigatorContent">
+		<actionProvider
+			class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewDomainActionProvider"
+			id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewDomainActionProvider"
+			overrides="org.eclipse.datatools.sqltools.tablewizard.ui.popup.actions.NewTableActionProvider">
+			<enablement>
+				<or>
+					<and>
+						<adapt
+							type="org.eclipse.datatools.connectivity.sqm.core.internal.ui.explorer.virtual.ITableNode" />
+						<test forcePluginActivation="true"
+							property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+							value="SimpleDB">
+						</test>
+					</and>
+				</or>
+			</enablement>
+		</actionProvider>
+	</extension>
+
+	<!-- Delete action -->
+	<extension point="org.eclipse.ui.navigator.navigatorContent">
+		<actionProvider
+			class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteDomainActionProvider"
+			id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteDomainActionProvider"
+			overrides="org.eclipse.datatools.sqltools.tablewizard.ui.popup.actions.DeleteTableActionProvider">
+			<enablement>
+				<or>
+					<and>
+						<adapt
+							type="org.eclipse.datatools.modelbase.sql.tables.PersistentTable" />
+						<test forcePluginActivation="true"
+							property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+							value="SimpleDB">
+						</test>
+					</and>
+				</or>
+			</enablement>
+		</actionProvider>
+	</extension>
+
+	<extension point="org.eclipse.core.expressions.propertyTesters">
+		<propertyTester
+			class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.SQLNodePropertyTester"
+			id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.propertyTester1"
+			namespace="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions"
+			properties="vendor"
+			type="org.eclipse.datatools.connectivity.sqm.core.ui.explorer.virtual.IVirtualNode">
+		</propertyTester>
+		<propertyTester
+			class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.SQLNodePropertyTester"
+			id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.propertyTester2"
+			namespace="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions"
+			properties="vendor"
+			type="org.eclipse.datatools.modelbase.sql.schema.SQLObject">
+		</propertyTester>
+	</extension>
+
+	<extension point="org.eclipse.ui.navigator.navigatorContent">
+		<actionProvider
+			class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.LoadDataActionProvider"
+			dependsOn="org.eclipse.datatools.sqltools.tabledataeditor.actions.popup.DataGroupProvider"
+			id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.load"
+			overrides="org.eclipse.datatools.sqltools.data.internal.load">
+			<enablement>
+				<and>
+					<adapt
+						type="org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject" />
+					<adapt type="org.eclipse.datatools.modelbase.sql.tables.BaseTable" />
+					<test forcePluginActivation="true"
+						property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+						value="SimpleDB">
+					</test>
+				</and>
+			</enablement>
+		</actionProvider>
+	</extension>
+
+	<extension point="org.eclipse.ui.navigator.navigatorContent">
+		<actionProvider
+			class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewAttributeActionProvider"
+			id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewAttributeActionProvider">
+			<enablement>
+				<or>
+					<and>
+						<adapt
+							type="org.eclipse.datatools.connectivity.sqm.core.internal.ui.explorer.virtual.IColumnNode" />
+						<test forcePluginActivation="true"
+							property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+							value="SimpleDB">
+						</test>
+					</and>
+				</or>
+			</enablement>
+		</actionProvider>
+		<actionProvider
+			class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteAttributeActionProvider"
+			id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteAttributeActionProvider">
+			<enablement>
+				<or>
+					<and>
+						<adapt
+							type="org.eclipse.datatools.modelbase.sql.tables.Column" />
+						<test forcePluginActivation="true"
+							property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+							value="SimpleDB">
+						</test>
+					</and>
+				</or>
+			</enablement>
+		</actionProvider>
+	</extension>
+	
+	<extension
+         point="org.eclipse.ui.popupMenus">
+         <objectContribution 
+             id="org.eclipse.datatools.dbunit.actions.objectContribution1_disabled_for_SDB"
+            objectClass="org.eclipse.datatools.modelbase.sql.schema.SQLObject">
+	         <action
+                class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.ExportDBUDataSetAction"
+                enablesFor="0"
+                id="org.eclipse.datatools.dbunit.actions.ExportDBUDataSetAction_disabled_for_SDB"
+                label="%action.label.GenerateDataSet"
+                menubarPath="slot1"
+                overrideActionId="org.eclipse.datatools.dbunit.actions.ExportDBUDataSetAction">
+	         </action>
+	         <enablement>
+	           	<and>
+			    	<or>
+						<adapt type="org.eclipse.datatools.modelbase.sql.schema.Database"/>
+						<adapt type="org.eclipse.datatools.modelbase.sql.schema.Schema"/>
+						<adapt type="org.eclipse.datatools.modelbase.sql.schema.Catalog"/>
+						<adapt type="org.eclipse.datatools.modelbase.sql.tables.Table"/>
+			      	</or>
+			    	<test forcePluginActivation="true"
+						property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+						value="SimpleDB">
+					</test>
+			    </and>
+	         </enablement>
+	         <!--visibility>
+						<objectClass name="org.eclipse.datatools.modelbase.sql.tables.Trigger"/>
+	         </visibility-->
+		 </objectContribution>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <actionProvider
+            class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.ForwardEngineerActionProvider"
+            id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.forwardEngineer"
+            overrides="org.eclipse.datatools.sqltools.ddlgen.ui.forwardEngineer.base">
+         <enablement>
+         <and>
+            <or>
+               <instanceof value="org.eclipse.datatools.modelbase.sql.schema.Database"/>
+               <instanceof value="org.eclipse.datatools.modelbase.sql.schema.Schema"/>
+               <instanceof value="org.eclipse.datatools.modelbase.sql.tables.Table"/>
+            </or>
+            <test forcePluginActivation="true"
+				property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+				value="SimpleDB">
+			</test>
+         </and>
+         </enablement>
+      </actionProvider>
+   </extension>
+	
+
+	<!--
+		extension point="org.eclipse.core.runtime.adapters"> <factory
+		adaptableType="org.eclipse.core.resources.mapping.ResourceMapping"
+		class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.TableAdapterFactory">
+		<adapter
+		type="org.eclipse.datatools.connectivity.sqm.core.internal.ui.explorer.virtual.ITableNode">
+		</adapter> </factory> </extension
+	-->
+
+	<!--
+		extension point="org.eclipse.ui.popupMenus"> <objectContribution
+		id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.contribution1"
+		adaptable="false"
+		objectClass="org.eclipse.datatools.connectivity.sqm.core.internal.ui.explorer.virtual.ITableNode">
+		<action
+		class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewDomainWizardAction"
+		enablesFor="1"
+		id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.newAction"
+		label="%domain.new.menu"
+		menubarPath="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.new"
+		overrideActionId="org.eclipse.datatools.sqltools.tablewizard.ui.popup.actions.NewTableWizardAction"/>
+		</objectContribution> </extension> <extension
+		point="org.eclipse.ui.popupMenus"> <objectContribution
+		id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.contribution2"
+		adaptable="false"
+		objectClass="org.eclipse.datatools.modelbase.sql.tables.PersistentTable">
+		<action
+		class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteDomainWizardAction"
+		enablesFor="1"
+		id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.newAction"
+		label="%domain.delete.menu"
+		overrideActionId="org.eclipse.datatools.sqltools.tablewizard.ui.popup.actions.DeleteTableWizardAction"/>
+		</objectContribution> </extension
+	-->
+
+</plugin>

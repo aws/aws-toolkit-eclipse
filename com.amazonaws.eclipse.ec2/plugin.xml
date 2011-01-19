@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension point="org.eclipse.ui.views">
+      <view
+            category="com.amazonaws.eclipse.core.category"
+            class="com.amazonaws.eclipse.ec2.ui.amis.AmiBrowserView"
+            icon="icons/ami_icon.png"
+            id="com.amazonaws.eclipse.ec2.ui.views.AmiBrowserView"
+            name="EC2 AMIs">
+      </view>
+      <view
+            category="com.amazonaws.eclipse.core.category"
+            class="com.amazonaws.eclipse.ec2.ui.views.instances.InstanceView"
+            icon="icons/server.png"
+            id="com.amazonaws.eclipse.ec2.ui.views.InstanceView"
+            name="EC2 Instances">
+      </view>
+      <view
+            category="com.amazonaws.eclipse.core.category"
+            class="com.amazonaws.eclipse.ec2.ui.ebs.ElasticBlockStorageView"
+            icon="icons/harddisk.png"
+            id="com.amazonaws.eclipse.ec2.ui.views.ElasticBlockStorageView"
+            name="EC2 Elastic Block Storage">
+      </view>
+      <view
+            allowMultiple="false"
+            category="com.amazonaws.eclipse.core.category"
+            class="com.amazonaws.eclipse.ec2.ui.securitygroups.SecurityGroupView"
+            icon="icons/shield1.png"
+            id="com.amazonaws.eclipse.ec2.views.SecurityGroupView"
+            name="EC2 Security Groups">
+      </view>
+   </extension>
+
+    <extension point="org.eclipse.ui.preferencePages">
+       <page
+             category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+             class="com.amazonaws.eclipse.ec2.preferences.KeyPairsPreferencePage"
+             id="com.amazonaws.eclipse.ec2.preferences.KeyPairsPreferencePage"
+             name="Key Pairs">
+       </page>
+       <page
+             category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+             class="com.amazonaws.eclipse.ec2.preferences.RegionsPreferencePage"
+             id="com.amazonaws.eclipse.ec2.preferences.RegionsPreferencePage"
+             name="Regions">
+       </page>
+       <page
+             category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+             class="com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage"
+             id="com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage"
+             name="External Tools">
+       </page>
+    </extension>
+
+    <extension point="org.eclipse.core.runtime.preferences">
+       <initializer class="com.amazonaws.eclipse.ec2.preferences.PreferenceInitializer"/>
+    </extension>
+
+    <extension point="org.eclipse.help.contexts">
+       <contexts file="helpContexts.xml"/>
+    </extension>
+
+    <extension point="com.amazonaws.eclipse.core.overview">
+          <overviewSection title="Amazon EC2 Management" class="com.amazonaws.eclipse.ec2.ui.Ec2OverviewSection"/>
+    </extension>
+    <extension
+          point="org.eclipse.ui.perspectives">
+       <perspective
+             class="com.amazonaws.eclipse.ec2.ui.Ec2PerspectiveFactory"
+             icon="icons/aws-box.gif"
+             id="com.amazonaws.eclipse.ec2.perspective"
+             name="Amazon EC2 Management">
+       </perspective>
+    </extension>
+
+    <!--
+     |
+     | Adds AWS perspective to the default list of perspectives
+     |
+     -->
+    <extension point="org.eclipse.ui.perspectiveExtensions">
+        <perspectiveExtension targetID="*">
+            <perspectiveShortcut id="com.amazonaws.eclipse.ec2.perspective"/>
+        </perspectiveExtension>
+    </extension>
+    
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=EC2">
+         <command commandId="org.eclipse.ui.perspectives.showPerspective"
+                  id="com.amazonaws.eclipse.ec2.showEC2PerspectiveMenuItem"
+                  label="Open Amazon EC2 Management Perspective">
+                  <parameter
+                        name="org.eclipse.ui.perspectives.showPerspective.perspectiveId"
+                        value="com.amazonaws.eclipse.ec2.perspective"/>
+         </command>
+
+         <command commandId="com.amazonaws.eclipse.ec2.openLaunchWizardCommand"
+                  id="com.amazonaws.eclipse.ec2.openLaunchWizardMenuItem"
+                  label="Launch Amazon EC2 Instances...">
+         </command>
+
+         <menu id="com.amazonaws.eclipse.ec2.showViewMenu"
+               label="Show View">
+            <separator name="additions"/>
+         </menu>
+     </menuContribution>
+
+      <menuContribution locationURI="menu:com.amazonaws.eclipse.ec2.showViewMenu?after=additions">
+         <command commandId="org.eclipse.ui.views.showView"
+                  id="com.amazonaws.eclipse.ec2.showAmiBrowserViewMenuItem"
+                  icon="icons/ami_icon.png"
+                  label="EC2 AMIs">
+            <parameter name="org.eclipse.ui.views.showView.viewId"
+                       value="com.amazonaws.eclipse.ec2.ui.views.AmiBrowserView"/>
+         </command>
+         <command commandId="org.eclipse.ui.views.showView"
+                  id="com.amazonaws.eclipse.ec2.showEBSViewMenuItem"
+                  icon="icons/harddisk.png"
+                  label="EC2 Elastic Block Storage">
+            <parameter name="org.eclipse.ui.views.showView.viewId"
+                       value="com.amazonaws.eclipse.ec2.ui.views.ElasticBlockStorageView"/>
+         </command>
+                  
+         <command commandId="org.eclipse.ui.views.showView"
+                  id="com.amazonaws.eclipse.ec2.showInstancesViewMenuItem"
+                  icon="icons/server.png"
+                  label="EC2 Instances">
+            <parameter name="org.eclipse.ui.views.showView.viewId"
+                       value="com.amazonaws.eclipse.ec2.ui.views.InstanceView"/>
+         </command>
+         <command commandId="org.eclipse.ui.views.showView"
+                  id="com.amazonaws.eclipse.ec2.showSecurityGroupsViewMenuItem"
+                  icon="icons/shield1.png"
+                  label="EC2 Security Groups">
+            <parameter name="org.eclipse.ui.views.showView.viewId"
+                       value="com.amazonaws.eclipse.ec2.views.SecurityGroupView"/>
+         </command>
+      </menuContribution>
+   </extension>
+   
+   <extension point="org.eclipse.ui.commands">
+      <command id="com.amazonaws.eclipse.ec2.openLaunchWizardCommand"
+            name="Open Launch Wizard"
+            defaultHandler="com.amazonaws.eclipse.ec2.ui.menu.OpenLaunchWizardHandler"
+            categoryId="com.amazonaws.commands.category"/>
+   </extension>
+    
+</plugin>

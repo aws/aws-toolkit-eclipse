@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Test
+Bundle-SymbolicName: com.amazonaws.eclipse.datatools.enablement.simpledb.editor.test
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: AMAZONAWS
+Fragment-Host: com.amazonaws.eclipse.datatools.enablement.simpledb.editor.ui;bundle-version="0.0.2"
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-ClassPath: lib/hamcrest-core-1.1.jar,
+ lib/hamcrest-library-1.1.jar,
+ lib/jmock-2.4.0.jar,
+ lib/jmock-junit3-2.4.0.jar,
+ .
+Require-Bundle: org.junit;bundle-version="3.8.2",
+ com.amazonaws.eclipse.datatools.enablement.simpledb.driver;bundle-version="1.0.0",
+ org.eclipse.datatools.connectivity.sqm.core;bundle-version="1.1.0",
+ org.eclipse.datatools.modelbase.sql;bundle-version="1.0.2"

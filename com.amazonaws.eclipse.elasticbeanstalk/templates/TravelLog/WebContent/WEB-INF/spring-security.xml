@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+    http://www.springframework.org/schema/security
+    http://www.springframework.org/schema/security/spring-security-3.0.3.xsd">
+
+	
+	<!-- SECURITY -->
+	<security:global-method-security
+		secured-annotations="enabled" />
+
+	<security:http auto-config="true" >
+		<!-- Restrict URLs based on role -->
+		<security:intercept-url pattern="/secured.do" access="ROLE_ADMIN"/>
+		<security:intercept-url pattern="/**"
+			access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+
+		<security:anonymous granted-authority="IS_AUTHENTICATED_ANONYMOUSLY"/>
+
+		<!-- Override default login and logout pages -->
+		<security:form-login login-page="/home.do"
+			default-target-url="/home.do" authentication-failure-url="/loginFailure.do" />
+		<security:logout logout-success-url="/logout.do" />
+			
+			
+		<security:remember-me key="rememberMeKey" />
+		
+		
+	</security:http>
+	
+	<bean id="rememberMeFilter" class=
+	 "org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter">
+	  <property name="rememberMeServices" ref="rememberMeServices"/>
+	  <property name="authenticationManager" ref="authManager" />    
+	</bean>
+	
+	<bean id="rememberMeServices" class=
+	 "org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices">
+	  <property name="userDetailsService" ref="userDetailsService"/>
+	  <property name="key" value="rememberMeKey"/>
+	</bean>
+	
+	<security:authentication-manager alias="authManager">
+		<security:authentication-provider user-service-ref="userDetailsService"/>
+	</security:authentication-manager>
+	
+	
+	<bean id="userDetailsService"
+		class="com.amazon.aws.samplecode.travellog.web.SpringAuthenticator">
+	</bean>
+	
+	
+
+
+	<!-- END SECURITY -->
+
+	
+	
+</beans>

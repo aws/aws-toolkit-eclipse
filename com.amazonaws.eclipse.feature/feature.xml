@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.amazonaws.eclipse.feature"
+      label="AWS Toolkit"
+      version="1.0.0"
+      provider-name="Amazon Web Services">
+
+   <includes
+         id="com.amazonaws.eclipse.core.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="com.amazonaws.eclipse.datatools.enablement.simpledb.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="com.amazonaws.eclipse.ec2"
+         version="0.0.0"/>
+
+</feature>

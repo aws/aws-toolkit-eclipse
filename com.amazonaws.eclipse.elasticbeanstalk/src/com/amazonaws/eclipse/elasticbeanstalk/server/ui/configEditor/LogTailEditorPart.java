@@ -1,0 +1,78 @@
+/*
+ * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ * 
+ *  http://aws.amazon.com/apache2.0
+ * 
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+package com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor;
+
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.forms.ManagedForm;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.ScrolledForm;
+import org.eclipse.wst.server.ui.editor.ServerEditorPart;
+import org.eclipse.wst.server.ui.internal.ImageResource;
+
+import com.amazonaws.eclipse.ec2.Ec2Plugin;
+
+public class LogTailEditorPart extends ServerEditorPart {
+
+    private ManagedForm managedForm;
+
+    @Override
+    public void createPartControl(Composite parent) {
+        managedForm = new ManagedForm(parent);
+        setManagedForm(managedForm);
+        ScrolledForm form = managedForm.getForm();
+        FormToolkit toolkit = managedForm.getToolkit();
+        toolkit.decorateFormHeading(form.getForm());
+        form.setText("Logs");
+        form.setImage(ImageResource.getImage(ImageResource.IMG_SERVER));
+
+        Composite columnComp = toolkit.createComposite(form.getBody());
+        FillLayout layout = new FillLayout();
+        layout.marginHeight = 0;
+        layout.marginHeight = 0;
+        columnComp.setLayout(new FillLayout());
+        form.getBody().setLayout(layout);
+
+        final LogTailEditorSection editorSection = new LogTailEditorSection();
+        editorSection.setServerEditorPart(this);
+        editorSection.init(this.getEditorSite(), this.getEditorInput());
+        editorSection.createSection(columnComp);
+
+        managedForm.getForm().getToolBarManager().add(new Action("Refresh", SWT.None) {
+
+            @Override
+            public ImageDescriptor getImageDescriptor() {
+                return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh");
+            }
+
+            @Override
+            public void run() {
+                editorSection.refresh();
+            }
+        });
+        managedForm.getForm().getToolBarManager().update(true);
+
+        form.reflow(true);
+    }
+
+    @Override
+    public void setFocus() {
+        managedForm.setFocus();
+    }
+
+}

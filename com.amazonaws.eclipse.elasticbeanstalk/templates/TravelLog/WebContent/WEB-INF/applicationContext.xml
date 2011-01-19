@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"  
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+    http://www.springframework.org/schema/beans/spring-beans-2.5.xsd ">
+
+
+	<!-- TravelLog Beans -->
+	<bean id="travelLogDao"
+		class="com.amazon.aws.samplecode.travellog.dao.TravelLogDAOSimpleDBImpl">
+	</bean>
+	<bean class="com.amazon.aws.samplecode.travellog.entity.Entry"/>
+	<bean class="com.amazon.aws.samplecode.travellog.entity.Journal"/>
+	<bean class="com.amazon.aws.samplecode.travellog.entity.Photo"/>
+	<bean class="com.amazon.aws.samplecode.travellog.entity.User"/>
+	<bean class="com.amazon.aws.samplecode.travellog.entity.Comment"/>
+	<bean class="com.amazon.aws.samplecode.travellog.entity.Commenter"/>
+
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+
+	
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+		<property name="order" value="1" />
+	</bean>
+
+	<bean
+		class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+		<property name="order" value="2" />
+	</bean>
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+	        <property name="basename"><value>messages</value></property>
+	</bean>
+	
+</beans>

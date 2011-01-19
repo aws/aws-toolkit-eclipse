@@ -1,0 +1,11 @@
+<contexts>
+
+  <context id="launchWizardHelp">
+        <description>Help launching Amazon EC2 instances</description>
+        <topic href="/com.amazonaws.eclipse.core/html/ec2/launchingInstances.html" 
+        		label="How to launch Amazon EC2 instances"/>
+        <topic href="/com.amazonaws.eclipse.core/html/ec2/ec2.html" 
+        		label="Amazon EC2 concepts"/>
+  </context>
+  
+</contexts>

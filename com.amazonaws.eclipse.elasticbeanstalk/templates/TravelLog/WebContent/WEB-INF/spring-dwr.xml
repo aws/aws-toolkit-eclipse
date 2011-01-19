@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:dwr="http://www.directwebremoting.org/schema/spring-dwr"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+    http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+    http://www.directwebremoting.org/schema/spring-dwr
+    http://www.directwebremoting.org/schema/spring-dwr-3.0.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<!-- DWR Configuration -->
+	<dwr:configuration>
+		<dwr:convert type="bean"  class="com.amazon.aws.samplecode.travellog.entity.*"></dwr:convert>
+	</dwr:configuration>
+	<dwr:annotation-config />
+	<dwr:url-mapping />
+	<dwr:controller id="dwrController" debug="true" />
+
+	<context:component-scan base-package="com.amazon.aws.samplecode.travellog.web" />
+	
+	 <dwr:annotation-scan base-package="com.amazon.aws.samplecode.travellog.entity"/>
+	 <dwr:annotation-scan base-package="com.amazon.aws.samplecode.travellog.web"/>
+	 
+
+	<bean
+		class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+		<property name="order" value="1" />
+	</bean>
+
+	<bean
+		class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+		<property name="order" value="2" />
+	</bean>
+	
+	
+</beans>

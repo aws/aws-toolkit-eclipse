@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?> 
+<plugin 
+	 id="com.amazonaws.eclipse.sdk" 
+	 name="%pluginName"
+	 version="0.0.0.REPLACE-WITH-SDK-VERSION"
+	 provider-name="%providerName">
+
+	 <runtime>
+	 </runtime> 
+	 <requires> 
+	 </requires> 
+</plugin>

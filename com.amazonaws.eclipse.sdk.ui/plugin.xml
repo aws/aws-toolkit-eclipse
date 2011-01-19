@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension point="org.eclipse.jdt.core.classpathContainerInitializer">
+      <classpathContainerInitializer
+            class="com.amazonaws.eclipse.sdk.ui.classpath.ClasspathContainerInitializer"
+            id="com.amazonaws.eclipse.sdk.AWS_JAVA_SDK">
+      </classpathContainerInitializer>
+   </extension>
+
+   <extension point="org.eclipse.jdt.ui.classpathContainerPage">
+      <classpathContainerPage
+            class="com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainerPage"
+            id="com.amazonaws.eclipse.sdk.AWS_JAVA_SDK"
+            name="AWS SDK for Java">
+      </classpathContainerPage>
+   </extension>
+
+   <extension point="org.eclipse.ui.newWizards">
+      <category
+            id="com.amazonaws.eclipse.sdk.category"
+            name="AWS">
+      </category>
+      <wizard
+            canFinishEarly="false"
+            category="com.amazonaws.eclipse.sdk.category"
+            class="com.amazonaws.eclipse.sdk.ui.wizard.NewAwsJavaProjectWizard"
+            finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
+            hasPages="true"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.sdk.newJavaProjectWizard"
+            name="AWS Java Project"
+            preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
+            project="true">
+      </wizard>
+   </extension>
+
+   <extension point="com.amazonaws.eclipse.core.overview">
+       <overviewSection title="AWS SDK for Java" class="com.amazonaws.eclipse.sdk.ui.SdkOverviewSection"/>
+   </extension>
+
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <newWizardShortcut id="com.amazonaws.eclipse.sdk.newJavaProjectWizard"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.jst.j2ee.J2EEPerspective">
+         <newWizardShortcut id="com.amazonaws.eclipse.sdk.newJavaProjectWizard"/>
+      </perspectiveExtension>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            class="com.amazonaws.eclipse.sdk.ui.SdkDecorator"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.sdk.ui.sdkdecorator"
+            label="AWS SDK for Java Decorator"
+            location="BOTTOM_LEFT"
+            objectClass="org.eclipse.jdt.internal.ui.packageview.ClassPathContainer"
+            state="true">
+      </decorator>
+   </extension>
+
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=java">
+         <command commandId="com.amazonaws.eclipse.sdk.ui.newAwsJavaProjectCommand"
+                  id="com.amazonaws.eclipse.sdk.ui.newAwsJavaProjectMenuItem"
+                  label="New AWS Java Project...">
+         </command>
+     </menuContribution>
+   </extension>
+   
+   <extension point="org.eclipse.ui.commands">
+      <command id="com.amazonaws.eclipse.sdk.ui.newAwsJavaProjectCommand"
+            name="New AWS Java Project"
+            defaultHandler="com.amazonaws.eclipse.sdk.ui.menu.NewAwsJavaProjectHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+   </extension>
+   
+</plugin>

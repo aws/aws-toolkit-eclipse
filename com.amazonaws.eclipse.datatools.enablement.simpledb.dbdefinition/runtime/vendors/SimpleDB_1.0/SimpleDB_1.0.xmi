@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="ASCII"?>
+<DBDefinition:DatabaseVendorDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" 
+xmlns:DBDefinition="http:///org/eclipse/datatools/modelbase/dbdefinition/dbdefinition.ecore" 
+vendor="SimpleDB" version="1.0" 
+maximumIdentifierLength="64" maximumCommentLength="64" 
+mQTSupported="false" aliasSupported="false" schemaSupported="false" constraintsSupported="false" triggerSupported="false"
+snapshotViewSupported="false" joinSupported="false" viewTriggerSupported="false" tablespacesSupported="false" sequenceSupported="false"
+synonymSupported="false" userDefinedTypeSupported="false" domainSupported="false" mQTIndexSupported="false" storedProcedureSupported="false"
+packageSupported="false" authorizationIdentifierSupported="false" roleSupported="false" groupSupported="false" 
+sqlUDFSupported="false">
+  <predefinedDataTypeDefinitions xmi:id="CHARACTER_1" lengthSupported="true" keyConstraintSupported="true" 
+  maximumLength="1024" jdbcEnumType="12" javaClassName="java.lang.Object"
+  orderingSupported="false" groupingSupported="false">
+    <defaultValueTypes>CURRENT_USER</defaultValueTypes>
+    <defaultValueTypes>NULL</defaultValueTypes>
+    <name>TEXT</name>
+    <name>VARCHAR</name>
+    <name>STRING</name>
+  </predefinedDataTypeDefinitions>
+  <predefinedDataTypeDefinitions xmi:id="CHARACTER_2" lengthSupported="true" keyConstraintSupported="true" 
+  maximumLength="1024" jdbcEnumType="1111" javaClassName="com.amazonaws.eclipse.datatools.enablement.simpledb.driver.SimpleDBItemName"
+  orderingSupported="false" groupingSupported="false">
+    <defaultValueTypes>CURRENT_USER</defaultValueTypes>
+    <defaultValueTypes>NULL</defaultValueTypes>
+    <name>TEXTID</name>
+  </predefinedDataTypeDefinitions>
+  <columnDefinition identitySupported="true" identityIncrementSupported="true"/>
+  <constraintDefinition clusteredPrimaryKeySupported="false" clusteredUniqueConstraintSupported="false">
+    <parentUpdateDRIRuleType>RESTRICT</parentUpdateDRIRuleType>
+    <parentUpdateDRIRuleType>NO_ACTION</parentUpdateDRIRuleType>
+    <parentDeleteDRIRuleType>RESTRICT</parentDeleteDRIRuleType>
+    <parentDeleteDRIRuleType>CASCADE</parentDeleteDRIRuleType>
+    <parentDeleteDRIRuleType>SET_NULL</parentDeleteDRIRuleType>
+    <parentDeleteDRIRuleType>NO_ACTION</parentDeleteDRIRuleType>
+    <checkOption>NONE</checkOption>
+    <checkOption>LOCAL</checkOption>
+    <checkOption>CASCADE</checkOption>
+  </constraintDefinition>
+  <viewDefinition checkOptionSupported="false"/>
+  <storedProcedureDefinition/>
+  <triggerDefinition/>
+  <indexDefinition/>
+  <tableDefinition/>
+  <udtDefinition/>
+  <queryDefinition identifierQuoteString="`" hostVariableMarker="@" hostVariableMarkerSupported="true"/>
+  <SQLSyntaxDefinition>
+    <keywords>ALTER</keywords>
+    <keywords>AND</keywords>
+    <keywords>ASC</keywords>
+    <keywords>BETWEEN</keywords>
+    <keywords>BY</keywords>
+    <keywords>COUNT</keywords>
+    <keywords>CREATE</keywords>
+    <keywords>DELETE</keywords>
+    <keywords>DESC</keywords>
+    <keywords>DISTINCT</keywords>
+    <keywords>DOMAIN</keywords>
+    <keywords>DROP</keywords>
+    <keywords>EVERY</keywords>
+    <keywords>FALSE</keywords>
+    <keywords>FROM</keywords>
+    <keywords>HAVING</keywords>
+    <keywords>IN</keywords>
+    <keywords>INSERT</keywords>
+    <keywords>INTO</keywords>
+    <keywords>IS</keywords>
+    <keywords>ITEMNAME</keywords>
+    <keywords>LIKE</keywords>
+    <keywords>LIMIT</keywords>
+    <keywords>NOT</keywords>
+    <keywords>NULL</keywords>
+    <keywords>OR</keywords>
+    <keywords>ORDER</keywords>
+    <keywords>OUT</keywords>
+    <keywords>SELECT</keywords>
+    <keywords>SET</keywords>
+    <keywords>TRUE</keywords>
+    <keywords>VALUES</keywords>
+    <keywords>UPDATE</keywords>
+    <keywords>WHERE</keywords>
+    <operators>||</operators>
+    <operators>OR</operators>
+    <operators>&amp;&amp;</operators>
+    <operators>AND</operators>
+    <operators>COUNT</operators>
+    <operators>NOT</operators>
+    <operators>BETWEEN</operators>
+    <operators>EVERY</operators>
+    <operators>=</operators>
+    <operators>>=</operators>
+    <operators>></operators>
+    <operators>&lt;=</operators>
+    <operators>&lt;</operators>
+    <operators>!=</operators>
+    <operators>IS</operators>
+    <operators>LIKE</operators>
+    <operators>IN</operators>
+    <operators>&amp;</operators>
+    <operators>&lt;&lt;</operators>
+    <operators>>></operators>
+    <operators>-</operators>
+    <operators>+</operators>
+    <operators>*</operators>
+    <operators>/</operators>
+    <operators>DIV</operators>
+    <operators>%</operators>
+    <operators>MOD</operators>
+    <operators>^</operators>
+    <operators>~</operators>
+    <operators>!</operators>
+  </SQLSyntaxDefinition>
+</DBDefinition:DatabaseVendorDefinition>

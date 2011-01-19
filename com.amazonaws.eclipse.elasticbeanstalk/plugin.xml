@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension point="org.eclipse.wst.server.core.serverTypes">
+         <serverType
+               behaviourClass="com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior"
+               class="com.amazonaws.eclipse.elasticbeanstalk.Environment"
+               description="An AWS-managed Apache Tomcat application server"
+               hasConfiguration="false"
+               id="com.amazonaws.eclipse.elasticbeanstalk.servers.environment"
+               initialState="unknown"
+               launchConfigId="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchConfigurationType"
+               launchModes="run"
+               name="AWS Elastic Beanstalk for Tomcat 6"
+               runtime="true"
+               runtimeTypeId="com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat6"
+               startBeforePublish="false"
+               startTimeout="500000"
+               stopTimeout="400000"
+               supportsRemoteHosts="true"/>
+   </extension>
+
+   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkLaunchConfigurationDelegate"
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchConfigurationType"
+            modes="run"
+            name="AWS Elastic Beanstalk"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jst.server.tomcat.core.sourcePathComputer"/>
+   </extension>
+
+   <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+       <launchConfigurationTypeImage
+             configTypeID="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchConfigurationType"
+             icon="icons/server.png"
+             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchConfigurationTypeImage" />
+    </extension>
+
+   <extension point="org.eclipse.wst.server.ui.serverImages">
+      <image
+            icon="icons/server.png"
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.serverImage"
+            typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment,
+                     com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat6"/>
+   </extension>
+
+   <extension point="org.eclipse.wst.server.core.launchableAdapters">
+      <launchableAdapter
+            class="com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkLaunchableAdapter"
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchableAdapter"
+            typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment"/>
+   </extension>
+
+   <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.LaunchConfigurationTabGroup"
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.LaunchConfigurationTabGroup"
+            type="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchConfigurationType"/>
+   </extension>
+
+    <extension point="org.eclipse.wst.server.ui.wizardFragments">
+       <fragment
+             class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.DeployWizard"
+             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.clusterWizardFragment"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+    </extension>
+
+   <extension point="org.eclipse.wst.server.ui.editorPageSections">
+      <section
+         class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.ConfigEditorSection"
+         id="com.amazonaws.eclipse.wtp.elasticbeanstalk.ui.ConfigEditorSection"
+         order="0"
+         insertionId="org.eclipse.wst.server.editor.overview.left"
+         typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+   </extension>
+
+    <extension
+          point="org.eclipse.wst.server.ui.editorPages">
+       <page
+             class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.basic.BasicEnvironmentConfigEditorPart"
+             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.basicConfig"
+             insertionIds="com.amazonaws.eclipse.wtp.elasticbeanstalk.basicConfig.left"
+             name="Configuration"
+             order="2"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+       <page
+             class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigEditorPart"
+             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.autoScaling"
+             name="Advanced"
+             order="3"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+       <page
+             class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EventLogEditorPart"
+             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.eventLog"
+             name="Events"
+             order="4"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+       <page
+             class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.LogTailEditorPart"
+             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.logTail"
+             name="Log"
+             order="5"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+    </extension>
+
+   <extension point="org.eclipse.ui.newWizards">
+      <wizard
+            canFinishEarly="false"
+            category="com.amazonaws.eclipse.sdk.category"
+            class="com.amazonaws.eclipse.elasticbeanstalk.webproject.NewAwsJavaWebProjectWizard"
+            hasPages="true"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.elasticbeanstalk.newAwsJavaWebProjectWizard"
+            name="AWS Java Web Project"
+            project="true">
+      </wizard>
+   </extension>
+
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <newWizardShortcut id="com.amazonaws.eclipse.elasticbeanstalk.newAwsJavaWebProjectWizard"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.jst.j2ee.J2EEPerspective">
+         <newWizardShortcut id="com.amazonaws.eclipse.elasticbeanstalk.newAwsJavaWebProjectWizard"/>
+      </perspectiveExtension>
+   </extension>
+
+   <extension point="com.amazonaws.eclipse.core.overview">
+       <overviewSection title="AWS Elastic Beanstalk" class="com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkOverviewSection"/>
+   </extension>
+
+   <extension point="org.eclipse.wst.server.core.runtimeTypes">
+      <runtimeType
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat6"
+            name="Apache Tomcat v6.0 in AWS Elastic Beanstalk"
+            description="Apache Tomcat v6.0 supports J2EE 1.2, 1.3, 1.4, and Java EE 5 Web modules."
+            class="com.amazonaws.eclipse.elasticbeanstalk.BasicRuntime"
+            vendor="Amazon Web Services">
+         <moduleType
+               types="jst.web"
+               versions="2.2, 2.3, 2.4, 2.5"/>
+         <moduleType
+               types="jst.utility"
+               versions="1.0"/>
+      </runtimeType>
+   </extension>
+
+  <extension point="org.eclipse.ui.popupMenus">
+    <objectContribution id="org.eclipse.jst.server.tomcat.ui.serveractions"
+      adaptable="true"
+      objectClass="org.eclipse.wst.server.core.IServer">
+      <visibility>
+          <objectState name="serverType" value="com.amazonaws.*"/>
+      </visibility>
+      <menu
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.serverMenu"
+            icon="icons/aws-box.gif"
+            label="Amazon Web Services">
+            <separator name="additions"/>
+      </menu>
+      <action
+        label="Go to AWS Management Console..."
+        menubarPath="com.amazonaws.eclipse.wtp.elasticbeanstalk.serverMenu/additions"
+        class="com.amazonaws.eclipse.elasticbeanstalk.OpenElasticBeanstalkConsoleAction"
+        id="com.amazonaws.eclipse.wtp.elasticbeanstalk.serverMenu.openConsole"
+        enablesFor="1">
+      </action>
+      <action
+        label="View Running Version..."
+        menubarPath="com.amazonaws.eclipse.wtp.elasticbeanstalk.serverMenu/additions"
+        class="com.amazonaws.eclipse.elasticbeanstalk.OpenEnvironmentUrlAction"
+        id="com.amazonaws.eclipse.wtp.elasticbeanstalk.serverMenu.openEnvironmentUrl"
+        enablesFor="1">
+      </action>
+    </objectContribution>
+  </extension>
+
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=javaWeb">
+         <command commandId="com.amazonaws.eclipse.wtp.elasticbeanstalk.newAwsJavaWebProjectCommand"
+                  id="com.amazonaws.eclipse.wtp.elasticbeanstalk.newAwsJavaWebProjectMenuItem"
+                  label="New AWS Java Web Project...">
+         </command>
+         <command commandId="com.amazonaws.eclipse.wtp.elasticbeanstalk.newEnvironmentCommand"
+                  id="com.amazonaws.eclipse.wtp.elasticbeanstalk.newEnvironmentMenuItem"
+                  label="New AWS Elastic Beanstalk Environment...">
+         </command>
+     </menuContribution>
+
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+        <command
+              commandId="com.amazonaws.eclipse.wtp.elasticbeanstalk.deployToElasticBeanstalk"
+              id="com.amazonaws.eclipse.wtp.elasticbeanstalk.deployToNewEnvironmentMenuItem"
+              label="Deploy to AWS Elastic Beanstalk..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <instanceof value="org.eclipse.core.resources.IResource"/>
+                      <test forcePluginActivation="true"
+                            property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                            value="jst.java"/>
+                      <test forcePluginActivation="true"
+                            property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                            value="jst.web"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
+   </extension>
+
+   <extension point="org.eclipse.ui.commands">
+      <command id="com.amazonaws.eclipse.wtp.elasticbeanstalk.newAwsJavaWebProjectCommand"
+            name="New AWS Java Web Project"
+            defaultHandler="com.amazonaws.eclipse.elasticbeanstalk.ui.menu.NewAwsJavaWebProjectHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+      <command id="com.amazonaws.eclipse.wtp.elasticbeanstalk.newEnvironmentCommand"
+            name="New AWS Elastic Beanstalk Environment"
+            defaultHandler="com.amazonaws.eclipse.elasticbeanstalk.ui.menu.NewEnvironmentHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+
+      <command id="com.amazonaws.eclipse.wtp.elasticbeanstalk.deployToElasticBeanstalk"
+            name="Deploy to New AWS Elastic Beanstalk Environment"
+            defaultHandler="com.amazonaws.eclipse.elasticbeanstalk.ui.menu.DeployToElasticBeanstalkHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup></startup>
+   </extension>
+
+</plugin>
