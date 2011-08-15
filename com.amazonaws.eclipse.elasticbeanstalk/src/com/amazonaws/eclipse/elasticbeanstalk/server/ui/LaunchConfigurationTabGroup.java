@@ -25,7 +25,7 @@ public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabG
 
     public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
         ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[1];
-        tabs[0] = new ServerLaunchConfigurationTab(new String[] { ElasticBeanstalkPlugin.ELASTIC_BEANSTALK_SERVER_TYPE_ID });
+        tabs[0] = new ServerLaunchConfigurationTab(new String[] { ElasticBeanstalkPlugin.TOMCAT_6_SERVER_TYPE_ID, ElasticBeanstalkPlugin.TOMCAT_7_SERVER_TYPE_ID });
         tabs[0].setLaunchConfigurationDialog(dialog);
         setTabs(tabs);
     }

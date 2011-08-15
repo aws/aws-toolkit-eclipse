@@ -41,6 +41,7 @@ import org.eclipse.wst.server.ui.internal.ImageResource;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.AbstractEnvironmentConfigEditorPart;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.RefreshListener;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -109,15 +110,15 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
     public void init(IEditorSite site, IEditorInput input) {
         super.init(site, input);
 
-        editorSectionsByNamespace.put(serverNamespaces, new ServerConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(loadBalancingNamespaces, new LoadBalancingConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(healthCheckNamespaces, new HealthCheckConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(sessionsNamespaces, new SessionConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(autoscalingNamespaces, new AutoScalingConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(triggerNamespaces, new ScalingTriggerConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(notificationsNamespaces, new NotificationsConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(containerNamespaces, new ContainerConfigEditorSection(this, model, bindingContext));
-        editorSectionsByNamespace.put(environmentNamespaces, new EnvironmentPropertiesConfigEditorSection(this, model, bindingContext));
+        editorSectionsByNamespace.put(serverNamespaces, new ServerConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(loadBalancingNamespaces, new LoadBalancingConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(healthCheckNamespaces, new HealthCheckConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(sessionsNamespaces, new SessionConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(autoscalingNamespaces, new AutoScalingConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(triggerNamespaces, new ScalingTriggerConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(notificationsNamespaces, new NotificationsConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(containerNamespaces, new ContainerConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(environmentNamespaces, new EnvironmentPropertiesConfigEditorSection(this, model, environment, bindingContext));
     
         model.addRefreshListener(this);       
     }

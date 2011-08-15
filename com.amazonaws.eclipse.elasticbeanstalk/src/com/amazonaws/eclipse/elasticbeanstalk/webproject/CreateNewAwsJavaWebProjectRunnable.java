@@ -30,6 +30,10 @@ package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -37,8 +41,12 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
@@ -152,8 +160,8 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             addTemplateFiles(project);
             monitor.worked(10);
             CredentialsUtils credentialsUtils = new CredentialsUtils();
-            credentialsUtils.addAwsCredentialsFileToProject(project, dataModel.getAccessKeyId(), dataModel.getSecretAccessKey());
-            credentialsUtils.saveCredentials(dataModel.getAccessKeyId(), dataModel.getSecretAccessKey());
+            AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(dataModel.getAccountId());
+            credentialsUtils.addAwsCredentialsFileToProject(project, accountInfo.getAccessKey(), accountInfo.getSecretKey());
             monitor.worked(10);
         } catch (Exception e) {
             throw new InvocationTargetException(e);
@@ -205,19 +213,23 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         }
     }
 
+    /** Filename filter that selects all ZIP files. */
+    private static final class ZipFileFilter implements FilenameFilter {
+        public boolean accept(File dir, String name) {
+            return (name.toLowerCase().endsWith(".zip"));
+        }
+    }
+
+    /** Filename filter that filters out all SVN metadata files. */
+    private static final class SvnMetadataFilter implements FileFilter {
+        public boolean accept(File pathname) {
+            return (pathname.toString().contains("/.svn/") == false);
+        }
+    }
+
     private static class CredentialsUtils {
         private static final String AWS_CREDENTIALS_URL = "http://aws.amazon.com/security-credentials";
         private static final String AWS_CREDENTIALS_PROPERTIES_FILE = "AwsCredentials.properties";
-
-        public void saveCredentials(String accessKeyId, String secretKey) {
-            // bail out if we don't have any data to persist
-            if (accessKeyId == null || accessKeyId.trim().length() == 0) return;
-            if (secretKey == null || secretKey.trim().length() == 0) return;
-
-            AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo();
-            accountInfo.setAccessKey(accessKeyId);
-            accountInfo.setSecretKey(secretKey);
-        }
 
         public void addAwsCredentialsFileToProject(final IProject project, String accessKeyId, String secretKey) throws CoreException {
             Properties credentialProperties = new Properties();
@@ -241,44 +253,47 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             }
 
             project.refreshLocal(IResource.DEPTH_INFINITE, null);
-
-            final IFile[] files = project.getWorkspace().getRoot().findFilesForLocationURI(credentialsFilePath.toFile().toURI());
-            Display.getDefault().syncExec(new Runnable() {
-                public void run() {
-                    for (IFile file : files) {
-//                        BasicNewResourceWizard.selectAndReveal(
-//                                file, PlatformUI.getWorkbench().getActiveWorkbenchWindow());
-                    }
-                }
-            });
         }
     }
 
     private void addTemplateFiles(IProject project) throws IOException, CoreException {
         Bundle bundle = ElasticBeanstalkPlugin.getDefault().getBundle();
         URL url = FileLocator.resolve(bundle.getEntry("/"));
+        IPath templateRoot = new Path(url.getFile(), "templates");
 
-        IPath templateRoot = null;
         if (dataModel.isSampleAppIncluded()) {
-            templateRoot = new Path(url.getFile(), "templates").append("TravelLog");
+            // The TravelLog sample app template is zipped up, so we need to extract it to the right location
+            for (File file : templateRoot.append("TravelLog").toFile().listFiles(new ZipFileFilter())) {
+                unzipSampleAppTemplate(file, project.getLocation().toFile());
+            }
         } else {
-            templateRoot = new Path(url.getFile(), "templates").append("basic");
+            // The basic template can simply be copied over without being unzipped
+            FileUtils.copyDirectory(
+                templateRoot.append("basic").toFile(),
+                project.getLocation().toFile(),
+                new SvnMetadataFilter());
         }
 
-        FileFilter filter = new FileFilter() {
-            public boolean accept(File pathname) {
-                return (pathname.toString().contains("/.svn/") == false);
-            }
-        };
-        FileUtils.copyDirectory(templateRoot.toFile(), project.getLocation().toFile(), filter);
-
         project.refreshLocal(IResource.DEPTH_INFINITE, null);
-        final IResource resourceToReveal = project.findMember(new Path("WebContent/index.jsp"));
-        Display.getDefault().syncExec(new Runnable() {
-            public void run() {
-//                BasicNewResourceWizard.selectAndReveal(
-//                        resourceToReveal, PlatformUI.getWorkbench().getActiveWorkbenchWindow());
+    }
+
+    private void unzipSampleAppTemplate(File file, File destination) throws FileNotFoundException, IOException {
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(file));
+
+        ZipEntry zipEntry = null;
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+            IPath path = new Path(zipEntry.getName());
+            path = path.removeFirstSegments(1);
+
+            File destinationFile = new File(destination, path.toOSString());
+            if (zipEntry.isDirectory()) {
+                destinationFile.mkdirs();
+            } else {
+                FileOutputStream outputStream = new FileOutputStream(destinationFile);
+                IOUtils.copy(zipInputStream, outputStream);
+                outputStream.close();
             }
-        });
+        }
+        zipInputStream.close();
     }
 }

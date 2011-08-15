@@ -20,6 +20,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.ui.SetupAwsAccountAction;
@@ -58,7 +59,7 @@ final class CreateAmiAction extends Action {
 
         KeyPairManager keyPairManager = new KeyPairManager();
         String keyName = instance.getKeyName();
-        String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(keyName);
+        String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(AwsToolkitCore.getDefault().getCurrentAccountId(), keyName);
 
         if ( keyPairFilePath == null ) {
             String message = "There is no private key registered for the key this host was launched with (" + keyName

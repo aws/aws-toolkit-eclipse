@@ -23,6 +23,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+
 /**
  * Small wrapper around a {@link KeyPairSelectionTable} that adds a toolbar.
  */
@@ -30,9 +32,22 @@ public class KeyPairComposite extends Composite {
     private KeyPairSelectionTable keyPairSelectionTable;
     private ToolBar toolBar;
     private ToolBarManager toolBarManager;
+    private final String accountId;
 
+    /**
+     * Constructs a key pair composite that uses the current AWS account.    
+     */
     public KeyPairComposite(Composite parent) {
+        this(parent, AwsToolkitCore.getDefault().getCurrentAccountId());
+    }
+
+    /**
+     * Constructs a key pair composite that uses the account id given. 
+     */
+    public KeyPairComposite(Composite parent, String accountId) {
         super(parent, SWT.NONE);
+        
+        this.accountId = accountId;
 
         GridLayout layout = new GridLayout(1, false);
         layout.verticalSpacing = 2;
@@ -45,7 +60,7 @@ public class KeyPairComposite extends Composite {
         toolBar = toolBarManager.createControl(this);
         toolBar.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
-        keyPairSelectionTable = new KeyPairSelectionTable(this);
+        keyPairSelectionTable = new KeyPairSelectionTable(this, this.accountId);
         keyPairSelectionTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         toolBarManager.add(keyPairSelectionTable.refreshAction);

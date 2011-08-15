@@ -14,7 +14,7 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.jobs;
 
-import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
+import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.*;
 
 import java.util.List;
 import java.util.Random;
@@ -34,6 +34,7 @@ import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
@@ -65,7 +66,8 @@ public class SyncEnvironmentsJob extends Job {
         for (IServer server : ServerCore.getServers()) {
             if (server.getServerType() == null) continue;
             String id = server.getServerType().getId();
-            if (id.equals(ElasticBeanstalkPlugin.ELASTIC_BEANSTALK_SERVER_TYPE_ID)) {
+
+            if (ElasticBeanstalkPlugin.SERVER_TYPE_IDS.contains(id)) {
                 Environment environment = (Environment)server.loadAdapter(Environment.class, monitor);
                 EnvironmentBehavior behavior = (EnvironmentBehavior)server.loadAdapter(EnvironmentBehavior.class, monitor);
 
@@ -97,11 +99,12 @@ public class SyncEnvironmentsJob extends Job {
      * it should be considered in a "transitioning" state.
      */
     private boolean syncEnvironment(Environment environment, EnvironmentBehavior behavior) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(
             environment.getRegionEndpoint());
 
         EnvironmentDescription environmentDescription = describeEnvironment(client, environment.getEnvironmentName());
-        behavior.updateServer(environmentDescription);
+        List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();
+        behavior.updateServer(environmentDescription, settings);
 
         if (environmentDescription == null) return false;
 

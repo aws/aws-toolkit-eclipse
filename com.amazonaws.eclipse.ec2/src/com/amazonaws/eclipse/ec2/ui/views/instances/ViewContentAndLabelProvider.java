@@ -28,6 +28,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.TagFormatter;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
@@ -158,7 +159,7 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 		case INSTANCE_ID_COLUMN:
 		    return Ec2Plugin.getDefault().getImageRegistry().get("server");
 		case KEY_NAME_COLUMN:
-			if (keyPairManager.isKeyPairValid(instance.getKeyName())) {
+			if (keyPairManager.isKeyPairValid(AwsToolkitCore.getDefault().getCurrentAccountId(), instance.getKeyName())) {
 				return Ec2Plugin.getDefault().getImageRegistry().get("check");
 			} else {
 				return Ec2Plugin.getDefault().getImageRegistry().get("error");

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.preferences.PreferenceConstants;
 import com.jcraft.jsch.ChannelExec;
@@ -131,27 +132,6 @@ public class RemoteCommandUtils {
 
             try {Thread.sleep(RETRY_INTERVAL);} catch (InterruptedException ie) {}
         }
-    }
-
-    /**
-     * Executes the specified command array, but does NOT wait for it to finish,
-     * therefore no exit code is returned. Not technically a remote command
-     * utility method, but here for convenience. This should probably eventually
-     * move into a different class.
-     *
-     * @param commandArray
-     *            The command array to execute.
-     * @throws IOException
-     *             If there were any problems kicking off the command.
-     */
-    public void executeAsynchronousCommand(String[] commandArray) throws IOException {
-        String commandString = "";
-        for (String command : commandArray) {
-            commandString += command + " ";
-        }
-        logger.info("Asynchronously executing: " + commandString);
-
-        Runtime.getRuntime().exec(commandArray);
     }
 
     /**
@@ -411,7 +391,7 @@ public class RemoteCommandUtils {
      * @throws IOException
      */
     private Session createSshSession(Instance instance) throws JSchException, IOException {
-        String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(instance.getKeyName());
+        String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(AwsToolkitCore.getDefault().getCurrentAccountId(), instance.getKeyName());
 
         if (keyPairFilePath == null) {
             throw new IOException("No private key file found for key " + instance.getKeyName());

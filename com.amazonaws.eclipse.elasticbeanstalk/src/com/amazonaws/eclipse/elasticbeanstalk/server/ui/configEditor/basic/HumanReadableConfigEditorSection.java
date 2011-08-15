@@ -20,6 +20,7 @@ import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.forms.widgets.Section;
 
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.AbstractEnvironmentConfigEditorPart;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigDataModel;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigEditorSection;
@@ -41,8 +42,9 @@ public abstract class HumanReadableConfigEditorSection extends EnvironmentConfig
         this.parentComposite = parentComposite;
     }
 
-    public HumanReadableConfigEditorSection(AbstractEnvironmentConfigEditorPart parentEditor, EnvironmentConfigDataModel model, DataBindingContext bindingContext) {
-        super(parentEditor, model, bindingContext, null, null);
+    public HumanReadableConfigEditorSection(AbstractEnvironmentConfigEditorPart parentEditor,
+            EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext) {
+        super(parentEditor, model, environment, bindingContext, null, null);
     }
 
     @Override

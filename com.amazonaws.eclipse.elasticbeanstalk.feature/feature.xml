@@ -213,7 +213,8 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
       <import plugin="org.eclipse.wst.server.core" version="1.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jdt.core" version="3.4.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jdt.launching" version="3.4.0" match="greaterOrEqual"/>
-      <import plugin="com.amazonaws.eclipse.core" version="1.0.5" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.core" version="2.0.0" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.ec2" version="1.1.0" match="greaterOrEqual"/>
       <import plugin="com.amazonaws.eclipse.sdk.ui" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.databinding" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.databinding.beans" version="1.2.0" match="greaterOrEqual"/>
@@ -225,7 +226,6 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
       <import plugin="org.eclipse.core.net" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jst.j2ee.ejb" version="1.1.0" match="greaterOrEqual"/>
-      <import plugin="com.amazonaws.eclipse.ec2" version="1.1.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

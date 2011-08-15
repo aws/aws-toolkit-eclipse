@@ -33,6 +33,7 @@ import org.eclipse.ui.forms.widgets.Section;
 
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairRefreshListener;
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigDataModel;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -56,8 +57,8 @@ public class ServerConfigEditorSection extends HumanReadableConfigEditorSection 
             "MonitoringInterval", "ImageId" };
 
     public ServerConfigEditorSection(BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart,
-            EnvironmentConfigDataModel model, DataBindingContext bindingContext) {
-        super(basicEnvironmentConfigurationEditorPart, model, bindingContext);
+            EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext) {
+        super(basicEnvironmentConfigurationEditorPart, model, environment, bindingContext);
     }
 
     @Override
@@ -107,11 +108,11 @@ public class ServerConfigEditorSection extends HumanReadableConfigEditorSection 
         Label label = createLabel(toolkit, parent, option);
         label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 
-        final KeyPairComposite keyPairWidget = new KeyPairComposite(parent);
+        final KeyPairComposite keyPairWidget = new KeyPairComposite(parent, this.environment.getAccountId());
 
         GridData layoutData = new GridData(SWT.FILL, SWT.FILL, true, false);
         layoutData.widthHint = 200;
-        layoutData.heightHint = 100;
+        layoutData.heightHint = 200;
         keyPairWidget.setLayoutData(layoutData);
 
         final IObservableValue modelv = model.observeEntry(option);

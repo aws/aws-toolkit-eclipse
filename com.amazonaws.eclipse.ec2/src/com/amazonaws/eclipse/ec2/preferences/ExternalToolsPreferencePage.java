@@ -43,7 +43,6 @@ public class ExternalToolsPreferencePage
 	private FileFieldEditor sshClient;
 	private StringFieldEditor sshOptions;
 	private FileFieldEditor puttyExecutable;
-	private FileFieldEditor puttygenExecutable;
 	private StringFieldEditor sshUser;
 	
 	private static final int MAX_FIELD_EDITOR_COLUMNS = 3;	
@@ -78,8 +77,8 @@ public class ExternalToolsPreferencePage
 			
 			WebLinkListener webLinkListener = new WebLinkListener();
 			Link l = new Link(sshClientGroup, SWT.NONE);
-			l.setText("PuTTY and PuTTYgen are required for remote shell connections "
-					+ "to EC2 instances from Windows.  \nYou can download both for free "
+			l.setText("PuTTY is required for remote shell connections "
+					+ "to EC2 instances from Windows.  \nYou can download it for free "
 					+ "from <a href=\"" + puttyUrl + "\">" + puttyUrl + "</a>.");
 			l.addListener(SWT.Selection, webLinkListener);
 			GridData data = new GridData(GridData.FILL_HORIZONTAL);
@@ -87,7 +86,6 @@ public class ExternalToolsPreferencePage
 			l.setLayoutData(data);
 			
 			puttyExecutable = newFileFieldEditor(PreferenceConstants.P_PUTTY_EXECUTABLE, "PuTTY Executable:", sshClientGroup);
-			puttygenExecutable = newFileFieldEditor(PreferenceConstants.P_PUTTYGEN_EXECUTABLE, "PuTTYgen Executable:", sshClientGroup);
 		} else {
 			// For the Mac, we use a custom AppleScript script that we ship with the
 			// plugin so we don't need a seperate terminal exectuable.
@@ -130,7 +128,6 @@ public class ExternalToolsPreferencePage
 		if (sshUser != null) sshUser.loadDefault();
 		
 		if (puttyExecutable != null) puttyExecutable.loadDefault();
-		if (puttygenExecutable != null) puttygenExecutable.loadDefault();
 		
 		super.performDefaults();
 	}
@@ -146,7 +143,6 @@ public class ExternalToolsPreferencePage
 		if (sshUser != null) sshUser.store(); 
 
 		if (puttyExecutable != null) puttyExecutable.store();
-		if (puttygenExecutable != null) puttygenExecutable.store();
 		
 		return super.performOk();
 	}

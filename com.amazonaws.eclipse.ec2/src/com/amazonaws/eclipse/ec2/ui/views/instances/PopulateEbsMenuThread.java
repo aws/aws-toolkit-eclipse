@@ -22,8 +22,10 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.AWSClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.DescribeVolumesRequest;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Volume;
@@ -37,63 +39,64 @@ import com.amazonaws.services.ec2.model.VolumeAttachment;
 class PopulateEbsMenuThread extends Thread {
 
     /** The menu to add items to */
-	private final MenuManager menu;
-	/** The instance to acted on by menu items */
-	private final Instance instance;
+    private final MenuManager menu;
+    /** The instance to acted on by menu items */
+    private final Instance instance;
 
     /** A shared client factory */
-    private final static Ec2ClientFactory clientFactory = new Ec2ClientFactory();
-    
-	/**
-	 * Creates a new thread ready to be started to populate the specified
-	 * menu with actions to attach or detach EBS volumes to the specified
-	 * instance.
-	 *
-	 * @param instance
-	 *            The instance to detach or attach EBS volumes to.
-	 * @param menu
-	 *            The menu to add menu items to.
-	 * @param instanceSelectionTable TODO
-	 */
-	public PopulateEbsMenuThread(final Instance instance, final MenuManager menu) {
+    private static AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
+
+    /**
+     * Creates a new thread ready to be started to populate the specified
+     * menu with actions to attach or detach EBS volumes to the specified
+     * instance.
+     *
+     * @param instance
+     *            The instance to detach or attach EBS volumes to.
+     * @param menu
+     *            The menu to add menu items to.
+     * @param instanceSelectionTable TODO
+     */
+    public PopulateEbsMenuThread(final Instance instance, final MenuManager menu) {
         this.instance = instance;
-		this.menu = menu;
-	}
+        this.menu = menu;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Thread#run()
-	 */
-	@Override
-	public void run() {
-		try {
-			List<Volume> volumes = clientFactory.getAwsClient().describeVolumes(new DescribeVolumesRequest()).getVolumes();
+    /* (non-Javadoc)
+     * @see java.lang.Thread#run()
+     */
+    @Override
+    public void run() {
+        try {
+            AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+            List<Volume> volumes = ec2.describeVolumes(new DescribeVolumesRequest()).getVolumes();
 
-			for (Volume volume : volumes) {
-				String status = volume.getState();
+            for (Volume volume : volumes) {
+                String status = volume.getState();
 
-				// We don't want to allow users to attach any volumes that aren't
-				// available or are in different availability zones.
-				if (!status.equalsIgnoreCase("available")) continue;
-				if (!volume.getAvailabilityZone().equalsIgnoreCase(instance.getPlacement().getAvailabilityZone())) continue;
+                // We don't want to allow users to attach any volumes that aren't
+                // available or are in different availability zones.
+                if (!status.equalsIgnoreCase("available")) continue;
+                if (!volume.getAvailabilityZone().equalsIgnoreCase(instance.getPlacement().getAvailabilityZone())) continue;
 
-				menu.add(new AttachVolumeAction(instance, volume));
-			}
+                menu.add(new AttachVolumeAction(instance, volume));
+            }
 
-			menu.add(new Separator());
+            menu.add(new Separator());
 
-			for (Volume volume : volumes) {
-				for (VolumeAttachment attachmentInfo : volume.getAttachments()) {
-					String instanceId = attachmentInfo.getInstanceId();
+            for (Volume volume : volumes) {
+                for (VolumeAttachment attachmentInfo : volume.getAttachments()) {
+                    String instanceId = attachmentInfo.getInstanceId();
 
-					if (!instanceId.equals(instance.getInstanceId())) continue;
+                    if (!instanceId.equals(instance.getInstanceId())) continue;
 
-					menu.add(new DetachVolumeAction(volume, instance));
-				}
-			}
-		} catch (Exception e) {
-			Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
-					"Unable to query EBS volumes: " + e.getMessage());
-			StatusManager.getManager().handle(status, StatusManager.LOG);
-		}
-	}
+                    menu.add(new DetachVolumeAction(volume, instance));
+                }
+            }
+        } catch (Exception e) {
+            Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
+                    "Unable to query EBS volumes: " + e.getMessage());
+            StatusManager.getManager().handle(status, StatusManager.LOG);
+        }
+    }
 }

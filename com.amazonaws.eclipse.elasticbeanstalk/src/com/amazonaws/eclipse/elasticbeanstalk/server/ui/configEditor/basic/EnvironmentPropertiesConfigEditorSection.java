@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.eclipse.core.databinding.DataBindingContext;
 
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigDataModel;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
 
@@ -30,8 +31,8 @@ import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescript
 public class EnvironmentPropertiesConfigEditorSection extends HumanReadableConfigEditorSection {
 
     public EnvironmentPropertiesConfigEditorSection(
-            BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, DataBindingContext bindingContext) {
-        super(basicEnvironmentConfigurationEditorPart, model, bindingContext);
+            BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext) {
+        super(basicEnvironmentConfigurationEditorPart, model, environment, bindingContext);
     }
 
     @Override

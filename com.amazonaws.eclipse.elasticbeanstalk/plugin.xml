@@ -14,9 +14,25 @@
                name="AWS Elastic Beanstalk for Tomcat 6"
                runtime="true"
                runtimeTypeId="com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat6"
-               startBeforePublish="false"
-               startTimeout="500000"
-               stopTimeout="400000"
+               startBeforePublish="true"
+               startTimeout="600000"
+               stopTimeout="800000"
+               supportsRemoteHosts="true"/>
+         <serverType
+               behaviourClass="com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior"
+               class="com.amazonaws.eclipse.elasticbeanstalk.Environment"
+               description="An AWS-managed Apache Tomcat application server"
+               hasConfiguration="false"
+               id="com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"
+               initialState="unknown"
+               launchConfigId="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchConfigurationType"
+               launchModes="run"
+               name="AWS Elastic Beanstalk for Tomcat 7"
+               runtime="true"
+               runtimeTypeId="com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat7"
+               startBeforePublish="true"
+               startTimeout="600000"
+               stopTimeout="800000"
                supportsRemoteHosts="true"/>
    </extension>
 
@@ -24,7 +40,7 @@
       <launchConfigurationType
             delegate="com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkLaunchConfigurationDelegate"
             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchConfigurationType"
-            modes="run"
+            modes="run,debug"
             name="AWS Elastic Beanstalk"
             sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
             sourcePathComputerId="org.eclipse.jst.server.tomcat.core.sourcePathComputer"/>
@@ -42,14 +58,17 @@
             icon="icons/server.png"
             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.serverImage"
             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment,
-                     com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat6"/>
+                     com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7,
+                     com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat6,
+                     com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat7"/>
    </extension>
 
    <extension point="org.eclipse.wst.server.core.launchableAdapters">
       <launchableAdapter
             class="com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkLaunchableAdapter"
             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.launchableAdapter"
-            typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment"/>
+            typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment,
+                     com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"/>
    </extension>
 
    <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
@@ -63,7 +82,8 @@
        <fragment
              class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.DeployWizard"
              id="com.amazonaws.eclipse.wtp.elasticbeanstalk.clusterWizardFragment"
-             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment,
+                      com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"/>
     </extension>
 
    <extension point="org.eclipse.wst.server.ui.editorPageSections">
@@ -72,36 +92,42 @@
          id="com.amazonaws.eclipse.wtp.elasticbeanstalk.ui.ConfigEditorSection"
          order="0"
          insertionId="org.eclipse.wst.server.editor.overview.left"
-         typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+         typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment,
+                  com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"/>
    </extension>
 
-    <extension
-          point="org.eclipse.wst.server.ui.editorPages">
+    <extension point="org.eclipse.wst.server.ui.editorPages">
+       <page
+             class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentResourcesEditorPart"
+             id="com.amazonaws.eclipse.wtp.elasticbeanstalk.environmentResources"
+             name="Environment Resources"
+             order="2"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.*"/>
        <page
              class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.basic.BasicEnvironmentConfigEditorPart"
              id="com.amazonaws.eclipse.wtp.elasticbeanstalk.basicConfig"
              insertionIds="com.amazonaws.eclipse.wtp.elasticbeanstalk.basicConfig.left"
              name="Configuration"
-             order="2"
-             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+             order="3"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.*"/>
        <page
              class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigEditorPart"
              id="com.amazonaws.eclipse.wtp.elasticbeanstalk.autoScaling"
              name="Advanced"
-             order="3"
-             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+             order="4"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.*"/>
        <page
              class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EventLogEditorPart"
              id="com.amazonaws.eclipse.wtp.elasticbeanstalk.eventLog"
              name="Events"
-             order="4"
-             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+             order="5"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.*"/>
        <page
              class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.LogTailEditorPart"
              id="com.amazonaws.eclipse.wtp.elasticbeanstalk.logTail"
              name="Log"
-             order="5"
-             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment" />
+             order="6"
+             typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.*"/>
     </extension>
 
    <extension point="org.eclipse.ui.newWizards">
@@ -140,6 +166,19 @@
          <moduleType
                types="jst.web"
                versions="2.2, 2.3, 2.4, 2.5"/>
+         <moduleType
+               types="jst.utility"
+               versions="1.0"/>
+      </runtimeType>
+      <runtimeType
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.runtimes.tomcat7"
+            name="Apache Tomcat v7.0 in AWS Elastic Beanstalk"
+            description="Apache Tomcat v7.0 supports J2EE 1.2, 1.3, 1.4, and Java EE 5 and 6 Web modules."
+            class="com.amazonaws.eclipse.elasticbeanstalk.BasicRuntime"
+            vendor="Amazon Web Services">
+         <moduleType
+               types="jst.web"
+               versions="2.2, 2.3, 2.4, 2.5, 3.0"/>
          <moduleType
                types="jst.utility"
                versions="1.0"/>
@@ -233,5 +272,42 @@
          point="org.eclipse.ui.startup">
       <startup></startup>
    </extension>
+
+   <!-- Resource navigator content -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.elasticbeanstalk.explorer.ElasticBeanstalkContentProvider"
+         id="com.amazonaws.eclipse.explorer.ElasticBeanstalkContent"
+         labelProvider="com.amazonaws.eclipse.elasticbeanstalk.explorer.ElasticBeanstalkLabelProvider"
+         name="Amazon Elastic Beanstalk Resources"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+        The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+          <instanceof value="com.amazonaws.eclipse.elasticbeanstalk.explorer.ElasticBeanstalkRootElement" />
+          <instanceof value="com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription" />
+          <instanceof value="com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.elasticbeanstalk.explorer.ElasticBeanstalkActionProvider">
+         <enablement>
+            <or>
+              <instanceof value="com.amazonaws.eclipse.elasticbeanstalk.explorer.ElasticBeanstalkRootElement" />
+              <instanceof value="com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription" />
+              <instanceof value="com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription" />
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+
+  </extension>
 
 </plugin>

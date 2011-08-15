@@ -42,7 +42,6 @@ import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOptionsResult;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsRequest;
 
 /**
  * Simple data model factory for environments.
@@ -182,15 +181,23 @@ public class EnvironmentConfigDataModel {
         @SuppressWarnings("unchecked")
         Collection<String> modelValues = ((Collection<String>) dataModel.get(key));
 
-        boolean containsAll = true;
+        /*
+         * Sets a and b are equivalent iff for each element e in set a, b.contains(e) and
+         * vice versa
+         */
+        boolean setsEquivalent = true;
         for ( String v : setting.getValue().split(",") ) {
             settingValues.add(v);
             if ( !modelValues.contains(v) ) {
-                containsAll = false;
+                setsEquivalent = false;
             }
         }
+        for (String v : modelValues) {
+            if (!settingValues.contains(v))
+                setsEquivalent = false;
+        }
 
-        if ( !containsAll && settingValues.size() == modelValues.size() ) {
+        if ( !setsEquivalent ) {
             modelValues.clear();
             modelValues.addAll(settingValues);
         }
@@ -217,14 +224,15 @@ public class EnvironmentConfigDataModel {
      * by option name.
      */
     public List<ConfigurationOptionDescription> getSortedConfigurationOptions() {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
+                .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
 
         DescribeConfigurationOptionsResult optionsDesc = null;
         try {
             optionsDesc = client.describeConfigurationOptions(new DescribeConfigurationOptionsRequest()
                 .withEnvironmentName(environment.getEnvironmentName()));
         } catch (AmazonServiceException e) {
-            if (e.getErrorCode().equals("InvalidParameterValue")) {
+            if ( "InvalidParameterValue".equals(e.getErrorCode()) ) {
                 // If the environment doesn't exist yet...
                 return new ArrayList<ConfigurationOptionDescription>();
             } else {
@@ -251,11 +259,8 @@ public class EnvironmentConfigDataModel {
      * their namespace.
      */
     public Map<String, List<ConfigurationOptionSetting>> getEnvironmentConfiguration(String environmentName) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         try {
-            List<ConfigurationSettingsDescription> settings = client.describeConfigurationSettings(
-                    new DescribeConfigurationSettingsRequest().withEnvironmentName(environment.getEnvironmentName())
-                            .withApplicationName(environment.getApplicationName())).getConfigurationSettings();
+            List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();
             if ( settings.isEmpty() ) return null;
             return createSettingsMap(settings);
         } catch (AmazonServiceException ase) {
@@ -269,10 +274,7 @@ public class EnvironmentConfigDataModel {
      * their namespace.
      */
     public Map<String, List<ConfigurationOptionSetting>> getTemplateConfiguration(String templateName) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
-        List<ConfigurationSettingsDescription> settings = client.describeConfigurationSettings(
-                new DescribeConfigurationSettingsRequest().withTemplateName(templateName).withApplicationName(
-                        environment.getApplicationName())).getConfigurationSettings();
+        List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();
 
         if ( settings.isEmpty() )
             return null;

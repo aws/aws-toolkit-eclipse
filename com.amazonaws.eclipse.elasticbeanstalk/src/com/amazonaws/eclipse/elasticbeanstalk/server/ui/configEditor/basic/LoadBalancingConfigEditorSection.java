@@ -21,6 +21,7 @@ import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.forms.widgets.Section;
 
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigDataModel;
 
 /**
@@ -39,8 +40,8 @@ public class LoadBalancingConfigEditorSection extends HumanReadableConfigEditorS
             "SSLCertificateId" };
 
     public LoadBalancingConfigEditorSection(
-            BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, DataBindingContext bindingContext) {
-        super(basicEnvironmentConfigurationEditorPart, model, bindingContext);
+            BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext) {
+        super(basicEnvironmentConfigurationEditorPart, model, environment, bindingContext);
     }
 
     @Override

@@ -15,7 +15,9 @@
 package com.amazonaws.eclipse.core;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -43,12 +45,25 @@ final class AccountInfoMonitor implements IPropertyChangeListener {
     public void removeAccountInfoChangeListener(AccountInfoChangeListener listener) {
         listeners.remove(listener);
     }
+    
+    private static final Set<String> watchedProperties = new HashSet<String>();
+    static {
+        watchedProperties.add(PreferenceConstants.P_ACCESS_KEY);
+        watchedProperties.add(PreferenceConstants.P_ACCOUNT_IDS);
+        watchedProperties.add(PreferenceConstants.P_CERTIFICATE_FILE);
+        watchedProperties.add(PreferenceConstants.P_CURRENT_ACCOUNT);
+        watchedProperties.add(PreferenceConstants.P_PRIVATE_KEY_FILE);
+        watchedProperties.add(PreferenceConstants.P_SECRET_KEY);
+        watchedProperties.add(PreferenceConstants.P_USER_ID);
+    }
 
     public void propertyChange(PropertyChangeEvent event) {
-        if (event.getProperty().equals(PreferenceConstants.P_ACCESS_KEY) ||
-            event.getProperty().equals(PreferenceConstants.P_SECRET_KEY)) {
+        String property = event.getProperty();
+        String bareProperty = property.substring(property.indexOf(":") + 1);
+        
+        if ( watchedProperties.contains(bareProperty) ) {
             // We delay the job running so that any other preferences being
-            // updated can complete.  We don't want to fire immediately when
+            // updated can complete. We don't want to fire immediately when
             // only the access key has changed and the secret key hasn't
             // been updated yet.
             notifyCredentialListenersJob.schedule(1000);
@@ -62,8 +77,13 @@ final class AccountInfoMonitor implements IPropertyChangeListener {
         }
 
         protected IStatus run(IProgressMonitor monitor) {
-            for (AccountInfoChangeListener listener : listeners) {
-                listener.currentAccountChanged();
+            for ( AccountInfoChangeListener listener : listeners ) {
+                try {
+                    listener.currentAccountChanged();
+                } catch ( Exception e ) {
+                    AwsToolkitCore.getDefault().logException(
+                            "Couldn't notify listener of account change: " + listener.getClass(), e);
+                }
             }
             return Status.OK_STATUS;
         }

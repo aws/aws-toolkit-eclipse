@@ -47,9 +47,12 @@ class CreateKeyPairDialog extends Dialog {
 	
 	private String keyPairName;
 	private String privateKeyDirectoryName;
+	
+	private final String accountId;
 
-	protected CreateKeyPairDialog(Shell parentShell) {
+	protected CreateKeyPairDialog(Shell parentShell, String accountId) {
 		super(parentShell);
+		this.accountId = accountId;
 	}
 
 	/* (non-Javadoc)
@@ -122,7 +125,7 @@ class CreateKeyPairDialog extends Dialog {
 		privateKeyDirectoryText = new Text(composite, SWT.BORDER);
 		privateKeyDirectoryText.addModifyListener(listener);
 		
-		File defaultPrivateKeyDirectory = new KeyPairManager().getDefaultPrivateKeyDirectory();
+		File defaultPrivateKeyDirectory = KeyPairManager.getDefaultPrivateKeyDirectory();
 		if (defaultPrivateKeyDirectory != null) {
 			privateKeyDirectoryText.setText(defaultPrivateKeyDirectory.getAbsolutePath());
 		}

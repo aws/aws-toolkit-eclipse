@@ -31,7 +31,7 @@ import com.amazonaws.eclipse.elasticbeanstalk.webproject.NewAwsJavaWebProjectWiz
  */
 public class ElasticBeanstalkOverviewSection extends OverviewSection implements OverviewSection.V2 {
 
-    private static final String ELASTIC_BEANSTALK_GETTING_STARTED_GUIDE_URL = "http://aws.amazon.com/eclipse/elasticbeanstalk/gsg" + "?"
+    private static final String ELASTIC_BEANSTALK_GETTING_STARTED_GUIDE_URL = "http://aws.amazon.com/articles/4412341514662386" + "?"
             + AwsUrls.TRACKING_PARAMS;
     private static final String ELASTIC_BEANSTALK_ECLIPSE_SCREENCAST_URL = "http://d1un85p0f2qstc.cloudfront.net/eclipse/elasticbeanstalk/index.html" + "?"
             + AwsUrls.TRACKING_PARAMS;

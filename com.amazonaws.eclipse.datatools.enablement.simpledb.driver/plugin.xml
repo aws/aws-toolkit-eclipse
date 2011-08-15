@@ -6,34 +6,6 @@
      version="1.0.0.qualifier"
      provider-name="%providerName">
 
-     <runtime>
-     <library name="aws-java-sdk/lib/third-party/commons-httpclient-3.0.1/commons-httpclient-3.0.1.jar">
-        <export
-              name="*">
-        </export>
-     </library>
-     <library name="aws-java-sdk/lib/third-party/commons-codec-1.3/commons-codec-1.3.jar">
-        <export
-              name="*">
-        </export>
-     </library>
-     <library name="aws-java-sdk/lib/third-party/commons-logging-1.1.1/commons-logging-1.1.1.jar">
-        <export
-              name="*">
-        </export>
-     </library>
-     <library name="aws-java-sdk/lib/third-party/saxonhe-9.0.2j/saxon9he.jar">
-        <export
-              name="*">
-        </export>
-     </library>
-     <library name="aws-java-sdk/lib/aws-java-sdk-1.0.003.jar">
-        <export
-              name="*">
-        </export>
-     </library>
-     </runtime>
-
      <requires>
      </requires>
 </plugin>

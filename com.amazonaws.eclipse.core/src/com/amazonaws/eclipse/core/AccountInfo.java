@@ -23,10 +23,10 @@ import java.io.File;
  */
 public abstract class AccountInfo {
 
-	/**
-	 * Returns the currently configured AWS user account ID.
-	 *
-	 * @return The currently configured AWS user account ID.
+    /**
+     * Returns the currently configured AWS user account ID.
+     *
+     * @return The currently configured AWS user account ID.
 	 */
 	public abstract String getUserId();
 

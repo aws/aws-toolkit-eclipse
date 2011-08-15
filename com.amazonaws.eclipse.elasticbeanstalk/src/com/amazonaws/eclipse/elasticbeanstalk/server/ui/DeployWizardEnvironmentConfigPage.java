@@ -161,7 +161,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.KEY_PAIR), null, null);
         ChainValidator<String> keyPairValidator = new ChainValidator<String>(
                 keyPairSelectionObservable, usingKeyPairObservable,
-                new ValidKeyPairValidator());
+                new ValidKeyPairValidator(AwsToolkitCore.getDefault().getCurrentAccountId()));
         bindingContext.addValidationStatusProvider(keyPairValidator);
 
         usingCnameObservable = SWTObservables.observeSelection(usingCnameButton);

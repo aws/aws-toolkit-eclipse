@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         id="com.amazonaws.eclipse.rds.actions.importDatabases"
+         name="Import RDS Databases Action"
+         point="org.eclipse.ui.popupMenus">
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <wizard
+            category="com.amazonaws.eclipse.importCategory"
+            class="com.amazonaws.eclipse.rds.ImportWizard"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.rds.importDatabasesWizard"
+            name="Amazon RDS Databases">
+         <description>
+            Imports configuration for AWS Relational Database Service database instances.
+         </description>
+      </wizard>
+      <category
+            id="com.amazonaws.eclipse.importCategory"
+            name="AWS">
+      </category>
+   </extension>
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.rds.RDSContentProvider"
+         id="com.amazonaws.eclipse.explorer.RDSContent"
+         labelProvider="com.amazonaws.eclipse.explorer.ExplorerNodeLabelProvider"
+         name="Amazon RDS"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+          <!-- TODO -->
+          <instanceof value="com.amazonaws.eclipse.explorer.s3.S3RootElement" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.explorer.rds.RDSExplorerActionProvider">
+         <enablement>
+            <or>
+               <instanceof value="com.amazonaws.eclipse.explorer.ExplorerNode"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes$DatabaseNode"/>
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+  </extension>
+  
+  <extension point="org.eclipse.ui.decorators">
+     <decorator
+           class="com.amazonaws.eclipse.explorer.rds.DatabaseDecorator"
+           id="com.amazonaws.eclipse.rds.decorator"
+           label="RDS Decorator"
+           lightweight="true"
+           state="true">
+         <enablement>
+            <or>
+               <objectClass name="com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes$DatabaseNode"/>
+            </or>
+        </enablement>
+     </decorator>
+  </extension>
+
+</plugin>

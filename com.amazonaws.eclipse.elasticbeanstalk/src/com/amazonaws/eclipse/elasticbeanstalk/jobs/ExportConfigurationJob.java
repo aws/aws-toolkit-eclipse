@@ -65,7 +65,8 @@ public final class ExportConfigurationJob extends Job {
     @Override
     protected IStatus run(IProgressMonitor monitor) {
         try {
-            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
+                    .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
             if ( isCreatingNew ) {
                 client.createConfigurationTemplate(new CreateConfigurationTemplateRequest()
                         .withApplicationName(environment.getApplicationName()).withDescription(templateDescription)

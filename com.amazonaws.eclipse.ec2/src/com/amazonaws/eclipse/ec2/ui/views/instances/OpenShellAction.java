@@ -18,10 +18,10 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.PlatformUtils;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
@@ -29,12 +29,16 @@ import com.amazonaws.eclipse.ec2.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.ec2.ui.SetupExternalToolsAction;
 import com.amazonaws.services.ec2.model.Instance;
 
-final class OpenShellAction extends Action {
+class OpenShellAction extends Action {
 
-    private final InstanceSelectionTable instanceSelectionTable;
+    protected final InstanceSelectionTable instanceSelectionTable;
 
     public OpenShellAction(InstanceSelectionTable instanceSelectionTable) {
         this.instanceSelectionTable = instanceSelectionTable;
+
+        this.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("console"));
+        this.setText("Open Shell");
+        this.setToolTipText("Opens a connection to this host");
     }
 
     public void run() {
@@ -43,15 +47,22 @@ final class OpenShellAction extends Action {
         }
     }
 
-    private void openInstanceShell(Instance instance) {
+    protected void openInstanceShell(Instance instance) {
+        openInstanceShell(instance, null);
+    }
+
+    protected void openInstanceShell(Instance instance, String user) {
         PlatformUtils platformUtils = new PlatformUtils();
 
         try {
             KeyPairManager keyPairManager = new KeyPairManager();
 
             String keyName = instance.getKeyName();
-            String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(keyName);
-            String user = Ec2Plugin.getDefault().getPreferenceStore().getString(PreferenceConstants.P_SSH_USER);
+            String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(AwsToolkitCore.getDefault().getCurrentAccountId(), keyName);
+
+            if (user == null) {
+                user = Ec2Plugin.getDefault().getPreferenceStore().getString(PreferenceConstants.P_SSH_USER);
+            }
 
             if ( keyPairFilePath == null ) {
                 throw new Exception("Unable to locate the private key file for the selected key '" + keyName + "'");
@@ -75,19 +86,5 @@ final class OpenShellAction extends Action {
             StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
         }
     }
-    
-    @Override
-    public ImageDescriptor getImageDescriptor() {
-        return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("console");
-    }
 
-    @Override
-    public String getText() {
-        return "Open Shell";
-    }
-
-    @Override
-    public String getToolTipText() {
-        return "Opens a secure shell to this host";
-    }
 }

@@ -31,11 +31,12 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.eclipse.ec2.CheckIpUtils;
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.AWSClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2InstanceLauncher;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.InstanceUtils;
+import com.amazonaws.eclipse.ec2.preferences.PreferenceConstants;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AssociateAddressRequest;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
@@ -54,7 +55,7 @@ public abstract class Cluster {
     private static final Logger logger = Logger.getLogger(Cluster.class.getName());
 
     /** Shared factory for creating Amazon EC2 clients */
-    private static final Ec2ClientFactory clientFactory = new Ec2ClientFactory();
+    private final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
 
     /**
      * The individual application servers that make up this cluster.
@@ -518,12 +519,12 @@ public abstract class Cluster {
         String clusterEndpoint = clusterConfiguration.getEc2RegionEndpoint();
 
         if (clusterEndpoint != null && clusterEndpoint.length() > 0) {
-            return clientFactory.getAwsClientByEndpoint(clusterEndpoint);
+            return clientFactory.getEC2ClientByEndpoint(clusterEndpoint);
         }
 
         // We should always have a region/endpoint configured in the cluster,
         // but just in case we don't, we'll still return something.
-        return clientFactory.getAwsClient();
+        return Ec2Plugin.getDefault().getDefaultEC2Client();
     }
 
 
@@ -547,10 +548,6 @@ public abstract class Cluster {
         String permissiveNetmask = "0.0.0.0/0";
         String strictNetmask = permissiveNetmask;
         try {
-            // Attempt to obtain a more restrictive netmask from
-            // checkip.amazonaws.com
-            CheckIpUtils checkIpUtils = new CheckIpUtils();
-
             /*
              * We use checkip.amazonaws.com to determine our IP and the most
              * restrictive netmask we can use to lock down security group
@@ -558,14 +555,6 @@ public abstract class Cluster {
              */
             String region = clusterConfiguration.getEc2RegionName();
             region = region.toLowerCase();
-
-            /*
-             * TODO: this would be another great spot for region utilities.
-             *       ex: a method to ask if this is a US region
-             */
-            if (region.startsWith("us")) {
-                strictNetmask = checkIpUtils.lookupNetmask();
-            }
         } catch (Exception e) {
             Status status = new Status(Status.INFO, Ec2Plugin.PLUGIN_ID,
                     "Unable to lookup netmask from checkip.amazon.com.  Defaulting to "

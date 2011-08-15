@@ -143,7 +143,11 @@ public class ElasticBeanstalkPublishingUtils {
      * Creates a new environment
      */
     void createNewEnvironment(String versionLabel) {
-        String solutionStackName = "64bit Amazon Linux running Tomcat 6";
+        String solutionStackName = environment.getSolutionStack();
+        if (solutionStackName == null) {
+        	solutionStackName = SolutionStacks.TOMCAT_6_64BIT_AMAZON_LINUX;
+        }
+
         CreateEnvironmentRequest request = new CreateEnvironmentRequest()
             .withApplicationName(environment.getApplicationName())
             .withSolutionStackName(solutionStackName)

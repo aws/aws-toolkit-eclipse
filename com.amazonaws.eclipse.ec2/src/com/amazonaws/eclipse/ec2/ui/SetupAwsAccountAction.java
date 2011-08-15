@@ -30,7 +30,7 @@ public class SetupAwsAccountAction extends Action {
 	/** The id of the preference page to display */
 	private static final String EC2_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage";
 	private static final String KEYPAIR_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.ec2.preferences.KeyPairsPreferencePage";
-	private static final String REGION_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.ec2.preferences.RegionsPreferencePage";
+	private static final String REGION_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.core.ui.preferences.RegionsPreferencePage";
 	private static final String EXTERNALTOOL_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage";
 	
 	/* (non-Javadoc)

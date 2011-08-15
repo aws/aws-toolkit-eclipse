@@ -14,8 +14,6 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk;
 
-import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.*;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;

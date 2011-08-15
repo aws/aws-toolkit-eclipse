@@ -23,8 +23,8 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.amazonaws.eclipse.core.preferences.AccountPreferenceChangeRefreshListener;
 import com.amazonaws.eclipse.core.preferences.PreferenceChangeRefreshListener;
+import com.amazonaws.eclipse.core.regions.DefaultRegionChangeRefreshListener;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
-import com.amazonaws.eclipse.ec2.preferences.Ec2PreferenceChangeRefreshListener;
 import com.amazonaws.eclipse.ec2.ui.StatusBar;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener;
 
@@ -51,7 +51,7 @@ public class InstanceView extends ViewPart implements IRefreshable, SelectionTab
 	 * this view to be refreshed.
 	 */
 	private final PreferenceChangeRefreshListener ec2PreferenceChangeRefreshListener 
-			= new Ec2PreferenceChangeRefreshListener(this);
+			= new DefaultRegionChangeRefreshListener(this);
 
 
 	/* (non-Javadoc)

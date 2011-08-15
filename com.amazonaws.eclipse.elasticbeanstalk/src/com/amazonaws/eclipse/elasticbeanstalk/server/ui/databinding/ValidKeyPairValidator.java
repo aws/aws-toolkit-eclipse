@@ -25,12 +25,18 @@ import com.amazonaws.services.ec2.model.KeyPairInfo;
 public class ValidKeyPairValidator implements IValidator {
 
     private static final KeyPairManager keyPairManager = new KeyPairManager();
+    private final String accountId;
+    
+    public ValidKeyPairValidator(String accountId) {
+        super();
+        this.accountId = accountId;
+    }
 
     public IStatus validate(Object value) {
         KeyPairInfo keyPair = (KeyPairInfo) value;
         if ( keyPair == null ) {
             return ValidationStatus.error("Select a valid key pair");
-        } else if ( !keyPairManager.isKeyPairValid(keyPair.getKeyName()) ) {
+        } else if ( !keyPairManager.isKeyPairValid(accountId, keyPair.getKeyName()) ) {
             return ValidationStatus.error(KeyPairSelectionTable.INVALID_KEYPAIR_MESSAGE);
         } else {
             return ValidationStatus.ok();

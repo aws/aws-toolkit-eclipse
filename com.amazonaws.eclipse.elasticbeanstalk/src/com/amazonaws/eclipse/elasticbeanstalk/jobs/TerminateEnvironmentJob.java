@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.jobs;
 
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -22,11 +24,14 @@ import org.eclipse.ui.progress.IProgressConstants;
 import org.eclipse.wst.server.core.IServer;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
 
 public class TerminateEnvironmentJob extends Job {
@@ -44,16 +49,31 @@ public class TerminateEnvironmentJob extends Job {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         EnvironmentBehavior behavior = (EnvironmentBehavior)environment.getServer().loadAdapter(EnvironmentBehavior.class, monitor);
 
         try {
-            client.terminateEnvironment(new TerminateEnvironmentRequest().withEnvironmentName(environment.getEnvironmentName()));
+            if (doesEnvironmentExist()) {
+                client.terminateEnvironment(new TerminateEnvironmentRequest().withEnvironmentName(environment.getEnvironmentName()));
+            }
             behavior.updateServerState(IServer.STATE_STOPPING);
             return Status.OK_STATUS;
         } catch (AmazonClientException ace) {
             return new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
                 "Unable to terminate environment " + environment.getEnvironmentName() + " : " + ace.getMessage(), ace);
         }
+    }
+    
+    private boolean doesEnvironmentExist() throws AmazonClientException, AmazonServiceException {
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+
+        List<EnvironmentDescription> environments = client.describeEnvironments().getEnvironments();
+        for (EnvironmentDescription env : environments) {
+            if (env.getEnvironmentName().equals(environment.getEnvironmentName())) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

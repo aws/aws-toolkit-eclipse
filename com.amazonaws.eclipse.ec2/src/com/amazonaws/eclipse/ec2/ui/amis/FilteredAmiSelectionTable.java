@@ -29,8 +29,8 @@ import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.preferences.AccountPreferenceChangeRefreshListener;
 import com.amazonaws.eclipse.core.preferences.PreferenceChangeRefreshListener;
+import com.amazonaws.eclipse.core.regions.DefaultRegionChangeRefreshListener;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
-import com.amazonaws.eclipse.ec2.preferences.Ec2PreferenceChangeRefreshListener;
 import com.amazonaws.eclipse.ec2.ui.StatusBar;
 import com.amazonaws.services.ec2.model.Image;
 
@@ -63,7 +63,7 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
      * refresh itself.
      */
     private final PreferenceChangeRefreshListener regionPreferenceRefreshListener
-            = new Ec2PreferenceChangeRefreshListener(this);
+            = new DefaultRegionChangeRefreshListener(this);
 
     /**
      * Constructs a new filtered AMI selection table in the specified parent.

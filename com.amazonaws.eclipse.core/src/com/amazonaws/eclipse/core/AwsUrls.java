@@ -27,7 +27,7 @@ public class AwsUrls {
 
     public static final String AWS_TOOLKIT_FOR_ECLIPSE_HOMEPAGE_URL = "http://aws.amazon.com/eclipse" + "?" + TRACKING_PARAMS;
     public static final String AWS_TOOLKIT_FOR_ECLIPSE_FAQ_URL = "http://aws.amazon.com/eclipse/faqs/" + "?" + TRACKING_PARAMS;
-    public static final String AWS_TOOLKIT_FOR_ECLIPSE_SOURCEFORGE_URL = "http://sourceforge.net/projects/aws-eclipse/";
+    public static final String AWS_TOOLKIT_FOR_ECLIPSE_GITHUB_URL = "https://github.com/amazonwebservices/aws-toolkit-for-eclipse/";
 
     public static final String AWS_MANAGEMENT_CONSOLE_URL = "http://aws.amazon.com/console" + "?" + TRACKING_PARAMS;
 }

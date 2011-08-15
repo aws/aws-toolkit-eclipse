@@ -42,12 +42,6 @@
        </page>
        <page
              category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
-             class="com.amazonaws.eclipse.ec2.preferences.RegionsPreferencePage"
-             id="com.amazonaws.eclipse.ec2.preferences.RegionsPreferencePage"
-             name="Regions">
-       </page>
-       <page
-             category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
              class="com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage"
              id="com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage"
              name="External Tools">
@@ -65,8 +59,7 @@
     <extension point="com.amazonaws.eclipse.core.overview">
           <overviewSection title="Amazon EC2 Management" class="com.amazonaws.eclipse.ec2.ui.Ec2OverviewSection"/>
     </extension>
-    <extension
-          point="org.eclipse.ui.perspectives">
+    <extension point="org.eclipse.ui.perspectives">
        <perspective
              class="com.amazonaws.eclipse.ec2.ui.Ec2PerspectiveFactory"
              icon="icons/aws-box.gif"
@@ -75,27 +68,50 @@
        </perspective>
     </extension>
 
-    <!--
-     |
-     | Adds AWS perspective to the default list of perspectives
-     |
-     -->
+    <!-- Add EC2 views to the AWS Management perspective -->
     <extension point="org.eclipse.ui.perspectiveExtensions">
-        <perspectiveExtension targetID="*">
-            <perspectiveShortcut id="com.amazonaws.eclipse.ec2.perspective"/>
+        <perspectiveExtension targetID="com.amazonaws.eclipse.managementPerspective">
+            <view id="com.amazonaws.eclipse.ec2.ui.views.InstanceView"
+                relative="org.eclipse.ui.views.ProgressView"
+                relationship="stack"/>
+            <view id="com.amazonaws.eclipse.ec2.ui.views.AmiBrowserView"
+                relative="org.eclipse.ui.views.ProgressView"
+                relationship="stack"/>
+            <view id="com.amazonaws.eclipse.ec2.ui.views.ElasticBlockStorageView"
+                relative="org.eclipse.ui.views.ProgressView"
+                relationship="stack"/>
+            <view id="com.amazonaws.eclipse.ec2.views.SecurityGroupView"
+                relative="org.eclipse.ui.views.ProgressView"
+                relationship="stack"/>
         </perspectiveExtension>
     </extension>
-    
+
+    <!-- AWS Resource Navigator: EC2 content and labels -->
+    <extension point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.ec2.EC2ContentProvider"
+         id="com.amazonaws.eclipse.explorer.EC2Content"
+         labelProvider="com.amazonaws.eclipse.explorer.ec2.EC2LabelProvider"
+         name="Amazon EC2 Resources"
+         priority="normal">
+        <commonSorter
+              class="com.amazonaws.eclipse.explorer.ec2.ExplorerSorter"
+              id="com.amazonaws.eclipse.ec2.commonSorter2">
+        </commonSorter>
+        <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+        </triggerPoints>
+        <possibleChildren>
+          <or>
+            <instanceof value="com.amazonaws.eclipse.explorer.ec2.EC2RootElement"/>
+          </or>
+        </possibleChildren>
+      </navigatorContent>
+    </extension>
+
    <extension point="org.eclipse.ui.menus">
       <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=EC2">
-         <command commandId="org.eclipse.ui.perspectives.showPerspective"
-                  id="com.amazonaws.eclipse.ec2.showEC2PerspectiveMenuItem"
-                  label="Open Amazon EC2 Management Perspective">
-                  <parameter
-                        name="org.eclipse.ui.perspectives.showPerspective.perspectiveId"
-                        value="com.amazonaws.eclipse.ec2.perspective"/>
-         </command>
-
          <command commandId="com.amazonaws.eclipse.ec2.openLaunchWizardCommand"
                   id="com.amazonaws.eclipse.ec2.openLaunchWizardMenuItem"
                   label="Launch Amazon EC2 Instances...">
@@ -122,7 +138,7 @@
             <parameter name="org.eclipse.ui.views.showView.viewId"
                        value="com.amazonaws.eclipse.ec2.ui.views.ElasticBlockStorageView"/>
          </command>
-                  
+
          <command commandId="org.eclipse.ui.views.showView"
                   id="com.amazonaws.eclipse.ec2.showInstancesViewMenuItem"
                   icon="icons/server.png"
@@ -139,12 +155,12 @@
          </command>
       </menuContribution>
    </extension>
-   
+
    <extension point="org.eclipse.ui.commands">
       <command id="com.amazonaws.eclipse.ec2.openLaunchWizardCommand"
             name="Open Launch Wizard"
             defaultHandler="com.amazonaws.eclipse.ec2.ui.menu.OpenLaunchWizardHandler"
             categoryId="com.amazonaws.commands.category"/>
    </extension>
-    
+
 </plugin>

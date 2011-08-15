@@ -21,31 +21,20 @@ package com.amazonaws.eclipse.elasticbeanstalk.webproject;
  * objects to actually perform the project creation.
  */
 class NewAwsJavaWebProjectDataModel {
-    private String accessKeyId;
-    private String secretAccessKey;
+    private String accountId;
     private String projectName;
     private boolean sampleAppIncluded;
 
+    public static final String ACCOUNT_ID = "accountId";
     public static final String PROJECT_NAME = "projectName";
-    public static final String ACCESS_KEY_ID = "accessKeyId";
-    public static final String SECRET_ACCESS_KEY = "secretAccessKey";
     public static final String SAMPLE_APP_INCLUDED = "sampleAppIncluded";
-
-
-    public String getAccessKeyId() {
-        return accessKeyId;
+    
+    public String getAccountId() {
+        return accountId;
     }
-
-    public void setAccessKeyId(String accessKeyId) {
-        this.accessKeyId = accessKeyId;
-    }
-
-    public String getSecretAccessKey() {
-        return secretAccessKey;
-    }
-
-    public void setSecretAccessKey(String secretAccessKey) {
-        this.secretAccessKey = secretAccessKey;
+    
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 
     public String getProjectName() {

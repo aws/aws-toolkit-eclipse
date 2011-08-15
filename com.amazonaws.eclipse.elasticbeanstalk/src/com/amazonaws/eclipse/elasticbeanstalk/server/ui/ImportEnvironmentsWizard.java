@@ -16,6 +16,7 @@ package com.amazonaws.eclipse.elasticbeanstalk.server.ui;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,26 +43,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
-import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
 import org.eclipse.wst.server.core.IServer;
-import org.eclipse.wst.server.core.IServerType;
-import org.eclipse.wst.server.core.IServerWorkingCopy;
-import org.eclipse.wst.server.core.ServerCore;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
-import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.NoCredentialsDialog;
 import com.amazonaws.eclipse.elasticbeanstalk.Region;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
-import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsResult;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
 
@@ -128,12 +118,12 @@ public class ImportEnvironmentsWizard extends Wizard {
              * TODO: Need more work for regions here...
              */
             List<EnvironmentDescription> elasticBeanstalkEnvs = getExistingEnvironments();
-            List<IServer> elasticBeanstalkServers = getExistingElasticBeanstalkServers();
+            Collection<IServer> elasticBeanstalkServers = ElasticBeanstalkPlugin.getExistingElasticBeanstalkServers();
             Iterator<EnvironmentDescription> envIter = elasticBeanstalkEnvs.iterator();
             while ( envIter.hasNext() ) {
                 EnvironmentDescription env = envIter.next();
                 for ( IServer server : elasticBeanstalkServers ) {
-                    if ( environmentsSame(env, server) ) {
+                    if ( ElasticBeanstalkPlugin.environmentsSame(env, server)) {
                         envIter.remove();
                         break;
                     }
@@ -199,17 +189,14 @@ public class ImportEnvironmentsWizard extends Wizard {
             setControl(container);
         }
 
-        /**
-         * @return
-         */
         private IStatus testConnection() {
             try {
                 this.getWizard()
                         .getContainer()
                         .run(true,
                                 false,
-                                new CheckAccountRunnable(AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(
-                                        Region.DEFAULT.getEndpoint())));
+                                new CheckAccountRunnable(AwsToolkitCore.getClientFactory()
+                                        .getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint())));
                 return Status.OK_STATUS;
             } catch ( InvocationTargetException ite ) {
                 String errorMessage = "Unable to connect to AWS Elastic Beanstalk.  ";
@@ -235,15 +222,6 @@ public class ImportEnvironmentsWizard extends Wizard {
     }
 
     /**
-     * Returns whether the environment given represents the server given.
-     */
-    private boolean environmentsSame(EnvironmentDescription env, IServer server) {
-        Environment environment = (Environment) server.getAdapter(Environment.class);
-        return environment.getApplicationName().equals(env.getApplicationName())
-                && environment.getEnvironmentName().equals(env.getEnvironmentName());
-    }
-
-    /**
      * Returns all AWS Elastic Beanstalk environments
      */
     private List<EnvironmentDescription> getExistingEnvironments() {
@@ -260,23 +238,6 @@ public class ImportEnvironmentsWizard extends Wizard {
         return filtered;
     }
 
-    /**
-     * Returns all AWS Elastic Beanstalk servers known to ServerCore
-     */
-    private List<IServer> getExistingElasticBeanstalkServers() {
-        List<IServer> elasticBeanstalkServers = new ArrayList<IServer>();
-
-        IServer[] servers = ServerCore.getServers();
-        for ( IServer server : servers ) {
-            if ( server.getServerType() == null) continue;
-            if ( server.getServerType().getId().equals(ElasticBeanstalkPlugin.ELASTIC_BEANSTALK_SERVER_TYPE_ID) ) {
-                elasticBeanstalkServers.add(server);
-            }
-        }
-
-        return elasticBeanstalkServers;
-    }
-
     /*
      * (non-Javadoc)
      *
@@ -284,10 +245,6 @@ public class ImportEnvironmentsWizard extends Wizard {
      */
     @Override
     public boolean performFinish() {
-        final IServerType serverType = ServerCore.findServerType(ElasticBeanstalkPlugin.ELASTIC_BEANSTALK_SERVER_TYPE_ID);
-
-        if ( serverType == null )
-            throw new RuntimeException("Couldn't find server type");
 
         try {
             getContainer().run(true, false, new IRunnableWithProgress() {
@@ -297,17 +254,7 @@ public class ImportEnvironmentsWizard extends Wizard {
                     try {
                         for ( Object elasticBeanstalkEnv : toImport ) {
                             try {
-                                IRuntimeWorkingCopy runtime = serverType.getRuntimeType().createRuntime(null, monitor);
-                                IServerWorkingCopy serverWorkingCopy = serverType.createServer(null, null, runtime, monitor);
-                                ServerDefaultsUtils.setDefaultHostName(serverWorkingCopy, Region.DEFAULT.getEndpoint());
-                                ServerDefaultsUtils.setDefaultServerName(serverWorkingCopy, ((EnvironmentDescription)elasticBeanstalkEnv).getEnvironmentName());
-
-                                Environment env = (Environment) serverWorkingCopy.loadAdapter(Environment.class, monitor);
-                                fillInEnvironmentValues((EnvironmentDescription) elasticBeanstalkEnv, env, monitor);
-                                monitor.subTask("Creating server");
-                                serverWorkingCopy.save(true, monitor);
-                                runtime.save(true, monitor);
-                                monitor.worked(1);
+                                ElasticBeanstalkPlugin.importEnvironment((EnvironmentDescription)elasticBeanstalkEnv, monitor);
                             } catch ( CoreException e ) {
                                 throw new RuntimeException(e);
                             }
@@ -329,46 +276,6 @@ public class ImportEnvironmentsWizard extends Wizard {
         return true;
     }
 
-    /**
-     * Fills in the environment given with the values in the environment
-     * description.
-     */
-    private void fillInEnvironmentValues(EnvironmentDescription elasticBeanstalkEnv, Environment env, IProgressMonitor monitor) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint());
-
-        monitor.subTask("Getting application info");
-        DescribeApplicationsResult describeApplicationsResult = client
-                .describeApplications(new DescribeApplicationsRequest().withApplicationNames(elasticBeanstalkEnv
-                        .getApplicationName()));
-        if ( describeApplicationsResult != null && !describeApplicationsResult.getApplications().isEmpty() )
-            env.setApplicationDescription(describeApplicationsResult.getApplications().get(0).getDescription());
-        monitor.worked(1);
-
-        monitor.subTask("Getting environment configuration");
-        DescribeConfigurationSettingsResult describeConfigurationSettingsResult = client
-                .describeConfigurationSettings(new DescribeConfigurationSettingsRequest().withEnvironmentName(
-                        elasticBeanstalkEnv.getEnvironmentName()).withApplicationName(elasticBeanstalkEnv.getApplicationName()));
-        if ( describeApplicationsResult != null
-                && !describeConfigurationSettingsResult.getConfigurationSettings().isEmpty() ) {
-            for ( ConfigurationSettingsDescription settingDescription : describeConfigurationSettingsResult
-                    .getConfigurationSettings() ) {
-                for ( ConfigurationOptionSetting setting : settingDescription.getOptionSettings() ) {
-                    if ( setting.getNamespace().equals("aws:autoscaling:launchconfiguration")
-                            && setting.getOptionName().equals("EC2KeyName") ) {
-                        env.setKeyPairName(setting.getValue());
-                    }
-                }
-            }
-        }
-        monitor.worked(1);
-
-
-        env.setApplicationName(elasticBeanstalkEnv.getApplicationName());
-        env.setCname(elasticBeanstalkEnv.getCNAME());
-        env.setEnvironmentName(elasticBeanstalkEnv.getEnvironmentName());
-        env.setEnvironmentDescription(elasticBeanstalkEnv.getDescription());
-        env.setRegionEndpoint(Region.DEFAULT.getEndpoint());
-    }
 
     @Override
     public boolean canFinish() {

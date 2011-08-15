@@ -28,9 +28,10 @@ import org.eclipse.swt.widgets.Link;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.PreferenceLinkListener;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
-import com.amazonaws.eclipse.ec2.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener;
 
 /**
@@ -265,12 +266,13 @@ public class StatusBar extends SwappableComposite implements SelectionTableListe
 			return;
 		}
 		
-		String region = Ec2Plugin.getDefault().getPreferenceStore().getString(PreferenceConstants.P_EC2_REGION_NAME);
+		Region defaultRegion = RegionUtils.getCurrentRegion();
+		String regionName = defaultRegion.getName();
 		
 		statusBarGridLayout.horizontalSpacing = 30;
 
 		regionLink = new Link(this, SWT.NONE);
-		regionLink.setText("Region: <a href=\"" + Ec2Plugin.REGION_PREFERENCE_PAGE_ID + "\">" + region + "</a>");
+		regionLink.setText("Region: <a href=\"" + Ec2Plugin.REGION_PREFERENCE_PAGE_ID + "\">" + regionName + "</a>");
 		regionLink.addListener(SWT.Selection, new PreferenceLinkListener());
 
 		recordLabel = new Label(this, SWT.NONE);

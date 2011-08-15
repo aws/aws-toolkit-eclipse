@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-   <extension-point id="overview" name="AWS Toolkit Overview" schema="schema/overview.exsd"/>
+    <extension-point id="overview" name="AWS Toolkit Overview" schema="schema/overview.exsd"/>
 
     <extension point="org.eclipse.ui.preferencePages">
        <page
@@ -9,6 +9,13 @@
              id="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
              name="AWS Toolkit">
        </page>
+       <page
+             category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+             class="com.amazonaws.eclipse.core.ui.preferences.RegionsPreferencePage"
+             id="com.amazonaws.eclipse.core.ui.preferences.RegionsPreferencePage"
+             name="Regions">
+       </page>
+
     </extension>
 
     <extension point="org.eclipse.core.runtime.preferences">
@@ -34,12 +41,52 @@
              id="com.amazonaws.eclipse.core.ui.overview"
              name="AWS Toolkit Overview">
        </editor>
+       <editor
+             class="com.amazonaws.eclipse.explorer.s3.BucketEditor"
+             default="false"
+             icon="icons/bucket.png"
+             id="com.amazonaws.eclipse.explorer.s3.bucketEditor"
+             name="Amazon S3 Bucket">
+       </editor>
+       <editor
+             class="com.amazonaws.eclipse.explorer.sqs.QueueEditor"
+             default="false"
+             icon="icons/index.png"
+             id="com.amazonaws.eclipse.explorer.sqs.queueEditor"
+             name="Amazon SQS Queue">
+       </editor>
+       <editor
+             class="com.amazonaws.eclipse.explorer.sns.TopicEditor"
+             default="false"
+             icon="icons/sns_topic.png"
+             id="com.amazonaws.eclipse.explorer.sns.topicEditor"
+             name="Amazon SNS Topic">
+       </editor>
     </extension>
 
+
+    <!--                                       -->
+    <!-- AWS Management Perspective Extensions -->
+    <!--                                       -->
+
+    <extension point="org.eclipse.ui.perspectives">
+       <perspective
+             class="com.amazonaws.eclipse.core.ui.ManagementPerspectiveFactory"
+             icon="icons/aws-box.gif"
+             id="com.amazonaws.eclipse.managementPerspective"
+             name="AWS Management">
+       </perspective>
+    </extension>
+
+    <extension point="org.eclipse.ui.perspectiveExtensions">
+        <perspectiveExtension targetID="*">
+            <perspectiveShortcut id="com.amazonaws.eclipse.managementPerspective"/>
+        </perspectiveExtension>
+    </extension>
+
+
    <!--
-    |
-    | Adds AWS specififc commands
-    |
+    | Adds AWS specific commands
     -->
    <extension point="org.eclipse.ui.commands">
       <category id="com.amazonaws.commands.category"
@@ -67,9 +114,7 @@
 
 
    <!--
-    |
     | Inserts toolbar button handlers to perform the commands
-    |
     -->
    <extension point="org.eclipse.ui.menus">
       <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
@@ -96,18 +141,38 @@
          <separator name="javaWeb"    visible="false"/>
          <separator name="separator1" visible="true"/>
 
-         <separator name="simpleDB"   visible="false"/>
+         <command commandId="org.eclipse.ui.views.showView"
+                  id="com.amazonaws.eclipse.core.ui.showExplorerViewMenuItem"
+                  icon="icons/aws-box.gif"
+                  label="Show AWS Explorer View">
+            <parameter name="org.eclipse.ui.views.showView.viewId"
+                       value="com.amazonaws.eclipse.explorer.view"/>
+         </command>
+
          <separator name="separator2" visible="true"/>
 
-         <separator name="EC2"        visible="false"/>
+         <separator name="simpleDB"   visible="false"/>
          <separator name="separator3" visible="true"/>
+
+         <separator name="EC2"        visible="false"/>
+         <separator name="separator4" visible="true"/>
+
+         <command commandId="org.eclipse.ui.perspectives.showPerspective"
+                  id="com.amazonaws.eclipse.core.ui.showManagementPerspectiveMenuItem"
+                  label="Open AWS Management Perspective">
+                  <parameter
+                        name="org.eclipse.ui.perspectives.showPerspective.perspectiveId"
+                        value="com.amazonaws.eclipse.managementPerspective"/>
+         </command>
+
+         <separator name="separator5" visible="true"/>
 
          <command commandId="com.amazonaws.eclipse.command.openWebConsole"
                   id="com.amazonaws.eclipse.toolbar.openWebConsole"
                   label="Go to AWS Management Console">
          </command>
 
-         <separator name="separator4" visible="true"/>
+         <separator name="separator6" visible="true"/>
 
          <command commandId="com.amazonaws.eclipse.command.openPreferences"
                   id="com.amazonaws.toolbar.openPreferences"
@@ -115,4 +180,215 @@
          </command>
      </menuContribution>
    </extension>
+
+   <extension point="org.eclipse.ui.views">
+    <view
+         category="com.amazonaws.eclipse.core.category"
+         class="com.amazonaws.eclipse.explorer.ResourcesView"
+         id="com.amazonaws.eclipse.explorer.view"
+         name="AWS Explorer"
+         icon="icons/aws-box.gif"
+         restorable="true">
+         <description>
+            A tree of Amazon Web Services resources.
+         </description>
+    </view>
+  </extension>
+
+  <extension point="org.eclipse.ui.navigator.viewer">
+    <viewer viewerId="com.amazonaws.eclipse.explorer.view" >
+        <options>
+            <property
+                  name="org.eclipse.ui.navigator.hideAvailableExtensionsTab"
+                  value="false"/>
+            <property
+                  name="org.eclipse.ui.navigator.hideAvailableCustomizationsDialog"
+                  value="true"/>
+            <property
+                  name="org.eclipse.ui.navigator.hideLinkWithEditorAction"
+                  value="false"/>
+            <property
+                  name="org.eclipse.ui.navigator.hideCollapseAllAction"
+                  value="false"/>
+        </options>
+    </viewer>
+    <viewerContentBinding
+         viewerId="com.amazonaws.eclipse.explorer.view">
+      <includes>
+         <contentExtension
+               isRoot="false"
+               pattern="com\.amazonaws\.eclipse\.explorer\..*">
+         </contentExtension>
+      </includes>
+    </viewerContentBinding>
+    <viewerActionBinding
+          viewerId="com.amazonaws.eclipse.explorer.view">
+      <includes>
+          <actionExtension
+             pattern="com\.amazonaws\.eclipse\.explorer\..*">
+          </actionExtension>
+      </includes>
+    </viewerActionBinding>
+    <dragAssistant
+          class="com.amazonaws.eclipse.explorer.DragAdapterAssistant"
+          viewerId="com.amazonaws.eclipse.explorer.view">
+    </dragAssistant>
+  </extension>
+
+  <!-- S3 content and labels -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.s3.S3ContentProvider"
+         id="com.amazonaws.eclipse.explorer.S3Content"
+         labelProvider="com.amazonaws.eclipse.explorer.s3.S3LabelProvider"
+         name="Amazon S3 Resources"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+          <instanceof value="com.amazonaws.eclipse.explorer.s3.S3RootElement" />
+          <instanceof value="com.amazonaws.services.s3.model.Bucket" />
+          <instanceof value="com.amazonaws.services.s3.model.S3ObjectSummary" />
+          <!-- These aren't in the tree, but need to be here for drag and drop to work -->
+          <instanceof value="org.eclipse.core.resources.IFolder" />
+          <instanceof value="org.eclipse.core.resources.IProject" />
+          <instanceof value="org.eclipse.core.resources.IFile" />
+        </or>
+      </possibleChildren>
+      <dropAssistant
+            class="com.amazonaws.eclipse.explorer.s3.dnd.UploadDropAssistant"
+            id="com.amazonaws.eclipse.explorer.s3.uploadDropAssistant">
+         <possibleDropTargets>
+           <or>
+             <instanceof value="com.amazonaws.services.s3.model.Bucket" />
+           </or>
+         </possibleDropTargets>
+      </dropAssistant>
+      <dropAssistant
+            class="com.amazonaws.eclipse.explorer.s3.dnd.DownloadDropAssistant"
+            id="com.amazonaws.eclipse.explorer.s3.downloadDropAssistant">
+         <possibleDropTargets>
+           <or>
+              <instanceof value="org.eclipse.core.resources.IFolder" />
+              <instanceof value="org.eclipse.core.resources.IProject" />
+              <instanceof value="org.eclipse.core.resources.IFile" />
+              <!-- TODO: this doesn't work for many objects in the Package Explorer view,
+                   such as java projects, source folders, etc.  -->
+           </or>
+         </possibleDropTargets>
+      </dropAssistant>
+      <actionProvider class="com.amazonaws.eclipse.explorer.s3.actions.S3ActionProvider">
+         <enablement>
+            <or>
+              <instanceof value="com.amazonaws.eclipse.explorer.s3.S3RootElement" />
+              <instanceof value="com.amazonaws.services.s3.model.Bucket" />
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+
+    <actionProvider
+        class="com.amazonaws.eclipse.explorer.actions.ConfigurationActionProvider"
+        id="com.amazonaws.eclipse.explorer.actions.ConfigurationActionProvider">
+      <enablement>
+        <!-- Empty enablement needs to be here for the action provider to show up. -->
+      </enablement>
+    </actionProvider>
+  </extension>
+
+  <extension
+        point="org.eclipse.ui.navigator.linkHelper">
+     <linkHelper
+           class="com.amazonaws.eclipse.explorer.s3.BucketLinkHelper"
+           id="com.amazonaws.eclipse.explorer.s3.bucketEditorLinkHelper">
+          <selectionEnablement>
+             <instanceof value="com.amazonaws.services.s3.model.Bucket"/>
+          </selectionEnablement>
+          <editorInputEnablement>
+             <instanceof value="com.amazonaws.eclipse.explorer.s3.BucketEditorInput"/>
+          </editorInputEnablement>
+     </linkHelper>
+  </extension>
+
+  <extension
+        point="org.eclipse.ui.dropActions">
+     <action
+           class="com.amazonaws.eclipse.explorer.s3.dnd.S3ObjectSummaryDropAction"
+           id="com.amazonaws.eclipse.explorer.s3.objectSummaryDropAction">
+     </action>
+  </extension>
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.sqs.SQSContentProvider"
+         id="com.amazonaws.eclipse.explorer.SQSContent"
+         labelProvider="com.amazonaws.eclipse.explorer.sqs.SQSLabelProvider"
+         name="Amazon SQS"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+          <!-- TODO -->
+          <instanceof value="com.amazonaws.eclipse.explorer.sqs.SQSRootElement" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.explorer.sqs.SQSActionProvider">
+         <enablement>
+            <or>
+               <instanceof value="com.amazonaws.eclipse.explorer.sqs.SQSContentProvider$SQSRootElement"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.sqs.SQSContentProvider$QueueNode"/>
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.sns.SNSContentProvider"
+         id="com.amazonaws.eclipse.explorer.SNSContent"
+         labelProvider="com.amazonaws.eclipse.explorer.sns.SNSLabelProvider"
+         name="Amazon SNS"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+          <!-- TODO -->
+          <instanceof value="com.amazonaws.eclipse.explorer.sns.SNSRootElement" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.explorer.sns.SNSActionProvider">
+         <enablement>
+            <or>
+               <instanceof value="com.amazonaws.eclipse.explorer.sns.SNSContentProvider$SNSRootElement"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.sns.SNSContentProvider$TopicNode"/>
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+
+  </extension>
+
 </plugin>

@@ -22,6 +22,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.forms.widgets.Section;
 
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigDataModel;
 
 /**
@@ -47,8 +48,8 @@ public class ScalingTriggerConfigEditorSection extends HumanReadableConfigEditor
             "LowerBreachScaleIncrement" };
 
     public ScalingTriggerConfigEditorSection(
-            BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, DataBindingContext bindingContext) {
-        super(basicEnvironmentConfigurationEditorPart, model, bindingContext);
+            BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext) {
+        super(basicEnvironmentConfigurationEditorPart, model, environment, bindingContext);
     }
 
     @Override

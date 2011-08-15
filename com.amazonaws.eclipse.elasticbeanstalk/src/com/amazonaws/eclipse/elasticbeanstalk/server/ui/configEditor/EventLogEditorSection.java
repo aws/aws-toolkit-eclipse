@@ -152,7 +152,8 @@ public class EventLogEditorSection extends ServerEditorSection {
 
         @Override
         protected IStatus run(IProgressMonitor monitor) {
-            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
+                    .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
              final List<EventDescription> events = client.describeEvents(new DescribeEventsRequest()
                  .withEnvironmentName(environment.getEnvironmentName())).getEvents();
 

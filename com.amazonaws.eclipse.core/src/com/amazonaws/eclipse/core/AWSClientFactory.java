@@ -14,9 +14,12 @@
  */
 package com.amazonaws.eclipse.core;
 
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.net.proxy.IProxyChangeEvent;
 import org.eclipse.core.net.proxy.IProxyChangeListener;
@@ -24,16 +27,30 @@ import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.Status;
 
+import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.services.autoscaling.AmazonAutoScaling;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClient;
 
 /**
  * Factory for creating AWS clients.
@@ -46,185 +63,130 @@ public class AWSClientFactory {
      */
     public static final String ACCOUNT_INFO_OVERRIDE_PROPERTY = "com.amazonaws.eclipse.test.AccountInfoOverride";
 
-    /**
-     * A shared account info object for accessing the user's account
-     * preferences.
-     */
-    private static final AccountInfo accountInfo;
-
-    /** clients organized by the name of the region they work with. */
-    private static final HashMap<String, AmazonS3> s3ClientsByEndpoint = new HashMap<String, AmazonS3>();
-    private static final HashMap<String, AmazonRDS> rdsClientsByEndpoint = new HashMap<String, AmazonRDS>();
-    private static final HashMap<String, AmazonSimpleDB> sdbClientsByEndpoint = new HashMap<String, AmazonSimpleDB>();
-    private static HashMap<String, AWSElasticBeanstalk> elasticBeanstalkClientsByEndpoint = new HashMap<String, AWSElasticBeanstalk>();
+    /** Manages the cached client objects. */
+    private CachedClients cachedClients = new CachedClients();
 
     /**
-     * Adds a listener for the user's account info so that we can update the
-     * client when the account info changes.
+     * A shared account info object for accessing the user's credentials.
      */
-    static {
-        // Allow account info to be easily overridden for tests
-        String accountInfoOverride = System.getProperty(ACCOUNT_INFO_OVERRIDE_PROPERTY);
-        if ( accountInfoOverride == null ) {
-            accountInfo = AwsToolkitCore.getDefault().getAccountInfo();
-        } else {
-            try {
-                Class<?> accountInfoOverrideClass = Class.forName(accountInfoOverride);
-                accountInfo = (AccountInfo) accountInfoOverrideClass.newInstance();
-            } catch ( Exception e ) {
-                throw new RuntimeException("Unable to load and instantiate account info override class "
-                        + accountInfoOverride);
-            }
-        }
+    private final AccountInfo accountInfo;
+
+    /**
+     * Constructs a client factory that uses the given AWS account
+     * for its credentials.
+     */
+    public AWSClientFactory(AccountInfo accountInfo) {
+        this.accountInfo = accountInfo;
 
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
         if ( plugin != null ) {
             plugin.getProxyService().addProxyChangeListener(new IProxyChangeListener() {
                 public void proxyInfoChanged(IProxyChangeEvent event) {
-                    invalidateClients();
+                    cachedClients.invalidateClients();
                 }
             });
 
             plugin.addAccountInfoChangeListener(new AccountInfoChangeListener() {
                 public void currentAccountChanged() {
-                    invalidateClients();
+                    cachedClients.invalidateClients();
                 }
             });
         }
     }
 
-    /**
-     * Invalidates the current set of clients. This method is intended to be
-     * used after configuration changes are made so that the next time a
-     * client is needed, a fresh instance will be created using the most recent
-     * configuration.
+    /*
+     * Simple getters return a client configured with the default endpoint for
+     * the currently selected region.
      */
-    private static void invalidateClients() {
-        // Invalidate any region specific clients
-        synchronized (s3ClientsByEndpoint) {s3ClientsByEndpoint.clear();}
-        synchronized (rdsClientsByEndpoint) {rdsClientsByEndpoint.clear();}
-        synchronized (sdbClientsByEndpoint) {sdbClientsByEndpoint.clear();}
-        synchronized (elasticBeanstalkClientsByEndpoint) {elasticBeanstalkClientsByEndpoint.clear();}
-    }
 
-    /**
-     * Returns an S3 client configured with the user's preferences, including
-     * the currently selected endpoint.
-     */
     public AmazonS3 getS3Client() {
-        return getS3ClientByEndpoint("s3.amazonaws.com");
+        return getS3ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints().get(ServiceAbbreviations.S3));
     }
 
-    /**
-     * Returns an S3 client configured with the user's preferences, including
-     * the currently selected endpoint.
-     */
     public AmazonSimpleDB getSimpleDBClient() {
-        return getSimpleDBClientByEndpoints("sdb.amazonaws.com");
+        return getSimpleDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
+                .get(ServiceAbbreviations.SIMPLEDB));
     }
 
-    /**
-     * Returns an S3 client for the specified region endpoint
-     *
-     * @param endpoint
-     *            The endpoint that the returned client should work with.
+    public AmazonRDS getRDSClient() {
+        return getRDSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
+                .get(ServiceAbbreviations.RDS));
+    }
+
+    public AmazonSQS getSQSClient() {
+        return getSQSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
+                .get(ServiceAbbreviations.SQS));
+    }
+
+    public AmazonSNS getSNSClient() {
+        return getSNSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
+                .get(ServiceAbbreviations.SNS));
+    }
+
+    /*
+     * Endpoint-specific getters return clients that use the endpoint given.
      */
-    public AmazonS3 getS3ClientByEndpoint(String endpoint) {
-        synchronized (s3ClientsByEndpoint) {
-            if ( s3ClientsByEndpoint.get(endpoint) == null ) {
-                s3ClientsByEndpoint.put(endpoint, createNewS3Client(endpoint));
-            }
 
-            return s3ClientsByEndpoint.get(endpoint);
-        }
+    public AmazonS3 getS3ClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonS3Client.class);
     }
 
-    public AmazonSimpleDB getSimpleDBClientByEndpoints(final String endpoint) {
-        synchronized (sdbClientsByEndpoint) {
-            if ( sdbClientsByEndpoint.get(endpoint) == null ) {
-                sdbClientsByEndpoint.put(endpoint, createNewSDBClient(endpoint));
-            }
+    public AmazonEC2 getEC2ClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonEC2Client.class);
+    }
 
-            return sdbClientsByEndpoint.get(endpoint);
-        }
+    public AmazonSimpleDB getSimpleDBClientByEndpoint(final String endpoint) {
+        return getOrCreateClient(endpoint, AmazonSimpleDBClient.class);
     }
 
     public AmazonRDS getRDSClientByEndpoint(final String endpoint) {
-        synchronized (rdsClientsByEndpoint) {
-            if ( rdsClientsByEndpoint.get(endpoint) == null) {
-                rdsClientsByEndpoint.put(endpoint, createNewRDSClient(endpoint));
-            }
-
-            return rdsClientsByEndpoint.get(endpoint);
-        }
+        return getOrCreateClient(endpoint, AmazonRDSClient.class);
     }
 
-    /**
-     * Returns a new SimpleDB client configured to communicate with the specified endpoint.
-     */
-    private AmazonSimpleDB createNewSDBClient(String endpoint) {
-        ClientConfiguration config = createClientConfiguration(endpoint);
-
-        AmazonSimpleDB client = new AmazonSimpleDBClient(new BasicAWSCredentials(accountInfo.getAccessKey(),
-                accountInfo.getSecretKey()), config);
-        client.setEndpoint(endpoint);
-
-        return client;
+    public AmazonSQS getSQSClientByEndpoint(final String endpoint) {
+        return getOrCreateClient(endpoint, AmazonSQSClient.class);
     }
 
-    /**
-     * Returns an AWS Elastic Beanstalk client for the specified region endpoint
-     *
-     * @param endpoint
-     *            The endpoint that the returned client should work with.
-     */
+    public AmazonSNS getSNSClientByEndpoint(final String endpoint) {
+        return getOrCreateClient(endpoint, AmazonSNSClient.class);
+    }
+
     public AWSElasticBeanstalk getElasticBeanstalkClientByEndpoint(String endpoint) {
-        synchronized (elasticBeanstalkClientsByEndpoint) {
-            if ( elasticBeanstalkClientsByEndpoint.get(endpoint) == null ) {
-                elasticBeanstalkClientsByEndpoint.put(endpoint, createNewElasticBeanstalkClient(endpoint));
+        return getOrCreateClient(endpoint, AWSElasticBeanstalkClient.class);
+    }
+
+    public AmazonElasticLoadBalancing getElasticLoadBalancingClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonElasticLoadBalancingClient.class);
+    }
+
+    public AmazonAutoScaling getAutoScalingClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonAutoScalingClient.class);
+    }
+
+    private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {
+        synchronized (clientClass) {
+            if ( cachedClients.getClient(endpoint, clientClass) == null ) {
+                cachedClients.cacheClient(endpoint, createClient(endpoint, clientClass));
             }
-
-            return elasticBeanstalkClientsByEndpoint.get(endpoint);
         }
+
+        return cachedClients.getClient(endpoint, clientClass);
     }
 
-    /**
-     * Returns a new S3 client configured to communicate with the specified
-     * endpoint.
-     */
-    private AmazonS3 createNewS3Client(String endpoint) {
-        ClientConfiguration config = createClientConfiguration(endpoint);
+    private <T extends AmazonWebServiceClient> T createClient(String endpoint, Class<T> clientClass) {
+        try {
+            Constructor<T> constructor = clientClass.getConstructor(AWSCredentials.class, ClientConfiguration.class);
+            AWSCredentials credentials = new BasicAWSCredentials(accountInfo.getAccessKey(),
+                                                                 accountInfo.getSecretKey());
+            ClientConfiguration config = createClientConfiguration(endpoint);
 
-        AmazonS3 client = new AmazonS3Client(new BasicAWSCredentials(accountInfo.getAccessKey(),
-                accountInfo.getSecretKey()), config);
-        client.setEndpoint(endpoint);
+            T client = constructor.newInstance(credentials, config);
+            client.setEndpoint(endpoint);
 
-        return client;
-    }
-
-    private AmazonRDS createNewRDSClient(String endpoint) {
-        ClientConfiguration config = createClientConfiguration(endpoint);
-
-        AmazonRDS client = new AmazonRDSClient(new BasicAWSCredentials(
-            accountInfo.getAccessKey(), accountInfo.getSecretKey()), config);
-        client.setEndpoint(endpoint);
-
-        return client;
-    }
-
-    /**
-     * Returns a new AWS Elastic Beanstalk client configured to communicate with the
-     * specified endpoint.
-     */
-    private static AWSElasticBeanstalk createNewElasticBeanstalkClient(String endpoint) {
-        ClientConfiguration config = createClientConfiguration(endpoint);
-
-        AWSElasticBeanstalk client = new AWSElasticBeanstalkClient(new BasicAWSCredentials(
-                accountInfo.getAccessKey(),
-                accountInfo.getSecretKey()), config);
-        client.setEndpoint(endpoint);
-
-        return client;
+            return client;
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to create client: " + e.getMessage(), e);
+        }
     }
 
     private static ClientConfiguration createClientConfiguration(String secureEndpoint) {
@@ -255,6 +217,34 @@ public class AWSClientFactory {
             }
         }
         return config;
+    }
+
+    /**
+     * Responsible for managing the various AWS client objects needed for each service/region combination.
+     */
+    private static class CachedClients {
+
+        private final Map<Class<?>, Map<String, Object>> cachedClientsByEndpoint = Collections
+                .synchronizedMap(new HashMap<Class<?>, Map<String, Object>>());
+
+        @SuppressWarnings("unchecked")
+        public <T> T getClient(String endpoint, Class<T> clientClass) {
+            if (cachedClientsByEndpoint.get(clientClass) == null) return null;
+            return (T)cachedClientsByEndpoint.get(clientClass).get(endpoint);
+        }
+
+        public <T> void cacheClient(String endpoint, T client) {
+            if (cachedClientsByEndpoint.get(client.getClass()) == null) {
+                cachedClientsByEndpoint.put(client.getClass(), new HashMap<String, Object>());
+            }
+
+            Map<String, Object> map = cachedClientsByEndpoint.get(client.getClass());
+            map.put(endpoint, client);
+        }
+
+        public synchronized void invalidateClients() {
+            cachedClientsByEndpoint.clear();
+        }
     }
 
 }

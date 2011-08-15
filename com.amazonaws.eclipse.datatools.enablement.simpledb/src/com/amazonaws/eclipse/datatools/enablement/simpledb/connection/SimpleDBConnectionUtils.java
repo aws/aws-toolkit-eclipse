@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.datatools.enablement.simpledb.Activator;
 
 /**
@@ -110,6 +111,12 @@ public class SimpleDBConnectionUtils {
         if (endpoint == null) {
             endpoint = getDefaultEndpoint();
             properties.setProperty(ISimpleDBConnectionProfileConstants.ENDPOINT, endpoint);
+        }
+
+        String accountId = properties.getProperty(ISimpleDBConnectionProfileConstants.ACCOUNT_ID);
+        if (accountId == null) {
+            accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
+            properties.setProperty(ISimpleDBConnectionProfileConstants.ACCOUNT_ID, accountId);
         }
     }
 

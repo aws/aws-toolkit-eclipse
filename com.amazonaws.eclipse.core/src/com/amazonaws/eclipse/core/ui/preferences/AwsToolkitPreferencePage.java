@@ -15,6 +15,7 @@
 
 package com.amazonaws.eclipse.core.ui.preferences;
 
+import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -35,7 +36,7 @@ import com.amazonaws.eclipse.core.ui.preferences.ObfuscatingStringFieldEditor;
 public abstract class AwsToolkitPreferencePage extends PreferencePage {
 
 	/** The layout column width for this page's field editors */
-	private static final int LAYOUT_COLUMN_WIDTH = 3;
+	protected static final int LAYOUT_COLUMN_WIDTH = 3;
 
 	/**
 	 * Constructs a new AwsToolkitPreferencePage.
@@ -98,7 +99,7 @@ public abstract class AwsToolkitPreferencePage extends PreferencePage {
 	 * @param composite
 	 *            The parent for the new Link.
 	 */
-	protected void newLink(Listener linkListener, String linkText, Composite composite) {
+	protected Link newLink(Listener linkListener, String linkText, Composite composite) {
 		Link link = new Link(composite, SWT.WRAP);
 		link.setText(linkText);
 		link.addListener(SWT.Selection, linkListener);
@@ -106,6 +107,8 @@ public abstract class AwsToolkitPreferencePage extends PreferencePage {
 		data.horizontalSpan = LAYOUT_COLUMN_WIDTH;
 		data.widthHint = 500;
 		link.setLayoutData(data);
+		
+		return link;
 	}
 
 	/**

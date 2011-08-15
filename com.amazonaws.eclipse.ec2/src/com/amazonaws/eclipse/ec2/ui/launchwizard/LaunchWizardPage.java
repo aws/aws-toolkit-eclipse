@@ -34,13 +34,15 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.AWSClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.InstanceType;
 import com.amazonaws.eclipse.ec2.ui.ChargeWarningComposite;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairSelectionTable;
 import com.amazonaws.eclipse.ec2.ui.securitygroups.SecurityGroupSelectionComposite;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AvailabilityZone;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
 import com.amazonaws.services.ec2.model.Image;
@@ -50,7 +52,7 @@ import com.amazonaws.services.ec2.model.Image;
  */
 public class LaunchWizardPage extends WizardPage {
 
-    private static final Ec2ClientFactory ec2ClientFactory = new Ec2ClientFactory();
+    private final AWSClientFactory ec2ClientFactory = AwsToolkitCore.getClientFactory();
     private Combo availabilityZoneCombo;
     private Combo instanceTypeCombo;
     private Label instanceTypeArchitectureLabel;
@@ -207,7 +209,8 @@ public class LaunchWizardPage extends WizardPage {
     private void loadAvailabilityZones() {
         try {
             availabilityZoneCombo.removeAll();
-            DescribeAvailabilityZonesResult response = ec2ClientFactory.getAwsClient().describeAvailabilityZones();
+            AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+            DescribeAvailabilityZonesResult response = ec2.describeAvailabilityZones();
             for (AvailabilityZone zone : response.getAvailabilityZones()) {
                 availabilityZoneCombo.add(zone.getZoneName());
                 availabilityZoneCombo.select(0);

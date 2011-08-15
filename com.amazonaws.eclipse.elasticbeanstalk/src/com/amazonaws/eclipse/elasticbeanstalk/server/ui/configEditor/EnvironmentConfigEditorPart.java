@@ -171,7 +171,8 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
      * Imports a template's config settings into the editor.
      */
     protected void importTemplate() {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
+                .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         DescribeApplicationsResult result = client.describeApplications(new DescribeApplicationsRequest()
                 .withApplicationNames(environment.getApplicationName()));
         final Collection<String> existingTemplateNames = new HashSet<String>();
@@ -200,7 +201,8 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
      * Exports the current model as a template, prompting the user for a name.
      */
     private void exportAsTemplate() {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
+                .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         DescribeApplicationsResult result = client.describeApplications(new DescribeApplicationsRequest()
                 .withApplicationNames(environment.getApplicationName()));
         final Collection<String> existingTemplateNames = new HashSet<String>();
@@ -232,7 +234,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             if ( !optionsByNamespace.containsKey(o.getNamespace()) ) {
                 ArrayList<ConfigurationOptionDescription> optionsInNamespace = new ArrayList<ConfigurationOptionDescription>();
                 optionsByNamespace.put(o.getNamespace(), optionsInNamespace);
-                editorSections.add(new EnvironmentConfigEditorSection(this, model, bindingContext, o.getNamespace(), optionsInNamespace));
+                editorSections.add(new EnvironmentConfigEditorSection(this, model, environment, bindingContext, o.getNamespace(), optionsInNamespace));
             }
             optionsByNamespace.get(o.getNamespace()).add(o);
         }
@@ -314,7 +316,8 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
         }
 
         try {
-            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
+                    .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
 
             ValidateConfigurationSettingsResult validation = client
                     .validateConfigurationSettings(new ValidateConfigurationSettingsRequest()

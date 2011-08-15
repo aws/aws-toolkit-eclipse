@@ -38,6 +38,7 @@ import org.eclipse.ui.forms.events.IExpansionListener;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.sdk.ui.SdkChangeListener;
 import com.amazonaws.eclipse.sdk.ui.SdkInstall;
@@ -55,9 +56,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
 
     private SdkVersionInfoComposite sdkVersionInfoComposite;
     private SdkSamplesComposite sdkSamplesComposite;
-    private SdkCredentialsComposite sdkCredentialsComposite;
-
-    private static final String ACCESS_KEYS_URL = "http://aws.amazon.com/security-credentials";
+    private AccountSelectionComposite accountSelectionComposite;
 
     public NewAwsJavaProjectWizardPageOne() {
         setTitle("Create an AWS Java project");
@@ -100,7 +99,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
      * @return the access key set by the user in the wizard page.
      */
     public String getAccessKey() {
-        return sdkCredentialsComposite.accessKey;
+        return AwsToolkitCore.getDefault().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getAccessKey();
     }
 
     /**
@@ -108,7 +107,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
      * @return the secret key set by the user in the wizard page.
      */
     public String getSecretKey() {
-        return sdkCredentialsComposite.secretKey;
+        return AwsToolkitCore.getDefault().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getSecretKey();
     }
 
     /* (non-Javadoc)
@@ -212,103 +211,10 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
         g.grabExcessHorizontalSpace = true;
         group.setLayoutData(g);
         group.setText("AWS Credentials");
-        sdkCredentialsComposite = new SdkCredentialsComposite(group);
+        accountSelectionComposite = new AccountSelectionComposite(group, SWT.None);
 
-        return sdkCredentialsComposite;
+        return accountSelectionComposite;
     }
-
-    /*
-     * Private Interface
-     */
-
-    private class SdkCredentialsComposite extends Composite {
-        private Text accessKeyText;
-        private Text secretKeyText;
-        private Button hideSecretKeyCheckbox;
-
-        protected String accessKey;
-        protected String secretKey;
-
-        public SdkCredentialsComposite(Composite parent) {
-            super(parent, SWT.NONE);
-
-            createControls();
-        }
-
-        private void createControls() {
-            GridLayout layout = new GridLayout();
-            layout.numColumns = 2;
-            layout.marginWidth = 10;
-            layout.marginHeight = 8;
-            this.setLayout(layout);
-
-            Label description = new Label(this, SWT.WRAP);
-            description.setText(
-                    "Optionally enter your AWS account credentials from " + ACCESS_KEYS_URL + " to " +
-                    "pre-populate a properties file for the samples to use.");
-            description.addListener(SWT.Selection, new WebLinkListener());
-            GridData g = new GridData(SWT.FILL, SWT.FILL, true, true);
-            g.horizontalSpan = 2;
-            g.widthHint = sdkSamplesComposite.getSize().x;
-            description.setLayoutData(g);
-
-            Label accessKeyFieldLabel = new Label(this, SWT.NONE);
-            accessKeyFieldLabel.setText("Access Key: ");
-            accessKeyFieldLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, true));
-            accessKeyText = new Text(this, SWT.BORDER);
-            g = new GridData(SWT.FILL, SWT.TOP, true, true);
-            g.grabExcessHorizontalSpace = true;
-            accessKeyText.setLayoutData(g);
-            accessKeyText.setText(AwsToolkitCore.getDefault().getAccountInfo().getAccessKey());
-            accessKey = accessKeyText.getText();
-            accessKeyText.addListener(SWT.Modify, new Listener() {
-                public void handleEvent(Event e) {
-                    accessKey = accessKeyText.getText();
-                }
-            });
-
-            Label secretKeyFieldLabel = new Label(this, SWT.NONE);
-            secretKeyFieldLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true));
-            secretKeyFieldLabel.setText("Secret Key: ");
-            secretKeyText = new Text(this, SWT.BORDER);
-            secretKeyText.setLayoutData(g);
-            secretKeyText.setText(AwsToolkitCore.getDefault().getAccountInfo().getSecretKey());
-            secretKeyText.setEchoChar('*');
-            secretKey = secretKeyText.getText();
-            secretKeyText.addListener(SWT.Modify, new Listener() {
-                public void handleEvent(Event e) {
-                    secretKey = secretKeyText.getText();
-                }
-            });
-
-            // Just to align the checkbox
-            new Label(this, SWT.NONE).setText("");
-
-            hideSecretKeyCheckbox = new Button(this, SWT.CHECK);
-            hideSecretKeyCheckbox.setText("Show secret access key");
-            hideSecretKeyCheckbox.setSelection(false);
-            hideSecretKeyCheckbox.addListener(SWT.Selection, new Listener() {
-                public void handleEvent(Event event) {
-                    updateSecretKeyText();
-                }
-            });
-            g = new GridData(GridData.FILL_HORIZONTAL);
-            g.verticalIndent = -6;
-            hideSecretKeyCheckbox.setLayoutData(g);
-        }
-
-        private void updateSecretKeyText() {
-            if (hideSecretKeyCheckbox == null) return;
-            if (secretKeyText == null) return;
-
-            if (hideSecretKeyCheckbox.getSelection()) {
-                secretKeyText.setEchoChar('\0');
-            } else {
-                secretKeyText.setEchoChar('*');
-            }
-        }
-    }
-
 
     /**
      * Composite displaying the samples available in an SDK.

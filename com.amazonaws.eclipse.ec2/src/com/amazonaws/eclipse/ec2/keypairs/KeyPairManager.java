@@ -19,15 +19,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
 import com.amazonaws.services.ec2.model.CreateKeyPairResult;
 import com.amazonaws.services.ec2.model.KeyPair;
@@ -38,205 +41,233 @@ import com.amazonaws.services.ec2.model.KeyPair;
  */
 public class KeyPairManager {
 
-	/** The suffix for private key files */
-	private static final String PRIVATE_KEY_SUFFIX = ".pem";
+    /** The suffix for private key files */
+    private static final String PRIVATE_KEY_SUFFIX = ".pem";
 
-	/** EC2 client factory for all instances to share */
-	private static final Ec2ClientFactory clientFactory = new Ec2ClientFactory();
+    /**
+     * Returns the private key file associated with the named key, or null if no
+     * key file can be found.
+     * 
+     * @param accountId
+     *            The account id that owns the key name
+     * @param keyPairName
+     *            The name of the key being looked up.
+     * @return The file path to the associated private key file for the named
+     *         key.
+     */
+    public String lookupKeyPairPrivateKeyFile(String accountId, String keyPairName) {
+        try {
+            Properties registeredKeyPairs = loadRegisteredKeyPairs(accountId);
+            String privateKeyPath = registeredKeyPairs.getProperty(keyPairName);
+            if ( privateKeyPath != null )
+                return privateKeyPath;
 
-	/**
-	 * Returns the private key file associated with the named key. If no private
-	 * key is registered for the named key yet, this method will look in the
-	 * default private key directory to see if there's a matching private key
-	 * there. If nothing is found even after looking in the default private key
-	 * directory, this method returns null.
-	 *
-	 * @param keyPairName
-	 *            The name of the key being looked up.
-	 * @return The file path to the associated private key file for the named
-	 *         key.
-	 */
-	public String lookupKeyPairPrivateKeyFile(String keyPairName) {
-		try {
-			Properties registeredKeyPairs = loadRegisteredKeyPairs();
-			String privateKeyPath = registeredKeyPairs.getProperty(keyPairName);
-			if (privateKeyPath != null) return privateKeyPath;
+        } catch ( IOException e ) {
+            Status status = new Status(Status.WARNING, Ec2Plugin.PLUGIN_ID,
+                    "Unable to load registered key pairs file: " + e.getMessage(), e);
+            StatusManager.getManager().handle(status, StatusManager.LOG);
+        }
 
-			// Try to find the private key in the default private key directory
-			// if it hasn't been explicitly registered.
-			File defaultPrivateKeyDirectory = getDefaultPrivateKeyDirectory();
-			File privateKey = new File(defaultPrivateKeyDirectory, keyPairName + PRIVATE_KEY_SUFFIX);
-			if (privateKey.exists() && privateKey.isFile()) {
-				return privateKey.getAbsolutePath();
-			}
-		} catch (IOException e) {
-			Status status = new Status(Status.WARNING, Ec2Plugin.PLUGIN_ID,
-					"Unable to load registered key pairs file: " + e.getMessage(), e);
-			StatusManager.getManager().handle(status, StatusManager.LOG);
-		}
+        return null;
+    }
 
-		return null;
-	}
+    /**
+     * Returns true if and only if the specified key pair is valid, meaning it
+     * has a valid registered private key file.
+     * 
+     * @param accountId
+     *            The account id that owns the key name
+     * @param keyPairName
+     *            The name of the key pair to check.
+     * @return True if and only if the specified key pair is valid, meaning it
+     *         has a valid registered private key file.
+     */
+    public boolean isKeyPairValid(String accountId, String keyPairName) {
+        try {
+            String keyFile = lookupKeyPairPrivateKeyFile(accountId, keyPairName);
+            if ( keyFile == null )
+                return false;
 
-	/**
-	 * Returns true if and only if the specified key pair is valid, meaning it
-	 * has a valid registered private key file.
-	 *
-	 * @param keyPairName
-	 *            The name of the key pair to check.
-	 *
-	 * @return True if and only if the specified key pair is valid, meaning it
-	 *         has a valid registered private key file.
-	 */
-	public boolean isKeyPairValid(String keyPairName) {
-		try {
-			String keyFile = lookupKeyPairPrivateKeyFile(keyPairName);
-			if (keyFile == null) return false;
+            File f = new File(keyFile);
+            return f.isFile();
+        } catch ( Exception e ) {
+            // If we catch an exception, we know this must not be valid
+        }
 
-			File f = new File(keyFile);
-			return f.isFile();
-		} catch (Exception e) {
-			// If we catch an exception, we know this must not be valid
-		}
+        return false;
+    }
 
-		return false;
-	}
+    /**
+     * Requests a new key pair from EC2 with the specified name, and saves the
+     * private key portion in the specified directory.
+     * 
+     * @param accountId
+     *            The account id that owns the key name
+     * @param keyPairName
+     *            The name of the requested key pair.
+     * @param keyPairDirectory
+     *            The directory in which to save the private key file.
+     * @throws IOException
+     *             If any problems were encountered storing the private key to
+     *             disk.
+     * @throws AmazonClientException
+     *             If any problems were encountered requesting a new key pair
+     *             from EC2.
+     */
+    public void createNewKeyPair(String accountId, String keyPairName, String keyPairDirectory) throws IOException,
+            AmazonClientException {
 
-	/**
-	 * Requests a new key pair from EC2 with the specified name, and saves the
-	 * private key portion in the specified directory.
-	 *
-	 * @param keyPairName
-	 *            The name of the requested key pair.
-	 * @param keyPairDirectory
-	 *            The directory in which to save the private key file.
-	 *
-	 * @throws IOException
-	 *             If any problems were encountered storing the private key to
-	 *             disk.
-	 * @throws AmazonClientException
-	 *             If any problems were encountered requesting a new key pair
-	 *             from EC2.
-	 */
-	public void createNewKeyPair(String keyPairName, String keyPairDirectory)
-			throws IOException, AmazonClientException {
+        File keyPairDirectoryFile = new File(keyPairDirectory);
+        if ( !keyPairDirectoryFile.exists() ) {
+            if ( !keyPairDirectoryFile.mkdirs() ) {
+                throw new IOException("Unable to create directory: " + keyPairDirectory);
+            }
+        }
 
-		File keyPairDirectoryFile = new File(keyPairDirectory);
-		if (! keyPairDirectoryFile.exists()) {
-			if (! keyPairDirectoryFile.mkdirs()) {
-				throw new IOException("Unable to create directory: " + keyPairDirectory);
-			}
-		}
+        /**
+         * It's possible that customers could have two keys with the same name,
+         * so silently rename to avoid such a conflict. This isn't the most
+         * straightforward user interface, but probably better than enforced
+         * directory segregation by account, or else disallowing identical names
+         * across accounts.
+         */
+        File privateKeyFile = new File(keyPairDirectoryFile, keyPairName + PRIVATE_KEY_SUFFIX);
+        int i = 1;
+        while ( privateKeyFile.exists() ) {
+            privateKeyFile = new File(keyPairDirectoryFile, keyPairName + "-" + i + PRIVATE_KEY_SUFFIX);
+        }
 
-		File privateKeyFile = new File(keyPairDirectory + File.separator + keyPairName + PRIVATE_KEY_SUFFIX);
+        CreateKeyPairRequest request = new CreateKeyPairRequest();
+        request.setKeyName(keyPairName);
+        AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+        CreateKeyPairResult response = ec2.createKeyPair(request);
+        KeyPair keyPair = response.getKeyPair();
 
-		CreateKeyPairRequest request = new CreateKeyPairRequest();
-		request.setKeyName(keyPairName);
-        CreateKeyPairResult response = clientFactory.getAwsClient().createKeyPair(request);
-		KeyPair keyPair = response.getKeyPair();
+        String privateKey = keyPair.getKeyMaterial();
 
-		String privateKey = keyPair.getKeyMaterial();
+        FileWriter writer = new FileWriter(privateKeyFile);
+        try {
+            writer.write(privateKey);
+        } finally {
+            writer.close();
+        }
 
-		FileWriter writer = new FileWriter(privateKeyFile);
-		try {
-			writer.write(privateKey);
-		} finally {
-			writer.close();
-		}
+        registerKeyPair(accountId, keyPairName, privateKeyFile.getAbsolutePath());
 
-		registerKeyPair(keyPairName, privateKeyFile.getAbsolutePath());
+        /*
+         * SSH requires our private key be locked down.
+         */
+        try {
+            /*
+             * TODO: We should model these platform differences better (and
+             * support windows).
+             */
+            Runtime.getRuntime().exec("chmod 600 " + privateKeyFile.getAbsolutePath());
+        } catch ( IOException e ) {
+            Status status = new Status(Status.WARNING, Ec2Plugin.PLUGIN_ID,
+                    "Unable to restrict permissions on private key file: " + e.getMessage(), e);
+            StatusManager.getManager().handle(status, StatusManager.LOG);
+        }
+    }
 
-		/*
-		 * SSH requires our private key be locked down.
-		 */
+    /**
+     * Returns the default directory where the plugin assumes private keys are
+     * stored.
+     * 
+     * @return The default directory where the plugin assumes private keys are
+     *         stored.
+     */
+    public static File getDefaultPrivateKeyDirectory() {
+        String userHomeDir = System.getProperty("user.home");
+        if ( userHomeDir == null || userHomeDir.length() == 0 )
+            return null;
 
-		try {
-			/*
-			 * TODO: We should model these platform differences better (and support windows).
-			 */
-			Runtime.getRuntime().exec("chmod 600 " + privateKeyFile.getAbsolutePath());
-		} catch (IOException e) {
-			Status status = new Status(Status.WARNING, Ec2Plugin.PLUGIN_ID,
-					"Unable to restrict permissions on private key file: " + e.getMessage(), e);
-			StatusManager.getManager().handle(status, StatusManager.LOG);
-		}
-	}
+        return new File(userHomeDir + File.separator + ".ec2");
+    }
 
-	/**
-	 * Returns the default directory where the plugin assumes private keys are
-	 * stored.
-	 *
-	 * @return The default directory where the plugin assumes private keys are
-	 *         stored.
-	 */
-	public File getDefaultPrivateKeyDirectory() {
-		String userHomeDir = System.getProperty("user.home");
-		if (userHomeDir == null || userHomeDir.length() == 0) return null;
+    /**
+     * Registers an existing key pair and private key file with this key pair
+     * manager. This method is only for *existing* key pairs. If you need a new
+     * key pair created, you should be using createNewKeyPair.
+     * 
+     * @param accountId
+     *            The account id that owns the key name
+     * @param keyName
+     *            The name of the key being registered.
+     * @param privateKeyFile
+     *            The path to the private key file for the specified key pair.
+     * @throws IOException
+     *             If any problems are encountered adding the specified key pair
+     *             to the mapping of registered key pairs.
+     */
+    public void registerKeyPair(String accountId, String keyName, String privateKeyFile) throws IOException {
+        Properties registeredKeyPairs = loadRegisteredKeyPairs(accountId);
+        registeredKeyPairs.put(keyName, privateKeyFile);
+        storeRegisteredKeyPairs(accountId, registeredKeyPairs);
+    }
 
-		return new File(userHomeDir + File.separator + ".ec2");
-	}
+    /**
+     * Attempts to convert any legacy private key files by renaming them.
+     */
+    public static void convertLegacyPrivateKeyFiles() throws IOException {
+        String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
+        File pluginStateLocation = Ec2Plugin.getDefault().getStateLocation().toFile();
+        File keyPairsFile = new File(pluginStateLocation, getKeyPropertiesFileName(accountId));
 
-	/**
-	 * Registers an existing key pair and private key file with this key pair
-	 * manager.  This method is only for *existing* key pairs.  If you need a
-	 * new key pair created, you should be using createNewKeyPair.
-	 *
-	 * @param keyName
-	 *            The name of the key being registered.
-	 * @param privateKeyFile
-	 *            The path to the private key file for the specified key pair.
-	 * @throws IOException
-	 *             If any problems are encountered adding the specified key pair
-	 *             to the mapping of registered key pairs.
-	 */
-	public void registerKeyPair(String keyName, String privateKeyFile) throws IOException {
-		Properties registeredKeyPairs = loadRegisteredKeyPairs();
-		registeredKeyPairs.put(keyName, privateKeyFile);
-		storeRegisteredKeyPairs(registeredKeyPairs);
-	}
+        if ( !keyPairsFile.exists() ) {
+            File legacyKeyPairsFile = new File(pluginStateLocation, "registeredKeyPairs.properties");
+            if ( legacyKeyPairsFile.exists() ) {
+                FileUtils.copyFile(legacyKeyPairsFile, keyPairsFile);
+            }
+        }
+    }
 
+    /*
+     * Private Interface
+     */
 
-	/*
-	 * Private Interface
-	 */
+    private Properties loadRegisteredKeyPairs(String accountId) throws IOException {
+        /*
+         * If the plugin isn't running (such as during tests), just return an
+         * empty property list.
+         */
+        Ec2Plugin plugin = Ec2Plugin.getDefault();
+        if ( plugin == null )
+            return new Properties();
 
-	private Properties loadRegisteredKeyPairs() throws IOException {
-		/*
-		 * If the plugin isn't running (such as during tests), just return an
-		 * empty property list.
-		 */
-		Ec2Plugin plugin = Ec2Plugin.getDefault();
-		if (plugin == null) return new Properties();
+        /*
+         * TODO: we could optimize this and only load the registered key pairs
+         * on startup and after changes.
+         */
+        File pluginStateLocation = plugin.getStateLocation().toFile();
+        File registeredKeyPairsFile = new File(pluginStateLocation, getKeyPropertiesFileName(accountId));
+        registeredKeyPairsFile.createNewFile();
+        FileInputStream fileInputStream = new FileInputStream(registeredKeyPairsFile);
 
-		/*
-		 * TODO: we could optimize this and only load the registered key pairs on startup
-		 * and after changes.
-		 */
-		File pluginStateLocation = plugin.getStateLocation().toFile();
-		File registeredKeyPairsFile = new File(pluginStateLocation, "registeredKeyPairs.properties");
-		registeredKeyPairsFile.createNewFile();
-		FileInputStream fileInputStream = new FileInputStream(registeredKeyPairsFile);
+        try {
+            Properties registeredKeyPairs = new Properties();
+            registeredKeyPairs.load(fileInputStream);
 
-		try {
-			Properties registeredKeyPairs = new Properties();
-			registeredKeyPairs.load(fileInputStream);
+            return registeredKeyPairs;
+        } finally {
+            fileInputStream.close();
+        }
+    }
 
-			return registeredKeyPairs;
-		} finally {
-			fileInputStream.close();
-		}
-	}
+    private void storeRegisteredKeyPairs(String accountId, Properties registeredKeyPairs) throws IOException {
+        File pluginStateLocation = Ec2Plugin.getDefault().getStateLocation().toFile();
+        File registeredKeyPairsFile = new File(pluginStateLocation, getKeyPropertiesFileName(accountId));
+        registeredKeyPairsFile.createNewFile();
+        FileOutputStream fileOutputStream = new FileOutputStream(registeredKeyPairsFile);
+        try {
+            registeredKeyPairs.store(fileOutputStream, null);
+        } finally {
+            fileOutputStream.close();
+        }
+    }
 
-	private void storeRegisteredKeyPairs(Properties registeredKeyPairs) throws IOException {
-		File pluginStateLocation = Ec2Plugin.getDefault().getStateLocation().toFile();
-		File registeredKeyPairsFile = new File(pluginStateLocation, "registeredKeyPairs.properties");
-		registeredKeyPairsFile.createNewFile();
-		FileOutputStream fileOutputStream = new FileOutputStream(registeredKeyPairsFile);
-		try {
-			registeredKeyPairs.store(fileOutputStream, null);
-		} finally {
-			fileOutputStream.close();
-		}
-	}
+    private static String getKeyPropertiesFileName(String accountId) {
+        return "registeredKeyPairs." + accountId + ".properties";
+    }
 
 }

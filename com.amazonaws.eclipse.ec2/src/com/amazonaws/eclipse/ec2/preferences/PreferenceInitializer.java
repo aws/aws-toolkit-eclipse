@@ -34,22 +34,12 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
     /** The default PuTTY path on Windows */
     private static final String DEFAULT_WINDOWS_PUTTY_PATH = "C:\\Program Files\\PuTTY\\PuTTY.exe";
 
-    /** The default PuTTYgen path on Windows */
-    private static final String DEFAULT_WINDOWS_PUTTYGEN_PATH = "C:\\Program Files\\PuTTY\\PuTTYgen.exe";
-
     /** The default SSH options for connections to EC2 instances */
     private static final String DEFAULT_SSH_OPTIONS = "-o CheckHostIP=no -o TCPKeepAlive=yes " +
             "-o StrictHostKeyChecking=no -o ServerAliveInterval=120 -o ServerAliveCountMax=100";
 
     /** The default SSH user for connections to EC2 instances */
     private static final String DEFAULT_SSH_USER = "ec2-user";
-
-    /** The default EC2 region */
-    private static final String DEFAULT_EC2_REGION_NAME = "us-east-1";
-
-    /** The default EC2 region endpoint */
-    private static final String DEFAULT_EC2_REGION_ENDPOINT = "us-east-1.ec2.amazonaws.com";
-
 
     /*
      * (non-Javadoc)
@@ -63,7 +53,6 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
         // Windows specific preferences...
         store.setDefault(PreferenceConstants.P_PUTTY_EXECUTABLE, DEFAULT_WINDOWS_PUTTY_PATH);
-        store.setDefault(PreferenceConstants.P_PUTTYGEN_EXECUTABLE, DEFAULT_WINDOWS_PUTTYGEN_PATH);
 
         // Unix specific preferences...
         store.setDefault(PreferenceConstants.P_SSH_CLIENT, DEFAULT_UNIX_SSH_CLIENT);
@@ -71,10 +60,6 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
         // Linux specific preferences...
         store.setDefault(PreferenceConstants.P_TERMINAL_EXECUTABLE, DEFAULT_LINUX_TERMINAL);
-
-        // EC2 region preferences...
-        store.setDefault(PreferenceConstants.P_EC2_REGION_NAME, DEFAULT_EC2_REGION_NAME);
-        store.setDefault(PreferenceConstants.P_EC2_REGION_ENDPOINT, DEFAULT_EC2_REGION_ENDPOINT);
     }
 
 }

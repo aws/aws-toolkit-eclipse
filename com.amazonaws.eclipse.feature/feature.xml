@@ -14,6 +14,10 @@
          version="0.0.0"/>
 
    <includes
+         id="com.amazonaws.eclipse.rds.feature"
+         version="0.0.0"/>
+
+   <includes
          id="com.amazonaws.eclipse.ec2"
          version="0.0.0"/>
 

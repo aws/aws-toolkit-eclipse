@@ -14,53 +14,42 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
-import org.eclipse.ui.forms.events.HyperlinkAdapter;
-import org.eclipse.ui.forms.events.HyperlinkEvent;
-import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerLifecycleListener;
 import org.eclipse.wst.server.core.IServerType;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
-import org.eclipse.wst.server.core.internal.Server;
 import org.osgi.framework.BundleContext;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.BrowserUtils;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.SyncEnvironmentsJob;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.CheckAccountRunnable;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.ServerDefaultsUtils;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationRequest;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsResult;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 
 /**
  * The activator class controls the plug-in life cycle
  */
-@SuppressWarnings("restriction")
 public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup {
 
     public static final String IMG_AWS_BOX = "aws-box";
@@ -68,6 +57,8 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     public static final String IMG_IMPORT = "import";
     public static final String IMG_EXPORT = "export";
     public static final String IMG_CLIPBOARD = "clipboard";
+    public static final String IMG_ENVIRONMENT = "environment";
+    public static final String IMG_APPLICATION = "application";
 
     // The plug-in ID
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.elasticbeanstalk"; //$NON-NLS-1$
@@ -78,7 +69,16 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     private SyncEnvironmentsJob syncEnvironmentsJob;
 
     private NewServerListener newServerListener;
-    public static final String ELASTIC_BEANSTALK_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.environment"; //$NON-NLS-1$
+
+    public static final String TOMCAT_6_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.environment"; //$NON-NLS-1$
+    public static final String TOMCAT_7_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"; //$NON-NLS-1$
+
+    public static final Collection<String> SERVER_TYPE_IDS = new HashSet<String>();
+
+    static {
+        SERVER_TYPE_IDS.add(TOMCAT_6_SERVER_TYPE_ID);
+        SERVER_TYPE_IDS.add(TOMCAT_7_SERVER_TYPE_ID);
+    }
 
     /**
      * Returns the shared plugin instance.
@@ -96,7 +96,9 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
 
     public void start(BundleContext context) throws Exception {
         super.start(context);
+
         plugin = this;
+
         syncEnvironmentsJob = new SyncEnvironmentsJob();
         syncEnvironmentsJob.schedule();
 
@@ -104,7 +106,8 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
         ServerCore.addServerLifecycleListener(newServerListener);
 
         try {
-            convertLegacyTomcatClusters();
+            LegacyConversionUtils.convertSingleAccountEnvironments();
+            LegacyConversionUtils.convertLegacyTomcatClusters();
         } catch ( Exception e ) {
             getLog().log(new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, e.getMessage(), e));
         }
@@ -143,196 +146,138 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
         imageRegistry.put(IMG_SERVER, ImageDescriptor.createFromFile(getClass(), "/icons/server.png"));
         imageRegistry.put(IMG_AWS_BOX, ImageDescriptor.createFromFile(getClass(), "/icons/aws-box.gif"));
         imageRegistry.put(IMG_CLIPBOARD, ImageDescriptor.createFromFile(getClass(), "/icons/clipboard.gif"));
+        imageRegistry.put(IMG_ENVIRONMENT, ImageDescriptor.createFromFile(getClass(), "/icons/environment.png"));
+        imageRegistry.put(IMG_APPLICATION, ImageDescriptor.createFromFile(getClass(), "/icons/application.png"));
 
         return imageRegistry;
     }
 
     /**
-     * Checks for the presence of the legacy tomcat cluster server type, which
-     * is deprecated, and offers to remove them if found.
-     *
-     * This can be removed in a future release.
+     * Returns all AWS Elastic Beanstalk servers known to ServerCore
      */
-    private void convertLegacyTomcatClusters() {
-        for ( IServer server : ServerCore.getServers() ) {
-            // For eclipse 3.5, WTP hasn't yet exposed the getAttribute method
-            // on IServer, so we have to cast to Server
-            if ( server instanceof Server ) {
-                String id = ((Server) server).getAttribute("server-type-id", "");
-                if ( "com.amazonaws.eclipse.wtp.servers.tomcatCluster".equals(id) ) {
+    public static Collection<IServer> getExistingElasticBeanstalkServers() {
+        List<IServer> elasticBeanstalkServers = new ArrayList<IServer>();
 
-                    if ( AwsToolkitCore.getDefault().getAccountInfo().isValid() ) {
-
-                        final IStatus status = testConnection();
-                        if ( !status.isOK() ) {
-                            Display.getDefault().asyncExec(new Runnable() {
-                                public void run() {
-                                    CantConnectDialog dialog = new CantConnectDialog(status.getMessage());
-                                    dialog.open();
-                                }
-                            });
-                        } else {
-                            Display.getDefault().asyncExec(new Runnable() {
-
-                                public void run() {
-                                    ConvertServersDialog dialog = new ConvertServersDialog();
-                                    int result = dialog.open();
-                                    if ( result == 0 ) {
-                                        convertServers(dialog.removeServers);
-                                    }
-                                }
-                            });
-                        }
-                    }
-                    return;
-                }
-            }
-        }
-    }
-
-    private IStatus testConnection() {
-        try {
-            new CheckAccountRunnable(AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint()));
-            return Status.OK_STATUS;
-        } catch ( AmazonServiceException ase ) {
-            String errorMessage = "Unable to connect to AWS Elastic Beanstalk.  Make sure you've registered your AWS account for the AWS Elastic Beanstalk service.";
-            return new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, errorMessage, ase);
-        } catch ( AmazonClientException ace ) {
-            String errorMessage = "Unable to connect to AWS Elastic Beanstalk.  Make sure your computer is connected to the internet, and any network firewalls or proxys are configured appropriately.";
-            return new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, errorMessage, ace);
-        } catch ( Throwable t ) {
-            return new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "", t);
-        }
-    }
-
-    private void convertServers(boolean remove) {
-        Collection<IServer> serversToConvert = new LinkedList<IServer>();
-        for ( IServer server : ServerCore.getServers() ) {
-            String id = ((Server) server).getAttribute("server-type-id", "");
-            if ( "com.amazonaws.eclipse.wtp.servers.tomcatCluster".equals(id) ) {
-                serversToConvert.add(server);
+        IServer[] servers = ServerCore.getServers();
+        for ( IServer server : servers ) {
+            if ( server.getServerType() == null) continue;
+            if ( SERVER_TYPE_IDS.contains(server.getServerType().getId()) ) {
+                elasticBeanstalkServers.add(server);
             }
         }
 
-        final IServerType serverType = ServerCore.findServerType(ELASTIC_BEANSTALK_SERVER_TYPE_ID);
-
-        if ( serverType == null )
-            throw new RuntimeException("Couldn't find server type");
-
-        for ( IServer server : serversToConvert ) {
-            try {
-                IRuntimeWorkingCopy runtime = serverType.getRuntimeType().createRuntime(null, null);
-                IServerWorkingCopy serverWorkingCopy = serverType.createServer(null, null, runtime,
-                        null);
-                ServerDefaultsUtils.setDefaultHostName(serverWorkingCopy,
-                        Region.DEFAULT.getEndpoint());
-                 ServerDefaultsUtils.setDefaultServerName(serverWorkingCopy, server.getName());
-
-                Environment env = (Environment) serverWorkingCopy.loadAdapter(Environment.class,
-                        null);
-                String appName = createApplication(server, env);
-                fillInEnvironmentValues(server, appName, env);
-
-                IModule firstModule = null;
-                for (IModule module : server.getModules()) {
-                    firstModule = module;
-                    break;
-                }
-                if ( firstModule != null ) {
-                    serverWorkingCopy.modifyModules(new IModule[] { firstModule }, new IModule[0],
-                            null);
-                }
-                serverWorkingCopy.save(true, null);
-                runtime.save(true, null);
-
-                if ( remove ) {
-                    server.delete();
-                }
-            } catch ( CoreException e ) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private String createApplication(IServer server, Environment env) {
-        AWSElasticBeanstalk beanstalk = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint());
-        String applicationName = null;
-        for (IModule module : server.getModules()) {
-            applicationName = module.getProject().getName();
-        }
-        if (applicationName == null)
-            applicationName = "ApplicationName";
-
-        if ( beanstalk.describeApplications(
-                new DescribeApplicationsRequest().withApplicationNames(applicationName))
-                .getApplications().isEmpty() )
-            beanstalk.createApplication(new CreateApplicationRequest().withApplicationName(applicationName)
-                    .withDescription("Automatically created from tomcat cluster"));
-
-        return applicationName;
-    }
-
-    private void fillInEnvironmentValues(IServer server, String appName, Environment env) {
-        String envName = server.getName();
-        // Elastic Beanstalk needs a relatively short env name
-        if (envName.length() > 23) {
-            envName = envName.substring(0, 23);
-            envName = envName.replaceAll("[^a-zA-Z0-9]", "");
-        }
-        env.setEnvironmentName(envName);
-        env.setApplicationName(appName);
-        env.setRegionEndpoint(Region.DEFAULT.getEndpoint());
+        return elasticBeanstalkServers;
     }
 
     /**
-     * Dialog to ask the user if they want to convert tomcat clusters to clear
-     * box environments.
+     * Returns the server with the environment name given, if it can be found, or
+     * null otherwise.
+     *
+     * TODO: make this compliant with multiple regions.
      */
-    private final class ConvertServersDialog extends MessageDialog {
-
-        boolean removeServers;
-
-        private ConvertServersDialog() {
-            super(Display.getDefault().getActiveShell(), "Deprecated server type", AwsToolkitCore.getDefault().getImageRegistry()
-                    .get(AwsToolkitCore.IMAGE_AWS_ICON), "Amazon EC2 Tomcat clusters are deprecated in favor of AWS Elastic Beanstalk environments. "
-                    + "Would you like to create AWS Elastic Beanstalk environments for them instead?  " +
-                            "Running EC2 instances will not be affected by this operation.", 0, new String[] { "OK", "Cancel" }, 0);
+    public static IServer getServer(EnvironmentDescription environmentDescription) {
+        for ( IServer server : getExistingElasticBeanstalkServers() ) {
+            if ( environmentsSame(environmentDescription, server) ) {
+                return server;
+            }
         }
-
-        @Override
-        protected Control createCustomArea(Composite parent) {
-            final Button checkbox = new Button(parent, SWT.CHECK);
-            checkbox.setText("Remove Tomcat cluster servers after conversion");
-            checkbox.addSelectionListener(new SelectionListener() {
-
-                public void widgetSelected(SelectionEvent e) {
-                    removeServers = checkbox.getSelection();
-                    System.out.println("set remove = " + removeServers);
-                }
-
-                public void widgetDefaultSelected(SelectionEvent e) {
-                    widgetSelected(e);
-                }
-            });
-
-            final Hyperlink link = new Hyperlink(parent, SWT.NONE);
-            link.setText("Click here to learn more about AWS Elastic Beanstalk");
-            link.setHref("https://aws.amazon.com/elasticbeanstalk/");
-            link.setUnderlined(true);
-            link.addHyperlinkListener(new HyperlinkAdapter() {
-                public void linkActivated(HyperlinkEvent e) {
-                    BrowserUtils.openExternalBrowser(link.getHref().toString());
-                }
-            });
-
-            return parent;
-        }
+        return null;
     }
 
+    /**
+     * Returns whether the environment given represents the server given.
+     */
+    public static boolean environmentsSame(EnvironmentDescription env, IServer server) {
+        Environment environment = (Environment) server.getAdapter(Environment.class);
+
+        if (environment == null) return false;
+
+        return environment.getApplicationName().equals(env.getApplicationName())
+                && environment.getEnvironmentName().equals(env.getEnvironmentName());
+    }
+
+    /**
+     * Imports an environment as a Server and returns it.
+     *
+     * @param monitor
+     *            An optional progress monitor that will perform 3 units of work
+     *            during the import process.
+     * @throws CoreException
+     *             If the environment cannot be imported
+     */
+    public static IServer importEnvironment(EnvironmentDescription environmentDescription, IProgressMonitor monitor)
+            throws CoreException {
+        String solutionStackName = environmentDescription.getSolutionStackName();
+        String serverTypeId = SolutionStacks.lookupServerTypeIdBySolutionStack(solutionStackName);
+
+        final IServerType serverType = ServerCore.findServerType(serverTypeId);
+
+        IRuntimeWorkingCopy runtime = serverType.getRuntimeType().createRuntime(null, monitor);
+        IServerWorkingCopy serverWorkingCopy = serverType.createServer(null, null, runtime, monitor);
+        ServerDefaultsUtils.setDefaultHostName(serverWorkingCopy, Region.DEFAULT.getEndpoint());
+        ServerDefaultsUtils.setDefaultServerName(serverWorkingCopy, environmentDescription.getEnvironmentName());
+
+        /*
+         * These values must be bootstrapped before we can ask the environment
+         * about its configuration.
+         */
+        Environment env = (Environment) serverWorkingCopy.loadAdapter(Environment.class, monitor);
+        env.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
+        env.setRegionEndpoint(Region.DEFAULT.getEndpoint());
+        env.setApplicationName(environmentDescription.getApplicationName());
+        env.setEnvironmentName(environmentDescription.getEnvironmentName());
+
+        fillInEnvironmentValues(environmentDescription, env, monitor);
+        monitor.subTask("Creating server");
+        IServer server = serverWorkingCopy.save(true, monitor);
+        runtime.save(true, monitor);
+        monitor.worked(1);
+
+        return server;
+    }
+
+    /**
+     * Fills in the environment given with the values in the environment
+     * description.
+     *
+     * @see ElasticBeanstalkPlugin#importEnvironment(EnvironmentDescription, IProgressMonitor)
+     */
+    private static void fillInEnvironmentValues(EnvironmentDescription elasticBeanstalkEnv, Environment env, IProgressMonitor monitor) {
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint());
+
+        monitor.subTask("Getting application info");
+        DescribeApplicationsResult describeApplicationsResult = client
+                .describeApplications(new DescribeApplicationsRequest().withApplicationNames(elasticBeanstalkEnv
+                        .getApplicationName()));
+        if ( describeApplicationsResult != null && !describeApplicationsResult.getApplications().isEmpty() )
+            env.setApplicationDescription(describeApplicationsResult.getApplications().get(0).getDescription());
+        monitor.worked(1);
+
+        monitor.subTask("Getting environment configuration");
+
+        List<ConfigurationSettingsDescription> currentSettings = env.getCurrentSettings();
+        for ( ConfigurationSettingsDescription settingDescription : currentSettings ) {
+            for ( ConfigurationOptionSetting setting : settingDescription.getOptionSettings() ) {
+                if ( setting.getNamespace().equals("aws:autoscaling:launchconfiguration")
+                        && setting.getOptionName().equals("EC2KeyName") ) {
+                    env.setKeyPairName(setting.getValue());
+                }
+            }
+        }
+        monitor.worked(1);
+
+        env.setCname(elasticBeanstalkEnv.getCNAME());
+        env.setEnvironmentDescription(elasticBeanstalkEnv.getDescription());
+    }
+
+    /**
+     * Listens for the creation of new elastic beanstalk servers and syncs all
+     * environments' status.
+     */
     private class NewServerListener implements IServerLifecycleListener {
 
         public void serverAdded(IServer server) {
-            if ( server.getServerType().getId().equals(ELASTIC_BEANSTALK_SERVER_TYPE_ID) ) {
+            if ( SERVER_TYPE_IDS.contains(server.getServerType().getId()) ) {
                 ElasticBeanstalkPlugin.getDefault().syncEnvironments();
             }
         }

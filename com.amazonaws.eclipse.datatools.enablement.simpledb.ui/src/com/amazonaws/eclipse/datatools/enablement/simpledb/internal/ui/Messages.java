@@ -20,15 +20,6 @@ public class Messages {
     private static final String BUNDLE_NAME = "com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.messages"; //$NON-NLS-1$
 
     public static String CUI_NEWCW_ENDPOINT_LBL_UI_;
-    public static String CUI_NEWCW_IDENTITY_LBL_UI_;
-    public static String CUI_NEWCW_SECRET_LBL_UI_;
-    public static String CUI_NEWCW_SAVE_SECRET_LBL_UI_;
-    public static String CUI_NEWCW_IDENTITY_SUMMARY_DATA_TEXT_;
-    public static String CUI_NEWCW_SAVE_SECRET_SUMMARY_DATA_TEXT_;
-    public static String CUI_NEWCW_TRUE_SUMMARY_DATA_TEXT_;
-    public static String CUI_NEWCW_FALSE_SUMMARY_DATA_TEXT_;
-    public static String CUI_NEWCW_PROFILE_SPECIFIC;
-    public static String CUI_NEWCW_GLOBAL_SETTINGS;
     public static String CUI_NEWCW_VALIDATE_IDENTITY_REQ_UI_;
     public static String CUI_NEWCW_VALIDATE_SECRET_REQ_UI_;
     public static String database;

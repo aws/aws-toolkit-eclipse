@@ -50,7 +50,10 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 	 */
 	@Override
 	public void initializeDefaultPreferences() {
+	    IPreferenceStore store = getAwsToolkitCorePreferenceStore();
+	    
 		importEc2AccountPreferences();
+		store.setDefault(PreferenceConstants.P_DEFAULT_REGION, "us-east-1");
 	}
 	
 	/**

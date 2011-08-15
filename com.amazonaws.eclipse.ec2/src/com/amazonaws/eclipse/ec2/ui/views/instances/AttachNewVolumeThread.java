@@ -18,8 +18,10 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.AWSClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AttachVolumeRequest;
 import com.amazonaws.services.ec2.model.CreateVolumeRequest;
 import com.amazonaws.services.ec2.model.CreateVolumeResult;
@@ -33,68 +35,69 @@ import com.amazonaws.services.ec2.model.Volume;
 class AttachNewVolumeThread extends Thread {
 
     /** A shared client factory */
-    private final static Ec2ClientFactory clientFactory = new Ec2ClientFactory();
-    
+    private final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
+
     /** The snapshot from which to create the new volume */
-	private final String snapshotId;
+    private final String snapshotId;
 
-	/** The instance to attach the new volume */
-	private final Instance instance;
+    /** The instance to attach the new volume */
+    private final Instance instance;
 
-	/** The size of the new volume */
-	private final int size;
+    /** The size of the new volume */
+    private final int size;
 
-	/** The device the new volume should be attached to */
-	private final String device;
+    /** The device the new volume should be attached to */
+    private final String device;
 
-	/**
-	 * Creates a new AttachNewVolumeThread ready to be started to create a
-	 * new volume and attach it to the specified instance.
-	 *
-	 * @param instance
-	 *            The instance to attach the new volume to.
-	 * @param size
-	 *            The size of the new volume (ignored if a snapshot is
-	 *            specified).
-	 * @param snapshotId
-	 *            An ID of a snapshot to create the new volume from.
-	 * @param device
-	 *            The device the EBS volume should be attached to on the
-	 *            remote instance.
-	 * @param instanceSelectionTable TODO
-	 */
-	public AttachNewVolumeThread(Instance instance, int size, String snapshotId, String device) {
+    /**
+     * Creates a new AttachNewVolumeThread ready to be started to create a
+     * new volume and attach it to the specified instance.
+     *
+     * @param instance
+     *            The instance to attach the new volume to.
+     * @param size
+     *            The size of the new volume (ignored if a snapshot is
+     *            specified).
+     * @param snapshotId
+     *            An ID of a snapshot to create the new volume from.
+     * @param device
+     *            The device the EBS volume should be attached to on the
+     *            remote instance.
+     * @param instanceSelectionTable TODO
+     */
+    public AttachNewVolumeThread(Instance instance, int size, String snapshotId, String device) {
         this.instance = instance;
-		this.size = size;
-		this.snapshotId = snapshotId;
-		this.device = device;
-	}
+        this.size = size;
+        this.snapshotId = snapshotId;
+        this.device = device;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Thread#run()
-	 */
-	@Override
-	public void run() {
-		try {
-			CreateVolumeRequest createVolumeRequest = new CreateVolumeRequest();
-			createVolumeRequest.setAvailabilityZone(instance.getPlacement().getAvailabilityZone());
-			// Only set size if we're not using a snapshot
-			if (snapshotId == null) createVolumeRequest.setSize(size);
-			createVolumeRequest.setSnapshotId(snapshotId);
+    /* (non-Javadoc)
+     * @see java.lang.Thread#run()
+     */
+    @Override
+    public void run() {
+        try {
+            CreateVolumeRequest createVolumeRequest = new CreateVolumeRequest();
+            createVolumeRequest.setAvailabilityZone(instance.getPlacement().getAvailabilityZone());
+            // Only set size if we're not using a snapshot
+            if (snapshotId == null) createVolumeRequest.setSize(size);
+            createVolumeRequest.setSnapshotId(snapshotId);
 
-			CreateVolumeResult createVolumeResponse = clientFactory.getAwsClient().createVolume(createVolumeRequest);
+            AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+            CreateVolumeResult createVolumeResponse = ec2.createVolume(createVolumeRequest);
 
-			AttachVolumeRequest attachVolumeRequest = new AttachVolumeRequest();
-			Volume volume = createVolumeResponse.getVolume();
-			attachVolumeRequest.setDevice(device);
-			attachVolumeRequest.setInstanceId(instance.getInstanceId());
-			attachVolumeRequest.setVolumeId(volume.getVolumeId());
+            AttachVolumeRequest attachVolumeRequest = new AttachVolumeRequest();
+            Volume volume = createVolumeResponse.getVolume();
+            attachVolumeRequest.setDevice(device);
+            attachVolumeRequest.setInstanceId(instance.getInstanceId());
+            attachVolumeRequest.setVolumeId(volume.getVolumeId());
 
-			clientFactory.getAwsClient().attachVolume(attachVolumeRequest);
-		} catch (Exception e) {
-			Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
-					"Unable to attach new volume: " + e.getMessage());
-			StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
-		}
-	}
+            ec2.attachVolume(attachVolumeRequest);
+        } catch (Exception e) {
+            Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
+                    "Unable to attach new volume: " + e.getMessage());
+            StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+        }
+    }
 }

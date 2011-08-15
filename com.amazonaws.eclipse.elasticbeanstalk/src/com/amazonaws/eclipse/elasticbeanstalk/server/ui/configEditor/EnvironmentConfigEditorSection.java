@@ -17,7 +17,9 @@ package com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.DataBindingContext;
+import org.eclipse.core.databinding.UpdateSetStrategy;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.observable.set.IObservableSet;
 import org.eclipse.core.databinding.observable.set.ISetChangeListener;
@@ -50,6 +52,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ChainValidator;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ConfigurationSettingValidator;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.DecorationChangeListener;
@@ -62,6 +65,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
     protected AbstractEnvironmentConfigEditorPart parentEditor;
     protected EnvironmentConfigDataModel model;
     protected DataBindingContext bindingContext;
+    protected final Environment environment;
 
     protected FormToolkit toolkit;
 
@@ -87,11 +91,12 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
      *            The options in the namespace
      */
     public EnvironmentConfigEditorSection(AbstractEnvironmentConfigEditorPart parentEditor,
-            EnvironmentConfigDataModel model, DataBindingContext bindingContext, String namespace,
+            EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext, String namespace,
             List<ConfigurationOptionDescription> options) {
     super();
         this.parentEditor = parentEditor;
         this.bindingContext = bindingContext;
+        this.environment = environment;
         this.model = model;
         this.namespace = namespace;
         this.options = options;
@@ -204,9 +209,9 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
          * controls when the model changes. One-way listening is sufficient to
          * update the model, but not to make the two views of the model align.
          */
-        final IObservableSet currentValues = (IObservableSet) model.getEntry(option);
-        final IObservableSet values = new WritableSet();
-        values.addAll(currentValues);
+        final IObservableSet modelValues = (IObservableSet) model.getEntry(option);
+        final IObservableSet controlValues = new WritableSet();
+        controlValues.addAll(modelValues);
 
         final List<Button> checkboxButtons = new ArrayList<Button>();
         int i = 0;
@@ -222,9 +227,9 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     if (button.getSelection()) {
-                        values.add(valueOption);
+                        controlValues.add(valueOption);
                     } else {
-                        values.remove(valueOption);
+                        controlValues.remove(valueOption);
                     }
                 }
             });
@@ -244,19 +249,20 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
             lastButton.setLayoutData(labelData);
         }
 
-        bindingContext.bindSet(values, currentValues);
+        Binding bindSet = bindingContext.bindSet(controlValues, modelValues, new UpdateSetStrategy(UpdateSetStrategy.POLICY_UPDATE),
+                new UpdateSetStrategy(UpdateSetStrategy.POLICY_UPDATE));
 
         /*
          * The observed set of model values needs a listener to update the
          * controls, in case the selection event came from another set of
          * controls with which we need to synchronize.
          */
-        values.addSetChangeListener(new ISetChangeListener() {
+        controlValues.addSetChangeListener(new ISetChangeListener() {
 
             public void handleSetChange(SetChangeEvent event) {
                 for ( Button button : checkboxButtons ) {
                     boolean checked = false;
-                    for ( Object value : values ) {
+                    for ( Object value : modelValues ) {
                         if (button.getText().equals(value)) {
                             checked = true;
                             break;
@@ -266,6 +272,8 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
                 }
             }
         });
+        
+        bindSet.updateModelToTarget();        
     }
 
     /**
@@ -313,13 +321,9 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
     protected void createTextField(Composite parent, ConfigurationOptionDescription option) {
         Label label = createLabel(toolkit, parent, option);
         label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-        GridData textLayout = new GridData(SWT.LEFT, SWT.TOP, false, false);
         Text text = toolkit.createText(parent, "");
-        GC gc = new GC(text);
-        FontMetrics fm = gc.getFontMetrics();
-        textLayout.widthHint = text.computeSize(fm.getAverageCharWidth() * 20, SWT.DEFAULT).x;
-        gc.dispose();
-        text.setLayoutData(textLayout);
+        
+        layoutTextField(text);
 
         IObservableValue modelv = model.observeEntry(option);
         ISWTObservableValue widget = SWTObservables.observeText(text, SWT.Modify);
@@ -337,6 +341,15 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
                 FieldDecorationRegistry.DEC_ERROR);
         decoration.setImage(fieldDecoration.getImage());
         new DecorationChangeListener(decoration, validationStatusProvider.getValidationStatus());
+    }
+
+    protected void layoutTextField(Text text) {
+        GridData textLayout = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        GC gc = new GC(text);
+        FontMetrics fm = gc.getFontMetrics();
+        textLayout.widthHint = text.computeSize(fm.getAverageCharWidth() * 30, SWT.DEFAULT).x;
+        gc.dispose();
+        text.setLayoutData(textLayout);
     }
 
     protected Label createLabel(FormToolkit toolkit, Composite parent, ConfigurationOptionDescription option) {

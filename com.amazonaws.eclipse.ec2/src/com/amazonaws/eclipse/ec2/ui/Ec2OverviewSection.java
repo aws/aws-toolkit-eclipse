@@ -45,8 +45,6 @@ public class Ec2OverviewSection extends OverviewSection implements OverviewSecti
     @Override
     public void createControls(Composite parent) {
         Composite tasksSection = toolkit.newSubSection(parent, "Tasks");
-        toolkit.newListItem(tasksSection, "Open the Amazon EC2 Management perspective",
-                null, openEc2PerspectiveAction);
         toolkit.newListItem(tasksSection, "Launch Amazon EC2 instances",
                 null, openEc2LaunchWizard);
 

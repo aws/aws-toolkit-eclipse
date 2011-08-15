@@ -14,12 +14,22 @@
  */
 package com.amazonaws.eclipse.core;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+
 import org.eclipse.core.net.proxy.IProxyService;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
+
+import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
+import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 
 /**
  * Entry point for functionality provided by the AWS Toolkit Core plugin,
@@ -29,8 +39,11 @@ public class AwsToolkitCore extends AbstractUIPlugin {
 
     /** The singleton instance of this plugin */
     private static AwsToolkitCore plugin;
-    
-    private static AWSClientFactory clientFactory;
+
+    /**
+     * Client factories for each individual account in use by the customer.
+     */
+    private static final Map<String, AWSClientFactory> clientsFactoryByAccountId = new HashMap<String, AWSClientFactory>();
 
     /** The ID of this plugin */
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.core";
@@ -45,32 +58,32 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     /** The ID of the AWS Toolkit Overview editor */
     public static final String OVERVIEW_EDITOR_ID = "com.amazonaws.eclipse.core.ui.overview";
 
-    /** ImageRegistry ID for the AWS Toolkit title */
+    public static final String IMAGE_REMOVE = "remove";
+    public static final String IMAGE_ADD = "add";
     public static final String IMAGE_AWS_TOOLKIT_TITLE = "aws-toolkit-title";
-
-    /** ImageRegistry ID for the external link icon */
     public static final String IMAGE_EXTERNAL_LINK = "external-link";
-
-    /** ImageRegistry ID for the wrench image */
     public static final String IMAGE_WRENCH = "wrench";
-
-    /** ImageRegistry ID for the scroll image */
     public static final String IMAGE_SCROLL = "scroll";
-
-    /** ImageRegistry ID for the gears image */
     public static final String IMAGE_GEARS = "gears";
-
-    /** ImageRegistry ID for the gear image */
     public static final String IMAGE_GEAR = "gear";
-
-    /** ImageRegistry ID for the HTML document image */
     public static final String IMAGE_HTML_DOC = "html";
-
-    /** ImageRegistry ID for the AWS logo image */
     public static final String IMAGE_AWS_LOGO = "logo";
-
-    /** ImageRegistry ID for the AWS logo icon */
     public static final String IMAGE_AWS_ICON = "icon";
+    public static final String IMAGE_TABLE = "table";
+    public static final String IMAGE_BUCKET = "bucket";
+    public static final String IMAGE_REFRESH = "refresh";
+    public static final String IMAGE_DATABASE = "database";
+    public static final String IMAGE_QUEUE = "queue";
+    public static final String IMAGE_TOPIC = "topic";
+    public static final String IMAGE_START = "start";
+    public static final String IMAGE_PUBLISH = "publish";
+
+    public static final String IMAGE_FLAG_EU = "eu-flag";
+    public static final String IMAGE_FLAG_JAPAN = "japan-flag";
+    public static final String IMAGE_FLAG_SINGAPORE = "singapore-flag";
+    public static final String IMAGE_FLAG_US = "us-flag";
+
+    public static final String IMAGE_WIZARD_CONFIGURE_DATABASE = "configure-database-wizard";
 
 
     /** OSGI ServiceTracker object for querying details of proxy configuration */
@@ -88,7 +101,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     public static AwsToolkitCore getDefault() {
         return plugin;
     }
-    
+
     /**
      * Returns the IProxyService that allows callers to
      * access information on how the proxy is currently
@@ -100,14 +113,32 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     public IProxyService getProxyService() {
         return (IProxyService)proxyServiceTracker.getService();
     }
-    
+
     /**
      * Returns the client factory.
      */
     public static synchronized AWSClientFactory getClientFactory() {
-        if (clientFactory == null)
-            clientFactory = new AWSClientFactory();
-        return clientFactory;       
+        return getClientFactory(null);
+    }
+
+    /**
+     * Returns the client factory for the given account id. The client is
+     * responsible for ensuring that the given account Id is valid and properly
+     * configured.
+     *
+     * @param accountId
+     *            The account to use for credentials, or null for the currently
+     *            selected account.
+     * @see AwsToolkitCore#getAccountInfo(String)
+     */
+    public static synchronized AWSClientFactory getClientFactory(String accountId) {
+        if ( accountId == null )
+            accountId = getDefault().getCurrentAccountId();
+        if ( !clientsFactoryByAccountId.containsKey(accountId) ) {
+            clientsFactoryByAccountId.put(accountId, new AWSClientFactory(new PluginPreferenceStoreAccountInfo(getDefault()
+                    .getPreferenceStore(), accountId)));
+        }
+        return clientsFactoryByAccountId.get(accountId);
     }
 
     /* (non-Javadoc)
@@ -123,7 +154,36 @@ public class AwsToolkitCore extends AbstractUIPlugin {
 
         // Start listening for account changes...
         accountInfoMonitor = new AccountInfoMonitor();
+        bootstrapAccountPreferences();
         getPreferenceStore().addPropertyChangeListener(accountInfoMonitor);
+    }
+
+    /**
+     * Bootstraps the current account preferences for new customers or customers
+     * migrating from the legacy single-account preference
+     */
+    private void bootstrapAccountPreferences() {
+        String currentAccount = getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
+
+        // Bootstrap new customers
+        if ( currentAccount == null || currentAccount.length() == 0 ) {
+            String accountId = UUID.randomUUID().toString();
+            getPreferenceStore().putValue(PreferenceConstants.P_CURRENT_ACCOUNT, accountId);
+            getPreferenceStore().putValue(PreferenceConstants.P_ACCOUNT_IDS, accountId);
+            getPreferenceStore().putValue(accountId + ":" + PreferenceConstants.P_ACCOUNT_NAME,
+                    PreferenceConstants.DEFAULT_ACCOUNT_NAME_BASE_64);
+
+            for ( String prefName : new String[] { PreferenceConstants.P_ACCESS_KEY,
+                    PreferenceConstants.P_CERTIFICATE_FILE, PreferenceConstants.P_PRIVATE_KEY_FILE,
+                    PreferenceConstants.P_SECRET_KEY, PreferenceConstants.P_USER_ID, } ) {
+                convertExistingPreference(accountId, prefName);
+            }
+        }
+    }
+
+    protected void convertExistingPreference(String accountId, String preferenceName) {
+        getPreferenceStore().putValue(accountId + ":" + preferenceName,
+                getPreferenceStore().getString(preferenceName));
     }
 
     /* (non-Javadoc)
@@ -138,12 +198,53 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     }
 
     /**
-     * Returns the user's AWS account info.
+     * Returns the currently selected account info.
      *
      * @return The user's AWS account info.
      */
     public AccountInfo getAccountInfo() {
-        return new PluginPreferenceStoreAccountInfo(getPreferenceStore());
+        return getAccountInfo(null);
+    }
+
+    /**
+     * Gets account info for the given account name. No error checking is
+     * performed on the account name, so clients must be careful to ensure its
+     * validity.
+     *
+     * @param accountId
+     *            The id of the account for which to get info, or null for the
+     *            currently selected account.
+     */
+    public AccountInfo getAccountInfo(String accountId) {
+        if (accountId == null)
+            accountId = getCurrentAccountId();
+        return new PluginPreferenceStoreAccountInfo(getPreferenceStore(), accountId);
+    }
+
+    /**
+     * Returns the current account Id
+     */
+    public String getCurrentAccountId() {
+        return getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
+    }
+    
+    /**
+     * Sets the current account id. No error checking is performed, so ensure
+     * the given account Id is valid.
+     */
+    public void setCurrentAccountId(String accountId) {
+        getPreferenceStore().setValue(PreferenceConstants.P_CURRENT_ACCOUNT, accountId);
+    }
+
+    /**
+     * Returns a map of all currently registered account names keyed by their
+     * ID, which can then be fetched with
+     * {@link AwsToolkitCore#getAccountInfo(String)}
+     *
+     * @see AwsAccountPreferencePage#getAccounts(org.eclipse.jface.preference.IPreferenceStore)
+     */
+    public Map<String, String> getAccounts() {
+        return AwsAccountPreferencePage.getAccounts(getPreferenceStore());
     }
 
     /**
@@ -173,18 +274,49 @@ public class AwsToolkitCore extends AbstractUIPlugin {
      */
     @Override
     protected ImageRegistry createImageRegistry() {
-        ImageRegistry imageRegistry = super.createImageRegistry();
+        String[] images = new String[] {
+                IMAGE_WIZARD_CONFIGURE_DATABASE, "/icons/wizards/configure_database.png",
 
-        imageRegistry.put(IMAGE_AWS_LOGO, ImageDescriptor.createFromURL(getBundle().getEntry("icons/logo_aws.png")));
-        imageRegistry.put(IMAGE_HTML_DOC, ImageDescriptor.createFromURL(getBundle().getEntry("icons/document_text.png")));
-        imageRegistry.put(IMAGE_GEAR, ImageDescriptor.createFromURL(getBundle().getEntry("icons/gear.png")));
-        imageRegistry.put(IMAGE_GEARS, ImageDescriptor.createFromURL(getBundle().getEntry("icons/gears.png")));
-        imageRegistry.put(IMAGE_SCROLL, ImageDescriptor.createFromURL(getBundle().getEntry("icons/scroll.png")));
-        imageRegistry.put(IMAGE_WRENCH, ImageDescriptor.createFromURL(getBundle().getEntry("icons/wrench.png")));
-        imageRegistry.put(IMAGE_AWS_TOOLKIT_TITLE, ImageDescriptor.createFromURL(getBundle().getEntry("icons/aws-toolkit-title.png")));
-        imageRegistry.put(IMAGE_EXTERNAL_LINK, ImageDescriptor.createFromURL(getBundle().getEntry("icons/icon_offsite.gif")));
-        imageRegistry.put(IMAGE_AWS_ICON, ImageDescriptor.createFromURL(getBundle().getEntry("icons/aws-box.gif")));
+                IMAGE_FLAG_EU,           "/icons/flags/eu.png",
+                IMAGE_FLAG_JAPAN,        "/icons/flags/japan.png",
+                IMAGE_FLAG_SINGAPORE,    "/icons/flags/singapore.png",
+                IMAGE_FLAG_US,           "/icons/flags/us.png",
+                IMAGE_ADD,               "/icons/add.png",
+                IMAGE_REMOVE,            "/icons/remove.gif",
+                IMAGE_REFRESH,           "/icons/refresh.png",
+                IMAGE_BUCKET,            "/icons/bucket.png",
+                IMAGE_AWS_LOGO,          "/icons/logo_aws.png",
+                IMAGE_HTML_DOC,          "/icons/document_text.png",
+                IMAGE_GEAR,              "/icons/gear.png",
+                IMAGE_GEARS,             "/icons/gears.png",
+                IMAGE_SCROLL,            "/icons/scroll.png",
+                IMAGE_WRENCH,            "/icons/wrench.png",
+                IMAGE_AWS_TOOLKIT_TITLE, "/icons/aws-toolkit-title.png",
+                IMAGE_EXTERNAL_LINK,     "/icons/icon_offsite.gif",
+                IMAGE_AWS_ICON,          "/icons/aws-box.gif",
+                IMAGE_PUBLISH,           "/icons/document_into.png",
+                IMAGE_TABLE,             "/icons/table.gif",
+                IMAGE_DATABASE,          "/icons/database.png",
+                IMAGE_QUEUE,             "/icons/index.png",
+                IMAGE_TOPIC,             "/icons/sns_topic.png",
+                IMAGE_START,             "/icons/start.png",
+        };
+
+        ImageRegistry imageRegistry = super.createImageRegistry();
+        Iterator<String> i = Arrays.asList(images).iterator();
+        while (i.hasNext()) {
+            String id = i.next();
+            String imagePath = i.next();
+            imageRegistry.put(id, ImageDescriptor.createFromFile(getClass(), imagePath));
+        }
 
         return imageRegistry;
+    }
+
+    /**
+     * Convenience method for exception logging.
+     */
+    public void logException(String errorMessage, Throwable e) {
+        getLog().log(new Status(Status.ERROR, PLUGIN_ID, errorMessage, e));
     }
 }

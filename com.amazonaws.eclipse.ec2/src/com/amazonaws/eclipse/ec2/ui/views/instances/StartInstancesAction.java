@@ -23,8 +23,10 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.AWSClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.StartInstancesRequest;
 
@@ -36,11 +38,11 @@ public class StartInstancesAction extends Action {
     private final InstanceSelectionTable instanceSelectionTable;
 
     /** A shared client factory */
-    private final static Ec2ClientFactory clientFactory = new Ec2ClientFactory();
+    private final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
 
     /**
      * Creates a new action which, when run, will start the instances given
-     * 
+     *
      * @param instance
      *            The instances to start.
      * @param volume
@@ -52,7 +54,7 @@ public class StartInstancesAction extends Action {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.action.Action#isEnabled()
      */
     @Override
@@ -66,7 +68,7 @@ public class StartInstancesAction extends Action {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.action.Action#run()
      */
     @Override
@@ -76,12 +78,13 @@ public class StartInstancesAction extends Action {
         for ( Instance instance : instanceSelectionTable.getAllSelectedInstances() ) {
             instanceIds.add(instance.getInstanceId());
         }
-        
+
         new Thread() {
             public void run() {
                 try {
                     StartInstancesRequest request = new StartInstancesRequest().withInstanceIds(instanceIds);
-                    clientFactory.getAwsClient().startInstances(request);
+                    AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+                    ec2.startInstances(request);
                     instanceSelectionTable.refreshInstances();
                 } catch ( Exception e ) {
                     Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID, "Unable to start instances: "
@@ -94,7 +97,7 @@ public class StartInstancesAction extends Action {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.action.Action#getText()
      */
     @Override
@@ -104,7 +107,7 @@ public class StartInstancesAction extends Action {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.action.Action#getImageDescriptor()
      */
     @Override
@@ -114,7 +117,7 @@ public class StartInstancesAction extends Action {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.jface.action.Action#getToolTipText()
      */
     @Override

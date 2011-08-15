@@ -35,8 +35,8 @@ import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.overview.HyperlinkHandler;
+import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
-import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.Region;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
@@ -67,6 +67,7 @@ public class ConfigEditorSection extends ServerEditorSection {
     private Label createdOnLabel;
     private Label dateUpdatedLabel;
     private Hyperlink environmentUrlHyperlink;
+    private Hyperlink owningAccountHyperlink;
 
     /* (non-Javadoc)
      * @see org.eclipse.wst.server.ui.editor.ServerEditorSection#init(org.eclipse.ui.IEditorSite, org.eclipse.ui.IEditorInput)
@@ -137,6 +138,17 @@ public class ConfigEditorSection extends ServerEditorSection {
         createdOnLabel = createLabels(composite, "Created on: ", "");
         dateUpdatedLabel = createLabels(composite, "Last updated: ", "");
 
+        String accountId = environment.getAccountId();
+        String accountName = AwsToolkitCore.getDefault().getAccounts().get(accountId);
+        if ( accountName != null ) {
+            createLabel(toolkit, composite, "AWS account: ");
+            String href = "preference:" + AwsAccountPreferencePage.ID;
+            String text = accountName;
+            owningAccountHyperlink = toolkit.createHyperlink(composite, text, SWT.None);
+            owningAccountHyperlink.setHref(href);
+            owningAccountHyperlink.addHyperlinkListener(new HyperlinkHandler());
+        }        
+
         refreshEnvironmentDetails();
     }
 
@@ -186,7 +198,7 @@ public class ConfigEditorSection extends ServerEditorSection {
     }
 
     protected EnvironmentDescription describeEnvironment(String environmentName) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         List<EnvironmentDescription> environments = client.describeEnvironments(
             new DescribeEnvironmentsRequest()
                 .withEnvironmentNames(environment.getEnvironmentName())).getEnvironments();

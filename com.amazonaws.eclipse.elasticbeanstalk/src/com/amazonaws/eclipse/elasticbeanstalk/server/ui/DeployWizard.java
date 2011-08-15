@@ -29,6 +29,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.Region;
+import com.amazonaws.eclipse.elasticbeanstalk.SolutionStacks;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
 
 public class DeployWizard extends WizardFragment {
@@ -109,11 +110,15 @@ public class DeployWizard extends WizardFragment {
         environment.setHealthCheckUrl(wizardDataModel.getHealthCheckUrl());
         environment.setSslCertificateId(wizardDataModel.getSslCertificateId());
         environment.setSnsEndpoint(wizardDataModel.getSnsEndpoint());
+        environment.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
 
         if ( wizardDataModel.isUsingCname() )
             environment.setCname(wizardDataModel.getCname());
         if ( wizardDataModel.isUsingKeyPair() )
             environment.setKeyPairName(wizardDataModel.getKeyPair().getKeyName());
+
+        String serverTypeId = serverWorkingCopy.getServerType().getId();
+        environment.setSolutionStack(SolutionStacks.lookupSolutionStackByServerTypeId(serverTypeId));
     }
 
 }

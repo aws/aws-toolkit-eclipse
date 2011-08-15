@@ -33,7 +33,9 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.services.ec2.AmazonEC2;
 
 /**
@@ -45,14 +47,11 @@ public abstract class SelectionTable extends Composite {
 	/** The internal table viewer control */
 	protected TreeViewer viewer;
 
-	/** The factory for EC2 clients */
-	private Ec2ClientFactory clientFactory = new Ec2ClientFactory();
-
 	/** An optional listener to notify before and after loading AMIs */
 	protected SelectionTableListener selectionTableListener;
 
 	/** The shared user account info */
-	private static AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo();
+	private AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo();
 
 	/** True if this selection table allows multiple items to be selected */
 	private final boolean allowMultipleSelections;
@@ -63,6 +62,9 @@ public abstract class SelectionTable extends Composite {
 	/** An optional comparator to control sorting by columns */
 	protected SelectionTableComparator comparator;
 
+	/** An optional account ID to use in EC2 requests, otherwise the default will be used */
+	protected String accountIdOverride;
+	
 	/**
 	 * Specifying an EC2 endpoint override will cause the EC2 client for this
 	 * selection table to always use this overridden endpoint, instead of using
@@ -144,6 +146,19 @@ public abstract class SelectionTable extends Composite {
 		this.ec2EndpointOverride = endpoint;
 	}
 
+    /**
+     * Sets the optional EC2 account ID override for this selection table.
+     * Setting this will cause the EC2 client to authenticate requests with the
+     * specified account, otherwise the default account is used.
+     * 
+     * @param accountId
+     *            The account ID to use for making requests in this selection
+     *            table.
+     */
+	public void setAccountIdOverride(String accountId) {
+	    this.accountIdOverride = accountId;
+	}
+
 	/**
 	 * Returns the viewer used in this table.
 	 */
@@ -151,18 +166,31 @@ public abstract class SelectionTable extends Composite {
 	    return viewer;
 	}
 	
-	/**
-	 * Returns a ready to use AWS EC2 client.
-	 *
-	 * @return A fully configured AWS EC2 client.
-	 */
+    /**
+     * Returns a ready-to-use EC2 client using the currently selected AWS
+     * account.
+     * 
+     * @return A fully configured AWS EC2 client.
+     */
 	protected AmazonEC2 getAwsEc2Client() {
-		if (ec2EndpointOverride != null) {
-			return clientFactory.getAwsClientByEndpoint(ec2EndpointOverride);
-		}
-
-	    return clientFactory.getAwsClient();
+	    if (accountIdOverride != null) return getAwsEc2Client(accountIdOverride);
+	    else return getAwsEc2Client(null);
 	}
+	
+	/**
+	 * Returns a ready-to-use EC2 client for the account ID given.
+	 * 
+	 * TODO: move the account ID into a member variable, deprecate this method
+	 */
+    protected AmazonEC2 getAwsEc2Client(String accountId) {
+        if ( ec2EndpointOverride != null ) {
+            return AwsToolkitCore.getClientFactory(accountId).getEC2ClientByEndpoint(ec2EndpointOverride);
+        }
+
+        Region defaultRegion = RegionUtils.getCurrentRegion();
+        String regionEndpoint = defaultRegion.getServiceEndpoints().get(ServiceAbbreviations.EC2);
+        return AwsToolkitCore.getClientFactory(accountId).getEC2ClientByEndpoint(regionEndpoint);
+    }
 
 	/**
 	 * Returns the current selection in this table.

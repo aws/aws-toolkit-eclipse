@@ -20,6 +20,8 @@ import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoObservables;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
+import org.eclipse.core.databinding.observable.value.IObservableValue;
+import org.eclipse.core.databinding.observable.value.WritableValue;
 import org.eclipse.core.databinding.validation.IValidator;
 import org.eclipse.core.databinding.validation.ValidationStatus;
 import org.eclipse.core.resources.IProject;
@@ -29,6 +31,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -39,12 +43,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
 
 final class JavaWebProjectWizardPage extends WizardPage {
     private Text projectNameText;
     private Button basicTemplateRadioButton;
     private Button travelLogRadioButton;
-    private CredentialsComposite credentialsComposite;
+    private AccountSelectionComposite accountSelectionComposite;
 
     private final NewAwsJavaWebProjectDataModel dataModel;
     private DataBindingContext bindingContext = new DataBindingContext();
@@ -102,10 +107,9 @@ final class JavaWebProjectWizardPage extends WizardPage {
         Group group = new Group(composite, SWT.NONE);
         group.setLayoutData(layoutData);
         group.setLayout(new FillLayout());
-        credentialsComposite = new CredentialsComposite(group);
+        accountSelectionComposite = new AccountSelectionComposite(group, SWT.None);
 
-        dataModel.setAccessKeyId(AwsToolkitCore.getDefault().getAccountInfo().getAccessKey());
-        dataModel.setSecretAccessKey(AwsToolkitCore.getDefault().getAccountInfo().getSecretKey());
+        dataModel.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
 
         dataModel.setSampleAppIncluded(false);
         createSamplesGroup(composite);
@@ -155,12 +159,18 @@ final class JavaWebProjectWizardPage extends WizardPage {
                 SWTObservables.observeText(projectNameText, SWT.Modify),
                 PojoObservables.observeValue(dataModel, dataModel.PROJECT_NAME),
                 projectNameUpdateStrategy, null);
-        bindingContext.bindValue(
-                SWTObservables.observeText(credentialsComposite.accessKeyText, SWT.Modify),
-                PojoObservables.observeValue(dataModel, dataModel.ACCESS_KEY_ID), null, null);
-        bindingContext.bindValue(
-                SWTObservables.observeText(credentialsComposite.secretKeyText, SWT.Modify),
-                PojoObservables.observeValue(dataModel, dataModel.SECRET_ACCESS_KEY), null, null);
+        
+        final IObservableValue accountId = new WritableValue();
+        accountId.setValue(dataModel.getAccountId());
+        accountSelectionComposite.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                accountId.setValue(accountSelectionComposite.getSelectedAccountId());
+            }
+        });
+        bindingContext.bindValue(accountId,
+                PojoObservables.observeValue(dataModel, dataModel.ACCOUNT_ID), new UpdateValueStrategy(
+                        UpdateValueStrategy.POLICY_UPDATE), new UpdateValueStrategy(UpdateValueStrategy.POLICY_NEVER));
         bindingContext.bindValue(
                 SWTObservables.observeSelection(travelLogRadioButton),
                 PojoObservables.observeValue(dataModel, dataModel.SAMPLE_APP_INCLUDED), null, null);

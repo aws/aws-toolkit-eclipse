@@ -214,7 +214,7 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
       <import plugin="org.eclipse.core.net"/>
       <import plugin="org.eclipse.help"/>
       <import feature="com.amazonaws.eclipse.core.feature" version="1.0.1" match="greaterOrEqual"/>
-      <import plugin="com.amazonaws.eclipse.core" version="1.0.5" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.core" version="2.0.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.eclipse.core.databinding.DataBindingContext;
 
+import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigDataModel;
 
 
@@ -37,8 +38,8 @@ public class SessionConfigEditorSection extends HumanReadableConfigEditorSection
         "Stickiness Policy", "Stickiness Cookie Expiration"
     };
     
-    public SessionConfigEditorSection(BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, DataBindingContext bindingContext) {
-        super(basicEnvironmentConfigurationEditorPart, model, bindingContext);
+    public SessionConfigEditorSection(BasicEnvironmentConfigEditorPart basicEnvironmentConfigurationEditorPart, EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext) {
+        super(basicEnvironmentConfigurationEditorPart, model, environment, bindingContext);
     }
 
     @Override

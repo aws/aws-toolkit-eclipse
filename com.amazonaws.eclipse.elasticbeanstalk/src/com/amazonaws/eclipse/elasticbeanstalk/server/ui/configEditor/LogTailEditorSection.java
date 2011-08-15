@@ -14,17 +14,19 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -97,9 +99,10 @@ public class LogTailEditorSection extends ServerEditorSection {
         }
 
         @Override
+        @SuppressWarnings("restriction")
         protected IStatus run(IProgressMonitor monitor) {
-            AWSElasticBeanstalk elasticBeanstalk = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(
-                    environment.getRegionEndpoint());
+            AWSElasticBeanstalk elasticBeanstalk = AwsToolkitCore.getClientFactory(environment.getAccountId())
+                    .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
             try {
                 elasticBeanstalk.requestEnvironmentInfo(new RequestEnvironmentInfoRequest().withEnvironmentName(
                         environment.getEnvironmentName()).withInfoType("tail"));
@@ -111,9 +114,9 @@ public class LogTailEditorSection extends ServerEditorSection {
             final List<EnvironmentInfoDescription> envInfos = elasticBeanstalk.retrieveEnvironmentInfo(
                     new RetrieveEnvironmentInfoRequest().withEnvironmentName(environment.getEnvironmentName())
                             .withInfoType("tail")).getEnvironmentInfo();
-            HttpClient client = new HttpClient();
-            DefaultHttpMethodRetryHandler retryhandler = new DefaultHttpMethodRetryHandler(3, true);
-            client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryhandler);
+            DefaultHttpClient client = new DefaultHttpClient();
+            DefaultHttpRequestRetryHandler retryhandler = new DefaultHttpRequestRetryHandler(3, true);
+            client.setHttpRequestRetryHandler(retryhandler);
 
             // For each instance, there are potentially multiple tail samples.
             // We just display the last one for each instance.
@@ -138,10 +141,11 @@ public class LogTailEditorSection extends ServerEditorSection {
                 EnvironmentInfoDescription envInfo = tails.get(instanceId);
 
                 // The message is a url to fetch for logs
-                HttpMethod method = new GetMethod(envInfo.getMessage());
-                try {
-                    client.executeMethod(method);
-                    builder.append(method.getResponseBodyAsString());
+                HttpGet rq = new HttpGet(envInfo.getMessage());
+                try {                    
+                    HttpResponse response = client.execute(rq);
+                    InputStream content = response.getEntity().getContent();                    
+                    builder.append(IOUtils.toString(content));
                 } catch ( Exception e ) {
                     builder.append("Exception fetching " + envInfo.getMessage());
                 }

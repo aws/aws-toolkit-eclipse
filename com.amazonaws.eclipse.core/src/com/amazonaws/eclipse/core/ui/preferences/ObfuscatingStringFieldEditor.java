@@ -68,19 +68,15 @@ public class ObfuscatingStringFieldEditor extends StringFieldEditor {
 		getPreferenceStore().setValue(getPreferenceName(), encodedValue);
 	}
 	
-	/*
-	 * Private Interface
-	 */
-	
-	private boolean isBase64(String s) {
+	public static boolean isBase64(String s) {
 		return Base64.isArrayByteBase64(s.getBytes());
 	}
 	
-	private String encodeString(String s) {
+	public static String encodeString(String s) {
 		return new String(Base64.encodeBase64(s.getBytes()));
 	}
 	
-	private String decodeString(String s) {
+	public static  String decodeString(String s) {
 		return new String(Base64.decodeBase64(s.getBytes()));
 	}
 

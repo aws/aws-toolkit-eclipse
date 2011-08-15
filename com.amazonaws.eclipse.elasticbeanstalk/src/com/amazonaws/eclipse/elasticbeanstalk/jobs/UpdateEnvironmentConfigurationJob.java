@@ -48,7 +48,7 @@ public class UpdateEnvironmentConfigurationJob extends Job {
     @Override
     protected IStatus run(IProgressMonitor monitor) {
         try {
-            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+            AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
             client.updateEnvironment(request);
         } catch ( Exception e ) {
             return new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, e.getMessage(), e);

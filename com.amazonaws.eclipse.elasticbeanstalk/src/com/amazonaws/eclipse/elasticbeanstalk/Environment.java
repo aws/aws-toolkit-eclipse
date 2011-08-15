@@ -14,8 +14,13 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -29,7 +34,23 @@ import org.eclipse.wst.server.core.internal.ServerWorkingCopy;
 import org.eclipse.wst.server.core.internal.facets.FacetUtil;
 import org.eclipse.wst.server.core.model.ServerDelegate;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
+import com.amazonaws.services.ec2.model.IpPermission;
+import com.amazonaws.services.ec2.model.SecurityGroup;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesResult;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.Instance;
 
 @SuppressWarnings("restriction")
 public class Environment extends ServerDelegate {
@@ -43,7 +64,9 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_CNAME                   = "cname";
     private static final String PROPERTY_HEALTHCHECK_URL         = "healthcheckUrl";
     private static final String PROPERTY_SSL_CERT_ID             = "sslCertId";
+    private static final String PROPERTY_ACCOUNT_ID              = "accountId";
     private static final String PROPERTY_SNS_ENDPOINT            = "snsEndpoint";
+    private static final String PROPERTY_SOLUTION_STACK          = "solutionStack";
 
     private static Map<String, EnvironmentDescription> map = new HashMap<String, EnvironmentDescription>();
 
@@ -51,6 +74,14 @@ public class Environment extends ServerDelegate {
     public void setDefaults(IProgressMonitor monitor) {
         // Disable auto publishing
         setAttribute("auto-publish-setting", 1);
+    }
+
+    public String getAccountId() {
+        return getAttribute(PROPERTY_ACCOUNT_ID, (String)null);
+    }
+
+    public void setAccountId(String accountId) {
+        setAttribute(PROPERTY_ACCOUNT_ID, accountId);
     }
 
     public String getRegionEndpoint() {
@@ -125,7 +156,7 @@ public class Environment extends ServerDelegate {
     }
 
     public String getHealthCheckUrl() {
-        return getAttribute(PROPERTY_HEALTHCHECK_URL, (String) null);
+        return getAttribute(PROPERTY_HEALTHCHECK_URL, (String)null);
     }
 
     public void setHealthCheckUrl(String healthCheckUrl) {
@@ -133,12 +164,21 @@ public class Environment extends ServerDelegate {
     }
 
     public String getSnsEndpoint() {
-        return getAttribute(PROPERTY_SNS_ENDPOINT, (String) null);
+        return getAttribute(PROPERTY_SNS_ENDPOINT, (String)null);
     }
 
     public void setSnsEndpoint(String snsEndpoint) {
         setAttribute(PROPERTY_SNS_ENDPOINT, snsEndpoint);
     }
+
+    public String getSolutionStack() {
+        return getAttribute(PROPERTY_SOLUTION_STACK, (String)null);
+    }
+
+    public void setSolutionStack(String solutionStackForServerType) {
+        setAttribute(PROPERTY_SOLUTION_STACK, solutionStackForServerType);
+    }
+
 
     /*
      * TODO: We can't quite turn this on yet because WTPWarUtils runs an operation that tries to lock
@@ -235,6 +275,183 @@ public class Environment extends ServerDelegate {
 
     public EnvironmentDescription getCachedEnvironmentDescription() {
         return map.get(getServer().getId());
+    }
+
+    /*
+     * Utility methods for communicating with environments
+     */
+
+    /**
+     * Returns the environment's configured remote debugging port, or null if it
+     * cannot be determined.
+     */
+    public static String getDebugPort(List<ConfigurationSettingsDescription> settings) {
+        ConfigurationOptionSetting opt = Environment.getJVMOptions(settings);
+        if ( opt != null ) {
+            return getDebugPort(opt.getValue());
+        }
+        return null;
+    }
+
+    /**
+     * Returns the debug port in the JVM options string given, or null if it isn't present.
+     */
+    public static String getDebugPort(String jvmOptions) {
+        if ( jvmOptions.contains("-Xdebug") && jvmOptions.contains("-Xrunjdwp:") ) {
+            Matcher matcher = Pattern.compile("-Xrunjdwp:\\S*address=(\\d+)").matcher(jvmOptions);
+            if ( matcher.find() && matcher.groupCount() > 0 && matcher.group(1) != null ) {
+                return matcher.group(1);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the "JVM Options" configuration setting, if it exists, or null otherwise.
+     */
+    public static ConfigurationOptionSetting getJVMOptions(List<ConfigurationSettingsDescription> settings) {
+        for (ConfigurationSettingsDescription setting : settings) {
+            for (ConfigurationOptionSetting opt : setting.getOptionSettings()) {
+                if (opt.getOptionName().equals("JVM Options") && opt.getNamespace().equals(ConfigurationOptionConstants.JVMOPTIONS)) {
+                    return opt;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the security group name given in the configuration settings, or null if it cannot be determined.
+     */
+    public static String getSecurityGroup(List<ConfigurationSettingsDescription> settings) {
+        for (ConfigurationSettingsDescription setting : settings) {
+            for (ConfigurationOptionSetting opt : setting.getOptionSettings()) {
+                if (opt.getOptionName().equals("SecurityGroups") && opt.getNamespace().equals(ConfigurationOptionConstants.LAUNCHCONFIGURATION)) {
+                    return opt.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns whether the given port is open on the security group for the
+     * environment settings given.
+     */
+    public boolean isIngressAllowed(int port, List<ConfigurationSettingsDescription> settings) {
+        String securityGroup = Environment.getSecurityGroup(settings);
+
+        if (securityGroup == null)
+            throw new RuntimeException("Couldn't determine security group of environent");
+
+        AmazonEC2 ec2 = getEc2Client();
+
+        DescribeSecurityGroupsResult describeSecurityGroups = ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest().withGroupNames(securityGroup));
+        for (SecurityGroup group : describeSecurityGroups.getSecurityGroups()) {
+            if (ingressAllowed(group, port)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @see Environment#isIngressAllowed(int, List)
+     */
+    public boolean isIngressAllowed(String port, List<ConfigurationSettingsDescription> settings) {
+        return isIngressAllowed(Integer.parseInt(port), settings);
+    }
+
+    /**
+     * Returns an EC2 client configured to talk to the appropriate region for
+     * this environment.
+     */
+    public AmazonEC2 getEc2Client() {
+        return AwsToolkitCore.getClientFactory(getAccountId()).getEC2ClientByEndpoint(
+                "ec2.us-east-1.amazonaws.com");
+    }
+
+    /**
+     * Returns whether the group given allows TCP ingress on the port given.
+     */
+    private boolean ingressAllowed(SecurityGroup group, int debugPortInt) {
+        for (IpPermission permission : group.getIpPermissions()) {
+            if ("tcp".equals(permission.getIpProtocol()) && permission.getIpRanges() != null && permission.getIpRanges().contains("0.0.0.0/0")) {
+                if (permission.getFromPort() != null && permission.getFromPort() <= debugPortInt
+                    && permission.getToPort() != null && permission.getToPort() >= debugPortInt) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the Beanstalk environment represented by this WTP server
+     * has been created yet.
+     */
+    public boolean doesEnvironmentExistInBeanstalk() {
+        AWSElasticBeanstalk beanstalk = getClient();
+
+        DescribeEnvironmentsResult describeEnvironmentsResult = beanstalk.describeEnvironments(
+            new DescribeEnvironmentsRequest().withEnvironmentNames(getEnvironmentName()).withApplicationName(getApplicationName()));
+
+        return (describeEnvironmentsResult.getEnvironments().size() > 0);
+    }
+
+    /**
+     * Returns the list of current settings for this environment
+     */
+    public List<ConfigurationSettingsDescription> getCurrentSettings() {
+        if (doesEnvironmentExistInBeanstalk() == false) return new ArrayList<ConfigurationSettingsDescription>();
+
+        AWSElasticBeanstalk beanstalk = getClient();
+        return beanstalk.describeConfigurationSettings(
+            new DescribeConfigurationSettingsRequest().withEnvironmentName(getEnvironmentName())
+            .withApplicationName(getApplicationName())).getConfigurationSettings();
+    }
+
+    /**
+     * Returns a client for this environment.
+     */
+    public AWSElasticBeanstalk getClient() {
+        return AwsToolkitCore.getClientFactory(getAccountId())
+                .getElasticBeanstalkClientByEndpoint(getRegionEndpoint());
+    }
+
+    /**
+     * Opens up the port given on the security group for the environment
+     * settings given.
+     */
+    public void openSecurityGroupPort(int debugPort, String securityGroup) {
+        getEc2Client().authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest().withCidrIp("0.0.0.0/0")
+                .withFromPort(debugPort).withToPort(debugPort).withIpProtocol("tcp")
+                .withGroupName(securityGroup));
+    }
+
+    /**
+     * @see Environment#openSecurityGroupPort(int, String)
+     */
+    public void openSecurityGroupPort(String debugPort, String securityGroup) {
+        openSecurityGroupPort(Integer.parseInt(debugPort), securityGroup);
+    }
+
+    /**
+     * Returns the EC2 instance IDs being used by this environment.
+     */
+    public List<String> getEC2InstanceIds() {
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(getAccountId())
+                .getElasticBeanstalkClientByEndpoint(getRegionEndpoint());
+        DescribeEnvironmentResourcesResult describeEnvironmentResources = client
+                .describeEnvironmentResources(new DescribeEnvironmentResourcesRequest()
+                        .withEnvironmentName(getEnvironmentName()));
+        List<String> instanceIds = new ArrayList<String>(describeEnvironmentResources.getEnvironmentResources()
+                .getInstances().size());
+        for ( Instance i : describeEnvironmentResources.getEnvironmentResources().getInstances() ) {
+            instanceIds.add(i.getId());
+        }
+        return instanceIds;
     }
 
 }

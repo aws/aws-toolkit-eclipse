@@ -65,6 +65,8 @@ public class KeyPairSelectionTable extends SelectionTable {
     public Action createNewKeyPairAction;
     public Action refreshAction;
     public Action registerKeyPairAction;
+    
+    private final String accountId;
 
     private static final KeyPairManager keyPairManager = new KeyPairManager();
 
@@ -112,7 +114,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         // key pair doesn't have a private key file registered yet
         registerKeyPairAction.setEnabled(false);
         if (selectedKeyPair != null) {
-            String privateKeyFile = keyPairManager.lookupKeyPairPrivateKeyFile(selectedKeyPair.getKeyName());
+            String privateKeyFile = keyPairManager.lookupKeyPairPrivateKeyFile(accountId, selectedKeyPair.getKeyName());
             registerKeyPairAction.setEnabled(privateKeyFile == null);
         }
     }
@@ -158,7 +160,7 @@ public class KeyPairSelectionTable extends SelectionTable {
             if (!(element instanceof KeyPairInfo)) return null;
             KeyPairInfo keyPairInfo = (KeyPairInfo)element;
 
-            if (keyPairManager.isKeyPairValid(keyPairInfo.getKeyName())) {
+            if (keyPairManager.isKeyPairValid(accountId, keyPairInfo.getKeyName())) {
                 return checkImage;
             } else {
                 return errorImage;
@@ -218,16 +220,13 @@ public class KeyPairSelectionTable extends SelectionTable {
             return keyPair1.getKeyName().compareTo(keyPair2.getKeyName());
         }
     }
-
+    
     /**
-     * Creates a new key pair selection table composite with the specified
-     * parent.
-     *
-     * @param parent
-     *            The parent for this new key pair selection table.
+     * Create a key pair table for the specified account Id
      */
-    public KeyPairSelectionTable(Composite parent) {
+    public KeyPairSelectionTable(Composite parent, String accountId) {
         super(parent);
+        this.accountId = accountId;        
 
         KeyPairTableProvider keyPairTableProvider = new KeyPairTableProvider();
 
@@ -309,7 +308,7 @@ public class KeyPairSelectionTable extends SelectionTable {
 
         createNewKeyPairAction = new Action() {
             public void run() {
-                CreateKeyPairDialog dialog = new CreateKeyPairDialog(Display.getCurrent().getActiveShell());
+                CreateKeyPairDialog dialog = new CreateKeyPairDialog(Display.getCurrent().getActiveShell(), accountId);
                 if (dialog.open() != Dialog.OK) return;
 
                 new CreateKeyPairThread(dialog.getKeyPairName(), dialog.getPrivateKeyDirectory()).start();
@@ -341,7 +340,7 @@ public class KeyPairSelectionTable extends SelectionTable {
 
                 if (privateKeyFile != null) {
                     try {
-                        keyPairManager.registerKeyPair(keyPair.getKeyName(), privateKeyFile);
+                        keyPairManager.registerKeyPair(accountId, keyPair.getKeyName(), privateKeyFile);
                         refreshKeyPairs();
                     } catch (IOException e) {
                         String errorMessage = "Unable to register key pair " +
@@ -378,7 +377,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         KeyPairInfo selectedKeyPair = getSelectedKeyPair();
         if (selectedKeyPair == null) return false;
 
-        return keyPairManager.isKeyPairValid(selectedKeyPair.getKeyName());
+        return keyPairManager.isKeyPairValid(accountId, selectedKeyPair.getKeyName());
     }
 
 
@@ -396,7 +395,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         @Override
         public void run() {
             try {
-                AmazonEC2 ec2 = getAwsEc2Client();
+                AmazonEC2 ec2 = getAwsEc2Client(KeyPairSelectionTable.this.accountId);
 
                 DescribeKeyPairsResult response = ec2.describeKeyPairs(new DescribeKeyPairsRequest());
                 List<KeyPairInfo> keyPairs = response.getKeyPairs();
@@ -442,7 +441,7 @@ public class KeyPairSelectionTable extends SelectionTable {
             try {
                 DeleteKeyPairRequest request = new DeleteKeyPairRequest();
                 request.setKeyName(keyPair.getKeyName());
-                getAwsEc2Client().deleteKeyPair(request);
+                getAwsEc2Client(accountId).deleteKeyPair(request);
             } catch (Exception e) {
                 Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
                         "Unable to delete key pair: " + e.getMessage(), e);
@@ -482,7 +481,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         @Override
         public void run() {
             try {
-                keyPairManager.createNewKeyPair(name, directory);
+                keyPairManager.createNewKeyPair(accountId, name, directory);
             } catch (Exception e) {
                 Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
                         "Unable to create key pair: " + e.getMessage());

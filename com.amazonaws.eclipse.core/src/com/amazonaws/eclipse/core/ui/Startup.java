@@ -1,16 +1,16 @@
 /*
- * Copyright 2009-2011 Amazon Technologies, Inc. 
+ * Copyright 2009-2011 Amazon Technologies, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
- * OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and 
- * limitations under the License. 
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.amazonaws.eclipse.core.ui;
 
@@ -47,39 +47,35 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
  */
 public class Startup implements IStartup {
 
-	private static IEditorInput input = null;
-	
+    private static IEditorInput input = null;
+
     /* (non-Javadoc)
      * @see org.eclipse.ui.IStartup#earlyStartup()
      */
     public void earlyStartup() {
-        if (shouldDisplayOverview()) {
-            displayAwsToolkitOverviewEditor();
-        }
-        
         recordOverviewContributors();
     }
 
-    
+
     /*
      * Protected Interface
      */
-    
+
     /**
      * Returns true if the AWS Toolkit Overview view should be displayed.
-     * 
+     *
      * @return True if the AWS Toolkit Overview view should be displayed.
      */
     protected boolean shouldDisplayOverview() {
         Map<String, String> overviewContributors = findOverviewContributors();
         Map<String, String> registeredOverviewContributors = getRegisteredOverviewContributors();
 
-        // If we found more overview contributors than we have registered, 
+        // If we found more overview contributors than we have registered,
         // we know something must be new so we can return early.
         if (overviewContributors.size() > registeredOverviewContributors.size()) {
             return true;
         }
-        
+
         for (String key : overviewContributors.keySet()) {
             /*
              * If we identified a contributing plugin that hasn't been
@@ -89,10 +85,10 @@ public class Startup implements IStartup {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Opens the AWS Toolkit Overview editor.
      */
@@ -102,29 +98,29 @@ public class Startup implements IStartup {
             public Object getAdapter(Class adapter) {
                 return null;
             }
-            
+
             public String getToolTipText() {
                 return "AWS Toolkit for Eclipse Overview";
             }
-            
+
             public IPersistableElement getPersistable() {
                 return null;
             }
-            
+
             public String getName() {
                 return "AWS Toolkit for Eclipse Overview";
             }
-            
+
             public ImageDescriptor getImageDescriptor() {
                 return null;
             }
-            
+
             public boolean exists() {
                 return true;
             }
         };
         }
-        
+
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
                 try {
@@ -147,7 +143,7 @@ public class Startup implements IStartup {
     /**
      * Returns the file which records which components of the AWS Toolkit for
      * Eclipse are installed.
-     * 
+     *
      * @return The file which records which components of the AWS Toolkit for
      *         Eclipse are installed.
      */
@@ -159,14 +155,14 @@ public class Startup implements IStartup {
      * Returns a map of plugin versions, keyed by their plugin ID, representing
      * plugins that have previously been detected and recorded as contributing
      * to the AWS Toolkit Overview view.
-     * 
+     *
      * @return A map of plugin versions, keyed by their plugin ID, representing
      *         plugins that have been recorded as contributing to the AWS
      *         Toolkit Overview view.
      */
     private Map<String, String> getRegisteredOverviewContributors() {
         Map<String, String> registeredPlugins = new HashMap<String, String>();
-        
+
         File dataFile = getPropertiesFile();
         if (dataFile == null || dataFile.exists() == false) {
             return registeredPlugins;
@@ -180,7 +176,7 @@ public class Startup implements IStartup {
 
             for (Object key : properties.keySet()) {
                 String value = properties.getProperty(key.toString());
-                
+
                 registeredPlugins.put(key.toString(), value);
             }
         } catch (IOException e) {
@@ -190,7 +186,7 @@ public class Startup implements IStartup {
         } finally {
             try {inputStream.close();} catch (IOException ioe) {}
         }
-        
+
         return registeredPlugins;
     }
 
@@ -198,26 +194,26 @@ public class Startup implements IStartup {
      * Returns a map of plugin versions, keyed by their plugin ID, representing
      * installed plugins which contribute to the AWS Toolkit Overview view
      * through the core plugin's extension point.
-     * 
+     *
      * @return A map of plugin versions, keyed by their plugin ID, representing
      *         installed plugins which contribute to the AWS Toolkit Overview
      *         view.
      */
     private Map<String, String> findOverviewContributors() {
         Map<String, String> plugins = new HashMap<String, String>();
-        
+
         IExtensionPoint extensionPoint = Platform.getExtensionRegistry().getExtensionPoint(AwsToolkitCore.OVERVIEW_EXTENSION_ID);
         IExtension[] extensions = extensionPoint.getExtensions();
         for (IExtension extension : extensions) {
             String pluginName = extension.getContributor().getName();
-            
+
             Dictionary headers = Platform.getBundle(pluginName).getHeaders();
             String pluginVersion = (String)headers.get("Bundle-Version");
             if (pluginVersion == null) pluginVersion = "";
-            
+
             plugins.put(pluginName, pluginVersion);
         }
-        
+
         return plugins;
     }
 
@@ -229,7 +225,7 @@ public class Startup implements IStartup {
     private void recordOverviewContributors() {
         File dataFile = getPropertiesFile();
         Properties properties = new Properties();
-        
+
         Map<String, String> contributions = findOverviewContributors();
         for (String pluginName : contributions.keySet()) {
             String pluginVersion = contributions.get(pluginName);

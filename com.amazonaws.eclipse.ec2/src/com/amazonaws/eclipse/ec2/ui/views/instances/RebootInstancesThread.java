@@ -21,8 +21,10 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.ec2.Ec2ClientFactory;
+import com.amazonaws.eclipse.core.AWSClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.RebootInstancesRequest;
 
@@ -33,42 +35,44 @@ class RebootInstancesThread extends Thread {
 
     private final InstanceSelectionTable instanceSelectionTable;
     /** The instances to be rebooted */
-	private final List<Instance> instances;
-	
+    private final List<Instance> instances;
+
     /** A shared client factory */
-    private final static Ec2ClientFactory clientFactory = new Ec2ClientFactory();
+    private final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
 
-	/**
-	 * Creates a new RebootInstancesThread ready to be started and reboot
-	 * the specified instances.
-	 *
-	 * @param instances
-	 *            The instances to reboot.
-	 */
-	public RebootInstancesThread(InstanceSelectionTable instanceSelectionTable, final List<Instance> instances) {
-		this.instanceSelectionTable = instanceSelectionTable;
+    /**
+     * Creates a new RebootInstancesThread ready to be started and reboot
+     * the specified instances.
+     *
+     * @param instances
+     *            The instances to reboot.
+     */
+    public RebootInstancesThread(InstanceSelectionTable instanceSelectionTable, final List<Instance> instances) {
+        this.instanceSelectionTable = instanceSelectionTable;
         this.instances = instances;
-	}
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Thread#run()
-	 */
-	@Override
-	public void run() {
-		try {
-			List<String> instanceIds = new ArrayList<String>();
-			for (Instance instance : instances) {
-				instanceIds.add(instance.getInstanceId());
-			}
+    /* (non-Javadoc)
+     * @see java.lang.Thread#run()
+     */
+    @Override
+    public void run() {
+        try {
+            List<String> instanceIds = new ArrayList<String>();
+            for (Instance instance : instances) {
+                instanceIds.add(instance.getInstanceId());
+            }
 
-			RebootInstancesRequest request = new RebootInstancesRequest();
-			request.setInstanceIds(instanceIds);
-			clientFactory.getAwsClient().rebootInstances(request);
-			this.instanceSelectionTable.refreshInstances();
-		} catch (Exception e) {
-			Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
-					"Unable to reboot instance: " + e.getMessage());
-			StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
-		}
-	}
+            RebootInstancesRequest request = new RebootInstancesRequest();
+            request.setInstanceIds(instanceIds);
+
+            AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+            ec2.rebootInstances(request);
+            this.instanceSelectionTable.refreshInstances();
+        } catch (Exception e) {
+            Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
+                    "Unable to reboot instance: " + e.getMessage());
+            StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+        }
+    }
 }

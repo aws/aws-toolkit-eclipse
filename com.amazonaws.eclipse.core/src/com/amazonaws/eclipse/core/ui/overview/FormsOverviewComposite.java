@@ -59,9 +59,6 @@ class FormsOverviewComposite extends Composite {
     /** The main form displayed in the overview page */
     private ScrolledForm form;
 
-    /** The getting started section of the overview page */
-    private GettingStartedSection gettingStartedSection;
-
     /** The shared resources for all overview page components */
     private OverviewResources resources;
 
@@ -81,35 +78,29 @@ class FormsOverviewComposite extends Composite {
 
         // Create the main form
         form = resources.getFormToolkit().createScrolledForm(this);
-        TableWrapLayout tableWrapLayout = LayoutUtils.newSlimTableWrapLayout(2);
-        tableWrapLayout.verticalSpacing = 20;
+        TableWrapLayout tableWrapLayout = LayoutUtils.newSlimTableWrapLayout(1);
+        tableWrapLayout.verticalSpacing = 10;
         tableWrapLayout.horizontalSpacing = 15;
         form.getBody().setLayout(tableWrapLayout);
 
         // Header
         Composite headerComposite = new HeaderComposite(form.getBody(), resources);
         TableWrapData tableWrapData = new TableWrapData(TableWrapData.FILL_GRAB);
-        tableWrapData.colspan = 2;
         headerComposite.setLayoutData(tableWrapData);
 
-        // Left hand column - Get Started and Resources sections
-        Composite leftHandColumn = resources.getFormToolkit().createComposite(form.getBody());
+        // Column of contributed overview sections and additional resources
+        Composite column = resources.getFormToolkit().createComposite(form.getBody());
         TableWrapLayout leftHandColumnLayout = new TableWrapLayout();
         leftHandColumnLayout.verticalSpacing = 20;
-        leftHandColumn.setLayout(leftHandColumnLayout);
-        leftHandColumn.setLayoutData(new TableWrapData(TableWrapData.FILL));
-        gettingStartedSection = new GettingStartedSection(leftHandColumn, resources);
-        gettingStartedSection.setLayoutData(new TableWrapData(TableWrapData.FILL));
-        createResourcesSection(leftHandColumn)
-            .setLayoutData(new TableWrapData(TableWrapData.FILL));
+        column.setLayout(leftHandColumnLayout);
+        
+        TableWrapData tableWrapData2 = new TableWrapData(TableWrapData.FILL_GRAB);
+        column.setLayoutData(tableWrapData2);
 
-        // Right hand column - plugin contributed sections
-        Composite rightHandColumn = resources.getFormToolkit().createComposite(form.getBody());
-        TableWrapLayout rightHandColumnLayout = new TableWrapLayout();
-        rightHandColumnLayout.verticalSpacing = 20;
-        rightHandColumn.setLayout(rightHandColumnLayout);
-        rightHandColumn.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB));
-        createContributedOverviewSections(rightHandColumn);
+        createContributedOverviewSections(column);
+        
+        createResourcesSection(column)
+            .setLayoutData(new TableWrapData(TableWrapData.FILL));
     }
 
     /* (non-Javadoc)
@@ -125,7 +116,6 @@ class FormsOverviewComposite extends Composite {
      */
     @Override
     public void dispose() {
-        gettingStartedSection.dispose();
         resources.dispose();
         super.dispose();
     }
@@ -148,9 +138,24 @@ class FormsOverviewComposite extends Composite {
     private Composite createResourcesSection(Composite parent) {
         Toolkit overviewToolkit = new Toolkit();
         overviewToolkit.setResources(resources);
+        
+        Section section = resources.getFormToolkit().createSection(parent,
+            Section.CLIENT_INDENT | Section.TITLE_BAR | Section.TWISTIE | Section.EXPANDED);
+        section.setText("Additional Resources");
+        section.setLayout(new FillLayout());
+        TableWrapData tableWrapData = new TableWrapData(TableWrapData.FILL, TableWrapData.FILL);
+        tableWrapData.grabHorizontal = true;
+        tableWrapData.grabVertical = true;
+        section.setLayoutData(tableWrapData);
+        
+        Composite composite = new Composite(section, SWT.NONE);
+        composite.setLayout(new TableWrapLayout());
+        section.setClient(composite);
 
-        Composite composite = overviewToolkit.newSubSection(parent,
-                "Resources", resources.getColor("amazon-orange"), resources.getFont("resources-header"));
+        section.setFont(resources.getFont("module-header"));
+        section.setForeground(resources.getColor("module-header"));
+        section.setTitleBarForeground(resources.getColor("module-header"));
+        
         composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
         overviewToolkit.newListItem(composite,
                 "AWS Toolkit for Eclipse Homepage",
@@ -163,7 +168,7 @@ class FormsOverviewComposite extends Composite {
                 AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_FAQ_URL, null);
         overviewToolkit.newListItem(composite,
                 "AWS Toolkit for Eclipse Source Code",
-                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_SOURCEFORGE_URL, null);
+                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_GITHUB_URL, null);
         overviewToolkit.newListItem(composite,
                 "AWS Management Console",
                 AwsUrls.AWS_MANAGEMENT_CONSOLE_URL, null);
