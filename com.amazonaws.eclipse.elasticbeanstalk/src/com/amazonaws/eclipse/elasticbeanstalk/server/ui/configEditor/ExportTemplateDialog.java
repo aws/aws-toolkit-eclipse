@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ChainValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.DecorationChangeListener;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NotEmptyValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NotInListValidator;
+import com.amazonaws.eclipse.databinding.ChainValidator;
+import com.amazonaws.eclipse.databinding.DecorationChangeListener;
+import com.amazonaws.eclipse.databinding.NotEmptyValidator;
+import com.amazonaws.eclipse.databinding.NotInListValidator;
 
 /**
  * Simple wizard to export an environment configuration template.

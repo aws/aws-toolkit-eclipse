@@ -88,12 +88,19 @@
 
    <extension point="org.eclipse.wst.server.ui.editorPageSections">
       <section
-         class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.ConfigEditorSection"
+         class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentOverviewEditorSection"
          id="com.amazonaws.eclipse.wtp.elasticbeanstalk.ui.ConfigEditorSection"
          order="0"
          insertionId="org.eclipse.wst.server.editor.overview.left"
          typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment,
                   com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"/>
+      <section
+            class="com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.DeploymentConfigEditorSection"
+            id="com.amazonaws.eclipse.wtp.elasticbeanstalk.ui.DeploymentConfigEditorSection"
+            insertionId="org.eclipse.wst.server.editor.overview.right"
+            order="2"
+            typeIds="com.amazonaws.eclipse.elasticbeanstalk.servers.environment,
+                     com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"/>
    </extension>
 
     <extension point="org.eclipse.wst.server.ui.editorPages">

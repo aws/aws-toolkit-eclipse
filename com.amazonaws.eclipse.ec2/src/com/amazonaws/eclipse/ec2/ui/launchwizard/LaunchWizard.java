@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,7 @@ public class LaunchWizard extends Wizard {
 		launcher.setInstanceType(launchOptionsWizardPage.getInstanceTypeId());
 		launcher.setUserData(launchOptionsWizardPage.getUserData());
 		launcher.setSecurityGroup(launchOptionsWizardPage.getSecurityGroup());
+		launcher.setInstanceProfileArn(launchOptionsWizardPage.getInstanceProfileArn());
 
 		try {
 			launcher.launch();

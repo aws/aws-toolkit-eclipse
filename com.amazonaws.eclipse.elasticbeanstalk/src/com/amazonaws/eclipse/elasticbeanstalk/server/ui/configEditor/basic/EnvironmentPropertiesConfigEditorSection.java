@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class EnvironmentPropertiesConfigEditorSection extends HumanReadableConfi
 
     @Override
     protected String getSectionDescription() {
-        return "These properties are passed into the application as environment variables.";
+        return "These properties are passed to your application as Java system properties.";
     }
 
 }

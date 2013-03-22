@@ -1,5 +1,9 @@
 package com.amazonaws.eclipse.datatools.enablement.simpledb.ui.editor;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,6 +55,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Table;
@@ -69,6 +74,8 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.BrowserUtils;
+import com.amazonaws.eclipse.core.ui.AbstractTableContentProvider;
+import com.amazonaws.eclipse.core.ui.AbstractTableLabelProvider;
 import com.amazonaws.eclipse.datatools.enablement.simpledb.driver.SimpleDBItemName;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.model.BatchPutAttributesRequest;
@@ -103,12 +110,14 @@ public class QueryEditor extends EditorPart {
     private Composite sqlSourceViewerComposite;
     private IDocument sqlSourceDocument;
 
+    private ExportAsCSVAction exportAsCSV;
+
     private ContentProvider contentProvider;
 
     @Override
     public void doSave(final IProgressMonitor monitor) {
         AmazonSimpleDB simpleDBClient = AwsToolkitCore.getClientFactory(this.domainEditorInput.getAccountId())
-        .getSimpleDBClient();
+                .getSimpleDBClient();
 
         String domain = this.resultDomain;
 
@@ -123,7 +132,7 @@ public class QueryEditor extends EditorPart {
                 if ( editedValue.newValue != null ) {
                     for ( String v : editedValue.newValue ) {
                         ReplaceableAttribute attr = new ReplaceableAttribute().withName(editedValue.name)
-                        .withReplace(true).withValue(v);
+                                .withReplace(true).withValue(v);
                         attributes.add(attr);
                     }
                 }
@@ -256,7 +265,6 @@ public class QueryEditor extends EditorPart {
         this.sqlSourceViewerComposite.setLayout(new FillLayout());
         this.sqlSourceViewer = new SourceViewer(this.sqlSourceViewerComposite, ruler, null, true, styles);
 
-
         SQLSourceEditingEnvironment.connect();
         SQLSourceViewerConfiguration configuration = new SQLSourceViewerConfiguration();
         configuration.getCompletionProcessor().setCompletionProposalAutoActivationCharacters(new char[0]);
@@ -270,7 +278,7 @@ public class QueryEditor extends EditorPart {
     private void createActions() {
 
         this.toolBarManager.add(new OpenSelectSyntaxDocumentationAction());
-        
+
         this.toolBarManager.add(new Action() {
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -299,13 +307,94 @@ public class QueryEditor extends EditorPart {
 
         });
 
+        this.exportAsCSV = new ExportAsCSVAction();
+        this.exportAsCSV.setEnabled(false);
+        this.toolBarManager.add(this.exportAsCSV);
 
         this.toolBarManager.update(true);
     }
 
+    private static final String[] exportExtensions = new String[] { "*.csv" };
+
+    private class ExportAsCSVAction extends Action {
+
+        @Override
+        public ImageDescriptor getImageDescriptor() {
+            return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_EXPORT);
+        }
+
+        @Override
+        public String getText() {
+            return "Export as CSV";
+        }
+
+        @Override
+        public String getToolTipText() {
+            return "Export as comma-separated-value";
+        }
+
+        @Override
+        public void run() {
+            FileDialog dialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
+            dialog.setOverwrite(true);
+            dialog.setFilterExtensions(exportExtensions);
+            String csvFile = dialog.open();
+            if (csvFile != null) {
+                writeCsvFile(csvFile);
+            }
+        }
+
+        private void writeCsvFile(final String csvFile) {
+            try {
+                RandomAccessFile raf = new RandomAccessFile(new File(csvFile), "rw");
+                raf.setLength(0L);
+                raf.close();
+
+                List<SimpleDBItem> items = new LinkedList<SimpleDBItem>();
+                Set<String> columns = new LinkedHashSet<String>();
+
+
+                for ( TableItem tableItem : QueryEditor.this.viewer.getTable().getItems() ) {
+                    SimpleDBItem e = (SimpleDBItem) tableItem.getData();
+                    columns.addAll(e.columns);
+                    items.add(e);
+                }
+
+                BufferedWriter out = new BufferedWriter(new FileWriter(csvFile));
+                out.write(SimpleDBItemName.ITEM_HEADER);
+                for (String col : columns) {
+                    out.write(",");
+                    out.write(col);
+                }
+                out.write("\n");
+
+                for ( SimpleDBItem item : items ) {
+                    out.write(item.itemName);
+                    for (String col : columns) {
+                        out.write(",");
+                        Collection<String> values = item.attributes.get(col);
+                        if (values != null) {
+                            String value = join(values);
+                            // For csv files, we need to quote all values and escape all quotes
+                            value = value.replaceAll("\"", "\"\"");
+                            value = "\"" + value + "\"";
+                            out.write(value);
+                        }
+                    }
+                    out.write("\n");
+                }
+
+                out.close();
+
+            } catch (Exception e) {
+                AwsToolkitCore.getDefault().logException("Couldn't save CSV file", e);
+            }
+        }
+    }
+
     private static class OpenSelectSyntaxDocumentationAction extends Action {
         public static final String SIMPLEDB_SELECT_SYNTAX_DOCUMENTATION_URL =
-            "http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/index.html?UsingSelect.html";
+                "http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/index.html?UsingSelect.html";
 
         public OpenSelectSyntaxDocumentationAction() {
             this.setText("SimpleDB Select Syntax Documentation");
@@ -319,11 +408,15 @@ public class QueryEditor extends EditorPart {
         }
     }
 
+    private static String join(final Collection<String> values) {
+        return join(values, ",");
+    }
+
     /**
      * Joins a collection of attribute values, correctly handling single-value
      * attributes and empty sets.
      */
-    private String join(final Collection<String> values) {
+    private static String join(final Collection<String> values, final String separator) {
         if ( values == null || values.isEmpty() ) {
             return "";
         }
@@ -335,7 +428,7 @@ public class QueryEditor extends EditorPart {
         boolean seenOne = false;
         for ( String s : values ) {
             if ( seenOne ) {
-                builder.append(",");
+                builder.append(separator);
             } else {
                 seenOne = true;
             }
@@ -354,6 +447,7 @@ public class QueryEditor extends EditorPart {
 
         // Clear out the existing table
         this.viewer.getTable().setEnabled(false);
+        this.exportAsCSV.setEnabled(false);
         for ( TableColumn col : this.viewer.getTable().getColumns() ) {
             col.dispose();
         }
@@ -365,10 +459,10 @@ public class QueryEditor extends EditorPart {
                 SelectResult select = null;
                 try {
                     select = AwsToolkitCore.getClientFactory(QueryEditor.this.domainEditorInput.getAccountId()).getSimpleDBClient()
-                    .select(new SelectRequest(query));
+                            .select(new SelectRequest(query));
                 } catch ( Exception e ) {
                     StatusManager.getManager().handle(
-                        new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage()), StatusManager.SHOW);
+                            new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage()), StatusManager.SHOW);
                     return;
                 }
                 final SelectResult result = select;
@@ -378,6 +472,7 @@ public class QueryEditor extends EditorPart {
                     public void run() {
                         QueryEditor.this.viewer.setInput(result);
                         QueryEditor.this.viewer.getTable().setEnabled(true);
+                        QueryEditor.this.exportAsCSV.setEnabled(true);
                         QueryEditor.this.viewer.getTable().getParent().layout();
                     }
                 });
@@ -419,7 +514,7 @@ public class QueryEditor extends EditorPart {
             m = PATTERN_WHITESPACE.matcher(fromExpression);
             if ( m.find() ) {
                 String domainName = convertSQLIdentifierToCatalogFormat(fromExpression.substring(m.end()),
-                    DELIMITED_IDENTIFIER_QUOTE);
+                        DELIMITED_IDENTIFIER_QUOTE);
                 return domainName;
             }
         }
@@ -575,15 +670,15 @@ public class QueryEditor extends EditorPart {
         }
 
         private void invokeMultiValueDialog(final TableItem item,
-                final String attributeName,
-                final int column,
-                final int row) {
+                                            final String attributeName,
+                                            final int column,
+                                            final int row) {
             SimpleDBItem simpleDBItem = (SimpleDBItem) item.getData();
-            MultiValueEditorDialog multiValueEditorDialog = new MultiValueEditorDialog(Display.getDefault()
-                .getActiveShell(), simpleDBItem, attributeName);
+            MultiValueAttributeEditorDialog multiValueEditorDialog = new MultiValueAttributeEditorDialog(Display.getDefault()
+                    .getActiveShell(), simpleDBItem, attributeName);
             int returnValue = multiValueEditorDialog.open();
             if ( returnValue == 0 ) {
-                markModified(item, column, row, multiValueEditorDialog.getAttributeValues());
+                markModified(item, column, row, multiValueEditorDialog.getValues());
             }
         }
     }

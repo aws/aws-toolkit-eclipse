@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 
 package com.amazonaws.eclipse.core.ui.preferences;
 
-import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -26,8 +25,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
-
-import com.amazonaws.eclipse.core.ui.preferences.ObfuscatingStringFieldEditor;
 
 /**
  * Abstract base class containing common logic for all AWS Toolkit preference

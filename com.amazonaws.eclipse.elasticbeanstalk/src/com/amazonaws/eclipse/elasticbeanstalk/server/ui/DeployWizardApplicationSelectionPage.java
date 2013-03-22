@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,15 +50,18 @@ import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.core.ui.CancelableThread;
+import com.amazonaws.eclipse.databinding.BooleanValidator;
+import com.amazonaws.eclipse.databinding.ChainValidator;
+import com.amazonaws.eclipse.databinding.DecorationChangeListener;
+import com.amazonaws.eclipse.databinding.NotEmptyValidator;
+import com.amazonaws.eclipse.databinding.NotInListValidator;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
-import com.amazonaws.eclipse.elasticbeanstalk.Region;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.BooleanValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ChainValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NoInvalidNameCharactersValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NotEmptyValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NotInListValidator;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
@@ -71,6 +74,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
 
     // Region controls
     private Combo regionCombo;
+    private SelectionListener regionChangeListener;
 
     // Application controls
     private Button createNewApplicationRadioButton;
@@ -173,6 +177,15 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         newEnvironmentNameTextObservable.setValue("");
         newEnvironmentDescriptionTextObservable.setValue("");
 
+        if (RegionUtils.isServiceSupportedInCurrentRegion(ServiceAbbreviations.BEANSTALK)) {
+            regionCombo.setText(RegionUtils.getCurrentRegion().getName());
+            wizardDataModel.setRegion(RegionUtils.getCurrentRegion());
+        } else {
+            regionCombo.setText(RegionUtils.getRegion(ElasticBeanstalkPlugin.DEFAULT_REGION).getName());
+            wizardDataModel.setRegion(RegionUtils.getRegion(ElasticBeanstalkPlugin.DEFAULT_REGION));
+        }
+        regionChangeListener.widgetSelected(null);
+
         // Trigger the standard enabled / disabled control logic
         radioButtonSelected(createNewApplicationRadioButton);
     }
@@ -184,21 +197,26 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         newLabel(regionGroup, "Region:");
 
         regionCombo = newCombo(regionGroup);
-        for (Region region : Region.values()) {
+        for (Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.BEANSTALK) ) {
             regionCombo.add(region.getName());
             regionCombo.setData(region.getName(), region);
         }
-        Region region = Region.findByEndpoint(wizardDataModel.getRegionEndpoint());
-        if (region != null) regionCombo.setText(region.getName());
+        Region region = RegionUtils.getRegionByEndpoint(wizardDataModel.getRegionEndpoint());
+        regionCombo.setText(region.getName());
 
         newFillingLabel(regionGroup, "AWS regions are geographically isolated, " +
             "allowing you to position your Elastic Beanstalk application closer to you or your customers.", 2);
 
-        regionCombo.addSelectionListener(new SelectionListener() {
+        regionChangeListener = new SelectionListener() {
             public void widgetSelected(SelectionEvent e) {
                 Region region = (Region)regionCombo.getData(regionCombo.getText());
-                elasticBeanstalkClient = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(region.getEndpoint());
-                wizardDataModel.setRegionEndpoint(region.getEndpoint());
+                String endpoint = region.getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
+                elasticBeanstalkClient = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(endpoint);
+                wizardDataModel.setRegion(region);
+
+                if (wizardDataModel.getKeyPairComposite() != null) {
+                    wizardDataModel.getKeyPairComposite().getKeyPairSelectionTable().setEc2RegionOverride(region);
+                }
 
                 createNewApplicationRadioButtonObservable.setValue(true);
                 existingApplicationCombo.setEnabled(false);
@@ -212,7 +230,8 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
             public void widgetDefaultSelected(SelectionEvent e) {
                 widgetSelected(e);
             }
-        });
+        };
+        regionCombo.addSelectionListener(regionChangeListener);
     }
 
     private void createApplicationSection(Composite composite) {
@@ -266,7 +285,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
                 new NoInvalidNameCharactersValidator("Invalid characters in application name."),
                 new NotInListValidator<String>(existingApplicationNames, "Duplicate application name."));
         bindingContext.addValidationStatusProvider(applicationNameValidator);
-        bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(applicationNamesLoaded, null, new BooleanValidator("Appliction names not yet loaded")));
+        bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(applicationNamesLoaded, new BooleanValidator("Appliction names not yet loaded")));
         new DecorationChangeListener(newApplicationNameDecoration, applicationNameValidator.getValidationStatus());
         newApplicationDescriptionTextObservable = SWTObservables.observeText(newApplicationDescriptionText, SWT.Modify);
         bindingContext.bindValue(
@@ -293,12 +312,11 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.NEW_ENVIRONMENT_DESCRIPTION), null, null);
         ChainValidator<String> environmentNameValidator = new ChainValidator<String>(
                 newEnvironmentNameTextObservable,
-                null,
                 new NotEmptyValidator("The environment name cannot be empty."),
                 new NoInvalidNameCharactersValidator("Invalid characters in environment name."),
                 new NotInListValidator<String>(existingEnvironmentNames, "Duplicate environment name."));
         bindingContext.addValidationStatusProvider(environmentNameValidator);
-        bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(environmentNamesLoaded, null,
+        bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(environmentNamesLoaded,
                 new BooleanValidator("Environment names not yet loaded")));
         new DecorationChangeListener(newEnvironmentNameDecoration, environmentNameValidator.getValidationStatus());
     }

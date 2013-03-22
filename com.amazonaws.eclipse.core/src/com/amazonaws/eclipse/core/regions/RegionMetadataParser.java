@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc. 
+ * Copyright 2011-2012 Amazon Technologies, Inc. 
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
@@ -37,7 +37,7 @@ public class RegionMetadataParser {
     private static final String REGION_DISPLAY_NAME_TAG = "displayname";
     private static final String SERVICE_TAG = "service";
     private static final String SERVICE_NAME_ATTRIBUTE = "name";
-
+    private static final String FLAG_ICON_TAG = "flag-icon";
     
     /**
      * Parses the specified input stream and returns a list of the regions
@@ -78,8 +78,9 @@ public class RegionMetadataParser {
     
     private Region parseRegionElement(Element regionElement) {
         String name = getTagValue(REGION_DISPLAY_NAME_TAG, regionElement);
-        String id   = getTagValue(REGION_SYSTEM_ID_TAG,  regionElement);
-        Region region = new Region(name, id);
+        String id = getTagValue(REGION_SYSTEM_ID_TAG, regionElement);
+        String flagIcon = getTagValue(FLAG_ICON_TAG, regionElement);
+        Region region = new Region(name, id, flagIcon);
 
         NodeList serviceNodes = regionElement.getElementsByTagName(SERVICE_TAG);
         for (int i = 0; i < serviceNodes.getLength(); i++) {
@@ -97,7 +98,10 @@ public class RegionMetadataParser {
     }
     
     private static String getTagValue(String tagName, Element element){
-        NodeList nodes= element.getElementsByTagName(tagName).item(0).getChildNodes();
+        Node tagNode = element.getElementsByTagName(tagName).item(0);
+        if ( tagNode == null )
+            return null;
+        NodeList nodes= tagNode.getChildNodes();
         Node node = (Node)nodes.item(0); 
      
         return node.getNodeValue();    

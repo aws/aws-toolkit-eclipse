@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@ package com.amazonaws.eclipse.elasticbeanstalk.server.ui;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -48,9 +49,11 @@ import org.eclipse.wst.server.core.IServer;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.NoCredentialsDialog;
-import com.amazonaws.eclipse.elasticbeanstalk.Region;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
@@ -82,6 +85,16 @@ public class ImportEnvironmentsWizard extends Wizard {
         setHelpAvailable(false);
     }
 
+    private static final class RegionEnvironmentDescription {
+        private final Region region;
+        private final EnvironmentDescription environmentDescription;
+
+        public RegionEnvironmentDescription(Region region, EnvironmentDescription environmentDescription) {
+            this.region = region;
+            this.environmentDescription = environmentDescription;
+        }
+    }
+    
     /**
      * Our single page is responsible for creating the controls.
      */
@@ -112,25 +125,29 @@ public class ImportEnvironmentsWizard extends Wizard {
             parent.setLayout(layout);
 
             /*
-             * Subtract the list of existing servers from the list of
-             * environment
-             *
-             * TODO: Need more work for regions here...
+             * Determine which elastic beanstalk environments aren't already imported as servers
              */
-            List<EnvironmentDescription> elasticBeanstalkEnvs = getExistingEnvironments();
-            Collection<IServer> elasticBeanstalkServers = ElasticBeanstalkPlugin.getExistingElasticBeanstalkServers();
-            Iterator<EnvironmentDescription> envIter = elasticBeanstalkEnvs.iterator();
-            while ( envIter.hasNext() ) {
-                EnvironmentDescription env = envIter.next();
-                for ( IServer server : elasticBeanstalkServers ) {
-                    if ( ElasticBeanstalkPlugin.environmentsSame(env, server)) {
-                        envIter.remove();
-                        break;
+            List<RegionEnvironmentDescription> environmentsToImport = new LinkedList<ImportEnvironmentsWizard.RegionEnvironmentDescription>();
+            for ( Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.BEANSTALK) ) {
+                List<EnvironmentDescription> elasticBeanstalkEnvs = getExistingEnvironments(region);
+                Collection<IServer> elasticBeanstalkServers = ElasticBeanstalkPlugin
+                        .getExistingElasticBeanstalkServers();
+
+                for ( EnvironmentDescription env : elasticBeanstalkEnvs ) {
+                    boolean alreadyExists = false;
+                    for ( IServer server : elasticBeanstalkServers ) {
+                        if ( ElasticBeanstalkPlugin.environmentsSame(env, region, server) ) {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+                    if ( !alreadyExists ) {
+                        environmentsToImport.add(new RegionEnvironmentDescription(region, env));
                     }
                 }
             }
 
-            if ( elasticBeanstalkEnvs.isEmpty() ) {
+            if ( environmentsToImport.isEmpty() ) {
                 new Label(parent, SWT.None).setText("There are no running environments to import.");
             } else {
                 Composite treeContainer = new Composite(parent, SWT.None);
@@ -165,7 +182,7 @@ public class ImportEnvironmentsWizard extends Wizard {
                     }
                 }
 
-                viewer.setInput(elasticBeanstalkEnvs.toArray(new EnvironmentDescription[elasticBeanstalkEnvs.size()]));
+                viewer.setInput(environmentsToImport.toArray(new RegionEnvironmentDescription[environmentsToImport.size()]));
                 viewer.getTree().addSelectionListener(new SelectionListener() {
 
                     public void widgetSelected(SelectionEvent e) {
@@ -196,7 +213,9 @@ public class ImportEnvironmentsWizard extends Wizard {
                         .run(true,
                                 false,
                                 new CheckAccountRunnable(AwsToolkitCore.getClientFactory()
-                                        .getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint())));
+                                        .getElasticBeanstalkClientByEndpoint(
+                                                RegionUtils.getRegion(ElasticBeanstalkPlugin.DEFAULT_REGION)
+                                                        .getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK))));
                 return Status.OK_STATUS;
             } catch ( InvocationTargetException ite ) {
                 String errorMessage = "Unable to connect to AWS Elastic Beanstalk.  ";
@@ -222,14 +241,16 @@ public class ImportEnvironmentsWizard extends Wizard {
     }
 
     /**
-     * Returns all AWS Elastic Beanstalk environments
+     * Returns all AWS Elastic Beanstalk environments in the region given.
      */
-    private List<EnvironmentDescription> getExistingEnvironments() {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint());
+    private List<EnvironmentDescription> getExistingEnvironments(Region region) {
+        List<EnvironmentDescription> filtered = new ArrayList<EnvironmentDescription>();
+
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(
+                region.getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK));
         List<EnvironmentDescription> environments = client.describeEnvironments().getEnvironments();
 
         // Only list the active environments
-        List<EnvironmentDescription> filtered = new ArrayList<EnvironmentDescription>();
         for ( EnvironmentDescription env : environments ) {
             if ( !(env.getStatus().equals(EnvironmentStatus.Terminated.toString()) || env.getStatus().equals(
                     EnvironmentStatus.Terminating.toString())) )
@@ -254,7 +275,10 @@ public class ImportEnvironmentsWizard extends Wizard {
                     try {
                         for ( Object elasticBeanstalkEnv : toImport ) {
                             try {
-                                ElasticBeanstalkPlugin.importEnvironment((EnvironmentDescription)elasticBeanstalkEnv, monitor);
+                                RegionEnvironmentDescription regionEnvironmentDescription = (RegionEnvironmentDescription) elasticBeanstalkEnv;
+                                ElasticBeanstalkPlugin.importEnvironment(
+                                        regionEnvironmentDescription.environmentDescription,
+                                        regionEnvironmentDescription.region, monitor);
                             } catch ( CoreException e ) {
                                 throw new RuntimeException(e);
                             }
@@ -312,19 +336,19 @@ public class ImportEnvironmentsWizard extends Wizard {
         }
 
         public String getColumnText(Object element, int columnIndex) {
-            EnvironmentDescription env = (EnvironmentDescription) element;
+            RegionEnvironmentDescription env = (RegionEnvironmentDescription) element;
 
             switch (columnIndex) {
             case COL_ENV_NAME:
-                return env.getEnvironmentName();
+                return env.environmentDescription.getEnvironmentName();
             case COL_APPLICATION_NAME:
-                return env.getApplicationName();
+                return env.environmentDescription.getApplicationName();
             case COL_DATE:
-                return env.getDateUpdated().toString();
+                return env.environmentDescription.getDateUpdated().toString();
             case COL_STATUS:
-                return env.getStatus();
+                return env.environmentDescription.getStatus();
             case COL_REGION:
-                return Region.DEFAULT.getName();
+                return env.region.getName();
             }
             return "";
         }

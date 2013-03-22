@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
+import com.amazonaws.eclipse.core.regions.Region;
+
 /**
  * Data model containing all the options for creating a new AWS Java web
  * project. Used by the New AWS Java Web Project Wizard to collect information
@@ -21,18 +23,30 @@ package com.amazonaws.eclipse.elasticbeanstalk.webproject;
  * objects to actually perform the project creation.
  */
 class NewAwsJavaWebProjectDataModel {
+
     private String accountId;
     private String projectName;
     private boolean sampleAppIncluded;
+    private String language;
+    private Region region;
 
     public static final String ACCOUNT_ID = "accountId";
     public static final String PROJECT_NAME = "projectName";
     public static final String SAMPLE_APP_INCLUDED = "sampleAppIncluded";
-    
+    public static final String REGION = "region";
+    public static final String LANGUAGE = "language";
+
+    /*
+     * Supported languages and map of languages to directories and overrides
+     */
+    public static final String ENGLISH = "English";
+    public static final String JAPANESE = "Japanese";
+    public static final String[] LANGUAGES = new String[] { ENGLISH, JAPANESE };
+
     public String getAccountId() {
         return accountId;
     }
-    
+
     public void setAccountId(String accountId) {
         this.accountId = accountId;
     }
@@ -53,4 +67,19 @@ class NewAwsJavaWebProjectDataModel {
         this.sampleAppIncluded = sampleAppIncluded;
     }
 
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public Region getRegion() {
+        return region;
+    }
+
+    public void setRegion(Region region) {
+        this.region = region;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 
 /**
@@ -73,15 +74,24 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     public static final String IMAGE_BUCKET = "bucket";
     public static final String IMAGE_REFRESH = "refresh";
     public static final String IMAGE_DATABASE = "database";
+    public static final String IMAGE_STACK = "database";
     public static final String IMAGE_QUEUE = "queue";
     public static final String IMAGE_TOPIC = "topic";
     public static final String IMAGE_START = "start";
     public static final String IMAGE_PUBLISH = "publish";
+    public static final String IMAGE_EXPORT = "export";
+    public static final String IMAGE_STREAMING_DISTRIBUTION = "streaming-distribution";
+    public static final String IMAGE_DISTRIBUTION = "distribution";
+    public static final String IMAGE_GREEN_CIRCLE = "red-circle";
+    public static final String IMAGE_RED_CIRCLE = "green-circle";
+    public static final String IMAGE_GREY_CIRCLE = "grey-circle";
+    public static final String IMAGE_USER = "user";
+    public static final String IMAGE_GROUP = "group";
+    public static final String IMAGE_IAM = "iam";
+    public static final String IMAGE_KEY = "key";
+    public static final String IMAGE_ROLE = "role";
 
-    public static final String IMAGE_FLAG_EU = "eu-flag";
-    public static final String IMAGE_FLAG_JAPAN = "japan-flag";
-    public static final String IMAGE_FLAG_SINGAPORE = "singapore-flag";
-    public static final String IMAGE_FLAG_US = "us-flag";
+    public static final String IMAGE_FLAG_PREFIX = "flag-";
 
     public static final String IMAGE_WIZARD_CONFIGURE_DATABASE = "configure-database-wizard";
 
@@ -155,6 +165,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         // Start listening for account changes...
         accountInfoMonitor = new AccountInfoMonitor();
         bootstrapAccountPreferences();
+        RegionUtils.init();
         getPreferenceStore().addPropertyChangeListener(accountInfoMonitor);
     }
 
@@ -227,7 +238,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     public String getCurrentAccountId() {
         return getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
     }
-    
+
     /**
      * Sets the current account id. No error checking is performed, so ensure
      * the given account Id is valid.
@@ -277,29 +288,36 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         String[] images = new String[] {
                 IMAGE_WIZARD_CONFIGURE_DATABASE, "/icons/wizards/configure_database.png",
 
-                IMAGE_FLAG_EU,           "/icons/flags/eu.png",
-                IMAGE_FLAG_JAPAN,        "/icons/flags/japan.png",
-                IMAGE_FLAG_SINGAPORE,    "/icons/flags/singapore.png",
-                IMAGE_FLAG_US,           "/icons/flags/us.png",
-                IMAGE_ADD,               "/icons/add.png",
-                IMAGE_REMOVE,            "/icons/remove.gif",
-                IMAGE_REFRESH,           "/icons/refresh.png",
-                IMAGE_BUCKET,            "/icons/bucket.png",
-                IMAGE_AWS_LOGO,          "/icons/logo_aws.png",
-                IMAGE_HTML_DOC,          "/icons/document_text.png",
-                IMAGE_GEAR,              "/icons/gear.png",
-                IMAGE_GEARS,             "/icons/gears.png",
-                IMAGE_SCROLL,            "/icons/scroll.png",
-                IMAGE_WRENCH,            "/icons/wrench.png",
-                IMAGE_AWS_TOOLKIT_TITLE, "/icons/aws-toolkit-title.png",
-                IMAGE_EXTERNAL_LINK,     "/icons/icon_offsite.gif",
-                IMAGE_AWS_ICON,          "/icons/aws-box.gif",
-                IMAGE_PUBLISH,           "/icons/document_into.png",
-                IMAGE_TABLE,             "/icons/table.gif",
-                IMAGE_DATABASE,          "/icons/database.png",
-                IMAGE_QUEUE,             "/icons/index.png",
-                IMAGE_TOPIC,             "/icons/sns_topic.png",
-                IMAGE_START,             "/icons/start.png",
+                IMAGE_ADD,                    "/icons/add.png",
+                IMAGE_REMOVE,                 "/icons/remove.gif",
+                IMAGE_REFRESH,                "/icons/refresh.png",
+                IMAGE_BUCKET,                 "/icons/bucket.png",
+                IMAGE_AWS_LOGO,               "/icons/logo_aws.png",
+                IMAGE_HTML_DOC,               "/icons/document_text.png",
+                IMAGE_GEAR,                   "/icons/gear.png",
+                IMAGE_GEARS,                  "/icons/gears.png",
+                IMAGE_SCROLL,                 "/icons/scroll.png",
+                IMAGE_WRENCH,                 "/icons/wrench.png",
+                IMAGE_AWS_TOOLKIT_TITLE,      "/icons/aws-toolkit-title.png",
+                IMAGE_EXTERNAL_LINK,          "/icons/icon_offsite.gif",
+                IMAGE_AWS_ICON,               "/icons/aws-box.gif",
+                IMAGE_PUBLISH,                "/icons/document_into.png",
+                IMAGE_TABLE,                  "/icons/table.gif",
+                IMAGE_DATABASE,               "/icons/database.png",
+                IMAGE_QUEUE,                  "/icons/index.png",
+                IMAGE_TOPIC,                  "/icons/sns_topic.png",
+                IMAGE_START,                  "/icons/start.png",
+                IMAGE_EXPORT,                 "/icons/export.gif",
+                IMAGE_STREAMING_DISTRIBUTION, "/icons/distribution-streaming.gif",
+                IMAGE_DISTRIBUTION,           "/icons/distribution.gif",
+                IMAGE_GREEN_CIRCLE,           "/icons/green-circle.png",
+                IMAGE_GREY_CIRCLE,            "/icons/grey-circle.png",
+                IMAGE_RED_CIRCLE,             "/icons/red-circle.png",
+                IMAGE_USER,                   "/icons/user.png",
+                IMAGE_GROUP,                  "/icons/group.png",
+                IMAGE_IAM,                    "/icons/iam.png",
+                IMAGE_KEY,                    "/icons/key.png",
+                IMAGE_ROLE,                   "/icons/role.png",
         };
 
         ImageRegistry imageRegistry = super.createImageRegistry();

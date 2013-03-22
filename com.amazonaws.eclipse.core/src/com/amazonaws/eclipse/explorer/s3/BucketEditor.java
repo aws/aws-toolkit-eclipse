@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,8 @@ public class BucketEditor extends EditorPart {
      * Creates a table of buckets
      */
     private void createBucketObjectList(final ScrolledForm form, final FormToolkit toolkit, final String bucketName) {
-        objectSummaryTable = new S3ObjectSummaryTable(bucketEditorInput.getAccountId(), bucketEditorInput.getBucketName(), form.getBody(), toolkit,
+        objectSummaryTable = new S3ObjectSummaryTable(bucketEditorInput.getAccountId(),
+                bucketEditorInput.getBucketName(), bucketEditorInput.getRegionEndpoint(), form.getBody(), toolkit,
                 SWT.None);
         objectSummaryTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
     }
@@ -172,7 +173,7 @@ public class BucketEditor extends EditorPart {
                             public void widgetSelected(SelectionEvent e) {
                                 final EditPermissionsDialog editPermissionsDialog = new EditBucketPermissionsDialog(b);
                                 if (editPermissionsDialog.open() == 0) {
-                                    final AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3Client();
+                                    final AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByEndpoint(bucketEditorInput.getRegionEndpoint());
                                     new Job("Updating bucket ACL") {
                                         @Override
                                         protected IStatus run(IProgressMonitor monitor) {

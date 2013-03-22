@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.progress.IProgressConstants;
 import org.eclipse.wst.server.core.IServer;
 
@@ -30,7 +32,6 @@ import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
 
@@ -52,11 +53,35 @@ public class TerminateEnvironmentJob extends Job {
         AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         EnvironmentBehavior behavior = (EnvironmentBehavior)environment.getServer().loadAdapter(EnvironmentBehavior.class, monitor);
 
+        final DialogHolder dialogHolder = new DialogHolder();
+        Display.getDefault().syncExec(new Runnable() {            
+            public void run() {
+                MessageDialog dialog = new MessageDialog(Display.getDefault().getActiveShell(),
+                        "Confirm environment termination", AwsToolkitCore.getDefault().getImageRegistry()
+                                .get(AwsToolkitCore.IMAGE_AWS_ICON), "Are you sure you want to terminate the environment "
+                                + environment.getEnvironmentName()
+                                + "?  All EC2 instances in the environment will be terminated and you will be unable to use "
+                                + "this environment again until you have recreated it.", MessageDialog.QUESTION_WITH_CANCEL,
+                        new String[] { "OK", "Cancel" }, 1);
+                dialogHolder.dialog = dialog;
+                dialog.open();
+            }
+        });
+        
+        if ( dialogHolder.dialog.getReturnCode() != 0 ) {
+            behavior.updateServerState(IServer.STATE_STOPPED);
+            return Status.OK_STATUS;
+        }
+        
         try {
             if (doesEnvironmentExist()) {
                 client.terminateEnvironment(new TerminateEnvironmentRequest().withEnvironmentName(environment.getEnvironmentName()));
             }
-            behavior.updateServerState(IServer.STATE_STOPPING);
+            
+            // It's more correct to set the state to stopping, rather than stopped immediately, 
+            // but if we set it to stopping, WTP will block workspace actions waiting for the 
+            // environment's state to get updated to stopped.  To prevent this, we stop immediately.
+            behavior.updateServerState(IServer.STATE_STOPPED);
             return Status.OK_STATUS;
         } catch (AmazonClientException ace) {
             return new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
@@ -75,5 +100,9 @@ public class TerminateEnvironmentJob extends Job {
         }
         
         return false;
+    }
+    
+    private static final class DialogHolder {
+        private MessageDialog dialog;               
     }
 }

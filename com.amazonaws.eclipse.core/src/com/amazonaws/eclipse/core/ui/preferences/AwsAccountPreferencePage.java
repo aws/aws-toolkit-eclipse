@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,6 +185,11 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      */
     @Override
     public boolean performOk() {
+        // Because of the somewhat "unorthodox" way we have implemented the
+        // field editors, there is some flickering here if we don't lock the
+        // display before this update.
+        this.getControl().setRedraw(false);
+        
         // Clean up the AWS User ID and store it
         String userId = userIdFieldEditor.getStringValue();
         userId = userId.replace("-", "");
@@ -219,9 +224,10 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         String accountIds = StringUtils.join(PreferenceConstants.ACCOUNT_ID_SEPARATOR,
                 accountNamesByIdentifier.keySet().toArray(new String[accountNamesByIdentifier.size()]));
         getPreferenceStore().setValue(PreferenceConstants.P_ACCOUNT_IDS, accountIds);
-
         getPreferenceStore().setValue(PreferenceConstants.P_CURRENT_ACCOUNT, currentAccountId);
 
+        this.getControl().setRedraw(true);
+        
         return super.performOk();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  */
 
 package com.amazonaws.eclipse.ec2.ui.launchwizard;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -34,7 +37,6 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.InstanceType;
@@ -46,19 +48,22 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AvailabilityZone;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
 import com.amazonaws.services.ec2.model.Image;
+import com.amazonaws.services.identitymanagement.model.InstanceProfile;
+import com.amazonaws.services.identitymanagement.model.ListInstanceProfilesResult;
 
 /**
- * Wizard Page for launcing EC2 instances.
+ * Wizard Page for launching EC2 instances.
  */
 public class LaunchWizardPage extends WizardPage {
 
-    private final AWSClientFactory ec2ClientFactory = AwsToolkitCore.getClientFactory();
+    private static final String NO_INSTANCE_PROFILE = "None";
     private Combo availabilityZoneCombo;
     private Combo instanceTypeCombo;
     private Label instanceTypeArchitectureLabel;
     private Label instanceTypeVirtualCoresLabel;
     private Label instanceTypeDiskCapacityLabel;
     private Label instanceTypeMemoryLabel;
+    private Combo instanceProfileCombo;
 
     private Text userDataText;
     private KeyPairComposite keyPairComposite;
@@ -104,6 +109,13 @@ public class LaunchWizardPage extends WizardPage {
             securityGroupSelectionComposite.getRefreshSecurityGroupsAction().run();
             keyPairComposite.getKeyPairSelectionTable().refreshKeyPairs();
             loadAvailabilityZones();
+            
+            try {
+                loadInstanceProfiles();
+            } catch ( Exception e ) {
+                instanceProfileCombo.select(0);
+                AwsToolkitCore.getDefault().logException("Couldn't load IAM Instance Profiles", e);
+            }
         }
 
         super.setVisible(visible);
@@ -129,7 +141,6 @@ public class LaunchWizardPage extends WizardPage {
         numberOfHostsSpinner.setMaximum(20);
         numberOfHostsSpinner.setMinimum(1);
         numberOfHostsSpinner.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
 
         newLabel(parent, "Instance Type:");
 
@@ -180,6 +191,12 @@ public class LaunchWizardPage extends WizardPage {
         securityGroupSelectionComposite.setLayoutData(gridData);
         securityGroupSelectionComposite.addSelectionListener(selectionListener);
 
+        newLabel(parent, "Instance Profile:");
+        instanceProfileCombo = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
+        instanceProfileCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        instanceProfileCombo.setItems(new String[] { NO_INSTANCE_PROFILE });
+        instanceProfileCombo.select(0);
+        
         newLabel(parent, "User Data:");
         userDataText = new Text(parent, SWT.MULTI | SWT.BORDER);
         userDataText.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -211,15 +228,28 @@ public class LaunchWizardPage extends WizardPage {
             availabilityZoneCombo.removeAll();
             AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
             DescribeAvailabilityZonesResult response = ec2.describeAvailabilityZones();
-            for (AvailabilityZone zone : response.getAvailabilityZones()) {
+            for ( AvailabilityZone zone : response.getAvailabilityZones() ) {
                 availabilityZoneCombo.add(zone.getZoneName());
                 availabilityZoneCombo.select(0);
             }
-        } catch (Exception e) {
-            Status status = new Status(Status.WARNING, Ec2Plugin.PLUGIN_ID,
-                    "Unable to query EC2 availability zones: " + e.getMessage(), e);
+        } catch ( Exception e ) {
+            Status status = new Status(Status.WARNING, Ec2Plugin.PLUGIN_ID, "Unable to query EC2 availability zones: "
+                    + e.getMessage(), e);
             StatusManager.getManager().handle(status, StatusManager.LOG);
         }
+    }
+    
+    private void loadInstanceProfiles() {
+        ListInstanceProfilesResult listInstanceProfiles = AwsToolkitCore.getClientFactory()
+                .getIAMClient().listInstanceProfiles();
+        List<String> profileNames = new ArrayList<String>();
+        profileNames.add(NO_INSTANCE_PROFILE);
+        for ( InstanceProfile profile : listInstanceProfiles.getInstanceProfiles() ) {
+            profileNames.add(profile.getInstanceProfileName());
+            instanceProfileCombo.setData(profile.getInstanceProfileName(), profile);
+        }        
+        instanceProfileCombo.setItems(profileNames.toArray(new String[profileNames.size()]));
+        instanceProfileCombo.select(0);
     }
 
     /**
@@ -389,6 +419,18 @@ public class LaunchWizardPage extends WizardPage {
      */
     public String getKeyPairName() {
         return keyPairComposite.getKeyPairSelectionTable().getSelectedKeyPair().getKeyName();
+    }
+    
+    /**
+     * Returns the arn of the selected instance profile, or null if none is
+     * selected.
+     */
+    public String getInstanceProfileArn() {
+        if ( instanceProfileCombo.getSelectionIndex() == 0 ) {
+            return null;
+        } else {
+            return ((InstanceProfile) instanceProfileCombo.getData(instanceProfileCombo.getText())).getArn();
+        }
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+- * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,13 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.databinding.ChainValidator;
+import com.amazonaws.eclipse.databinding.DecorationChangeListener;
+import com.amazonaws.eclipse.databinding.NotEmptyValidator;
+import com.amazonaws.eclipse.ec2.databinding.ValidKeyPairValidator;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ChainValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NoInvalidNameCharactersValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NotEmptyValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ValidKeyPairValidator;
 
 class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
 
@@ -50,6 +50,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     private ISWTObservableValue healthCheckURLObservable;
     private ISWTObservableValue sslCertObservable;
     private ISWTObservableValue snsTopicObservable;
+    private Button incrementalDeploymentButton;
 
     public DeployWizardEnvironmentConfigPage(DeployWizardDataModel wizardDataModel) {
         super(wizardDataModel);
@@ -59,7 +60,6 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     @Override
     public Composite createComposite(Composite parent, IWizardHandle handle) {
         wizardHandle = handle;
-
         handle.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry()
                 .getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
 
@@ -71,6 +71,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         createCNAMEControls(composite);
         createHealthCheckURLControls(composite);
         createSNSTopicControls(composite);
+        createIncrementalDeploymentControls(composite);
 
         bindControls();
         initializeDefaults();
@@ -80,7 +81,8 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
 
     private void createKeyPairComposite(Composite composite) {
         usingKeyPair = newCheckbox(composite, "Deploy with a key pair", 1);
-        keyPairComposite = new KeyPairComposite(composite);
+        keyPairComposite = new KeyPairComposite(composite, AwsToolkitCore.getDefault().getCurrentAccountId(), wizardDataModel.getRegion());
+        wizardDataModel.setKeyPairComposite(keyPairComposite);
 
         usingKeyPair.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -117,9 +119,14 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         });
     }
 
+    private void createIncrementalDeploymentControls(Composite parent) {
+        incrementalDeploymentButton = newCheckbox(parent, "Use incremental deployment", 1);
+        incrementalDeploymentButton.setSelection(true);
+    }
+
     private void createHealthCheckURLControls(Composite composite) {
         newLabel(composite, "Application health check URL");
-        Text text = newText(composite, "/");
+        Text text = newText(composite, "");
         healthCheckURLObservable = SWTObservables.observeText(text, SWT.Modify);
     }
 
@@ -137,7 +144,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         cname.setText("");
         sslCertObservable.setValue("");
         snsTopicObservable.setValue("");
-        healthCheckURLObservable.setValue("/");
+        healthCheckURLObservable.setValue("");
 
         // No change event is necessarily fired from the above updates, so we
         // fire one manually in order to display the appropriate button enablement
@@ -189,10 +196,13 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         bindingContext.bindValue(healthCheckURLObservable,
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.HEALTH_CHECK_URL));
 
-        // SNS topic
+        // SNS topic "email address"
         bindingContext.bindValue(snsTopicObservable,
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.SNS_ENDPOINT));
 
+        // Incremental deployment
+        bindingContext.bindValue(SWTObservables.observeSelection(incrementalDeploymentButton),
+                PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.INCREMENTAL_DEPLOYMENT));
     }
 
     @Override

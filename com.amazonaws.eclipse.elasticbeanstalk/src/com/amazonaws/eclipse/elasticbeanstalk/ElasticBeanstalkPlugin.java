@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ import org.eclipse.wst.server.core.ServerCore;
 import org.osgi.framework.BundleContext;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.SyncEnvironmentsJob;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.ServerDefaultsUtils;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
@@ -62,6 +64,8 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
 
     // The plug-in ID
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.elasticbeanstalk"; //$NON-NLS-1$
+
+    public static final String DEFAULT_REGION = "us-east-1";
 
     // The shared instance
     private static ElasticBeanstalkPlugin plugin;
@@ -104,13 +108,6 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
 
         newServerListener = new NewServerListener();
         ServerCore.addServerLifecycleListener(newServerListener);
-
-        try {
-            LegacyConversionUtils.convertSingleAccountEnvironments();
-            LegacyConversionUtils.convertLegacyTomcatClusters();
-        } catch ( Exception e ) {
-            getLog().log(new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, e.getMessage(), e));
-        }
     }
 
     /*
@@ -153,7 +150,7 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     }
 
     /**
-     * Returns all AWS Elastic Beanstalk servers known to ServerCore
+     * Returns all AWS Elastic Beanstalk servers known to ServerCore.
      */
     public static Collection<IServer> getExistingElasticBeanstalkServers() {
         List<IServer> elasticBeanstalkServers = new ArrayList<IServer>();
@@ -170,14 +167,12 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     }
 
     /**
-     * Returns the server with the environment name given, if it can be found, or
-     * null otherwise.
-     *
-     * TODO: make this compliant with multiple regions.
+     * Returns the server matching the description given in the region given, if
+     * it can be found, or null otherwise.
      */
-    public static IServer getServer(EnvironmentDescription environmentDescription) {
+    public static IServer getServer(EnvironmentDescription environmentDescription, Region region) {
         for ( IServer server : getExistingElasticBeanstalkServers() ) {
-            if ( environmentsSame(environmentDescription, server) ) {
+            if ( environmentsSame(environmentDescription, region, server) ) {
                 return server;
             }
         }
@@ -187,13 +182,16 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     /**
      * Returns whether the environment given represents the server given.
      */
-    public static boolean environmentsSame(EnvironmentDescription env, IServer server) {
+    public static boolean environmentsSame(EnvironmentDescription env, Region region, IServer server) {
+        String beanstalkEndpoint = region.getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
+
         Environment environment = (Environment) server.getAdapter(Environment.class);
 
         if (environment == null) return false;
 
         return environment.getApplicationName().equals(env.getApplicationName())
-                && environment.getEnvironmentName().equals(env.getEnvironmentName());
+                && environment.getEnvironmentName().equals(env.getEnvironmentName())
+                && environment.getRegionEndpoint().equals(beanstalkEndpoint);
     }
 
     /**
@@ -205,16 +203,21 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
      * @throws CoreException
      *             If the environment cannot be imported
      */
-    public static IServer importEnvironment(EnvironmentDescription environmentDescription, IProgressMonitor monitor)
+    public static IServer importEnvironment(EnvironmentDescription environmentDescription, Region region, IProgressMonitor monitor)
             throws CoreException {
         String solutionStackName = environmentDescription.getSolutionStackName();
-        String serverTypeId = SolutionStacks.lookupServerTypeIdBySolutionStack(solutionStackName);
+        String serverTypeId = null;
+        try {
+            serverTypeId = SolutionStacks.lookupServerTypeIdBySolutionStack(solutionStackName);
+        } catch ( Exception e ) {
+            throw new CoreException(new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, e.getMessage()));
+        }
 
         final IServerType serverType = ServerCore.findServerType(serverTypeId);
 
         IRuntimeWorkingCopy runtime = serverType.getRuntimeType().createRuntime(null, monitor);
         IServerWorkingCopy serverWorkingCopy = serverType.createServer(null, null, runtime, monitor);
-        ServerDefaultsUtils.setDefaultHostName(serverWorkingCopy, Region.DEFAULT.getEndpoint());
+        ServerDefaultsUtils.setDefaultHostName(serverWorkingCopy, region.getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK));
         ServerDefaultsUtils.setDefaultServerName(serverWorkingCopy, environmentDescription.getEnvironmentName());
 
         /*
@@ -223,9 +226,10 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
          */
         Environment env = (Environment) serverWorkingCopy.loadAdapter(Environment.class, monitor);
         env.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
-        env.setRegionEndpoint(Region.DEFAULT.getEndpoint());
+        env.setRegionId(region.getId());
         env.setApplicationName(environmentDescription.getApplicationName());
         env.setEnvironmentName(environmentDescription.getEnvironmentName());
+        env.setIncrementalDeployment(true);
 
         fillInEnvironmentValues(environmentDescription, env, monitor);
         monitor.subTask("Creating server");
@@ -243,7 +247,8 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
      * @see ElasticBeanstalkPlugin#importEnvironment(EnvironmentDescription, IProgressMonitor)
      */
     private static void fillInEnvironmentValues(EnvironmentDescription elasticBeanstalkEnv, Environment env, IProgressMonitor monitor) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint());
+
+        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(env.getRegionEndpoint());
 
         monitor.subTask("Getting application info");
         DescribeApplicationsResult describeApplicationsResult = client

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 
 public class OpenBucketEditorAction extends Action {
 
@@ -39,8 +37,7 @@ public class OpenBucketEditorAction extends Action {
 
     @Override
     public void run() {
-        String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoints()
-            .get(ServiceAbbreviations.S3);
+        String endpoint = AwsToolkitCore.getClientFactory().getS3BucketEndpoint(bucketName);
         String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
 
         final IEditorInput input = new BucketEditorInput(bucketName, endpoint, accountId);

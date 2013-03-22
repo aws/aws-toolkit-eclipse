@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ import com.amazonaws.eclipse.explorer.simpledb.SimpleDBExplorerNodes.DomainNode;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.model.CreateDomainRequest;
 import com.amazonaws.services.simpledb.model.DeleteDomainRequest;
+import com.amazonaws.services.simpledb.model.DomainMetadataRequest;
+import com.amazonaws.services.simpledb.model.DomainMetadataResult;
 
 public class SimpleDBNavigatorActionProvider extends CommonActionProvider {
     @Override
@@ -73,6 +75,71 @@ public class SimpleDBNavigatorActionProvider extends CommonActionProvider {
             menu.add(new OpenSQLScrapbookAction());
             DomainNode domainNode = (DomainNode)selection.getFirstElement();
             menu.add(new OpenDataTableEditorAction(domainNode.getName()));
+
+            menu.add(new Separator());
+            menu.add(new ShowDomainMetadataAction(domainNode.getName()));
+        }
+    }
+
+    private static class ShowDomainMetadataAction extends Action {
+
+        private final String domain;
+
+        public ShowDomainMetadataAction(final String domain) {
+            this.setText("View domain metadata");
+            this.setToolTipText("View metadata for this domain");
+            this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_ICON));
+            this.setAccelerator(SWT.ALT | findKeyCode("ENTER"));
+            this.domain = domain;
+        }
+
+        @Override
+        public void run() {
+            new DomainMetadataDialog().open();
+        }
+
+        class DomainMetadataDialog extends MessageDialog {
+
+            protected DomainMetadataDialog() {
+                super(Display.getDefault().getActiveShell(), "Domain Metadata", AwsToolkitCore.getDefault()
+                        .getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON),
+                        "Domain Metadata for " + ShowDomainMetadataAction.this.domain, MessageDialog.NONE, new String[] { "OK" }, 0);
+            }
+
+            @Override
+            protected Control createDialogArea(final Composite parent) {
+                Composite composite = new Composite(parent, SWT.NONE);
+                GridLayout layout = new GridLayout(2, false);
+                layout.marginHeight = 0;
+                layout.marginWidth = 0;
+                composite.setLayout(layout);
+                GridData data = new GridData(GridData.FILL_BOTH);
+                data.horizontalSpan = 2;
+                composite.setLayoutData(data);
+
+                Label title = new Label(composite, SWT.None);
+                title.setText("Domain Metadata for " + ShowDomainMetadataAction.this.domain);
+                title.setLayoutData(data);
+
+                DomainMetadataResult domainMetadata = AwsToolkitCore.getClientFactory().getSimpleDBClient()
+                        .domainMetadata(new DomainMetadataRequest().withDomainName(ShowDomainMetadataAction.this.domain));
+
+                new Label(composite, SWT.NONE).setText("Item count: ");
+                new Label(composite, SWT.NONE).setText("" + domainMetadata.getItemCount());
+                new Label(composite, SWT.READ_ONLY).setText("Total item name size (bytes): ");
+                new Label(composite, SWT.READ_ONLY).setText("" + domainMetadata.getItemNamesSizeBytes());
+                new Label(composite, SWT.READ_ONLY).setText("Distinct attribute names: ");
+                new Label(composite, SWT.READ_ONLY).setText("" + domainMetadata.getAttributeNameCount());
+                new Label(composite, SWT.READ_ONLY).setText("Total attribute name size (bytes): ");
+                new Label(composite, SWT.READ_ONLY).setText("" + domainMetadata.getAttributeNamesSizeBytes());
+                new Label(composite, SWT.READ_ONLY).setText("Name / value pairs: ");
+                new Label(composite, SWT.READ_ONLY).setText("" + domainMetadata.getAttributeValueCount());
+                new Label(composite, SWT.READ_ONLY).setText("Total name / value pair size (bytes): ");
+                new Label(composite, SWT.READ_ONLY).setText("" + domainMetadata.getAttributeValuesSizeBytes());
+
+                return composite;
+            }
+
         }
     }
 
@@ -107,8 +174,8 @@ public class SimpleDBNavigatorActionProvider extends CommonActionProvider {
 
             public CreateDomainDialog() {
                 super(Display.getDefault().getActiveShell(),
-                    "Create New SimpleDB Domain", null, "Enter the name for your new SimpleDB domain.",
-                    MessageDialog.INFORMATION, new String[] {"OK", "Cancel"}, 0);
+                        "Create New SimpleDB Domain", null, "Enter the name for your new SimpleDB domain.",
+                        MessageDialog.INFORMATION, new String[] {"OK", "Cancel"}, 0);
             }
 
             public String getDomainName() {

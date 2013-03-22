@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ public class ElasticBeanstalkPublishingUtils {
     void createNewEnvironment(String versionLabel) {
         String solutionStackName = environment.getSolutionStack();
         if (solutionStackName == null) {
-        	solutionStackName = SolutionStacks.TOMCAT_6_64BIT_AMAZON_LINUX;
+            solutionStackName = SolutionStacks.TOMCAT_6_64BIT_AMAZON_LINUX;
         }
 
         CreateEnvironmentRequest request = new CreateEnvironmentRequest()
@@ -282,7 +282,7 @@ public class ElasticBeanstalkPublishingUtils {
         return environments.get(0).getStatus().equals(EnvironmentStatus.Launching.toString());
     }
 
-    private boolean doesEnvironmentExist(AWSElasticBeanstalk beanstalkClient, String environmentName) {
+    public boolean doesEnvironmentExist(AWSElasticBeanstalk beanstalkClient, String environmentName) {
         List<EnvironmentDescription> environments = beanstalkClient.describeEnvironments(new DescribeEnvironmentsRequest()
             .withEnvironmentNames(environmentName)).getEnvironments();
 

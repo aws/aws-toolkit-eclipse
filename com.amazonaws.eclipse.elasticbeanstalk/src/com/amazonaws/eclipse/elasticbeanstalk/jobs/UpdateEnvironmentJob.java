@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.jobs;
 
-import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.*;
+import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
 
-import java.net.MalformedURLException;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -41,12 +43,19 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.ui.internal.LaunchClientJob;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkHttpLaunchable;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkLaunchableAdapter;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPublishingUtils;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior;
+import com.amazonaws.eclipse.elasticbeanstalk.git.AWSGitPushCommand;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
@@ -120,7 +129,9 @@ public class UpdateEnvironmentJob extends Job {
     protected IStatus run(IProgressMonitor monitor) {
         AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
                 .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory(environment.getAccountId()).getS3Client();
+        Region environmentRegion = RegionUtils.getRegionByEndpoint(environment.getRegionEndpoint());
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory(environment.getAccountId()).getS3ClientByEndpoint(
+                environmentRegion.getServiceEndpoint(ServiceAbbreviations.S3));
 
         cancelLaunchClientJob();
 
@@ -138,7 +149,23 @@ public class UpdateEnvironmentJob extends Job {
                 };
 
                 ElasticBeanstalkPublishingUtils utils = new ElasticBeanstalkPublishingUtils(client, s3, environment);
-                utils.publishApplicationToElasticBeanstalk(exportedWar, versionLabel, new SubProgressMonitor(monitor, 20));
+                boolean doesEnvironmentExist = utils.doesEnvironmentExist(client, environment.getEnvironmentName());
+
+                // We don't use incremental deployments when an environment doesn't exist yet
+                if (environment.getIncrementalDeployment() && doesEnvironmentExist) {
+
+                    AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(environment.getAccountId());
+
+                    AWSGitPushCommand pushCommand = new AWSGitPushCommand(getPrivateGitRepoLocation(environment),
+                            exportedWar.toFile(), environment, new BasicAWSCredentials(accountInfo.getAccessKey(),
+                                    accountInfo.getSecretKey()));
+                    
+                    pushCommand.execute();
+                } else {
+                    if (versionLabel == null) versionLabel = UUID.randomUUID().toString();
+                    utils.publishApplicationToElasticBeanstalk(exportedWar, versionLabel, new SubProgressMonitor(monitor, 20));
+                }
+
                 utils.waitForEnvironmentToBecomeAvailable(moduleToPublish, new SubProgressMonitor(monitor, 20), runnable);
 
                 behavior.updateServerState(IServer.STATE_STARTED);
@@ -149,8 +176,16 @@ public class UpdateEnvironmentJob extends Job {
                 if ( server.getMode().equals(ILaunchManager.DEBUG_MODE) ) {
                     connectDebugger(monitor);
                 }
-                
             } catch (CoreException e) {
+                // Ensure the launch client job has been canceled so that the
+                // internal browser isn't opened with the user's application
+                long startTime = System.currentTimeMillis();
+                while (launchClientJob == null &&
+                       (System.currentTimeMillis() - startTime) < 1000 * 60) {
+                    try {Thread.sleep(1000);} catch (InterruptedException ie) {}
+                    cancelLaunchClientJob();
+                }
+
                 behavior.updateServerState(IServer.STATE_UNKNOWN);
                 behavior.updateModuleState(moduleToPublish, IServer.STATE_UNKNOWN, IServer.PUBLISH_STATE_UNKNOWN);
                 return e.getStatus();
@@ -172,7 +207,7 @@ public class UpdateEnvironmentJob extends Job {
                 launchable.clearHost();
             }
         }
-        
+
         if (monitor.isCanceled() == false && launchClientJob != null) launchClientJob.schedule();
 
         return Status.OK_STATUS;
@@ -181,16 +216,25 @@ public class UpdateEnvironmentJob extends Job {
     public void setVersionLabel(String versionLabel) {
         this.versionLabel = versionLabel;
     }
-    
+
     public void setDebugInstanceId(String debugInstanceId) {
         this.debugInstanceId = debugInstanceId;
     }
-    
+
+    private File getPrivateGitRepoLocation(Environment environment) {
+        String accountId = environment.getAccountId();
+        String environmentName = environment.getEnvironmentName();
+
+        IPath stateLocation = Platform.getStateLocation(ElasticBeanstalkPlugin.getDefault().getBundle());
+        File gitReposDir = new File(stateLocation.toFile(), "git");
+        return new File(gitReposDir, accountId + "-" + environmentName);
+    }
+
     /**
      * Opens up a remote debugger connection based on the specified launch,
      * host, and port and optionally reports progress through a specified
      * progress monitor.
-     * 
+     *
      * @param monitor
      *            An optional progress monitor if progress reporting is desired.
      * @throws CoreException
@@ -198,15 +242,15 @@ public class UpdateEnvironmentJob extends Job {
      *             debugger connection to the specified host.
      */
     private void connectDebugger(IProgressMonitor monitor) throws CoreException {
-        
+
         ILaunch launch = findLaunch();
         if (launch == null) {
             return;
         }
-        
+
         try {
             List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();
-            
+
             String debugPort = Environment.getDebugPort(settings);
             if ( !confirmSecurityGroupIngress(debugPort, settings) )
                 return;
@@ -217,25 +261,25 @@ public class UpdateEnvironmentJob extends Job {
             arguments.put("timeout", "60000");
             arguments.put("hostname", getEc2InstanceHostname());
             arguments.put("port", debugPort);
-            
+
             debuggerConnector.connect(arguments, monitor, launch);
         } catch (Exception e) {
             AwsToolkitCore.getDefault().logException("Unable to connect debugger: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * Confirms that the security group of the environment allows ingress on the
      * debug port given, prompting the user for permission to open it if not.
      */
     private boolean confirmSecurityGroupIngress(String debugPort, List<ConfigurationSettingsDescription> settings) {
-        
+
         int debugPortInt = Integer.parseInt(debugPort);
         String securityGroup = Environment.getSecurityGroup(settings);
-        
+
         if ( environment.isIngressAllowed(debugPortInt, settings) )
             return true;
-        
+
         // Prompt the user for security group ingress -- this is an edge case to
         // cover races only. In almost all cases, the user should have been
         // prompted for this information much earlier.
@@ -245,25 +289,25 @@ public class UpdateEnvironmentJob extends Job {
                 dialog.openDialog();
             }
         });
-        
+
         if ( dialog.result == 0 ) {
             environment.openSecurityGroupPort(debugPortInt, securityGroup);
             return true;
         } else {
             return false;
         }
-        
+
     }
-    
+
     /**
      * Simple dialog to confirm the opening of a port on a security group.
      */
     private class DebugPortDialog {
-        
+
         private int result;
         private final String debugPort;
         private final String securityGroup;
-        
+
         public DebugPortDialog(String securityGroup, String debugPort) {
             super();
             this.securityGroup = securityGroup;
@@ -280,7 +324,7 @@ public class UpdateEnvironmentJob extends Job {
 
             result = dialog.open();
         }
-        
+
     }
 
     /**
@@ -290,18 +334,17 @@ public class UpdateEnvironmentJob extends Job {
     private String getEc2InstanceHostname() {
         String instanceId = debugInstanceId;
         // For some launches, we won't know the EC2 instance ID until this point.
-        if (instanceId == null || instanceId.length() == 0 ) {
+        if ( instanceId == null || instanceId.length() == 0 ) {
             instanceId = environment.getEC2InstanceIds().iterator().next();
         }
-        DescribeInstancesResult describeInstances = AwsToolkitCore.getClientFactory(environment.getAccountId())
-                .getEC2ClientByEndpoint("ec2.us-east-1.amazonaws.com")
-                .describeInstances(new DescribeInstancesRequest().withInstanceIds(instanceId));
+        DescribeInstancesResult describeInstances = environment.getEc2Client().describeInstances(
+                new DescribeInstancesRequest().withInstanceIds(instanceId));
         if ( describeInstances.getReservations().isEmpty()
                 || describeInstances.getReservations().get(0).getInstances().isEmpty() )
             return null;
         return describeInstances.getReservations().get(0).getInstances().get(0).getPublicDnsName();
     }
-    
+
     /**
      * Returns the debug launch object corresponding to this update operation,
      * or null if no such launch exists.
@@ -309,10 +352,10 @@ public class UpdateEnvironmentJob extends Job {
     private ILaunch findLaunch() throws CoreException {
         ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
         for (ILaunch launch : manager.getLaunches()) {
-            
-            // TODO: figure out a more correct way of doing this           
+
+            // TODO: figure out a more correct way of doing this
             if ( launch.getLaunchMode().equals(ILaunchManager.DEBUG_MODE)
-                    && launch.getLaunchConfiguration() != null 
+                    && launch.getLaunchConfiguration() != null
                     && launch.getLaunchConfiguration().getAttribute("launchable-adapter-id", "")
                             .equals("com.amazonaws.eclipse.wtp.elasticbeanstalk.launchableAdapter")
                     && launch.getLaunchConfiguration().getAttribute("module-artifact", "")

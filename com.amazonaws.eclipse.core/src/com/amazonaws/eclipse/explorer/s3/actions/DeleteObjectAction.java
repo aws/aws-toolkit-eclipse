@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public class DeleteObjectAction extends Action {
                 monitor.beginTask("Deleting objects", selectedObjects.size());
 
                 try {
-                    AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3Client();
+                    AmazonS3 s3 = table.getS3Client();
                     for ( S3ObjectSummary summary : selectedObjects ) {
                         s3.deleteObject(summary.getBucketName(), summary.getKey());
                         monitor.worked(1);

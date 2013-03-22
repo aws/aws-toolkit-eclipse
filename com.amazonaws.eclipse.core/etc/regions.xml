@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <regions>
-
+  
   <region>
-    <displayname>US East (Virginia)</displayname>
+    <displayname>US East</displayname>
     <systemname>us-east-1</systemname>
+	<flag-icon>/icons/flags/us.png</flag-icon>
+	<min-toolkit-version>0.5.0.0</min-toolkit-version>
     <services>
       <service name="S3">https://s3.amazonaws.com/</service>
       <service name="CloudFront">https://cloudfront.amazonaws.com/</service>
@@ -12,79 +14,98 @@
       <service name="SQS">https://queue.amazonaws.com/</service>
       <service name="SimpleDB">https://sdb.amazonaws.com/</service>
       <service name="EC2">https://ec2.us-east-1.amazonaws.com/</service>
-      <service name="RDS">https://rds.us-east-1.amazonaws.com/</service>
       <service name="ElasticBeanstalk">https://elasticbeanstalk.us-east-1.amazonaws.com/</service>
-      <service name="AutoScaling">https://autoscaling.us-east-1.amazonaws.com</service>
-      <service name="ELB">https://elasticloadbalancing.us-east-1.amazonaws.com</service>
+	  <service name="RDS">https://rds.us-east-1.amazonaws.com/</service>
+      <service name="CloudFormation">https://cloudformation.us-east-1.amazonaws.com/</service>
+      <service name="ELB">https://elasticloadbalancing.us-east-1.amazonaws.com/</service>
+      <service name="AutoScaling">https://autoscaling.us-east-1.amazonaws.com/</service>
+      <service name="CloudWatch">https://monitoring.us-east-1.amazonaws.com/</service>
+      <service name="DynamoDB">https://dynamodb.us-east-1.amazonaws.com/</service>
     </services>
   </region>
-
+  
   <region>
-    <displayname>US West (N. California)</displayname>
+    <displayname>US West</displayname>
     <systemname>us-west-1</systemname>
+	<flag-icon>/icons/flags/us.png</flag-icon>
+	<min-toolkit-version>0.5.0.0</min-toolkit-version>
     <services>
-      <service name="S3">https://s3.amazonaws.com/</service>
+      <service name="S3">https://s3-us-west-1.amazonaws.com/</service>
       <service name="CloudFront">https://cloudfront.amazonaws.com/</service>
       <service name="IAM">https://iam.amazonaws.com/</service>
       <service name="SNS">https://sns.us-west-1.amazonaws.com/</service>
       <service name="SQS">https://sqs.us-west-1.amazonaws.com/</service>
       <service name="SimpleDB">https://sdb.us-west-1.amazonaws.com/</service>
       <service name="EC2">https://ec2.us-west-1.amazonaws.com/</service>
-      <service name="RDS">https://rds.us-west-1.amazonaws.com/</service>
-      <service name="AutoScaling">https://autoscaling.us-west-1.amazonaws.com</service>
-      <service name="ELB">https://elasticloadbalancing.us-west-1.amazonaws.com</service>
-    </services>
+	  <service name="RDS">https://rds.us-west-1.amazonaws.com/</service>
+      <service name="CloudFormation">https://cloudformation.us-west-1.amazonaws.com/</service>
+      <service name="ELB">https://elasticloadbalancing.us-west-1.amazonaws.com/</service>
+      <service name="AutoScaling">https://autoscaling.us-west-1.amazonaws.com/</service>
+      <service name="CloudWatch">https://monitoring.us-west-1.amazonaws.com/</service>
+	</services>
   </region>
 
   <region>
-    <displayname>EU West (Ireland)</displayname>
+    <displayname>EU West</displayname>
     <systemname>eu-west-1</systemname>
+	<flag-icon>/icons/flags/eu.png</flag-icon>
+	<min-toolkit-version>0.5.0.0</min-toolkit-version>
     <services>
-      <service name="S3">https://s3.amazonaws.com/</service>
+      <service name="S3">https://s3-eu-west-1.amazonaws.com/</service>
       <service name="CloudFront">https://cloudfront.amazonaws.com/</service>
       <service name="IAM">https://iam.amazonaws.com/</service>
       <service name="SNS">https://sns.eu-west-1.amazonaws.com/</service>
       <service name="SQS">https://sqs.eu-west-1.amazonaws.com/</service>
       <service name="SimpleDB">https://sdb.eu-west-1.amazonaws.com/</service>
       <service name="EC2">https://ec2.eu-west-1.amazonaws.com/</service>
-      <service name="RDS">https://rds.eu-west-1.amazonaws.com/</service>
-      <service name="AutoScaling">https://autoscaling.eu-west-1.amazonaws.com</service>
-      <service name="ELB">https://elasticloadbalancing.eu-west-1.amazonaws.com</service>
+	  <service name="RDS">https://rds.eu-west-1.amazonaws.com/</service>
+      <service name="CloudFormation">https://cloudformation.eu-west-1.amazonaws.com/</service>
+      <service name="ELB">https://elasticloadbalancing.eu-west-1.amazonaws.com/</service>
+      <service name="AutoScaling">https://autoscaling.eu-west-1.amazonaws.com/</service>
+      <service name="CloudWatch">https://monitoring.eu-west-1.amazonaws.com/</service>
     </services>
   </region>
 
   <region>
     <displayname>Asia Pacific (Singapore)</displayname>
     <systemname>ap-southeast-1</systemname>
+	<flag-icon>/icons/flags/singapore.png</flag-icon>
+	<min-toolkit-version>0.5.0.0</min-toolkit-version>
     <services>
-      <service name="S3">https://s3.amazonaws.com/</service>
+      <service name="S3">https://s3-ap-southeast-1.amazonaws.com/</service>
       <service name="CloudFront">https://cloudfront.amazonaws.com/</service>
       <service name="IAM">https://iam.amazonaws.com/</service>
       <service name="SNS">https://sns.ap-southeast-1.amazonaws.com/</service>
       <service name="SQS">https://sqs.ap-southeast-1.amazonaws.com/</service>
       <service name="SimpleDB">https://sdb.ap-southeast-1.amazonaws.com/</service>
       <service name="EC2">https://ec2.ap-southeast-1.amazonaws.com/</service>
-      <service name="RDS">https://rds.ap-southeast-1.amazonaws.com/</service>
-      <service name="AutoScaling">https://autoscaling.ap-southeast-1.amazonaws.com</service>
-      <service name="ELB">https://elasticloadbalancing.ap-southeast-1.amazonaws.com</service>
-    </services>
+	  <service name="RDS">https://rds.ap-southeast-1.amazonaws.com/</service>
+      <service name="CloudFormation">https://cloudformation.ap-southeast-1.amazonaws.com/</service>
+      <service name="ELB">https://elasticloadbalancing.ap-southeast-1.amazonaws.com/</service>
+      <service name="AutoScaling">https://autoscaling.ap-southeast-1.amazonaws.com/</service>
+      <service name="CloudWatch">https://monitoring.ap-southeast-1.amazonaws.com/</service>
+	</services>
   </region>
 
   <region>
     <displayname>Asia Pacific (Tokyo)</displayname>
     <systemname>ap-northeast-1</systemname>
+	<flag-icon>/icons/flags/japan.png</flag-icon>
+	<min-toolkit-version>0.5.0.0</min-toolkit-version>
     <services>
-      <service name="S3">https://s3.amazonaws.com/</service>
+      <service name="S3">https://s3-ap-northeast-1.amazonaws.com/</service>
       <service name="CloudFront">https://cloudfront.amazonaws.com/</service>
       <service name="IAM">https://iam.amazonaws.com/</service>
       <service name="SNS">http://sns.ap-northeast-1.amazonaws.com/</service>
       <service name="SQS">http://sqs.ap-northeast-1.amazonaws.com/</service>
       <service name="SimpleDB">https://sdb.ap-northeast-1.amazonaws.com/</service>
       <service name="EC2">https://ec2.ap-northeast-1.amazonaws.com/</service>
-      <service name="RDS">https://rds.ap-northeast-1.amazonaws.com/</service>
-      <service name="AutoScaling">https://autoscaling.ap-northeast-1.amazonaws.com</service>
-      <service name="ELB">https://elasticloadbalancing.ap-northeast-1.amazonaws.com</service>
-    </services>
+	  <service name="RDS">https://rds.ap-northeast-1.amazonaws.com/</service>
+      <service name="CloudFormation">https://cloudformation.ap-northeast-1.amazonaws.com/</service>
+      <service name="ELB">https://elasticloadbalancing.ap-northeast-1.amazonaws.com/</service>
+      <service name="AutoScaling">https://autoscaling.ap-northeast-1.amazonaws.com/</service>
+      <service name="CloudWatch">https://monitoring.ap-northeast-1.amazonaws.com/</service>
+	</services>
   </region>
-
+  
 </regions>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 package com.amazonaws.eclipse.explorer.sqs;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IPersistableElement;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.AbstractAwsResourceEditorInput;

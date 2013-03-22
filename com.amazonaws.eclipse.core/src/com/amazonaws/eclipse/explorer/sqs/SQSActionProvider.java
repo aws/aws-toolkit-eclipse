@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
 package com.amazonaws.eclipse.explorer.sqs;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
@@ -35,6 +37,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.navigator.CommonActionProvider;
 import org.eclipse.ui.statushandlers.StatusManager;
@@ -45,6 +48,7 @@ import com.amazonaws.eclipse.explorer.sqs.SQSContentProvider.QueueNode;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.DeleteQueueRequest;
+import com.amazonaws.services.sqs.model.QueueAttributeName;
 
 public class SQSActionProvider extends CommonActionProvider {
 
@@ -90,7 +94,11 @@ public class SQSActionProvider extends CommonActionProvider {
             CreateQueueDialog createQueueDialog = new CreateQueueDialog();
             if (createQueueDialog.open() == 0) {
                 try {
-                    sqs.createQueue(new CreateQueueRequest(createQueueDialog.getQueueName()));
+                    Map<String, String> attributes = new HashMap<String, String>();
+                    if (createQueueDialog.getQueueDelay() > 0) {
+                        attributes.put(QueueAttributeName.DelaySeconds.toString(), Integer.toString(createQueueDialog.getQueueDelay()));
+                    }
+                    sqs.createQueue(new CreateQueueRequest(createQueueDialog.getQueueName()).withAttributes(attributes));
                     ContentProviderRegistry.refreshAllContentProviders();
                 } catch (Exception e) {
                     Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create SQS Queue", e);
@@ -103,15 +111,23 @@ public class SQSActionProvider extends CommonActionProvider {
     private static class CreateQueueDialog extends MessageDialog {
 
         private String queueName;
+        private int queueDelay = -1;
+        private Spinner queueDelaySpinner;
 
         public CreateQueueDialog() {
             super(Display.getDefault().getActiveShell(),
-                "Create New SQS Queue", null, "Enter the name for your new SQS Queue.",
+                "Create New SQS Queue", null, 
+                "Enter a name for your new SQS Queue, " +
+                "and an optional default message delay.",
                 MessageDialog.INFORMATION, new String[] {"OK", "Cancel"}, 0);
         }
 
         public String getQueueName() {
             return queueName;
+        }
+
+        public int getQueueDelay() {
+            return queueDelay;
         }
 
         @Override
@@ -130,11 +146,29 @@ public class SQSActionProvider extends CommonActionProvider {
                 }
             });
 
+            new Label(composite, SWT.NONE).setText("Message Delay (seconds):");
+            queueDelaySpinner = new Spinner(composite, SWT.BORDER);
+            queueDelaySpinner.setMinimum(0);
+            queueDelaySpinner.setMaximum(50000);
+            queueDelaySpinner.setIncrement(1);
+            queueDelaySpinner.setSelection(0);
+            queueDelaySpinner.setPageIncrement(60);
+            queueDelaySpinner.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            queueDelaySpinner.addModifyListener(new ModifyListener() {
+                public void modifyText(ModifyEvent e) {
+                    queueDelay = queueDelaySpinner.getSelection();
+                    updateControls();
+                }
+            });
+
             return composite;
         }
 
         private void updateControls() {
-            boolean isValid = (queueName != null && queueName.trim().length() > 0);
+            boolean queueDelayIsValid = true;
+            boolean queueNameIsValid = (queueName != null && queueName.trim().length() > 0);
+
+            boolean isValid = queueNameIsValid && queueDelayIsValid;
 
             Button okButton = this.getButton(0);
             if (okButton != null) okButton.setEnabled(isValid);

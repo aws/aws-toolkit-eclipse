@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,20 +46,21 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
     public void fillContextMenu(IMenuManager menu) {
         boolean onlyEnvironmentsSelected = true;
         StructuredSelection selection = (StructuredSelection)getActionSite().getStructuredViewer().getSelection();
+        @SuppressWarnings("rawtypes")
         Iterator iterator = selection.iterator();
         List<EnvironmentDescription> environments = new ArrayList<EnvironmentDescription>();
-        while (iterator.hasNext()) {
+        while ( iterator.hasNext() ) {
             Object obj = iterator.next();
-            if (obj instanceof EnvironmentDescription) {
-                environments.add((EnvironmentDescription)obj);
+            if ( obj instanceof EnvironmentDescription ) {
+                environments.add((EnvironmentDescription) obj);
             } else {
                 onlyEnvironmentsSelected = false;
             }
         }
 
-        if (onlyEnvironmentsSelected) {
-            if (environments.size() == 1) {
-                menu.add(new OpenEnvironmentEditorAction(environments.get(0)));
+        if ( onlyEnvironmentsSelected ) {
+            if ( environments.size() == 1 ) {
+                menu.add(new OpenEnvironmentEditorAction(environments.get(0), RegionUtils.getCurrentRegion()));
                 menu.add(new Separator());
             }
 

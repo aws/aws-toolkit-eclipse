@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBContentProvider"
+         id="com.amazonaws.eclipse.explorer.DynamoDBContent"
+         labelProvider="com.amazonaws.eclipse.explorer.ExplorerNodeLabelProvider"
+         name="Amazon DynamoDB"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+          <!-- TODO -->
+          <instanceof value="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBRootNode" />
+          <instanceof value="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBTableNode"/>
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBExplorerActionProvider">
+         <enablement>
+            <or>
+               <instanceof value="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBRootNode"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBTableNode"/>
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+  </extension>
+
+   <!-- Custom query editor / results viewer with editable results table -->
+   <extension point="org.eclipse.ui.editors">
+       <editor
+             class="com.amazonaws.eclipse.dynamodb.editor.DynamoDBTableEditor"
+             default="false"
+             icon="icons/table.png"
+             id="com.amazonaws.eclipse.dynamodb.editor.tableEditor"
+             name="Amazon DynamoDB Table Editor">
+       </editor>
+    </extension>
+    
+    <extension
+         point="org.eclipse.ui.commands">
+         <command
+               id="com.amazonaws.eclipse.dynamodb.editor.runScan"
+               name="Run scan">
+         </command>
+    </extension>
+	<extension point="org.eclipse.ui.bindings">
+		<key sequence="Ctrl+R"
+			commandId="com.amazonaws.eclipse.dynamodb.editor.runScan"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+    </extension>
+    
+    <extension
+         point="org.eclipse.ui.commands">
+         <command
+               id="org.eclipse.ui.file.save"
+               name="Save changes to DynamoDB">
+         </command>
+    </extension>
+    
+ </plugin>

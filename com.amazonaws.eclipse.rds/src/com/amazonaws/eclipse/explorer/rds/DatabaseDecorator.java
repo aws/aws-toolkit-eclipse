@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,6 @@ public class DatabaseDecorator implements ILightweightLabelDecorator {
             String engine = databaseNode.getDBInstance().getEngine();
             String version = databaseNode.getDBInstance().getEngineVersion();
             decoration.addSuffix(" [" + engine + " " + version + "]");
-        } else {
-            System.out.println("Decorating: " + element);
         }
     }
 

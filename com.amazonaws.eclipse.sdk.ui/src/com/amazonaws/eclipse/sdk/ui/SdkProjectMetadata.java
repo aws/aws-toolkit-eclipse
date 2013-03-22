@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class SdkProjectMetadata {
     }
 
     /**
-     * Writes the propery file containing the root directory of the specified SDK
+     * Writes the property file containing the root directory of the specified SDK
      * version.
      *
      * @param sdkInstallRoot The root directory of an SDK installation to be recorded.
@@ -83,7 +83,7 @@ public class SdkProjectMetadata {
      */
 
     private Properties loadProperties() throws IOException {
-        IPath projectMetadataLocation = project.getWorkingLocation(SdkPlugin.PLUGIN_ID);
+        IPath projectMetadataLocation = project.getWorkingLocation(JavaSdkPlugin.PLUGIN_ID);
         Properties properties = new Properties();
         IPath sdkProperties = projectMetadataLocation.append(SDK_PROPERTIES_FILE_NAME);
 
@@ -96,7 +96,7 @@ public class SdkProjectMetadata {
     }
 
     private void saveProperties(Properties properties) throws IOException {
-        IPath projectMetadataLocation = project.getWorkingLocation(SdkPlugin.PLUGIN_ID);
+        IPath projectMetadataLocation = project.getWorkingLocation(JavaSdkPlugin.PLUGIN_ID);
         IPath sdkProperties = projectMetadataLocation.append(SDK_PROPERTIES_FILE_NAME);
         properties.store(new FileOutputStream(sdkProperties.toFile()), null);
     }

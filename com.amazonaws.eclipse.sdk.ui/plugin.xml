@@ -2,6 +2,19 @@
 <?eclipse version="3.2"?>
 <plugin>
 
+    <extension point="org.eclipse.ui.preferencePages">
+       <page
+             category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+             class="com.amazonaws.eclipse.sdk.ui.preferences.JavaSDKPreferencePage"
+             id="com.amazonaws.eclipse.sdk.ui.preferences.JavaSDKPreferencePage"
+             name="AWS SDK For Java">
+       </page>
+    </extension>
+
+    <extension point="org.eclipse.core.runtime.preferences">
+       <initializer class="com.amazonaws.eclipse.sdk.ui.preferences.PreferenceInitializer" />
+    </extension>
+
    <extension point="org.eclipse.jdt.core.classpathContainerInitializer">
       <classpathContainerInitializer
             class="com.amazonaws.eclipse.sdk.ui.classpath.ClasspathContainerInitializer"

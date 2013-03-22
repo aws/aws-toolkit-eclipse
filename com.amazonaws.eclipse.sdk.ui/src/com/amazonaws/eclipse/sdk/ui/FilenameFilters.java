@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,21 +16,22 @@ package com.amazonaws.eclipse.sdk.ui;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.regex.Pattern;
 
 /**
  * Collection of filename filters to pull out various files from the AWS SDK for
  * Java.
  */
 public class FilenameFilters {
-    private static final String AWS_JAVA_SDK_PREFIX = "aws-java-sdk-";
+    
+    private static final Pattern AWS_JAVA_SDK_PATTERN = Pattern.compile("aws-java-sdk-(\\d+|\\.)+\\.jar");
+    private static final Pattern AWS_JAVA_SDK_SOURCE_PATTERN = Pattern.compile("aws-java-sdk-(\\d+|\\.)+\\-sources\\.jar");
 
     /**
      * Filename filter accepting jar files.
      */
     public static class JarFilenameFilter implements FilenameFilter {
-        /**
-         * @see java.io.FilenameFilter#accept(java.io.File, java.lang.String)
-         */
+
         public boolean accept(File dir, String name) {
             return (name.toLowerCase().endsWith(".jar"));
         }
@@ -39,38 +40,20 @@ public class FilenameFilters {
     /**
      * Filename filter accepting only the library jar from the AWS SDK for Java.
      */
-    public static class SdkLibraryJarFilenameFilter extends JarFilenameFilter {
+    public static class SdkLibraryJarFilenameFilter implements FilenameFilter {
 
-        /**
-         * @see com.amazonaws.eclipse.sdk.ui.AwsClasspathContainer.JarFilenameFilter#accept(java.io.File, java.lang.String)
-         */
-        @Override
         public boolean accept(File dir, String name) {
-            if (!super.accept(dir, name)) return false;
-            if (!name.startsWith(AWS_JAVA_SDK_PREFIX)) return false;
-
-            if (name.contains("source")) return false;
-            if (name.contains("javadoc")) return false;
-
-            return true;
+            return AWS_JAVA_SDK_PATTERN.matcher(name).matches();
         }
     }
 
     /**
      * Filename filter accepting only the source jar from the AWS SDK for Java.
      */
-    public static class SdkSourceJarFilenameFilter extends JarFilenameFilter {
-        /**
-         * @see com.amazonaws.eclipse.sdk.ui.AwsClasspathContainer.JarFilenameFilter#accept(java.io.File, java.lang.String)
-         */
-        @Override
+    public static class SdkSourceJarFilenameFilter implements FilenameFilter {
+
         public boolean accept(File dir, String name) {
-            if (!super.accept(dir, name)) return false;
-
-            if (!name.startsWith(AWS_JAVA_SDK_PREFIX )) return false;
-            if (!name.contains("sources")) return false;
-
-            return true;
+            return AWS_JAVA_SDK_SOURCE_PATTERN.matcher(name).matches();
         }
     }
     
@@ -78,9 +61,7 @@ public class FilenameFilters {
      * Filename filter accepting only .java source files.
      */
     public static class JavaSourceFilenameFilter implements FilenameFilter {
-        /**
-         * @see java.io.FilenameFilter#accept(java.io.File, java.lang.String)
-         */
+
         public boolean accept(File dir, String name) {
             return name.toLowerCase().endsWith(".java");
         }

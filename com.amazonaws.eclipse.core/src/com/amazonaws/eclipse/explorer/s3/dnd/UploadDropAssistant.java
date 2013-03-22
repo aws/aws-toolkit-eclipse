@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class UploadDropAssistant extends CommonDropAdapterAssistant {
         }
         final String keyName = dialog.getKeyName();
 
-        final TransferManager transferManager = new TransferManager(AwsToolkitCore.getClientFactory().getS3Client());
+        final TransferManager transferManager = new TransferManager(AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucket.getName()));
             UploadFileJob uploadFileJob = new UploadFileJob("Uploading " + f.getAbsolutePath().toString(),
                     bucket.getName(), f, keyName, transferManager);
 

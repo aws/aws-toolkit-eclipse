@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.widgets.Composite;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.sdk.ui.SdkInstall;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
 import com.amazonaws.eclipse.sdk.ui.SdkProjectMetadata;
 import com.amazonaws.eclipse.sdk.ui.SdkVersionInfoComposite;
 
@@ -53,11 +53,11 @@ public class AwsClasspathContainerPage extends WizardPage
 	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
 	public void createControl(Composite parent) {
-	    SdkInstall currentSdk = null;
+	    JavaSdkInstall currentSdk = null;
 	    try {
 	        SdkProjectMetadata sdkProjectMetadataFile = new SdkProjectMetadata(project.getProject());
 
-            currentSdk = new SdkInstall(sdkProjectMetadataFile.getSdkInstallRootForProject());
+            currentSdk = new JavaSdkInstall(sdkProjectMetadataFile.getSdkInstallRootForProject());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -73,7 +73,7 @@ public class AwsClasspathContainerPage extends WizardPage
 	    try {
 	        SdkProjectMetadata sdkProjectMetadataFile = new SdkProjectMetadata(project.getProject());
 	        AwsSdkClasspathUtils.removeAwsSdkFromProjectClasspath(
-	                project, new SdkInstall(sdkProjectMetadataFile.getSdkInstallRootForProject()));
+	                project, new JavaSdkInstall(sdkProjectMetadataFile.getSdkInstallRootForProject()));
             sdkVersionInfoComposite.getCurrentSdk().writeMetadataToProject(project);
 	        AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(
 	                project, sdkVersionInfoComposite.getCurrentSdk());

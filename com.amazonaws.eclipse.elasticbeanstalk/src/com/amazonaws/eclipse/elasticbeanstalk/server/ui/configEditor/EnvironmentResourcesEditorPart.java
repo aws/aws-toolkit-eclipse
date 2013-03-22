@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2011-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -216,24 +216,28 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
             String endpoint = region.getServiceEndpoints().get(ServiceAbbreviations.AUTOSCALING);
             AmazonAutoScaling as = AwsToolkitCore.getClientFactory(getEnvironment().getAccountId()).getAutoScalingClientByEndpoint(endpoint);
 
-            DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(resources.getAutoScalingGroups().get(0).getName());
-            List<AutoScalingGroup> autoScalingGroups = as.describeAutoScalingGroups(request).getAutoScalingGroups();
+            if ( !resources.getAutoScalingGroups().isEmpty() ) {
+                DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest()
+                        .withAutoScalingGroupNames(resources.getAutoScalingGroups().get(0).getName());
+                List<AutoScalingGroup> autoScalingGroups = as.describeAutoScalingGroups(request).getAutoScalingGroups();
 
-            if (autoScalingGroups.size() > 0) {
-                final AutoScalingGroup group = autoScalingGroups.get(0);
+                if ( autoScalingGroups.size() > 0 ) {
+                    final AutoScalingGroup group = autoScalingGroups.get(0);
 
-                Display.getDefault().asyncExec(new Runnable() {
-                    public void run() {
-                        nameLabel.setText(group.getAutoScalingGroupName());
-                        availabilityZonesLabel.setText(group.getAvailabilityZones().toString());
-                        createdLabel.setText("" + group.getCreatedTime());
-                        healthCheckTypeLabel.setText(group.getHealthCheckType());
-                        desiredCapacityLabel.setText("" + group.getDesiredCapacity());
-                        launchConfigurationLabel.setText(group.getLaunchConfigurationName());
-                        minSizeLabel.setText("" + group.getMinSize());
-                        maxSizeLabel.setText("" + group.getMaxSize());
-                    }
-                });
+                    Display.getDefault().asyncExec(new Runnable() {
+
+                        public void run() {
+                            nameLabel.setText(group.getAutoScalingGroupName());
+                            availabilityZonesLabel.setText(group.getAvailabilityZones().toString());
+                            createdLabel.setText("" + group.getCreatedTime());
+                            healthCheckTypeLabel.setText(group.getHealthCheckType());
+                            desiredCapacityLabel.setText("" + group.getDesiredCapacity());
+                            launchConfigurationLabel.setText(group.getLaunchConfigurationName());
+                            minSizeLabel.setText("" + group.getMinSize());
+                            maxSizeLabel.setText("" + group.getMaxSize());
+                        }
+                    });
+                }
             }
         }
     }
@@ -323,7 +327,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
 
             Region region = RegionUtils.getRegionByEndpoint(getEnvironment().getRegionEndpoint());
             String ec2Endpoint = region.getServiceEndpoints().get(ServiceAbbreviations.EC2);
-            instanceSelectionTable.setEc2EndpointOverride(ec2Endpoint);
+            instanceSelectionTable.setEc2RegionOverride(region);
         }
 
 

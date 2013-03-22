@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.amazonaws.eclipse.elasticbeanstalk;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +34,8 @@ import org.eclipse.wst.server.core.internal.facets.FacetUtil;
 import org.eclipse.wst.server.core.model.ServerDelegate;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
@@ -55,6 +56,7 @@ import com.amazonaws.services.elasticbeanstalk.model.Instance;
 @SuppressWarnings("restriction")
 public class Environment extends ServerDelegate {
 
+    private static final String PROPERTY_REGION_ID               = "regionId";
     private static final String PROPERTY_REGION_ENDPOINT         = "regionEndpoint";
     private static final String PROPERTY_APPLICATION_NAME        = "applicationName";
     private static final String PROPERTY_APPLICATION_DESCRIPTION = "applicationDescription";
@@ -67,6 +69,7 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_ACCOUNT_ID              = "accountId";
     private static final String PROPERTY_SNS_ENDPOINT            = "snsEndpoint";
     private static final String PROPERTY_SOLUTION_STACK          = "solutionStack";
+    private static final String PROPERTY_INCREMENTAL_DEPLOYMENT  = "incrementalDeployment";
 
     private static Map<String, EnvironmentDescription> map = new HashMap<String, EnvironmentDescription>();
 
@@ -85,11 +88,7 @@ public class Environment extends ServerDelegate {
     }
 
     public String getRegionEndpoint() {
-       return getAttribute(PROPERTY_REGION_ENDPOINT, (String)null);
-    }
-
-    public void setRegionEndpoint(String regionEndpoint) {
-        setAttribute(PROPERTY_REGION_ENDPOINT, regionEndpoint);
+        return RegionUtils.getRegion(getRegionId()).getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
     }
 
     public String getApplicationName() {
@@ -136,7 +135,7 @@ public class Environment extends ServerDelegate {
     }
 
     public void setCname(String cname) {
-        setAttribute(PROPERTY_CNAME, (String)cname);
+        setAttribute(PROPERTY_CNAME, cname);
     }
 
     public String getKeyPairName() {
@@ -163,8 +162,8 @@ public class Environment extends ServerDelegate {
         setAttribute(PROPERTY_HEALTHCHECK_URL, healthCheckUrl);
     }
 
-    public String getSnsEndpoint() {
-        return getAttribute(PROPERTY_SNS_ENDPOINT, (String)null);
+     public String getSnsEndpoint() {
+       return getAttribute(PROPERTY_SNS_ENDPOINT, (String)null);
     }
 
     public void setSnsEndpoint(String snsEndpoint) {
@@ -177,6 +176,22 @@ public class Environment extends ServerDelegate {
 
     public void setSolutionStack(String solutionStackForServerType) {
         setAttribute(PROPERTY_SOLUTION_STACK, solutionStackForServerType);
+    }
+
+    public boolean getIncrementalDeployment() {
+        return getAttribute(PROPERTY_INCREMENTAL_DEPLOYMENT, false);
+    }
+
+    public void setIncrementalDeployment(boolean incrementalDeployment) {
+        setAttribute(PROPERTY_INCREMENTAL_DEPLOYMENT, incrementalDeployment);
+    }
+
+    public void setRegionId(String regionName) {
+        setAttribute(PROPERTY_REGION_ID, regionName);
+    }
+
+    public String getRegionId() {
+       return getAttribute(PROPERTY_REGION_ID, (String)null);
     }
 
 
@@ -369,7 +384,7 @@ public class Environment extends ServerDelegate {
      */
     public AmazonEC2 getEc2Client() {
         return AwsToolkitCore.getClientFactory(getAccountId()).getEC2ClientByEndpoint(
-                "ec2.us-east-1.amazonaws.com");
+                RegionUtils.getRegion(getRegionId()).getServiceEndpoint(ServiceAbbreviations.EC2));
     }
 
     /**
@@ -452,6 +467,18 @@ public class Environment extends ServerDelegate {
             instanceIds.add(i.getId());
         }
         return instanceIds;
+    }
+
+    /**
+     * We change the data model to save the server environment information. This
+     * function is used to convert the old data format to the new one.
+     */
+    public void convertLegacyServer() {
+        String regionEndpoint = null;
+        if ((getRegionId() == null) && ((regionEndpoint = getAttribute(PROPERTY_REGION_ENDPOINT, (String)null)) != null)) {
+            setAttribute(PROPERTY_REGION_ID, RegionUtils.getRegionByEndpoint(regionEndpoint).getId());
+        }
+
     }
 
 }

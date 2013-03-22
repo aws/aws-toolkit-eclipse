@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -29,6 +28,8 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest;
@@ -47,7 +48,7 @@ public class KeyPairManager {
     /**
      * Returns the private key file associated with the named key, or null if no
      * key file can be found.
-     * 
+     *
      * @param accountId
      *            The account id that owns the key name
      * @param keyPairName
@@ -74,7 +75,7 @@ public class KeyPairManager {
     /**
      * Returns true if and only if the specified key pair is valid, meaning it
      * has a valid registered private key file.
-     * 
+     *
      * @param accountId
      *            The account id that owns the key name
      * @param keyPairName
@@ -100,13 +101,15 @@ public class KeyPairManager {
     /**
      * Requests a new key pair from EC2 with the specified name, and saves the
      * private key portion in the specified directory.
-     * 
+     *
      * @param accountId
      *            The account id that owns the key name
      * @param keyPairName
      *            The name of the requested key pair.
      * @param keyPairDirectory
      *            The directory in which to save the private key file.
+     * @param ec2RegionOverride
+     *            The region where the EC2 key pair is created.
      * @throws IOException
      *             If any problems were encountered storing the private key to
      *             disk.
@@ -114,9 +117,8 @@ public class KeyPairManager {
      *             If any problems were encountered requesting a new key pair
      *             from EC2.
      */
-    public void createNewKeyPair(String accountId, String keyPairName, String keyPairDirectory) throws IOException,
-            AmazonClientException {
-
+    public void createNewKeyPair(String accountId, String keyPairName, String keyPairDirectory, Region ec2RegionOverride) throws IOException,
+    AmazonClientException {
         File keyPairDirectoryFile = new File(keyPairDirectory);
         if ( !keyPairDirectoryFile.exists() ) {
             if ( !keyPairDirectoryFile.mkdirs() ) {
@@ -139,7 +141,12 @@ public class KeyPairManager {
 
         CreateKeyPairRequest request = new CreateKeyPairRequest();
         request.setKeyName(keyPairName);
-        AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+        AmazonEC2 ec2 = null;
+        if (ec2RegionOverride == null) {
+            ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
+        } else {
+            ec2 = AwsToolkitCore.getClientFactory().getEC2ClientByEndpoint(ec2RegionOverride.getServiceEndpoint(ServiceAbbreviations.EC2));
+        }
         CreateKeyPairResult response = ec2.createKeyPair(request);
         KeyPair keyPair = response.getKeyPair();
 
@@ -168,12 +175,34 @@ public class KeyPairManager {
                     "Unable to restrict permissions on private key file: " + e.getMessage(), e);
             StatusManager.getManager().handle(status, StatusManager.LOG);
         }
+
+    }
+
+    /**
+     * Requests a new key pair from EC2 with the specified name, and saves the
+     * private key portion in the specified directory.
+     *
+     * @param accountId
+     *            The account id that owns the key name
+     * @param keyPairName
+     *            The name of the requested key pair.
+     * @param keyPairDirectory
+     *            The directory in which to save the private key file.
+     * @throws IOException
+     *             If any problems were encountered storing the private key to
+     *             disk.
+     * @throws AmazonClientException
+     *             If any problems were encountered requesting a new key pair
+     *             from EC2.
+     */
+    public void createNewKeyPair(String accountId, String keyPairName, String keyPairDirectory) throws IOException, AmazonClientException {
+        createNewKeyPair(accountId, keyPairName, keyPairDirectory, null);
     }
 
     /**
      * Returns the default directory where the plugin assumes private keys are
      * stored.
-     * 
+     *
      * @return The default directory where the plugin assumes private keys are
      *         stored.
      */
@@ -189,7 +218,7 @@ public class KeyPairManager {
      * Registers an existing key pair and private key file with this key pair
      * manager. This method is only for *existing* key pairs. If you need a new
      * key pair created, you should be using createNewKeyPair.
-     * 
+     *
      * @param accountId
      *            The account id that owns the key name
      * @param keyName

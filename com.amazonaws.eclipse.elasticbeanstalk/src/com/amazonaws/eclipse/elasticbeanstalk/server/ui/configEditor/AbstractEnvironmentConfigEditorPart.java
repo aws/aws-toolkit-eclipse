@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.forms.ManagedForm;
 import org.eclipse.wst.server.ui.editor.ServerEditorPart;
 
+import com.amazonaws.eclipse.core.ui.CancelableThread;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.CancelableThread;
 
 /**
  * Abstract base class for editor editor parts that edit an environment

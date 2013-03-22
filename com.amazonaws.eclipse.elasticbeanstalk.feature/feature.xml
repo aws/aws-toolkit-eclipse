@@ -226,6 +226,7 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
       <import plugin="org.eclipse.core.net" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jst.j2ee.ejb" version="1.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.navigator" version="3.2.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

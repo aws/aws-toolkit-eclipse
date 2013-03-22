@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.ec2.preferences.PreferenceConstants;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.IamInstanceProfileSpecification;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Placement;
 import com.amazonaws.services.ec2.model.Reservation;
@@ -69,7 +69,10 @@ public class Ec2InstanceLauncher {
 
     /** The endpoint of the EC2 region in which instances should be launched */
     private String regionEndpoint;
-
+    
+    /** The arn of the instance profile to launch with */
+    private String instanceProfileArn;
+    
     /**
      * Optional progress monitor so that this launcher can poll to see if the
      * user has canceled the launch request.
@@ -140,6 +143,13 @@ public class Ec2InstanceLauncher {
      */
     public void setUserData(String userData) {
         this.userData = userData;
+    }
+
+    /**
+     * Sets the isntance profile arn to launch with.
+     */
+    public void setInstanceProfileArn(String instanceProfileArn) {
+        this.instanceProfileArn = instanceProfileArn;
     }
 
     /**
@@ -262,6 +272,9 @@ public class Ec2InstanceLauncher {
         request.setMaxCount(numberOfInstances);
         request.setKeyName(keyPairName);
         request.setInstanceType(instanceType);
+        if ( instanceProfileArn != null ) {
+            request.setIamInstanceProfile(new IamInstanceProfileSpecification().withArn(instanceProfileArn));
+        }
 
         Placement placement = new Placement();
         placement.setAvailabilityZone(availabilityZoneName);

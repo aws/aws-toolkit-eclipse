@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
-import com.amazonaws.eclipse.sdk.ui.SdkInstall;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
 
 /**
  * A utility class  
@@ -36,7 +36,7 @@ public class AwsSdkClasspathUtils {
      * @param javaProject The Java project to modify.
      * @param sdkInstall The AWS SDK for Java installation to add.
      */
-    public static void addAwsSdkToProjectClasspath(IJavaProject javaProject, SdkInstall sdkInstall) {
+    public static void addAwsSdkToProjectClasspath(IJavaProject javaProject, JavaSdkInstall sdkInstall) {
         try {
             AwsClasspathContainer classpathContainer = new AwsClasspathContainer(sdkInstall);
 
@@ -66,7 +66,7 @@ public class AwsSdkClasspathUtils {
      * @param javaProject The Java project to modify.
      * @param sdkInstall The AWS SDK for Java installation to remove.
      */
-    public static void removeAwsSdkFromProjectClasspath(IJavaProject javaProject, SdkInstall sdkInstall) {
+    public static void removeAwsSdkFromProjectClasspath(IJavaProject javaProject, JavaSdkInstall sdkInstall) {
         try{
             AwsClasspathContainer classpathContainer = new AwsClasspathContainer(sdkInstall);
 

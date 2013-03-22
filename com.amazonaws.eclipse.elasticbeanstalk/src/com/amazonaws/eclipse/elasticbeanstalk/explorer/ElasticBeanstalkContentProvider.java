@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
-import com.amazonaws.eclipse.elasticbeanstalk.Region;
 import com.amazonaws.eclipse.explorer.AWSResourcesRootElement;
 import com.amazonaws.eclipse.explorer.AbstractContentProvider;
 import com.amazonaws.eclipse.explorer.Loading;
@@ -46,7 +46,7 @@ public class ElasticBeanstalkContentProvider extends AbstractContentProvider imp
                 Object obj = i.next();
                 if ( obj instanceof EnvironmentDescription ) {
                     EnvironmentDescription env = (EnvironmentDescription) obj;
-                    OpenEnvironmentEditorAction action = new OpenEnvironmentEditorAction(env);
+                    OpenEnvironmentEditorAction action = new OpenEnvironmentEditorAction(env, RegionUtils.getCurrentRegion());
                     action.run();
                 }
             }
@@ -79,7 +79,7 @@ public class ElasticBeanstalkContentProvider extends AbstractContentProvider imp
                 @Override
                 public Object[] loadData() {
                     AWSElasticBeanstalk beanstalk = AwsToolkitCore.getClientFactory()
-                            .getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint());
+                            .getElasticBeanstalkClient();
                     List<ApplicationDescription> applications = beanstalk.describeApplications().getApplications();
                     return applications.toArray();
                 }
@@ -93,7 +93,7 @@ public class ElasticBeanstalkContentProvider extends AbstractContentProvider imp
                 @Override
                 public Object[] loadData() {
                     AWSElasticBeanstalk beanstalk = AwsToolkitCore.getClientFactory()
-                        .getElasticBeanstalkClientByEndpoint(Region.DEFAULT.getEndpoint());
+                        .getElasticBeanstalkClient();
                     List<EnvironmentDescription> environments = beanstalk.describeEnvironments(
                         new DescribeEnvironmentsRequest().withApplicationName(app.getApplicationName()))
                         .getEnvironments();

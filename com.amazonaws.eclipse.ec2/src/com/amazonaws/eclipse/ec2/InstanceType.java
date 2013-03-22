@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,11 @@ import com.amazonaws.services.ec2.model.Image;
  */
 public enum InstanceType {
     // Standard Instance Types
-    MICRO("Micro", "t1.micro", "613 MB", "0 (EBS only)", 1, "32/64", true, true, true),
-    SMALL("Small",        "m1.small",  "1.7 GB",  "160 GB", 1, "32", true, false, false),
-    LARGE("Large",        "m1.large",  "7.5 GB",  "850 GB", 4, "64", false, true, false),
-    XLARGE("Extra Large", "m1.xlarge",  "15 GB", "1690 GB", 8, "64", false, true, false),
+    MICRO("Micro",        "t1.micro",   "613 MB", "0 (EBS only)", 1, "32/64", true,  true, true),
+    SMALL("Small",        "m1.small",   "1.7 GB",  "160 GB",      1, "32/64", true,  true, false),
+    MEDIUM("Medium",      "m1.medium", "3.75 GB",  "410 GB",      2, "32/64", true,  true, false),
+    LARGE("Large",        "m1.large",   "7.5 GB",  "850 GB",      4,    "64", false, true, false),
+    XLARGE("Extra Large", "m1.xlarge",   "15 GB", "1690 GB",      8,    "64", false, true, false),
 
     // High Memory Instance Types
     HIGH_MEM_EXTRA_LARGE("High-Mem Extra Large",                "m2.xlarge",  "17.1 GB",  "420 GB", 2, "64", false, true, false),
@@ -34,12 +35,13 @@ public enum InstanceType {
     HIGH_MEM_QUAD_EXTRA_LARGE("High-Mem Quadruple Extra Large", "m2.4xlarge", "68.4 GB", "1690 GB", 8, "64", false, true, false),
 
     // High CPU Instance Types
-    MEDIUM_HCPU("High-CPU Medium",      "c1.medium", "1.7 GB",  "350 GB",  5, "32", true, false, false),
-    XLARGE_HCPU("High-CPU Extra Large", "c1.xlarge",   "7 GB", "1690 GB", 20, "64", false, true, false),
+    MEDIUM_HCPU("High-CPU Medium",      "c1.medium", "1.7 GB",  "350 GB",  5, "32/64",  true, true, false),
+    XLARGE_HCPU("High-CPU Extra Large", "c1.xlarge",   "7 GB", "1690 GB", 20,    "64", false, true, false),
 
     // Cluster Compute Instance Types
-    CLUSTER_QUAD_EXTRA_LARGE("Cluster Compute Quadruple Extra Large", "cc1.4xlarge", "23 GB", "1690 GB", 33, "64", false, true, false, true),
-    CLUSTER_GPU_QUAD_EXTRA_LARGE("Cluster GPU Quadruple Extra Large", "cg1.4xlarge", "22 GB", "1690 GB", 33, "64", false, true, false, true),
+    CLUSTER_QUAD_EXTRA_LARGE("Cluster Compute Quadruple Extra Large", "cc1.4xlarge",   "23 GB", "1690 GB", 33, "64", false, true, false, true),
+    CLUSTER_EIGHT_EXTRA_LARGE("Cluster Compute Eight Extra Large",    "cc1.8xlarge", "60.5 GB", "3370 GB", 88, "64", false, true, false, true),
+    CLUSTER_GPU_QUAD_EXTRA_LARGE("Cluster GPU Quadruple Extra Large", "cg1.4xlarge",   "22 GB", "1690 GB", 33, "64", false, true, false, true),
     ;
 
     /** The default instance type is a small instance */

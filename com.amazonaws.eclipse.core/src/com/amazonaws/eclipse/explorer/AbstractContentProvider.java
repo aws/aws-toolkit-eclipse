@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,10 +47,10 @@ import com.amazonaws.eclipse.core.ui.IRefreshable;
 public abstract class AbstractContentProvider implements ITreeContentProvider, IRefreshable {
 
     /** Listener for changes to the current account. */
-    private AccountInfoChangeListener accountInfoChangeListener;
+    private static AccountInfoChangeListener accountInfoChangeListener;
     
     /** Listener for changes to the current region. */
-    private DefaultRegionChangeRefreshListener regionChangeRefreshListener;
+    private static DefaultRegionChangeRefreshListener regionChangeRefreshListener;
 
     /** Reference to the TreeViewer in which content will be displayed. */
     protected TreeViewer viewer;
@@ -155,10 +155,19 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
      */
     public synchronized void refresh() {
         this.cachedResponses.clear();
+        
+        Object[] children = this.getChildren(new AWSResourcesRootElement());
+        Object tempObject = null;
+        if (children.length == 1) {
+            tempObject = children[0];
+        }
+        
+        final Object rootElement = tempObject;
+        
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
                 viewer.getTree().deselectAll();
-                viewer.refresh();
+                viewer.refresh(rootElement);
                 viewer.expandToLevel(1);
             }
         });
@@ -208,14 +217,16 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
     public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
         this.viewer = (TreeViewer) viewer;
 
-        if (this.accountInfoChangeListener == null) {
-            this.accountInfoChangeListener = new AccountInfoChangeListener() {
-                @Override
-                public void currentAccountChanged() {
-                    refresh();
-                }
-            };
-            AwsToolkitCore.getDefault().addAccountInfoChangeListener(this.accountInfoChangeListener);
+        synchronized (AbstractContentProvider.class) {
+            if (accountInfoChangeListener == null) {
+                accountInfoChangeListener = new AccountInfoChangeListener() {
+                    @Override
+                    public void currentAccountChanged() {
+                        refresh();
+                    }
+                };
+                AwsToolkitCore.getDefault().addAccountInfoChangeListener(this.accountInfoChangeListener);
+            }
         }
 
         regionChangeRefreshListener = new DefaultRegionChangeRefreshListener(this);

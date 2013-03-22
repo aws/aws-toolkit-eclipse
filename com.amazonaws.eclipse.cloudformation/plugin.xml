@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.cloudformation.CloudFormationContentProvider"
+         id="com.amazonaws.eclipse.explorer.CloudFormationContent"
+         labelProvider="com.amazonaws.eclipse.explorer.cloudformation.CloudFormationLabelProvider"
+         name="Amazon CloudFormation"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+          <!-- TODO -->
+            <instanceof value="com.amazonaws.eclipse.explorer.cloudformation.CloudFormationContentProvider$CloudFormationRootElement" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.explorer.cloudformation.CloudFormationExplorerActionProvider">
+         <enablement>
+            <or>
+               <instanceof value="com.amazonaws.eclipse.explorer.cloudformation.CloudFormationContentProvider$CloudFormationRootElement"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.cloudformation.CloudFormationContentProvider$StackNode"/>
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+  </extension>
+
+  <extension point="org.eclipse.ui.editors">
+     <editor class="com.amazonaws.eclipse.explorer.cloudformation.StackEditor"
+             default="false"
+             icon="icons/stack.png"
+             id="com.amazonaws.eclipse.explorer.cloudformation.stackEditor"
+             name="Amazon CloudFormation Stack Editor">
+     </editor>
+     <editor class="com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor"
+             default="false"
+             extensions="template,cftemplate"
+             icon="icons/stack.png"
+             id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor"
+             name="Amazon CloudFormation Template Editor">
+     </editor>
+  </extension>
+
+    <!-- add to pop menu -->
+    <extension point="org.eclipse.ui.popupMenus">
+        <!-- add to editor context menu -->
+        <objectContribution
+            id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.input"
+            objectClass="org.eclipse.ui.IEditorInput"
+            nameFilter="*.template">
+            <menu
+                label="Run on AWS"
+                path="additions"
+                id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS"
+                icon="icons/aws-box.gif">
+                <separator name="group" />
+            </menu>
+            <action
+                label="Update Stack"
+                class="com.amazonaws.eclipse.explorer.cloudformation.UpdateStackAction"
+                menubarPath="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS/group"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.updateStack" />
+            <action
+                label="Create Stack"
+                class="com.amazonaws.eclipse.explorer.cloudformation.CreateStackAction"
+                menubarPath="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS/group"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.updateStack" />
+            <action
+                label="Format Template"
+                class="com.amazonaws.eclipse.explorer.cloudformation.FormatTemplateAction"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.formatTemplate" />
+        </objectContribution>
+    </extension>
+
+</plugin>

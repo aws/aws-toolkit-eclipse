@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -13,6 +13,9 @@
  * permissions and limitations under the License.
  */
 package com.amazonaws.eclipse.elasticbeanstalk.webproject;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.DataBindingContext;
@@ -29,6 +32,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -37,12 +41,17 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
 
 final class JavaWebProjectWizardPage extends WizardPage {
@@ -57,6 +66,8 @@ final class JavaWebProjectWizardPage extends WizardPage {
     /** Collective status of all validators in our binding context */
     protected AggregateValidationStatus aggregateValidationStatus =
         new AggregateValidationStatus(bindingContext, AggregateValidationStatus.MAX_SEVERITY);
+    private Combo regionCombo;
+    private Combo languageCombo;
 
 
     JavaWebProjectWizardPage(NewAwsJavaWebProjectDataModel dataModel) {
@@ -110,6 +121,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
         accountSelectionComposite = new AccountSelectionComposite(group, SWT.None);
 
         dataModel.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
+        accountSelectionComposite.selectAccountId(dataModel.getAccountId());
 
         dataModel.setSampleAppIncluded(false);
         createSamplesGroup(composite);
@@ -148,6 +160,56 @@ final class JavaWebProjectWizardPage extends WizardPage {
         gridData.widthHint = 100;
         travelLogDescriptionLabel.setLayoutData(gridData);
         travelLogDescriptionLabel.setText("A Java web application demonstrating the use of Amazon S3, Amazon SimpleDB, and Amazon SNS.");
+
+        Composite regionAndLanguage = new Composite(group, SWT.None);
+        GridLayoutFactory.fillDefaults().numColumns(2).margins(30, 10).applyTo(regionAndLanguage);
+
+        final List<Control> controlsToEnable = new LinkedList<Control>();
+        
+        Label regionLabel = new Label(regionAndLanguage, SWT.READ_ONLY);
+        regionLabel.setText("Use services in this region: ");
+        controlsToEnable.add(regionLabel);
+
+        regionCombo = new Combo(regionAndLanguage, SWT.DROP_DOWN | SWT.READ_ONLY);
+        for ( Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.BEANSTALK) ) {
+            regionCombo.add(region.getName());
+            regionCombo.setData(region.getName(), region);
+        }
+        regionCombo.select(0);
+        controlsToEnable.add(regionCombo);
+
+        SelectionAdapter regionListener = new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                dataModel.setRegion((Region) regionCombo.getData(regionCombo.getText()));
+            }
+        };
+        regionCombo.addSelectionListener(regionListener);
+        regionListener.widgetSelected(null);
+
+        Label languageLabel = new Label(regionAndLanguage, SWT.READ_ONLY);
+        languageLabel.setText("Language: ");
+        controlsToEnable.add(languageLabel);
+
+        languageCombo = new Combo(regionAndLanguage, SWT.DROP_DOWN | SWT.READ_ONLY);
+        for ( String lang : NewAwsJavaWebProjectDataModel.LANGUAGES ) {
+            languageCombo.add(lang);
+        }
+        languageCombo.select(0);
+        controlsToEnable.add(languageCombo);
+
+        SelectionAdapter travelLogSelectionListener = new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                for ( Control control : controlsToEnable ) {
+                    control.setEnabled(travelLogRadioButton.getSelection());
+                }
+            }
+        };
+        travelLogRadioButton.addSelectionListener(travelLogSelectionListener);
+        travelLogSelectionListener.widgetSelected(null);
     }
 
     @SuppressWarnings("static-access")
@@ -171,9 +233,11 @@ final class JavaWebProjectWizardPage extends WizardPage {
         bindingContext.bindValue(accountId,
                 PojoObservables.observeValue(dataModel, dataModel.ACCOUNT_ID), new UpdateValueStrategy(
                         UpdateValueStrategy.POLICY_UPDATE), new UpdateValueStrategy(UpdateValueStrategy.POLICY_NEVER));
-        bindingContext.bindValue(
-                SWTObservables.observeSelection(travelLogRadioButton),
-                PojoObservables.observeValue(dataModel, dataModel.SAMPLE_APP_INCLUDED), null, null);
+        bindingContext.bindValue(SWTObservables.observeSelection(travelLogRadioButton),
+                PojoObservables.observeValue(dataModel, dataModel.SAMPLE_APP_INCLUDED), null, null)
+                .updateTargetToModel();
+        bindingContext.bindValue(SWTObservables.observeSelection(languageCombo),
+                PojoObservables.observeValue(dataModel, dataModel.LANGUAGE), null, null).updateTargetToModel();
     }
 
     /**

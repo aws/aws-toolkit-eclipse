@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.navigator.CommonActionProvider;
 import org.eclipse.ui.statushandlers.StatusManager;
 
@@ -134,52 +124,6 @@ public class SNSActionProvider extends CommonActionProvider {
                     StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
                 }
             }
-        }
-    }
-
-    public static class CreateTopicDialog extends MessageDialog {
-
-        private String topicName;
-
-        public CreateTopicDialog() {
-            super(Display.getDefault().getActiveShell(), "Create New SNS Topic", null, "Enter the name for your new SNS Topic.",
-                MessageDialog.INFORMATION, new String[] {"OK", "Cancel"}, 0);
-        }
-
-        public String getTopicName() {
-            return topicName;
-        }
-
-        @Override
-        protected Control createCustomArea(Composite parent) {
-            Composite composite = new Composite(parent, SWT.NONE);
-            composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-            composite.setLayout(new GridLayout(2, false));
-
-            new Label(composite, SWT.NONE).setText("Topic Name:");
-            final Text topicNameText = new Text(composite, SWT.BORDER);
-            topicNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-            topicNameText.addModifyListener(new ModifyListener() {
-                public void modifyText(ModifyEvent e) {
-                    topicName = topicNameText.getText();
-                    updateControls();
-                }
-            });
-
-            return composite;
-        }
-
-        private void updateControls() {
-            boolean isValid = (topicName != null && topicName.trim().length() > 0);
-
-            Button okButton = this.getButton(0);
-            if (okButton != null) okButton.setEnabled(isValid);
-        }
-
-        @Override
-        protected void createButtonsForButtonBar(Composite parent) {
-            super.createButtonsForButtonBar(parent);
-            updateControls();
         }
     }
 

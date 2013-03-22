@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.jobs;
 
-import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.*;
+import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
 
 import java.util.List;
 import java.util.Random;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -26,6 +27,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.progress.IProgressConstants;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
 
 import com.amazonaws.AmazonClientException;
@@ -63,11 +65,13 @@ public class SyncEnvironmentsJob extends Job {
         trace("Syncing environment statuses");
 
         boolean transitioningEnvironment = false;
+        Exception syncingError = null;
         for (IServer server : ServerCore.getServers()) {
             if (server.getServerType() == null) continue;
             String id = server.getServerType().getId();
 
             if (ElasticBeanstalkPlugin.SERVER_TYPE_IDS.contains(id)) {
+                convertLegacyServer(server, monitor);
                 Environment environment = (Environment)server.loadAdapter(Environment.class, monitor);
                 EnvironmentBehavior behavior = (EnvironmentBehavior)server.loadAdapter(EnvironmentBehavior.class, monitor);
 
@@ -77,20 +81,28 @@ public class SyncEnvironmentsJob extends Job {
                     transitioningEnvironment |= syncEnvironment(environment, behavior);
                     previousErrorMessage = null;
                 } catch (AmazonClientException ace) {
-                    schedule(LONG_DELAY);
-                    if (previousErrorMessage != null && previousErrorMessage.equals(ace.getMessage())) {
-                        // Don't keep complaining about the same error over and over
-                        return Status.OK_STATUS;
-                    }
-                    previousErrorMessage = ace.getMessage();
-                    return new Status(Status.WARNING, ElasticBeanstalkPlugin.PLUGIN_ID, "Unable to connect to AWS Elastic Beanstalk", ace);
+                    syncingError = ace;
                 }
             }
         }
 
+        if ( syncingError != null ) {
+            schedule(LONG_DELAY);
+
+            // Don't keep complaining about being unable to synchronize
+            if ( previousErrorMessage != null && 
+                    previousErrorMessage.equals(syncingError.getMessage()) ) {
+                return Status.OK_STATUS;
+            }
+
+            previousErrorMessage = syncingError.getMessage();
+            return new Status(Status.WARNING, ElasticBeanstalkPlugin.PLUGIN_ID,
+                    "Unable to synchronize an environment", syncingError);            
+        }
+        
         if (transitioningEnvironment) schedule(SHORT_DELAY + RANDOM.nextInt(5 * 1000));
         else schedule(LONG_DELAY + RANDOM.nextInt(5 * 1000));
-
+        
         return Status.OK_STATUS;
     }
 
@@ -128,6 +140,21 @@ public class SyncEnvironmentsJob extends Job {
 
         if (environments.isEmpty()) return null;
         return environments.get(0);
+    }
+
+    /**
+     * We change the data model to save the server environment information. This
+     * function is used to convert the old data format to the new one.
+     */
+    private void convertLegacyServer(IServer server, IProgressMonitor monitor) {
+        IServerWorkingCopy serverWorkingCopy = server.createWorkingCopy();
+        Environment env = (Environment) serverWorkingCopy.loadAdapter(Environment.class, monitor);
+        env.convertLegacyServer();
+        try {
+            serverWorkingCopy.save(true, monitor);
+        } catch (CoreException e) {
+            throw new AmazonClientException("Unable to synchronize with the beanstalk", e);
+        }
     }
 
 }

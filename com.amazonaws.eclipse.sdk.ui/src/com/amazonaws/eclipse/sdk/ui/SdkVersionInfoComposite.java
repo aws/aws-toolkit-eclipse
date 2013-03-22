@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,28 +29,29 @@ import org.eclipse.swt.widgets.Label;
  */
 public class SdkVersionInfoComposite extends Composite implements SdkChangeListener {
     private Label locationLabel;
-    private Combo versions;
+    private final Combo versions;
+    private final List<JavaSdkInstall> sdkInstalls;
 
-    private SdkInstall chosenSdk;
+    private JavaSdkInstall chosenSdk;
 
     public void registerSdkVersionChangedListener(final SdkChangeListener sdkListener) {
         versions.addSelectionListener(new SelectionListener() {
             public void widgetDefaultSelected(SelectionEvent e) {
-                sdkListener.sdkChanged(SdkManager.getInstance().getSdkInstalls().get(((Combo) e.widget).getSelectionIndex()));
+                sdkListener.sdkChanged(sdkInstalls.get(((Combo) e.widget).getSelectionIndex()));
             }
 
             public void widgetSelected(SelectionEvent e) {
-                sdkListener.sdkChanged(SdkManager.getInstance().getSdkInstalls().get(((Combo) e.widget).getSelectionIndex()));
+                sdkListener.sdkChanged(sdkInstalls.get(((Combo) e.widget).getSelectionIndex()));
             }
         });
     }
 
-    public SdkVersionInfoComposite(Composite parent, SdkInstall chosenSdk) {
+    public SdkVersionInfoComposite(Composite parent, JavaSdkInstall chosenSdk) {
         super(parent, SWT.NONE);
 
         this.setLayout(new GridLayout());
 
-        SdkManager sdkManager = SdkManager.getInstance();
+        JavaSdkManager sdkManager = JavaSdkManager.getInstance();
 
         versions = new Combo(this, SWT.READ_ONLY);
         locationLabel = new Label(this, SWT.NONE);
@@ -59,7 +60,7 @@ public class SdkVersionInfoComposite extends Composite implements SdkChangeListe
 
         registerSdkVersionChangedListener(this);
 
-        List<SdkInstall> sdkInstalls = sdkManager.getSdkInstalls();
+        sdkInstalls = sdkManager.getSdkInstalls();
         for (int i = 0; i < sdkInstalls.size(); ++i) {
             versions.add("AWS SDK for Java " + sdkInstalls.get(i).getVersion());
             if (sdkInstalls.get(i).getVersion().equals(chosenSdk.getVersion())) {
@@ -70,10 +71,10 @@ public class SdkVersionInfoComposite extends Composite implements SdkChangeListe
     }
 
     public SdkVersionInfoComposite(Composite parent) {
-        this(parent, SdkManager.getInstance().getDefaultSdkInstall());
+        this(parent, (JavaSdkInstall)JavaSdkManager.getInstance().getDefaultSdkInstall());
     }
 
-    public void sdkChanged(SdkInstall sdkInstall) {
+    public void sdkChanged(JavaSdkInstall sdkInstall) {
         this.chosenSdk = sdkInstall;
 
         locationLabel.dispose();
@@ -87,7 +88,7 @@ public class SdkVersionInfoComposite extends Composite implements SdkChangeListe
         this.getParent().getParent().layout(true);
     }
 
-    public SdkInstall getCurrentSdk() {
+    public JavaSdkInstall getCurrentSdk() {
         return chosenSdk;
     }
 }

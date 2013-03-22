@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class EditBucketPermissionsDialog extends EditPermissionsDialog {
 
     @Override
     protected AccessControlList getAcl() {
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3Client();
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucket.getName());
         return s3.getBucketAcl(bucket.getName());
     }
 }

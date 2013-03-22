@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,19 @@ import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.ui.internal.editor.ServerEditorInput;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 
 public class OpenEnvironmentEditorAction extends Action {
 
     private final EnvironmentDescription env;
+    private final Region region;
 
-    public OpenEnvironmentEditorAction(EnvironmentDescription env) {
+    public OpenEnvironmentEditorAction(EnvironmentDescription env, Region region) {
         this.env = env;
+        this.region = region;
         this.setText("Open in WTP Server Editor");
     }
 
@@ -43,16 +47,16 @@ public class OpenEnvironmentEditorAction extends Action {
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                    IServer server = ElasticBeanstalkPlugin.getServer(env);
+                    IServer server = ElasticBeanstalkPlugin.getServer(env, region);
                     if ( server == null ) {
-                        server = ElasticBeanstalkPlugin.importEnvironment(env, new NullProgressMonitor());
+                        server = ElasticBeanstalkPlugin.importEnvironment(env, region, new NullProgressMonitor());
                     }
                     activeWindow.getActivePage().openEditor(new ServerEditorInput(server.getId()),
                             "org.eclipse.wst.server.ui.editor");
                 } catch ( Exception e ) {
                     String errorMessage = "Unable to open the server editor: " + e.getMessage();
                     Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                    StatusManager.getManager().handle(status, StatusManager.SHOW);
                 }
             }
         });

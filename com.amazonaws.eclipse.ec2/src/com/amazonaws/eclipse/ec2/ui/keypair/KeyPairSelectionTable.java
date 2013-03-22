@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Amazon Technologies, Inc.
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable;
@@ -65,7 +66,7 @@ public class KeyPairSelectionTable extends SelectionTable {
     public Action createNewKeyPairAction;
     public Action refreshAction;
     public Action registerKeyPairAction;
-    
+
     private final String accountId;
 
     private static final KeyPairManager keyPairManager = new KeyPairManager();
@@ -77,6 +78,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         "The selected key pair is missing its private key.  " +
         "You can associate the private key file with this key pair if you have it, " +
         "or you can create a new key pair. ";
+
 
     /**
      * Refreshes the EC2 key pairs displayed.
@@ -92,6 +94,7 @@ public class KeyPairSelectionTable extends SelectionTable {
     public synchronized void removeRefreshListener(KeyPairSelectionTable listener) {
         listeners.remove(listener);
     }
+
 
     /* (non-Javadoc)
      * @see org.eclipse.swt.widgets.Widget#dispose()
@@ -220,13 +223,20 @@ public class KeyPairSelectionTable extends SelectionTable {
             return keyPair1.getKeyName().compareTo(keyPair2.getKeyName());
         }
     }
-    
+
     /**
-     * Create a key pair table for the specified account Id
+     * Create a key pair table for the specified account Id.
      */
     public KeyPairSelectionTable(Composite parent, String accountId) {
+        this(parent, accountId, null);
+    }
+
+    /**
+     * Create a key pair table for the specified account Id and ec2 endpoint.
+     */
+    public KeyPairSelectionTable(Composite parent, String accountId, Region ec2RegionOverride) {
         super(parent);
-        this.accountId = accountId;        
+        this.accountId = accountId;
 
         KeyPairTableProvider keyPairTableProvider = new KeyPairTableProvider();
 
@@ -241,6 +251,8 @@ public class KeyPairSelectionTable extends SelectionTable {
                 updateActionsForSelection();
             }
         });
+
+        this.ec2RegionOverride = ec2RegionOverride;
     }
 
     /* (non-Javadoc)
@@ -310,7 +322,6 @@ public class KeyPairSelectionTable extends SelectionTable {
             public void run() {
                 CreateKeyPairDialog dialog = new CreateKeyPairDialog(Display.getCurrent().getActiveShell(), accountId);
                 if (dialog.open() != Dialog.OK) return;
-
                 new CreateKeyPairThread(dialog.getKeyPairName(), dialog.getPrivateKeyDirectory()).start();
             }
         };
@@ -481,7 +492,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         @Override
         public void run() {
             try {
-                keyPairManager.createNewKeyPair(accountId, name, directory);
+                keyPairManager.createNewKeyPair(accountId, name, directory, ec2RegionOverride);
             } catch (Exception e) {
                 Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
                         "Unable to create key pair: " + e.getMessage());
@@ -489,6 +500,12 @@ public class KeyPairSelectionTable extends SelectionTable {
             }
             refreshKeyPairs();
         }
+    }
+
+    @Override
+    public void setEc2RegionOverride(Region region) {
+        super.setEc2RegionOverride(region);
+        refreshKeyPairs();
     }
 
 }

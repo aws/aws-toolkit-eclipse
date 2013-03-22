@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,8 +14,11 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.deploy;
 
-import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.*;
+import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
 
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
 
 public class DeployWizardDataModel {
@@ -42,14 +45,15 @@ public class DeployWizardDataModel {
     public static final String USING_CNAME = "usingCname";
     public static final String CNAME = "cname";
 
+    public static final String INCREMENTAL_DEPLOYMENT = "incrementalDeployment";
+
     public static final String SNS_ENDPOINT = "snsEndpoint";
     public static final String SSL_CERTIFICATE_ID = "sslCertificateId";
     public static final String HEALTH_CHECK_URL = "healthCheckUrl";
 
     public static final String REGION_ENDPOINT = "regionEndpoint";
 
-    // Bean properties
-    private String regionEndpoint;
+    private Region region;
 
     private String existingApplicationName;
     private boolean isCreatingNewApplication;
@@ -65,9 +69,22 @@ public class DeployWizardDataModel {
     private boolean usingKeyPair = false;
     private KeyPairInfo keyPair;
 
+    private boolean incrementalDeployment = true;
+
     private String snsEndpoint;
     private String healthCheckUrl;
     private String sslCertificateId;
+
+    // Share reference to  make is easy to update the composite when region changed.
+    private KeyPairComposite keyPairComposite;
+
+    public boolean isIncrementalDeployment() {
+        return incrementalDeployment;
+    }
+
+    public void setIncrementalDeployment(boolean b) {
+        this.incrementalDeployment = b;
+    }
 
     public boolean isUsingKeyPair() {
         return usingKeyPair;
@@ -172,21 +189,30 @@ public class DeployWizardDataModel {
     }
 
     public String getRegionEndpoint() {
-        return regionEndpoint;
+        return getRegion().getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
     }
 
-    public void setRegionEndpoint(String regionEndpoint) {
-        trace("Setting region endpoint = " + regionEndpoint);
-        this.regionEndpoint = regionEndpoint;
-    }
 
     public String getSnsEndpoint() {
         return snsEndpoint;
     }
 
+    public String getEc2Endpoint() {
+        return getRegion().getServiceEndpoints().get(ServiceAbbreviations.EC2);
+    }
+
+
     public void setSnsEndpoint(String snsEndpoint) {
         trace("Setting sns endpoint = " + snsEndpoint);
         this.snsEndpoint = snsEndpoint;
+    }
+
+    public void setRegion(Region region) {
+        this.region = region;
+    }
+
+    public Region getRegion() {
+        return this.region;
     }
 
     public String getHealthCheckUrl() {
@@ -205,5 +231,13 @@ public class DeployWizardDataModel {
     public void setSslCertificateId(String sslCertificateId) {
         trace("Setting ssl certificate id = " + sslCertificateId);
         this.sslCertificateId = sslCertificateId;
+    }
+
+    public void setKeyPairComposite(KeyPairComposite keyPairComposite) {
+        this.keyPairComposite = keyPairComposite;
+    }
+
+    public KeyPairComposite getKeyPairComposite() {
+        return keyPairComposite;
     }
 }

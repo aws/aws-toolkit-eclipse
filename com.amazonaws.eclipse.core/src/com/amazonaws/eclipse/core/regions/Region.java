@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc. 
+ * Copyright 2011-2012 Amazon Technologies, Inc. 
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
@@ -17,18 +17,26 @@ package com.amazonaws.eclipse.core.regions;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Image;
+
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+
 /**
  * Metadata for an AWS region, including it's name, unique ID and what services
  * are available.
  */
 public final class Region {
-    private String name;
-    private String id;
-    private Map<String, String> serviceEndpoints = new HashMap<String, String>();
+    
+    private final String name;
+    private final String id;
+    private final String flagIconPath;
+    private final Map<String, String> serviceEndpoints = new HashMap<String, String>();
 
-    public Region(String name, String id) {
+    public Region(String name, String id, String flagIconPath) {
         this.name = name;
         this.id = id;
+        this.flagIconPath = flagIconPath;
     }
 
     /**
@@ -59,6 +67,54 @@ public final class Region {
      */
     public Map<String, String> getServiceEndpoints() {
         return serviceEndpoints;
+    }
+        
+    /**
+     * Returns the endpoint for the service given.
+     * 
+     * @see ServiceAbbreviations
+     */
+    public String getServiceEndpoint(String serviceName) {
+        return serviceEndpoints.get(serviceName);
+    }
+    
+    /**
+     * Returns whether the given service is supported in this region.
+     * 
+     * @see ServiceAbbreviations
+     */
+    public boolean isServiceSupported(String serviceName) {
+        return serviceEndpoints.containsKey(serviceName);
+    }
+    
+    /**
+     * Returns the relative path to a small flag icon representing this region.
+     */
+    public String getFlagIconPath() {
+        return flagIconPath;
+    }
+    
+    /**
+     * Returns the image for this region's flag.
+     */
+    public Image getFlagImage() {
+        Image image = AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_FLAG_PREFIX + id);
+        if ( image == null ) {
+            image = AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON);
+        }
+        return image;
+    }
+
+    /**
+     * Returns the flag's image descriptor.
+     */
+    public ImageDescriptor getFlagImageDescriptor() {
+        ImageDescriptor descriptor = AwsToolkitCore.getDefault().getImageRegistry()
+                .getDescriptor(AwsToolkitCore.IMAGE_FLAG_PREFIX + id);
+        if ( descriptor == null ) {
+            descriptor = AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_ICON);
+        }
+        return descriptor;
     }
 
     @Override

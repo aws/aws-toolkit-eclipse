@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 
 /**
@@ -45,6 +44,8 @@ public class DeploymentInformationDialog extends MessageDialog {
 
     private final boolean enableDebugging;
     private final boolean warnAboutIngress;
+    private final boolean showVersionTextBox;
+
     private final Environment environment;
     private final String launchMode;
 
@@ -60,21 +61,22 @@ public class DeploymentInformationDialog extends MessageDialog {
     String getVersionLabel() {
         return versionLabel;
     }
-    
+
     String getDebugPort() {
         return debugPort;
     }
 
-    public DeploymentInformationDialog(Shell parentShell, Environment environment, String launchMode, boolean enableDebugging, boolean warnAboutIngress) {
+    public DeploymentInformationDialog(Shell parentShell, Environment environment, String launchMode, boolean showVersionLabelTextBox, boolean enableDebugging, boolean warnAboutIngress) {
         super(parentShell, "Publishing to AWS Elastic Beanstalk", AwsToolkitCore.getDefault().getImageRegistry()
                 .get(AwsToolkitCore.IMAGE_AWS_ICON), "Configure your environment deployment options",
                 MessageDialog.NONE, new String[] { IDialogConstants.OK_LABEL, IDialogConstants.CANCEL_LABEL }, 0);
 
+        this.showVersionTextBox = showVersionLabelTextBox;
         this.enableDebugging = enableDebugging;
         this.warnAboutIngress = warnAboutIngress;
-        this.environment = environment;                
+        this.environment = environment;
         this.launchMode = launchMode;
-        
+
         this.versionLabel = "v" + System.currentTimeMillis();
     }
 
@@ -85,8 +87,8 @@ public class DeploymentInformationDialog extends MessageDialog {
         layout.marginWidth = 0;
         composite.setLayout(layout);
 
-        createVersionTextBox(composite);
-
+        if ( showVersionTextBox )
+            createVersionTextBox(composite);
         if ( enableDebugging )
             createDebugPortTextBox(parent);
         if ( launchMode.equals(ILaunchManager.DEBUG_MODE) )
@@ -161,7 +163,7 @@ public class DeploymentInformationDialog extends MessageDialog {
     private void createVersionTextBox(Composite composite) {
         Label versionLabelLabel = new Label(composite, SWT.NONE);
         versionLabelLabel.setText("Version Label:");
-    
+
         final Text versionLabelText = new Text(composite, SWT.BORDER);
         versionLabelText.setText(versionLabel);
         versionLabelText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));

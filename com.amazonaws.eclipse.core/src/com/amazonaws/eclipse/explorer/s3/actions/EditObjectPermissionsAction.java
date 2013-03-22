@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
 package com.amazonaws.eclipse.explorer.s3.actions;
 
 import java.util.Collection;
-
 import java.util.Iterator;
 
-import org.eclipse.core.internal.jobs.JobManager;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -55,7 +53,7 @@ public class EditObjectPermissionsAction extends Action {
 
         final EditPermissionsDialog editPermissionsDialog = new EditObjectPermissionsDialog(selectedObjects);
         if (editPermissionsDialog.open() == 0) {
-            final AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3Client();
+            final AmazonS3 s3 = table.getS3Client();
             new Job("Updating object ACLs") {
                 @Override
                 protected IStatus run(IProgressMonitor monitor) {

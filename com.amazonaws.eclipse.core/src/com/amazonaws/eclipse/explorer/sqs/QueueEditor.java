@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.amazonaws.eclipse.explorer.sqs;
 import static com.amazonaws.eclipse.explorer.sqs.QueueAttributes.ALL;
 import static com.amazonaws.eclipse.explorer.sqs.QueueAttributes.ARN;
 import static com.amazonaws.eclipse.explorer.sqs.QueueAttributes.CREATED;
+import static com.amazonaws.eclipse.explorer.sqs.QueueAttributes.DELAY_SECONDS;
 import static com.amazonaws.eclipse.explorer.sqs.QueueAttributes.MAX_MESSAGE_SIZE;
 import static com.amazonaws.eclipse.explorer.sqs.QueueAttributes.NUMBER_OF_MESSAGES;
 import static com.amazonaws.eclipse.explorer.sqs.QueueAttributes.RETENTION_PERIOD;
@@ -87,6 +88,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
     private Label queueArnLabel;
     private Label numberOfMessagesLabel;
     private TreeViewer viewer;
+    private Label queueDelayLabel;
 
     @Override
     public void doSave(IProgressMonitor arg0) {}
@@ -212,6 +214,10 @@ public class QueueEditor extends EditorPart implements IRefreshable {
         numberOfMessagesLabel = toolkit.createLabel(composite, "");
         gridDataFactory.applyTo(numberOfMessagesLabel);
 
+        toolkit.createLabel(composite, "Message Delay (seconds):");
+        queueDelayLabel = toolkit.createLabel(composite, "");
+        gridDataFactory.applyTo(queueDelayLabel);
+
         new LoadQueueAttributesThread().start();
     }
 
@@ -234,10 +240,16 @@ public class QueueEditor extends EditorPart implements IRefreshable {
                     visibilityTimeoutLabel.setText(attributes.get(VISIBILITY_TIMEOUT));
                     queueArnLabel.setText(attributes.get(ARN));
                     numberOfMessagesLabel.setText(attributes.get(NUMBER_OF_MESSAGES));
+                    queueDelayLabel.setText(valueOrDefault(attributes.get(DELAY_SECONDS), "0"));
 
                     numberOfMessagesLabel.getParent().layout();
                 }
             });
+        }
+
+        private String valueOrDefault(String value, String defaultValue) {
+            if (value != null) return value;
+            else return defaultValue;
         }
     }
 
@@ -286,7 +298,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
         }
 
         public TreePath[] getParents(Object arg0) {
-            return null;
+            return new TreePath[0];
         }
 
         public boolean hasChildren(TreePath arg0) {

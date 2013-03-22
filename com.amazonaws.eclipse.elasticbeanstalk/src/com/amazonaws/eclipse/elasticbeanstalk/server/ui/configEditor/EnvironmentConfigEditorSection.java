@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateSetStrategy;
 import org.eclipse.core.databinding.UpdateValueStrategy;
+import org.eclipse.core.databinding.observable.ChangeEvent;
+import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.databinding.observable.set.IObservableSet;
 import org.eclipse.core.databinding.observable.set.ISetChangeListener;
 import org.eclipse.core.databinding.observable.set.SetChangeEvent;
@@ -52,12 +54,15 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
+import com.amazonaws.eclipse.databinding.ChainValidator;
+import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ChainValidator;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ConfigurationSettingValidator;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.DecorationChangeListener;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
 
+/**
+ * Abstract base editor section that knows how to create controls for an editable option.
+ */
 public class EnvironmentConfigEditorSection extends ServerEditorSection {
 
     /** The section widget we're managing */
@@ -91,9 +96,9 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
      *            The options in the namespace
      */
     public EnvironmentConfigEditorSection(AbstractEnvironmentConfigEditorPart parentEditor,
-            EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext, String namespace,
-            List<ConfigurationOptionDescription> options) {
-    super();
+            EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext,
+            String namespace, List<ConfigurationOptionDescription> options) {
+        super();
         this.parentEditor = parentEditor;
         this.bindingContext = bindingContext;
         this.environment = environment;
@@ -180,13 +185,35 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
         } else if ( valueType.equals("Boolean") ) {
             createCheckbox(parent, option);
         } else if ( valueType.equals("List") ) {
-            createList(parent, option);
+            if (option.getValueOptions().isEmpty()) {
+                createTextField(parent, option);
+            } else {
+                createList(parent, option);
+            }
+        } else if ( valueType.equals("CommaSeparatedList")) {
+            createCommaSeparatedList(parent, option);
+        } else if (valueType.equals("KeyValueList")) {
+            createKeyValueList(parent, option);
         } else {
             Label label = createLabel(toolkit, parent, option);
             label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
             Label label1 = toolkit.createLabel(parent, (option.getValueOptions().toString() + "(" + valueType + ")"));
             label1.setForeground(toolkit.getColors().getColor(IFormColors.TITLE));
         }
+    }
+
+    /**
+     * Creates a key value list control with the option given
+     */
+    private void createKeyValueList(Composite parent, ConfigurationOptionDescription option) {
+        createTextField(parent, option);
+    }
+
+    /**
+     * Creates a comma separated list with the option given
+     */
+    private void createCommaSeparatedList(Composite parent, ConfigurationOptionDescription option) {
+        createTextField(parent, option);
     }
 
     /**
@@ -291,7 +318,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
                 new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE),
                 new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE));
 
-        button.addSelectionListener(new DirtyMarker());
+        modelv.addChangeListener(new DirtyMarker());
     }
 
     protected String getName(ConfigurationOptionDescription option) {
@@ -311,8 +338,8 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
         ISWTObservableValue widget = SWTObservables.observeSelection(combo);
         parentEditor.bindingContext.bindValue(widget, modelv,
                 new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE),
-                new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE)).updateTargetToModel();
-        combo.addSelectionListener(new DirtyMarker());
+                new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE));
+        modelv.addChangeListener(new DirtyMarker());
     }
 
     /**
@@ -330,9 +357,9 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
         bindingContext.bindValue(widget, modelv,
                 new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE),
                 new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE));
-        text.addModifyListener(new DirtyMarker());
+        modelv.addChangeListener(new DirtyMarker());
 
-        ChainValidator<String> validationStatusProvider = new ChainValidator<String>(widget, null,
+        ChainValidator<String> validationStatusProvider = new ChainValidator<String>(widget, 
                 new ConfigurationSettingValidator(option));
         bindingContext.addValidationStatusProvider(validationStatusProvider);
         ControlDecoration decoration = new ControlDecoration(text, SWT.TOP | SWT.LEFT);
@@ -359,6 +386,13 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
             labelText += " **";
         else if ( option.getChangeSeverity().equals("RestartApplicationServer") )
             labelText += " *";
+        
+        if ( option.getValueType().equals("CommaSeparatedList") && option.getValueOptions().isEmpty() ) {
+            labelText += "\n(comma separated)";
+        } else if ( option.getValueType().equals("KeyValueList") && option.getValueOptions().isEmpty() ) {
+            labelText += "\n(key-value list)";
+        }
+        
         Label label = toolkit.createLabel(parent, labelText);
         return label;
     }
@@ -366,7 +400,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
     /**
      * Generic listener that marks the editor dirty.
      */
-    protected final class DirtyMarker implements SelectionListener, ModifyListener {
+    protected final class DirtyMarker implements SelectionListener, ModifyListener, IChangeListener {
 
         public DirtyMarker() {
         }
@@ -385,6 +419,10 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
 
         private void markDirty() {
             EnvironmentConfigEditorSection.this.parentEditor.markDirty();
+        }
+
+        public void handleChange(ChangeEvent event) {
+            markDirty();
         }
     }
 }

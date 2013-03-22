@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 Amazon Technologies, Inc.
+ * Copyright 2009-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -491,90 +491,92 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
          */
         @Override
         public void run() {
-            if (selectionTableListener != null) {
-                selectionTableListener.loadingData();
-                enableDropDowns(false);
-            }
-
-            List<Reservation> reservations = null;
-            try {
-                boolean needsToDescribeInstances = true;
-                DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
-                if (instancesToDisplay != null) {
-                    /*
-                     * If the caller explicitly asked for a list of zero
-                     * instances to be displayed, don't even bother querying for
-                     * anything.
-                     */
-                    if (instancesToDisplay.size() == 0) {
-                        needsToDescribeInstances = false;
-                    };
-
-                    describeInstancesRequest.setInstanceIds(instancesToDisplay);
+            synchronized (RefreshInstancesThread.class) {
+                if (selectionTableListener != null) {
+                    selectionTableListener.loadingData();
+                    enableDropDowns(false);
                 }
-
-                final List<Instance> allInstances = new ArrayList<Instance>();
-                final Map<String, List<String>> securityGroupsByInstanceId = new HashMap<String, List<String>>();
-
-                if (needsToDescribeInstances) {
-                    DescribeInstancesResult response = getAwsEc2Client().describeInstances(describeInstancesRequest);
-                    reservations = response.getReservations();
-
-                    noOfInstances = -1;	//Reset the value
-
-                    Set<String> allSecurityGroups = new TreeSet<String>();
-
-                    for (Reservation reservation : reservations) {
-                        List<Instance> instances = reservation.getInstances();
-
-                        List<String> groupNames = reservation.getGroupNames();
-                        Collections.sort(groupNames);
-                        allSecurityGroups.addAll(groupNames);
-
-                        //Filter Security Groups
-                        if (securityGroupDropDownMenuHandler.getCurrentSelection().getMenuId().equals("ALL")  || groupNames.contains(securityGroupDropDownMenuHandler.getCurrentSelection().getMenuId())) {
-
-                            for (Instance instance : instances) {
-                                //Filter Instances
-                                if (!instanceStateDropDownMenuHandler.getCurrentSelection().getMenuId().equals("ALL")) {
-                                    if (instanceStateDropDownMenuHandler.getCurrentSelection().getMenuId().equalsIgnoreCase("windows")) {
-                                        if (instance.getPlatform() == null || !instance.getPlatform().equals("windows"))
+    
+                List<Reservation> reservations = null;
+                try {
+                    boolean needsToDescribeInstances = true;
+                    DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest();
+                    if (instancesToDisplay != null) {
+                        /*
+                         * If the caller explicitly asked for a list of zero
+                         * instances to be displayed, don't even bother querying for
+                         * anything.
+                         */
+                        if (instancesToDisplay.size() == 0) {
+                            needsToDescribeInstances = false;
+                        };
+    
+                        describeInstancesRequest.setInstanceIds(instancesToDisplay);
+                    }
+    
+                    final List<Instance> allInstances = new ArrayList<Instance>();
+                    final Map<String, List<String>> securityGroupsByInstanceId = new HashMap<String, List<String>>();
+    
+                    if (needsToDescribeInstances) {
+                        DescribeInstancesResult response = getAwsEc2Client().describeInstances(describeInstancesRequest);
+                        reservations = response.getReservations();
+    
+                        noOfInstances = -1;	//Reset the value
+    
+                        Set<String> allSecurityGroups = new TreeSet<String>();
+    
+                        for (Reservation reservation : reservations) {
+                            List<Instance> instances = reservation.getInstances();
+    
+                            List<String> groupNames = reservation.getGroupNames();
+                            Collections.sort(groupNames);
+                            allSecurityGroups.addAll(groupNames);
+    
+                            //Filter Security Groups
+                            if (securityGroupDropDownMenuHandler.getCurrentSelection().getMenuId().equals("ALL")  || groupNames.contains(securityGroupDropDownMenuHandler.getCurrentSelection().getMenuId())) {
+    
+                                for (Instance instance : instances) {
+                                    //Filter Instances
+                                    if (!instanceStateDropDownMenuHandler.getCurrentSelection().getMenuId().equals("ALL")) {
+                                        if (instanceStateDropDownMenuHandler.getCurrentSelection().getMenuId().equalsIgnoreCase("windows")) {
+                                            if (instance.getPlatform() == null || !instance.getPlatform().equals("windows"))
+                                                continue;
+                                        } else if (!instance.getInstanceType().equalsIgnoreCase(instanceStateDropDownMenuHandler.getCurrentSelection().getMenuId())) {
                                             continue;
-                                    } else if (!instance.getInstanceType().equalsIgnoreCase(instanceStateDropDownMenuHandler.getCurrentSelection().getMenuId())) {
-                                        continue;
+                                        }
                                     }
+    
+                                    allInstances.add(instance);
+    
+                                    // Populate the map of instance IDs -> security groups
+                                    securityGroupsByInstanceId.put(instance.getInstanceId(), groupNames);
                                 }
-
-                                allInstances.add(instance);
-
-                                // Populate the map of instance IDs -> security groups
-                                securityGroupsByInstanceId.put(instance.getInstanceId(), groupNames);
                             }
                         }
+    
+                        //Populate all Security Groups dynamically
+                        securityGroupDropDownMenuHandler.clear();
+                        securityGroupDropDownMenuHandler.add(allSecurityGroupFilterItem);
+                        for(String securityGroup : allSecurityGroups) {
+                            securityGroupDropDownMenuHandler.add(new MenuItem(securityGroup, securityGroup));
+                        }
                     }
-
-                    //Populate all Security Groups dynamically
-                    securityGroupDropDownMenuHandler.clear();
-                    securityGroupDropDownMenuHandler.add(allSecurityGroupFilterItem);
-                    for(String securityGroup : allSecurityGroups) {
-                        securityGroupDropDownMenuHandler.add(new MenuItem(securityGroup, securityGroup));
+    
+                    noOfInstances = allInstances.size();
+                    setInput(allInstances, securityGroupsByInstanceId);
+                } catch (Exception e) {
+                    // Only log an error if the account info is valid and we
+                    // actually expected this call to work
+                    if (AwsToolkitCore.getDefault().getAccountInfo().isValid()) {
+                        Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
+                                "Unable to list instances: " + e.getMessage(), e);
+                        StatusManager.getManager().handle(status, StatusManager.LOG);
                     }
-                }
-
-                noOfInstances = allInstances.size();
-                setInput(allInstances, securityGroupsByInstanceId);
-            } catch (Exception e) {
-                // Only log an error if the account info is valid and we
-                // actually expected this call to work
-                if (AwsToolkitCore.getDefault().getAccountInfo().isValid()) {
-                    Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
-                            "Unable to list instances: " + e.getMessage(), e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
-                }
-            } finally {
-                if (selectionTableListener != null) {
-                    selectionTableListener.finishedLoadingData(noOfInstances);
-                    enableDropDowns(true);
+                } finally {
+                    if (selectionTableListener != null) {
+                        selectionTableListener.finishedLoadingData(noOfInstances);
+                        enableDropDowns(true);
+                    }
                 }
             }
         }

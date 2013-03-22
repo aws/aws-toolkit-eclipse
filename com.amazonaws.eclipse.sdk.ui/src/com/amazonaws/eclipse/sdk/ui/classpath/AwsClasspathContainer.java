@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
 
-import com.amazonaws.eclipse.sdk.ui.SdkInstall;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
 
 /**
  * The Classpath container containing the AWS SDK for Java JAR files, and those of
@@ -36,7 +36,7 @@ import com.amazonaws.eclipse.sdk.ui.SdkInstall;
 public class AwsClasspathContainer implements IClasspathContainer {
 
     /** The SDK containing the libraries to expose on the Java Project classpath */
-    private SdkInstall sdkInstall;
+    private JavaSdkInstall sdkInstall;
 
     /**
      * Creates a new AWS SDK for Java classpath container exposing the libraries
@@ -46,7 +46,7 @@ public class AwsClasspathContainer implements IClasspathContainer {
      *            The SDK containing the libraries to expose on the Java project
      *            classpath.
      */
-    public AwsClasspathContainer(SdkInstall sdkInstall) {
+    public AwsClasspathContainer(JavaSdkInstall sdkInstall) {
         if (sdkInstall == null)
             throw new IllegalArgumentException("No SDK version specified");
 
@@ -104,7 +104,7 @@ public class AwsClasspathContainer implements IClasspathContainer {
      * @return An array of the JDT classpath entries for the AWS SDK for Java at the
      *         specified install base.
      */
-    private IClasspathEntry[] loadSdkClasspathEntriesAsArray(SdkInstall sdkInstall) {
+    private IClasspathEntry[] loadSdkClasspathEntriesAsArray(JavaSdkInstall sdkInstall) {
         List<IClasspathEntry> classpathEntries = loadSdkClasspathEntries(sdkInstall);
         return classpathEntries.toArray(new IClasspathEntry[classpathEntries.size()]);
     }
@@ -119,7 +119,7 @@ public class AwsClasspathContainer implements IClasspathContainer {
      * @return A list of the JDT classpath entries for the AWS SDK for Java at the
      *         specified install base.
      */
-    private List<IClasspathEntry> loadSdkClasspathEntries(SdkInstall sdkInstall) {
+    private List<IClasspathEntry> loadSdkClasspathEntries(JavaSdkInstall sdkInstall) {
         List<IClasspathEntry> classpathEntries = new ArrayList<IClasspathEntry>();
         IPath sdkJarPath, sdkSourceJarPath;
         

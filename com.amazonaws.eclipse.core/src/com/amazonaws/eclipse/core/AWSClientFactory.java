@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,22 +29,33 @@ import org.eclipse.core.runtime.Status;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFront;
+import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFrontClient;
+import com.amazonaws.services.dynamodb.AmazonDynamoDB;
+import com.amazonaws.services.dynamodb.AmazonDynamoDBClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -99,33 +110,98 @@ public class AWSClientFactory {
      * the currently selected region.
      */
 
-    public AmazonS3 getS3Client() {
-        return getS3ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints().get(ServiceAbbreviations.S3));
+    public AmazonCloudFront getCloudFrontClient() {
+        return getCloudFrontClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CLOUDFRONT));
     }
 
+    public AmazonS3 getAnonymousS3Client() {
+        /*
+         * We hardcode the S3 endpoint here, since this method is used to download the
+         * initial regions.xml file, so we can't necessarily look up an endpoint yet.
+         *
+         * In the future, we should ship some version of the regions.xml file, so that we
+         * always have something available, even the first time the user runs this code.
+         */
+        String serviceEndpoint = "https://s3.amazonaws.com";
+        ClientConfiguration clientConfiguration = createClientConfiguration(serviceEndpoint);
+        clientConfiguration.setProtocol(Protocol.HTTP);
+        return new AmazonS3Client((AWSCredentials)null, clientConfiguration);
+    }
+
+    public AmazonS3 getS3Client() {
+        return getS3ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.S3));
+    }
+
+    /**
+     * Returns a client for the region where the given bucket resides. No
+     * caching is performed on the region lookup.
+     */
+    public AmazonS3 getS3ClientForBucket(String bucketName) {
+        String serviceEndpoint = getS3BucketEndpoint(bucketName);
+        return getS3ClientByEndpoint(serviceEndpoint);
+    }
+
+    /**
+     * Returns the endpoint appropriate to the given bucket.
+     */
+    public String getS3BucketEndpoint(String bucketName) {
+        AmazonS3 globalS3Client = getS3Client();
+        String bucketLocation = globalS3Client.getBucketLocation(bucketName);
+        String region = bucketLocation;
+        if ( bucketLocation == null || bucketLocation.equals("US") ) {
+            region = "us-east-1";
+        }
+        String serviceEndpoint = RegionUtils.getRegion(region).getServiceEndpoint(ServiceAbbreviations.S3);
+        return serviceEndpoint;
+    }
+    
     public AmazonSimpleDB getSimpleDBClient() {
-        return getSimpleDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
-                .get(ServiceAbbreviations.SIMPLEDB));
+        return getSimpleDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SIMPLEDB));
     }
 
     public AmazonRDS getRDSClient() {
-        return getRDSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
-                .get(ServiceAbbreviations.RDS));
+        return getRDSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.RDS));
     }
 
     public AmazonSQS getSQSClient() {
-        return getSQSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
-                .get(ServiceAbbreviations.SQS));
+        return getSQSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SQS));
     }
 
     public AmazonSNS getSNSClient() {
-        return getSNSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoints()
-                .get(ServiceAbbreviations.SNS));
+        return getSNSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SNS));
+    }
+
+    public AmazonDynamoDB getDynamoDBClient() {
+        return getDynamoDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.DYNAMODB));
+    }
+    
+    public AWSSecurityTokenService getSecurityTokenServiceClient() {
+        return getSecurityTokenServiceByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.STS));
+    }
+
+    public AWSElasticBeanstalk getElasticBeanstalkClient() {
+        return getElasticBeanstalkClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.BEANSTALK));
+    }
+
+    public AmazonIdentityManagement getIAMClient() {
+        return getIAMClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.IAM));
+    }
+    
+    public AmazonCloudFormation getCloudFormationClient() {
+        return getCloudFormationClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CLOUD_FORMATION));
     }
 
     /*
      * Endpoint-specific getters return clients that use the endpoint given.
      */
+
+    public AmazonIdentityManagement getIAMClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonIdentityManagementClient.class);
+    }
+
+    public AmazonCloudFront getCloudFrontClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonCloudFrontClient.class);
+    }
 
     public AmazonS3 getS3ClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonS3Client.class);
@@ -163,6 +239,18 @@ public class AWSClientFactory {
         return getOrCreateClient(endpoint, AmazonAutoScalingClient.class);
     }
 
+    public AmazonDynamoDB getDynamoDBClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonDynamoDBClient.class);
+    }
+
+    public AWSSecurityTokenService getSecurityTokenServiceByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AWSSecurityTokenServiceClient.class);
+    }
+    
+    public AmazonCloudFormation getCloudFormationClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonCloudFormationClient.class);
+    }
+
     private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {
         synchronized (clientClass) {
             if ( cachedClients.getClient(endpoint, clientClass) == null ) {
@@ -176,9 +264,9 @@ public class AWSClientFactory {
     private <T extends AmazonWebServiceClient> T createClient(String endpoint, Class<T> clientClass) {
         try {
             Constructor<T> constructor = clientClass.getConstructor(AWSCredentials.class, ClientConfiguration.class);
-            AWSCredentials credentials = new BasicAWSCredentials(accountInfo.getAccessKey(),
-                                                                 accountInfo.getSecretKey());
             ClientConfiguration config = createClientConfiguration(endpoint);
+
+            AWSCredentials credentials = new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey());
 
             T client = constructor.newInstance(credentials, config);
             client.setEndpoint(endpoint);

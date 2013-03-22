@@ -1,3 +1,17 @@
+/*
+ * Copyright 2011-2012 Amazon Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *    http://aws.amazon.com/apache2.0
+ *
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.amazonaws.eclipse.explorer.s3;
 
 import java.io.File;
@@ -58,8 +72,12 @@ import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.PluginTransferData;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.explorer.s3.actions.DeleteObjectAction;
 import com.amazonaws.eclipse.explorer.s3.actions.EditObjectPermissionsAction;
+import com.amazonaws.eclipse.explorer.s3.actions.GeneratePresignedUrlAction;
 import com.amazonaws.eclipse.explorer.s3.dnd.KeySelectionDialog;
 import com.amazonaws.eclipse.explorer.s3.dnd.S3ObjectSummaryDropAction;
 import com.amazonaws.eclipse.explorer.s3.dnd.UploadDropAssistant;
@@ -89,6 +107,8 @@ public class S3ObjectSummaryTable extends Composite {
 
     private final String bucketName;
     private final String accountId;
+    private final String s3Endpoint;
+    
     private final Map<TreePath, Object[]> children;
     private final TreeViewer viewer;
 
@@ -282,11 +302,12 @@ public class S3ObjectSummaryTable extends Composite {
         }
     }
 
-    public S3ObjectSummaryTable(String accountId, String bucketName, Composite composite, FormToolkit toolkit, int style) {
+    public S3ObjectSummaryTable(String accountId, String bucketName, String s3Endpoint, Composite composite, FormToolkit toolkit, int style) {
         super(composite, style);
 
         this.accountId = accountId;
         this.bucketName = bucketName;
+        this.s3Endpoint = s3Endpoint;
         this.children = Collections.synchronizedMap(new HashMap<TreePath, Object[]>());
 
         GridLayout gridLayout = new GridLayout(1, false);
@@ -423,7 +444,7 @@ public class S3ObjectSummaryTable extends Composite {
                 }
 
                 final String keyName = dialog.getKeyName();
-                final TransferManager transferManager = new TransferManager(getClient());
+                final TransferManager transferManager = new TransferManager(getS3Client());
 
                 UploadFileJob uploadFileJob = new UploadFileJob("Uploading " + f.getAbsolutePath().toString(), bucketName, f, keyName,
                         transferManager);
@@ -437,8 +458,8 @@ public class S3ObjectSummaryTable extends Composite {
         });
     }
 
-    private AmazonS3 getClient() {
-        return AwsToolkitCore.getClientFactory(accountId).getS3Client();
+    public synchronized AmazonS3 getS3Client() {
+        return AwsToolkitCore.getClientFactory(accountId).getS3ClientByEndpoint(s3Endpoint);
     }
 
     protected void createColumns(TreeColumnLayout tableColumnLayout, Tree tree) {
@@ -499,7 +520,7 @@ public class S3ObjectSummaryTable extends Composite {
                 List<String> filteredCommonPrefixes = new LinkedList<String>();
                 ObjectListing listObjectsResponse = null;
 
-                AmazonS3 s3 = getClient();
+                AmazonS3 s3 = getS3Client();
                 do {
                     if (listObjectsResponse == null) {
                         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
@@ -524,13 +545,10 @@ public class S3ObjectSummaryTable extends Composite {
                 final Object[] objects = new Object[filteredObjectSummaries.size() + filteredCommonPrefixes.size()];
                 filteredObjectSummaries.toArray(objects);
 
-                System.out.println("Total Objects: " + objects.length);
-
                 int i = filteredObjectSummaries.size();
                 for ( String commonPrefix : filteredCommonPrefixes ) {
                     objects[i++] = new Path(commonPrefix);
                 }
-
 
                 children.put(treePath, objects);
 
@@ -562,6 +580,8 @@ public class S3ObjectSummaryTable extends Composite {
                 manager.add(new DeleteObjectAction(S3ObjectSummaryTable.this));
                 manager.add(new Separator());
                 manager.add(new EditObjectPermissionsAction(S3ObjectSummaryTable.this));
+                manager.add(new Separator());
+                manager.add(new GeneratePresignedUrlAction(S3ObjectSummaryTable.this));
             }
         });
         Menu menu = menuMgr.createContextMenu(viewer.getControl());

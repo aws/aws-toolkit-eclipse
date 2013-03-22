@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,8 @@ public class EditObjectPermissionsDialog extends EditPermissionsDialog {
     protected AccessControlList getAcl() {
         S3ObjectSummary firstObject = objects.iterator().next();
 
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3Client();
+        String bucket = objects.iterator().next().getBucketName();
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucket);
         return s3.getObjectAcl(firstObject.getBucketName(), firstObject.getKey());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.ui.CancelableThread;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.CancelableThread;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
@@ -57,6 +57,11 @@ public class EnvironmentConfigDataModel {
     private final Map<OptionKey, IObservableValue> sharedObservables;
     private final List<RefreshListener> listeners;
     private CancelableThread refreshThread;
+    
+    private final static Set<String> IGNORED_NAMESPACES = new HashSet<String>();
+    static {
+        IGNORED_NAMESPACES.add("aws:cloudformation:template:parameter");
+    }
 
     private EnvironmentConfigDataModel(Environment environment) {
         this.environment = environment;
@@ -117,21 +122,27 @@ public class EnvironmentConfigDataModel {
         this.options.addAll(options);
 
         for ( ConfigurationOptionDescription opt : options ) {
-            List<ConfigurationOptionSetting> settingsInNamespace = settings.get(opt.getNamespace());
-            if ( settingsInNamespace != null ) {
-                for ( ConfigurationOptionSetting setting : settingsInNamespace ) {
-                    if ( opt.getName().equals(setting.getOptionName()) ) {
-                        String valueType = opt.getValueType();
-                        OptionKey key = getKey(opt);
-                        if ( valueType.equals("Scalar") ) {
-                            dataModel.put(key, setting.getValue());
-                        } else if ( valueType.equals("Boolean") ) {
-                            dataModel.put(key, Boolean.valueOf(setting.getValue()));
-                        } else if ( valueType.equals("List") ) {
-                            if ( !dataModel.containsKey(key) ) {
-                                dataModel.put(key, new WritableSet());
+            if ( !IGNORED_NAMESPACES.contains(opt.getNamespace()) ) {
+                List<ConfigurationOptionSetting> settingsInNamespace = settings.get(opt.getNamespace());
+                if ( settingsInNamespace != null ) {
+                    for ( ConfigurationOptionSetting setting : settingsInNamespace ) {
+                        if ( opt.getName().equals(setting.getOptionName()) ) {
+                            String valueType = opt.getValueType();
+                            OptionKey key = getKey(opt);
+                            if ( valueType.equals("Scalar") ) {
+                                dataModel.put(key, setting.getValue());
+                            } else if ( valueType.equals("Boolean") ) {
+                                dataModel.put(key, Boolean.valueOf(setting.getValue()));
+                            } else if ( valueType.equals("List") ) {
+                                if ( !dataModel.containsKey(key) ) {
+                                    dataModel.put(key, new WritableSet());
+                                }
+                                synchronizeSets(setting, key);
+                            } else if ( valueType.equals("CommaSeparatedList") ) {
+                                dataModel.put(key, setting.getValue());
+                            } else if ( valueType.equals("KeyValueList") ) {
+                                dataModel.put(key, setting.getValue());
                             }
-                            synchronizeSets(setting, key);
                         }
                     }
                 }
@@ -182,18 +193,21 @@ public class EnvironmentConfigDataModel {
         Collection<String> modelValues = ((Collection<String>) dataModel.get(key));
 
         /*
-         * Sets a and b are equivalent iff for each element e in set a, b.contains(e) and
-         * vice versa
+         * Sets a and b are equivalent iff for each element e in set a,
+         * b.contains(e) and vice versa
          */
         boolean setsEquivalent = true;
-        for ( String v : setting.getValue().split(",") ) {
-            settingValues.add(v);
-            if ( !modelValues.contains(v) ) {
-                setsEquivalent = false;
+        String value = setting.getValue();
+        if ( value != null ) {
+            for ( String v : value.split(",") ) {
+                settingValues.add(v);
+                if ( !modelValues.contains(v) ) {
+                    setsEquivalent = false;
+                }
             }
         }
-        for (String v : modelValues) {
-            if (!settingValues.contains(v))
+        for ( String v : modelValues ) {
+            if ( !settingValues.contains(v) )
                 setsEquivalent = false;
         }
 
@@ -240,7 +254,12 @@ public class EnvironmentConfigDataModel {
             }
         }
 
-        List<ConfigurationOptionDescription> options = optionsDesc.getOptions();
+        List<ConfigurationOptionDescription> options = new ArrayList<ConfigurationOptionDescription>();
+        for ( ConfigurationOptionDescription desc : optionsDesc.getOptions() ) {
+            if ( !IGNORED_NAMESPACES.contains(desc.getNamespace()) ) {
+                options.add(desc);
+            }
+        }
         Collections.sort(options, new Comparator<ConfigurationOptionDescription>() {
 
             public int compare(ConfigurationOptionDescription o1, ConfigurationOptionDescription o2) {
@@ -304,20 +323,22 @@ public class EnvironmentConfigDataModel {
 
         for ( Object key : dataModel.keySet() ) {
             OptionKey option = (OptionKey) key;
-            if ( dataModel.get(key) instanceof Collection ) {
-                @SuppressWarnings("rawtypes")
-                Collection collection = (Collection) dataModel.get(key);
-                if ( !collection.isEmpty() ) {
+            Object value = dataModel.get(key);
+            if ( value != null ) {
+                if ( value instanceof Collection ) {
+                    @SuppressWarnings("rawtypes")
+                    Collection collection = (Collection) value;
+                    if ( !collection.isEmpty() ) {
+                        ConfigurationOptionSetting setting = new ConfigurationOptionSetting()
+                                .withNamespace(option.namespace).withOptionName(option.name)
+                                .withValue(join(collection));
+                        settings.add(setting);
+                    }
+                } else {
                     ConfigurationOptionSetting setting = new ConfigurationOptionSetting()
-                            .withNamespace(option.namespace).withOptionName(option.name)
-                            .withValue(join(collection));
+                            .withNamespace(option.namespace).withOptionName(option.name).withValue(value.toString());
                     settings.add(setting);
                 }
-            } else {
-                ConfigurationOptionSetting setting = new ConfigurationOptionSetting()
-                        .withNamespace(option.namespace).withOptionName(option.name)
-                        .withValue(dataModel.get(key).toString());
-                settings.add(setting);
             }
         }
         return settings;

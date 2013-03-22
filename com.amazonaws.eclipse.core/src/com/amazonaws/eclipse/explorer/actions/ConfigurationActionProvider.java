@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -133,19 +134,17 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
                     public void widgetDefaultSelected(SelectionEvent e) {}
                 });
-
-                String imageId = lookupRegionImageId(region.getId());
-                menuItem.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(imageId));
+                
+                menuItem.setImage(lookupRegionFlag(region.getId()));
             }
 
             return menu;
         }
 
-        private void updateRegionFlag() {
-            String imageId = lookupRegionImageId();
-            setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(imageId));
-
+        private void updateRegionFlag() {            
             Region currentRegion = RegionUtils.getCurrentRegion();
+            setImageDescriptor(currentRegion.getFlagImageDescriptor());
+            
             if (menu != null) {
                 for (MenuItem menuItem : menu.getItems()) {
                     Region region = (Region)menuItem.getData();
@@ -154,25 +153,14 @@ public class ConfigurationActionProvider extends CommonActionProvider {
             }
         }
 
-        private String lookupRegionImageId(String regionId) {
-            if (regionId.startsWith("us-")) {
-                return AwsToolkitCore.IMAGE_FLAG_US;
-            } else if (regionId.startsWith("eu-")) {
-                return AwsToolkitCore.IMAGE_FLAG_EU;
-            } else if (regionId.startsWith("ap-southeast")) {
-                return AwsToolkitCore.IMAGE_FLAG_SINGAPORE;
-            } else if (regionId.startsWith("ap-northeast")) {
-                return AwsToolkitCore.IMAGE_FLAG_JAPAN;
-            }
-
-            return AwsToolkitCore.IMAGE_AWS_ICON;
+        private Image lookupRegionFlag(String regionId) {
+            Region r = RegionUtils.getRegion(regionId);
+            if (r != null)
+                return r.getFlagImage();
+            
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON);
         }
-
-        private String lookupRegionImageId() {
-            Region region = RegionUtils.getCurrentRegion();
-            return lookupRegionImageId(region.getId());
-        }
-
+        
         public void refreshData() {
             updateRegionFlag();
         }

@@ -105,7 +105,8 @@ public class S3ObjectSummaryDropAction implements IDropActionDelegate {
         protected IStatus run(final IProgressMonitor monitor) {
             FileOutputStream fos = null;
             try {
-                AmazonS3 client = AwsToolkitCore.getClientFactory().getS3Client();
+                // TODO: this won't work if the current account doesn't have read permission for the bucket and key
+                AmazonS3 client = AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucket);
                 S3Object object = client.getObject(bucket, key);
 
                 // This number is used for reporting only; the download

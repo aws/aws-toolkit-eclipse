@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -138,7 +138,6 @@ public class EnvironmentBehavior extends ServerBehaviourDelegate {
                 Display.getDefault().syncExec(new Runnable() {
 
                     public void run() {
-
                         Shell shell = Display.getDefault().getActiveShell();
                         if ( shell == null )
                             shell = Display.getDefault().getShells()[0];
@@ -148,8 +147,7 @@ public class EnvironmentBehavior extends ServerBehaviourDelegate {
                          * one. Otherwise create a new one.
                          */
                         if ( deploymentInformationDialog == null ) {
-                            final List<ConfigurationSettingsDescription> settings = getEnvironment()
-                                    .getCurrentSettings();
+                            final List<ConfigurationSettingsDescription> settings = getEnvironment().getCurrentSettings();
                             String debugPort = Environment.getDebugPort(settings);
                             String securityGroup = Environment.getSecurityGroup(settings);
                             boolean confirmIngress = false;
@@ -158,26 +156,25 @@ public class EnvironmentBehavior extends ServerBehaviourDelegate {
                                 confirmIngress = true;
                             }
 
-                            deploymentInformationDialog = new DeploymentInformationDialog(shell, getEnvironment(),
-                                    getServer().getMode(), false, confirmIngress);
-                            deploymentInformationDialog.open();
+                            boolean letUserSelectVersionLabel = !getEnvironment().getIncrementalDeployment();
 
-                            /*
-                             * Allow ingress on their security group if
-                             * necessary
-                             */
-                            if ( deploymentInformationDialog.getReturnCode() == MessageDialog.OK ) {
-                                if ( confirmIngress ) {
-                                    getEnvironment().openSecurityGroupPort(debugPort, securityGroup);
-                                }
-                            } else {
-                                return;
+                            if (letUserSelectVersionLabel || confirmIngress) {
+                                deploymentInformationDialog = new DeploymentInformationDialog(shell, getEnvironment(),
+                                    getServer().getMode(), letUserSelectVersionLabel, false, confirmIngress);
+                                deploymentInformationDialog.open();
+
+                                if ( deploymentInformationDialog.getReturnCode() != MessageDialog.OK ) return;
+
+                                // Allow ingress on their security group if necessary
+                                if ( confirmIngress ) getEnvironment().openSecurityGroupPort(debugPort, securityGroup);
                             }
                         }
 
+                        if (deploymentInformationDialog != null) {
+                            currentUpdateEnvironmentJob.setVersionLabel(deploymentInformationDialog.getVersionLabel());
+                            currentUpdateEnvironmentJob.setDebugInstanceId(deploymentInformationDialog.getDebugInstanceId());
+                        }
                         setServerState(IServer.STATE_STARTING);
-                        currentUpdateEnvironmentJob.setVersionLabel(deploymentInformationDialog.getVersionLabel());
-                        currentUpdateEnvironmentJob.setDebugInstanceId(deploymentInformationDialog.getDebugInstanceId());
                         currentUpdateEnvironmentJob.schedule();
                     }
                 });
@@ -350,7 +347,9 @@ public class EnvironmentBehavior extends ServerBehaviourDelegate {
 
             Display.getDefault().syncExec(new Runnable() {
                 public void run() {
-                    deploymentInformationDialog = new DeploymentInformationDialog(Display.getDefault().getActiveShell(), getEnvironment(), ILaunchManager.DEBUG_MODE, true, true);
+                    // Incremental deployments are automatically assigned version labels
+                    boolean letUserSelectVersionLabel = !getEnvironment().getIncrementalDeployment();
+                    deploymentInformationDialog = new DeploymentInformationDialog(Display.getDefault().getActiveShell(), getEnvironment(), ILaunchManager.DEBUG_MODE, letUserSelectVersionLabel, true, true);
                     deploymentInformationDialog.open();
                 }
             });

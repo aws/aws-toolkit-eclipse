@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
 
-import com.amazonaws.eclipse.elasticbeanstalk.Region;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 
 /**
  * Utilities for initializing default values for new server instances.
@@ -47,9 +48,8 @@ public class ServerDefaultsUtils {
     }
 
     public static void setDefaultHostName(IServerWorkingCopy serverWorkingCopy, String regionEndpoint) {
-        Region region = Region.findByEndpoint(regionEndpoint);
-        String regionName = regionEndpoint;
-        if (region != null) regionName = region.getName();
+        Region region = RegionUtils.getRegionByEndpoint(regionEndpoint);
+        String regionName = region.getName();
 
         serverWorkingCopy.setHost("AWS Elastic Beanstalk - " + regionName);
     }

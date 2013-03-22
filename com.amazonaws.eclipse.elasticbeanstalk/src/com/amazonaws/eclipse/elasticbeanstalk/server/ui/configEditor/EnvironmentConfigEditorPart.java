@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon Technologies, Inc.
+ * Copyright 2010-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,7 +234,8 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             if ( !optionsByNamespace.containsKey(o.getNamespace()) ) {
                 ArrayList<ConfigurationOptionDescription> optionsInNamespace = new ArrayList<ConfigurationOptionDescription>();
                 optionsByNamespace.put(o.getNamespace(), optionsInNamespace);
-                editorSections.add(new EnvironmentConfigEditorSection(this, model, environment, bindingContext, o.getNamespace(), optionsInNamespace));
+                editorSections.add(new EnvironmentConfigEditorSection(this, model, environment, bindingContext, o
+                        .getNamespace(), optionsInNamespace));
             }
             optionsByNamespace.get(o.getNamespace()).add(o);
         }
@@ -354,12 +355,14 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
      */
     @Override
     public void doSave(IProgressMonitor monitor) {
-        UpdateEnvironmentRequest rq = new UpdateEnvironmentRequest();
-        rq.setEnvironmentName(environment.getEnvironmentName());
-        Collection<ConfigurationOptionSetting> settings = model.createConfigurationOptions();
-        rq.setOptionSettings(settings);
-        UpdateEnvironmentConfigurationJob job = new UpdateEnvironmentConfigurationJob(environment, rq);
-        job.schedule();
-        dirty = false;
+        if (dirty) {
+            UpdateEnvironmentRequest rq = new UpdateEnvironmentRequest();
+            rq.setEnvironmentName(environment.getEnvironmentName());
+            Collection<ConfigurationOptionSetting> settings = model.createConfigurationOptions();
+            rq.setOptionSettings(settings);
+            UpdateEnvironmentConfigurationJob job = new UpdateEnvironmentConfigurationJob(environment, rq);
+            job.schedule();
+            dirty = false;
+        }
     }
 }

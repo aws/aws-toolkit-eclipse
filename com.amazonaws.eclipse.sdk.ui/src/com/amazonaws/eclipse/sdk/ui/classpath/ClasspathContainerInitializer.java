@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,16 +19,18 @@ import java.io.IOException;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.sdk.ui.SdkInstall;
-import com.amazonaws.eclipse.sdk.ui.SdkManager;
-import com.amazonaws.eclipse.sdk.ui.SdkPlugin;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
 import com.amazonaws.eclipse.sdk.ui.SdkProjectMetadata;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkManager.JavaSdkInstallFactory;
 
 /**
  * An initializer for the Classpath container for the AWS SDK for Java.
@@ -49,24 +51,27 @@ public class ClasspathContainerInitializer extends
             if (sdkInstallRoot == null)
                 throw new Exception("No SDK install directory specified");
 
-            SdkInstall sdkInstall = new SdkInstall(sdkInstallRoot);
+            JavaSdkInstall sdkInstall = new JavaSdkInstallFactory().createSdkInstallFromDisk(sdkInstallRoot);
             if (sdkInstall.isValidSdkInstall() == false)
                 throw new Exception("Invalid SDK install directory specified: " + sdkInstall.getRootDirectory());
 
             AwsClasspathContainer classpathContainer = new AwsClasspathContainer(sdkInstall);
             JavaCore.setClasspathContainer(containerPath, new IJavaProject[] {javaProject}, new IClasspathContainer[] {classpathContainer}, null);
         } catch (Exception e) {
-            SdkInstall defaultSdkInstall = SdkManager.getInstance().getDefaultSdkInstall();
+            JavaSdkInstall defaultSdkInstall = JavaSdkManager.getInstance().getDefaultSdkInstall();
+            if ( defaultSdkInstall == null )
+                throw new CoreException(new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID, "No SDKs available"));
+
             AwsClasspathContainer classpathContainer = new AwsClasspathContainer(defaultSdkInstall);
             JavaCore.setClasspathContainer(containerPath, new IJavaProject[] {javaProject}, new IClasspathContainer[] {classpathContainer}, null);
             try {
                 defaultSdkInstall.writeMetadataToProject(javaProject);
             } catch (IOException ioe) {
-                StatusManager.getManager().handle(new Status(Status.WARNING, SdkPlugin.PLUGIN_ID, ioe.getMessage(), ioe), StatusManager.LOG);
+                StatusManager.getManager().handle(new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, ioe.getMessage(), ioe), StatusManager.LOG);
             }
 
             String message = "Unable to initialize previous AWS SDK for Java classpath entries - defaulting to latest version";
-            Status status = new Status(Status.WARNING, SdkPlugin.PLUGIN_ID, message, e);
+            Status status = new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, message, e);
             StatusManager.getManager().handle(status, StatusManager.LOG);
         }
     }

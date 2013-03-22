@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Amazon Technologies, Inc.
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ public class DownloadDropAssistant extends CommonDropAdapterAssistant {
         protected IStatus run(final IProgressMonitor monitor) {
             FileOutputStream fos = null;
             try {
-                AmazonS3 client = AwsToolkitCore.getClientFactory().getS3Client();
+                AmazonS3 client = AwsToolkitCore.getClientFactory().getS3ClientForBucket(s3object.getBucketName());
                 S3Object object = client.getObject(s3object.getBucketName(), s3object.getKey());
 
                 // This number is used for reporting only; the download

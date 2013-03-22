@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,9 +26,10 @@ import org.eclipse.wst.server.core.TaskModel;
 import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
-import com.amazonaws.eclipse.elasticbeanstalk.Region;
 import com.amazonaws.eclipse.elasticbeanstalk.SolutionStacks;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
 
@@ -59,7 +60,11 @@ public class DeployWizard extends WizardFragment {
             deployWizardSection = globalDialogSettings.addNewSection(DEPLOY_WIZARD_DIALOG_SETTINGS_SECTION);
         }
 
-        wizardDataModel.setRegionEndpoint(Region.DEFAULT.getEndpoint());
+        if ( RegionUtils.isServiceSupportedInCurrentRegion(ServiceAbbreviations.BEANSTALK) ) {
+            wizardDataModel.setRegion(RegionUtils.getCurrentRegion());
+        } else {
+            wizardDataModel.setRegion(RegionUtils.getRegion(ElasticBeanstalkPlugin.DEFAULT_REGION));
+        }
     }
 
     @Override
@@ -106,11 +111,12 @@ public class DeployWizard extends WizardFragment {
         environment.setApplicationDescription(wizardDataModel.getNewApplicationDescription());
         environment.setEnvironmentName(wizardDataModel.getEnvironmentName());
         environment.setEnvironmentDescription(wizardDataModel.getNewEnvironmentDescription());
-        environment.setRegionEndpoint(wizardDataModel.getRegionEndpoint());
+        environment.setRegionId(wizardDataModel.getRegion().getId());
         environment.setHealthCheckUrl(wizardDataModel.getHealthCheckUrl());
         environment.setSslCertificateId(wizardDataModel.getSslCertificateId());
         environment.setSnsEndpoint(wizardDataModel.getSnsEndpoint());
         environment.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
+        environment.setIncrementalDeployment(wizardDataModel.isIncrementalDeployment());
 
         if ( wizardDataModel.isUsingCname() )
             environment.setCname(wizardDataModel.getCname());

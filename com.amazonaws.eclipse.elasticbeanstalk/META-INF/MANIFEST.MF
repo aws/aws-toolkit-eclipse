@@ -30,8 +30,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.net;bundle-version="1.2.0",
  org.eclipse.ui.forms;bundle-version="3.3.0",
  org.eclipse.jst.j2ee.ejb;bundle-version="1.1.0",
- org.eclipse.ui.navigator;bundle-version="3.2.0"
+ org.eclipse.ui.navigator;bundle-version="3.2.0",
+ com.jcraft.jsch;bundle-version="0.1.41"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ClassPath: .,
- src/
+ src/,
+ lib/jgit/jgit-1.3.0-aws-git-push.jar
 Bundle-ActivationPolicy: lazy

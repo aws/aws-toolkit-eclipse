@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 /*
- * Copyright 2010-2011 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -36,20 +36,21 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -57,10 +58,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -70,7 +75,6 @@ import org.eclipse.jst.j2ee.classpathdep.ClasspathDependencyUtil;
 import org.eclipse.jst.j2ee.classpathdep.UpdateClasspathAttributeUtil;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelProperties;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetDataModelProperties;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetProjectCreationDataModelProperties;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetProjectCreationDataModelProperties.FacetDataModelMap;
@@ -86,9 +90,13 @@ import org.osgi.framework.Bundle;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
-import com.amazonaws.eclipse.sdk.ui.SdkInstall;
-import com.amazonaws.eclipse.sdk.ui.SdkManager;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
 import com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainer;
 import com.amazonaws.eclipse.sdk.ui.classpath.AwsSdkClasspathUtils;
 
@@ -105,6 +113,24 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     private static final String GENERIC_JEE_RUNTIME_ID = "org.eclipse.jst.server.core.runtimeType";
 
     private final NewAwsJavaWebProjectDataModel dataModel;
+    
+    /*
+     * TODO: it would be better to inspect these from the travel log itself
+     * somehow -- right now it's coupled tightly to that file structure.
+     */
+    public static final String LANGUAGES_DIR = "language";
+    public static final Map<String, String> LANGUAGE_DIRS = new HashMap<String, String>();
+    static {
+        LANGUAGE_DIRS.put(NewAwsJavaWebProjectDataModel.JAPANESE, "jp");
+    }
+
+    public static final Map<String, String> LANGUAGE_BUNDLE_PATHS = new HashMap<String, String>();
+    static {
+        LANGUAGE_BUNDLE_PATHS.put(NewAwsJavaWebProjectDataModel.ENGLISH, "hawaii");
+        LANGUAGE_BUNDLE_PATHS.put(NewAwsJavaWebProjectDataModel.JAPANESE, "japan");
+    }
+
+    public static final String BUNDLE_BUCKET = "aws-travellog-sample-data";
 
     public CreateNewAwsJavaWebProjectRunnable(NewAwsJavaWebProjectDataModel dataModel) {
         this.dataModel = dataModel;
@@ -138,14 +164,38 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             // Add the AWS SDK for Java
             IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(dataModel.getProjectName());
             IJavaProject javaProject = JavaCore.create(project);
-            SdkInstall sdkInstall = SdkManager.getInstance().getDefaultSdkInstall();
-            if (sdkInstall.getRootDirectory().toString().contains("/plugins/")) {
-                System.out.println("using plugin version");
+            JavaSdkManager sdkManager = JavaSdkManager.getInstance();
+            
+            // When installing the SDK, make sure we're not in the middle of
+            // bootstrapping the environment
+            JavaSdkInstall sdkInstall = null;
+            Job installationJob = null;
+            synchronized ( sdkManager ) {
+                sdkInstall = sdkManager.getDefaultSdkInstall();
+                if ( sdkInstall == null ) {
+                    installationJob = sdkManager.getInstallationJob();
+                    if ( installationJob == null ) {
+                        JavaSdkPlugin
+                                .getDefault()
+                                .getLog()
+                                .log(new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID,
+                                        "Unable to check status of AWS SDK for Java download"));
+                    }
+                }
             }
-            sdkInstall.writeMetadataToProject(javaProject);
-            AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(javaProject, sdkInstall);
-            monitor.worked(20);
+            
+            if ( sdkInstall == null && installationJob != null ) {
+                installationJob.join();
+            }
 
+            sdkInstall = sdkManager.getDefaultSdkInstall();
+            if ( sdkInstall != null ) {
+                sdkInstall.writeMetadataToProject(javaProject);
+                AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(javaProject, sdkInstall);
+            }            
+            
+            monitor.worked(20);
+            
             // Mark it as a Java EE module dependency
             // TODO: If the user changes the SDK version (through the properties page) then we'll lose the
             //       Java EE module dependency classpath entry attribute.
@@ -171,7 +221,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     }
 
     private IClasspathEntry findSdkClasspathEntry(IJavaProject javaProject) throws JavaModelException {
-        IPath expectedPath = new AwsClasspathContainer(SdkManager.getInstance().getDefaultSdkInstall()).getPath();
+        IPath expectedPath = new AwsClasspathContainer(JavaSdkManager.getInstance().getDefaultSdkInstall()).getPath();
         for (IClasspathEntry entry : javaProject.getRawClasspath()) {
             if (entry.getPath().equals(expectedPath)) return entry;
         }
@@ -277,16 +327,22 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         project.refreshLocal(IResource.DEPTH_INFINITE, null);
     }
 
+
     private void unzipSampleAppTemplate(File file, File destination) throws FileNotFoundException, IOException {
+        
+        // Get a temp directory
+        File temp = File.createTempFile("travellog", "");
+        temp.delete();
+        temp.mkdirs();
+        
         ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(file));
 
         ZipEntry zipEntry = null;
         while ((zipEntry = zipInputStream.getNextEntry()) != null) {
             IPath path = new Path(zipEntry.getName());
-            path = path.removeFirstSegments(1);
 
-            File destinationFile = new File(destination, path.toOSString());
-            if (zipEntry.isDirectory()) {
+            File destinationFile = new File(temp, path.toOSString());
+            if ( zipEntry.isDirectory() ) {
                 destinationFile.mkdirs();
             } else {
                 FileOutputStream outputStream = new FileOutputStream(destinationFile);
@@ -295,5 +351,49 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             }
         }
         zipInputStream.close();
+
+        File travellogDir = new File(temp, "travellog");
+        File srcDir = new File(travellogDir, "src");
+
+        // Override the language-specific files
+        if ( !dataModel.getLanguage().equals(NewAwsJavaWebProjectDataModel.ENGLISH) ) {
+            File languagesDir = new File(temp, LANGUAGES_DIR);
+            File languageDir = new File(languagesDir, LANGUAGE_DIRS.get(dataModel.getLanguage()));
+            if ( languageDir.exists() ) {
+                FileUtils.copyDirectory(languageDir, travellogDir);
+            }
+        }
+        
+        // Override the sample content properties
+        LinkedList<String> bundlePropertiesContents = new LinkedList<String>();
+        bundlePropertiesContents.add("bundleBucket = " + BUNDLE_BUCKET);
+        bundlePropertiesContents.add("bundlePath = " + LANGUAGE_BUNDLE_PATHS.get(dataModel.getLanguage()));        
+        File bundleProperties = new File(srcDir, "content-bundle.properties");
+        truncateFile(bundleProperties);
+        FileUtils.writeLines(bundleProperties, bundlePropertiesContents);
+
+        // Override the service endpoints
+        Region region = dataModel.getRegion();
+        List<String> endpoints = new LinkedList<String>();
+        for ( String service : new String[] { ServiceAbbreviations.S3, ServiceAbbreviations.SIMPLEDB,
+                ServiceAbbreviations.SNS } ) {
+            String endpoint;
+            if ( region.isServiceSupported(service) ) {
+                endpoint = region.getServiceEndpoint(service);
+            } else {
+                endpoint = RegionUtils.getRegionsForService(service).get(0).getServiceEndpoint(service);
+            }
+            endpoints.add(service + " = " + endpoint);
+        }
+        File serviceEndpoints = new File(srcDir, "endpoints.properties");
+        truncateFile(serviceEndpoints);
+        FileUtils.writeLines(serviceEndpoints, endpoints);
+        
+        // Finally, copy the entire travellog directory into the destination
+        FileUtils.copyDirectory(travellogDir, destination);
+    }
+    
+    private void truncateFile(File f) throws FileNotFoundException, IOException {
+        new RandomAccessFile(f, "rw").setLength(0);
     }
 }
