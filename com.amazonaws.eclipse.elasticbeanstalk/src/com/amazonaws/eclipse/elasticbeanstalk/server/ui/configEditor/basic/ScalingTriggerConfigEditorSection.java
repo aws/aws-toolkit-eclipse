@@ -35,8 +35,8 @@ public class ScalingTriggerConfigEditorSection extends HumanReadableConfigEditor
         humanReadableNames.put("MeasureName", "Trigger Measurement");
         humanReadableNames.put("Statistic", "Trigger Statistic");
         humanReadableNames.put("Unit", "Unit of Measurement");
-        humanReadableNames.put("Period", "Measurement Period (seconds)");
-        humanReadableNames.put("BreachDuration", "Breach Duration (seconds)");
+        humanReadableNames.put("Period", "Measurement Period (minutes)");
+        humanReadableNames.put("BreachDuration", "Breach Duration (minutes)");
         humanReadableNames.put("UpperThreshold", "Upper Threshold");
         humanReadableNames.put("UpperBreachScaleIncrement", "Scale-up Increment");
         humanReadableNames.put("LowerThreshold", "Lower Threshold");
