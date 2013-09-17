@@ -248,6 +248,28 @@
           viewerId="com.amazonaws.eclipse.explorer.view">
     </dragAssistant>
   </extension>
+  
+  <!--
+    A content provider for the AWS Explorer view that notifies the user when they haven't
+    configured account credentials for the toolkit to use.
+  -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+        activeByDefault="true"
+        contentProvider="com.amazonaws.eclipse.explorer.AccountNotConfiguredContentProvider"
+        id="com.amazonaws.eclipse.explorer.AccountNotConfiguredContent"
+        labelProvider="com.amazonaws.eclipse.explorer.ExplorerNodeLabelProvider"
+        name="AWS Account not Configured"
+        priority="normal">
+        
+      <triggerPoints>
+        <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <possibleChildren>
+        <instanceof value="com.amazonaws.eclipse.explorer.AccountNotConfiguredContentProvider$AccountNotConfiguredNode" />
+      </possibleChildren>
+    </navigatorContent>
+  </extension>
 
   <!-- S3 content and labels -->
   <extension point="org.eclipse.ui.navigator.navigatorContent">

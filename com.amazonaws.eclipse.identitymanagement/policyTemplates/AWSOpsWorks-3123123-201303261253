@@ -1,0 +1,13 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "ec2:*",
+        "iam:PassRole",
+        "cloudwatch:GetMetricStatistics"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}

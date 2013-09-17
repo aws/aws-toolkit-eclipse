@@ -8,9 +8,9 @@ import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.explorer.AWSResourcesRootElement;
 import com.amazonaws.eclipse.explorer.AbstractContentProvider;
 import com.amazonaws.eclipse.explorer.Loading;
-import com.amazonaws.services.dynamodb.AmazonDynamoDB;
-import com.amazonaws.services.dynamodb.model.ListTablesRequest;
-import com.amazonaws.services.dynamodb.model.ListTablesResult;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.model.ListTablesRequest;
+import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
 
 
 public class DynamoDBContentProvider extends AbstractContentProvider {
@@ -39,7 +39,7 @@ public class DynamoDBContentProvider extends AbstractContentProvider {
             new DataLoaderThread(parentElement) {
                 @Override
                 public Object[] loadData() {
-                    AmazonDynamoDB db = AwsToolkitCore.getClientFactory().getDynamoDBClient();
+                    AmazonDynamoDB db = AwsToolkitCore.getClientFactory().getDynamoDBV2Client();
                     List<DynamoDBTableNode> nodes = new LinkedList<DynamoDBTableNode>();
                     ListTablesResult listTables = new ListTablesResult();
                     do {

@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
-import com.amazonaws.services.dynamodb.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 
 /**
  * Editor for attribute values including multi-value pop-up and data type

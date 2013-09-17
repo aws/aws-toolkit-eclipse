@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Display;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.CancelableThread;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -51,13 +52,13 @@ public class EnvironmentConfigDataModel {
     private static final Map<Environment, EnvironmentConfigDataModel> models = new HashMap<Environment, EnvironmentConfigDataModel>();
 
     private final Environment environment;
-    private final IObservableMap dataModel;
+    private IObservableMap dataModel;
     private final List<ConfigurationOptionDescription> options;
 
     private final Map<OptionKey, IObservableValue> sharedObservables;
     private final List<RefreshListener> listeners;
     private CancelableThread refreshThread;
-    
+
     private final static Set<String> IGNORED_NAMESPACES = new HashSet<String>();
     static {
         IGNORED_NAMESPACES.add("aws:cloudformation:template:parameter");
@@ -121,6 +122,12 @@ public class EnvironmentConfigDataModel {
         this.options.clear();
         this.options.addAll(options);
 
+        /*
+         *TODO : There is a potential bug here. We should clear the all the contents in the dataModel first.
+         *       But it will make the editor dirty immediately. Hope in the future we can find a better way
+         *       to mark the edittor dirty.
+         *
+         */
         for ( ConfigurationOptionDescription opt : options ) {
             if ( !IGNORED_NAMESPACES.contains(opt.getNamespace()) ) {
                 List<ConfigurationOptionSetting> settingsInNamespace = settings.get(opt.getNamespace());
@@ -423,7 +430,7 @@ public class EnvironmentConfigDataModel {
      * one another. This is a lightweight adapter to allow them to be used as
      * such, as well as being reversible to an option name.
      */
-    private static final class OptionKey {
+    public static final class OptionKey {
 
         private final String name;
         private final String namespace;

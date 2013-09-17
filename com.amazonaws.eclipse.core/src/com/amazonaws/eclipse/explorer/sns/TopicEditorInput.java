@@ -23,8 +23,12 @@ import com.amazonaws.services.sns.model.Topic;
 public class TopicEditorInput extends AbstractAwsResourceEditorInput {
 
     private final Topic topic;
+    private String name;
 
-    public TopicEditorInput(Topic topic, String regionEndpoint, String accountId) {
+    public TopicEditorInput(final Topic topic,
+                            final String regionEndpoint,
+                            final String accountId) {
+
         super(regionEndpoint, accountId);
         this.topic = topic;
     }
@@ -34,7 +38,10 @@ public class TopicEditorInput extends AbstractAwsResourceEditorInput {
     }
 
     public String getName() {
-        return topic.getTopicArn();
+        if (name == null) {
+            name = SNSContentProvider.parseTopicName(topic.getTopicArn());
+        }
+        return name;
     }
 
     public String getToolTipText() {
@@ -43,5 +50,29 @@ public class TopicEditorInput extends AbstractAwsResourceEditorInput {
 
     public Topic getTopic() {
         return topic;
+    }
+
+    @Override
+    public String toString() {
+        return topic.getTopicArn();
+    }
+
+    @Override
+    public int hashCode() {
+        return topic.getTopicArn().hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof TopicEditorInput)) {
+            return false;
+        }
+
+        TopicEditorInput that = (TopicEditorInput) obj;
+
+        return topic.getTopicArn().equals(that.topic.getTopicArn());
     }
 }

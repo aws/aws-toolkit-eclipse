@@ -37,6 +37,8 @@ import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
+import com.amazonaws.services.elasticbeanstalk.model.DeleteApplicationRequest;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.TerminateEnvironmentRequest;
 
@@ -45,16 +47,23 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
     @Override
     public void fillContextMenu(IMenuManager menu) {
         boolean onlyEnvironmentsSelected = true;
+        boolean onlyApplicationsSelected = true;
         StructuredSelection selection = (StructuredSelection)getActionSite().getStructuredViewer().getSelection();
         @SuppressWarnings("rawtypes")
         Iterator iterator = selection.iterator();
         List<EnvironmentDescription> environments = new ArrayList<EnvironmentDescription>();
+        List<ApplicationDescription> applications = new ArrayList<ApplicationDescription>();
         while ( iterator.hasNext() ) {
             Object obj = iterator.next();
             if ( obj instanceof EnvironmentDescription ) {
                 environments.add((EnvironmentDescription) obj);
             } else {
                 onlyEnvironmentsSelected = false;
+            }
+            if ( obj instanceof ApplicationDescription ) {
+                applications.add((ApplicationDescription) obj);
+            } else {
+                onlyApplicationsSelected = false;
             }
         }
 
@@ -65,6 +74,10 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
             }
 
             menu.add(new TerminateEnvironmentsAction(environments));
+        }
+
+        if ( onlyApplicationsSelected ) {
+            menu.add(new DeleteApplicationAction(applications));
         }
     }
 
@@ -117,8 +130,58 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
             terminateEnvironmentsJob.schedule();
         }
 
-        private Dialog newConfirmationDialog(String title, String message) {
-            return new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.WARNING, new String[] {"OK", "Cancel"}, 0);
+    }
+
+    private static class DeleteApplicationAction extends Action {
+        private final List<ApplicationDescription> applications;
+
+        public DeleteApplicationAction(List<ApplicationDescription> applications) {
+            this.applications = applications;
+
+            this.setText("Delete Application");
+            this.setToolTipText("Delete the selected application");
+            this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_REMOVE));
         }
+
+        @Override
+        public void run() {
+            Dialog dialog = newConfirmationDialog("Delete selected application?", "Are you sure you want to delete the selected AWS Elastic Beanstalk applications?");
+            if (dialog.open() != 0) return;
+
+            Job deleteApplicationsJob = new Job("Delete Applications") {
+                @Override
+                protected IStatus run(IProgressMonitor monitor) {
+                    String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
+                    AWSElasticBeanstalk beanstalk = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(endpoint);
+
+                    List<Exception> errors = new ArrayList<Exception>();
+                    for (ApplicationDescription app : applications) {
+                        try {
+                            beanstalk.deleteApplication(new DeleteApplicationRequest().withApplicationName(app.getApplicationName()));
+                        } catch (Exception e) {
+                            errors.add(e);
+                        }
+                    }
+
+                    IStatus status = Status.OK_STATUS;
+                    if (errors.size() > 0) {
+                        status = new MultiStatus(AwsToolkitCore.PLUGIN_ID, 0, "Unable to delete applications", null);
+                        for (Exception error : errors) {
+                            ((MultiStatus)status).add(new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete application", error));
+                        }
+                    }
+
+                    ContentProviderRegistry.refreshAllContentProviders();
+
+                    return status;
+                }
+            };
+
+            deleteApplicationsJob.schedule();
+        }
+    }
+
+    private static Dialog newConfirmationDialog(String title, String message) {
+        return new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.WARNING, new String[] { "OK", "Cancel" }, 0);
     }
 }

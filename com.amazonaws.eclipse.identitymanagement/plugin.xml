@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementContentProvider"
+         id="com.amazonaws.eclipse.explorer.IdentityManagementContent"
+         labelProvider="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementLabelProvider"
+         name="Amazon IdentityManagement"
+         priority="normal">
+    <commonSorter
+         class="com.amazonaws.eclipse.explorer.identitymanagement.ExplorerSorter"
+         id="com.amazonaws.eclipse.iam.commonSorter">
+     </commonSorter>
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+            <instanceof value="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementRootElement$IdentityManagementRootElement" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementExplorerActionProvider">
+         <enablement>
+            <or>
+               <instanceof value="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementContentProvider$IdentityManagementRootElement"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementContentProvider$UserNode"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementContentProvider$GroupNode"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.identitymanagement.IdentityManagementContentProvider$RoleNode"/>
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+  </extension>
+
+  <extension point="org.eclipse.ui.editors">
+
+     <editor class="com.amazonaws.eclipse.identitymanagement.user.UserEditor"
+             default="false"
+             icon="/icons/user.png"
+             id="com.amazonaws.eclipse.explorer.identitymanagement.user.userEditor"
+             name="Amazon IdentityManagement User Editor">
+     </editor>
+
+      <editor class="com.amazonaws.eclipse.identitymanagement.group.GroupEditor"
+             default="false"
+             icon="/icons/group.png"
+             id="com.amazonaws.eclipse.explorer.identitymanagement.group.groupEditor"
+             name="Amazon IdentityManagement Group Editor">
+     </editor>
+
+     <editor class="com.amazonaws.eclipse.identitymanagement.role.RoleEditor"
+             default="false"
+             icon= "/icons/role.png"
+             id="com.amazonaws.eclipse.explorer.identitymanagement.role.roleEditor"
+             name="Amazon IdentityManagement Role Editor">
+     </editor>
+
+    <editor class="com.amazonaws.eclipse.explorer.identitymanagement.PasswordPolicyEditor"
+             default="false"
+             icon="icons/key.png"
+             id="com.amazonaws.eclipse.explorer.identitymanagement.passwordPolicyEditor"
+             name="Amazon IdentityManagement passwordPolicy Editor">
+     </editor>
+
+  </extension>
+</plugin>

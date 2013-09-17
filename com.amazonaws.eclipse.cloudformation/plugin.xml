@@ -66,6 +66,12 @@
                 <separator name="group" />
             </menu>
             <action
+                label="Estimate Cost"
+                class="com.amazonaws.eclipse.explorer.cloudformation.EstimateTemplateCostAction"
+                menubarPath="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS/group"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.estimateTemplateCost" />
+            <action
                 label="Update Stack"
                 class="com.amazonaws.eclipse.explorer.cloudformation.UpdateStackAction"
                 menubarPath="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS/group"

@@ -20,7 +20,7 @@ import java.util.Set;
 
 import org.eclipse.swt.widgets.TableItem;
 
-import com.amazonaws.services.dynamodb.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 
 /**
  * An edited DynamoDB item in the table editor.

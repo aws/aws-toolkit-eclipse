@@ -299,8 +299,8 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
                 }
             }
         });
-        
-        bindSet.updateModelToTarget();        
+
+        bindSet.updateModelToTarget();
     }
 
     /**
@@ -333,7 +333,6 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
         label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         Combo combo = new Combo(parent, SWT.READ_ONLY);
         combo.setItems(option.getValueOptions().toArray(new String[option.getValueOptions().size()]));
-
         IObservableValue modelv = model.observeEntry(option);
         ISWTObservableValue widget = SWTObservables.observeSelection(combo);
         parentEditor.bindingContext.bindValue(widget, modelv,
@@ -349,7 +348,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
         Label label = createLabel(toolkit, parent, option);
         label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
         Text text = toolkit.createText(parent, "");
-        
+
         layoutTextField(text);
 
         IObservableValue modelv = model.observeEntry(option);
@@ -359,7 +358,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
                 new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE));
         modelv.addChangeListener(new DirtyMarker());
 
-        ChainValidator<String> validationStatusProvider = new ChainValidator<String>(widget, 
+        ChainValidator<String> validationStatusProvider = new ChainValidator<String>(widget,
                 new ConfigurationSettingValidator(option));
         bindingContext.addValidationStatusProvider(validationStatusProvider);
         ControlDecoration decoration = new ControlDecoration(text, SWT.TOP | SWT.LEFT);
@@ -386,13 +385,13 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
             labelText += " **";
         else if ( option.getChangeSeverity().equals("RestartApplicationServer") )
             labelText += " *";
-        
+
         if ( option.getValueType().equals("CommaSeparatedList") && option.getValueOptions().isEmpty() ) {
             labelText += "\n(comma separated)";
         } else if ( option.getValueType().equals("KeyValueList") && option.getValueOptions().isEmpty() ) {
             labelText += "\n(key-value list)";
         }
-        
+
         Label label = toolkit.createLabel(parent, labelText);
         return label;
     }

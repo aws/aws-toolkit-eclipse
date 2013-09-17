@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+
+    <!-- AWS security credentials are loaded in the following order:
+           1 - The AwsAccessKey and AwsSecretKey attributes on the Manager element
+               explicitly provide credentials
+           2 - The AwsCredentialsFile attribute on the Manager element specifies a
+               properties file from which to load credentials
+
+         If no credentials are specified through the Manager element, the
+         DefaultAWSCredentialsProviderChain will keep searching for credentials
+         in the following order:
+           1 - Environment Variables - AWS_ACCESS_KEY_ID and AWS_SECRET_KEY
+           2 - Java System Properties - aws.accessKeyId and aws.secretKey
+           3 - Instance profile credentials delivered through the Amazon EC2 metadata service
+
+         For more information on using the Amazon DynamoDB Session Manager for Tomcat, see
+         the AWS SDK for Java Developer Guide:
+         http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/welcome.html
+         -->
+    <Manager className="com.amazonaws.services.dynamodb.sessionmanager.DynamoDBSessionManager"
+             awsAccessKey="{ACCESS_KEY}"
+             awsSecretKey="{SECRET_KEY}"
+             createIfNotExist="true" />
+</Context>

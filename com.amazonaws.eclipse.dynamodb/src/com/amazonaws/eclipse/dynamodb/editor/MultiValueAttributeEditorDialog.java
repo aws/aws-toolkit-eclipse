@@ -22,7 +22,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.MultiValueEditorDialog;
-import com.amazonaws.services.dynamodb.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 
 /**
  * Simple table dialog to allow use user to enter multiple values for an

@@ -20,7 +20,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -31,6 +33,12 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.wst.server.core.IModule;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.eclipse.core.AWSClientFactory;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationVersionRequest;
@@ -43,6 +51,18 @@ import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
 import com.amazonaws.services.elasticbeanstalk.model.EventDescription;
 import com.amazonaws.services.elasticbeanstalk.model.S3Location;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.model.AddRoleToInstanceProfileRequest;
+import com.amazonaws.services.identitymanagement.model.CreateInstanceProfileRequest;
+import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
+import com.amazonaws.services.identitymanagement.model.GetInstanceProfileRequest;
+import com.amazonaws.services.identitymanagement.model.GetRoleRequest;
+import com.amazonaws.services.identitymanagement.model.InstanceProfile;
+import com.amazonaws.services.identitymanagement.model.ListRolePoliciesRequest;
+import com.amazonaws.services.identitymanagement.model.ListRolePoliciesResult;
+import com.amazonaws.services.identitymanagement.model.PutRolePolicyRequest;
+import com.amazonaws.services.identitymanagement.model.Role;
+import com.amazonaws.services.identitymanagement.model.UpdateAssumeRolePolicyRequest;
 import com.amazonaws.services.s3.AmazonS3;
 
 public class ElasticBeanstalkPublishingUtils {
@@ -53,14 +73,22 @@ public class ElasticBeanstalkPublishingUtils {
     /** Period (in milliseconds) between attempts to poll */
     private static final int PAUSE = 1000 * 15;
 
+    public static final String DEFAULT_ROLE_NAME = "aws-elasticbeanstalk-ec2-role";
+
     private final AWSElasticBeanstalk beanstalkClient;
     private final AmazonS3 s3;
     private final Environment environment;
+    private final AmazonIdentityManagement iam;
 
-    public ElasticBeanstalkPublishingUtils(AWSElasticBeanstalk beanstalkClient, AmazonS3 s3, Environment environment) {
-        this.beanstalkClient = beanstalkClient;
-        this.s3 = s3;
+    public ElasticBeanstalkPublishingUtils(Environment environment) {
         this.environment = environment;
+
+        AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory(environment.getAccountId());
+        Region environmentRegion = RegionUtils.getRegionByEndpoint(environment.getRegionEndpoint());
+
+        this.beanstalkClient = clientFactory.getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        this.iam = clientFactory.getIAMClientByEndpoint(environmentRegion.getServiceEndpoint(ServiceAbbreviations.IAM));
+        this.s3 = clientFactory.getS3ClientByEndpoint(environmentRegion.getServiceEndpoint(ServiceAbbreviations.S3));
     }
 
     public void publishApplicationToElasticBeanstalk(IPath war, String versionLabel, IProgressMonitor monitor) throws CoreException {
@@ -143,6 +171,12 @@ public class ElasticBeanstalkPublishingUtils {
      * Creates a new environment
      */
     void createNewEnvironment(String versionLabel) {
+
+        // Map the UI value to the one on the wire
+        Map<String, String> envTypeMap = new HashMap<String, String>();
+        envTypeMap.put(ConfigurationOptionConstants.SINGLE_INSTANCE, "SingleInstance");
+        envTypeMap.put(ConfigurationOptionConstants.LOAD_BALANCED, "LoadBalanced");
+
         String solutionStackName = environment.getSolutionStack();
         if (solutionStackName == null) {
             solutionStackName = SolutionStacks.TOMCAT_6_64BIT_AMAZON_LINUX;
@@ -173,6 +207,23 @@ public class ElasticBeanstalkPublishingUtils {
             optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.SNS_TOPICS)
                     .withOptionName("Notification Endpoint").withValue(environment.getSnsEndpoint()));
         }
+        if ( environment.getEnvironmentType() != null && environment.getEnvironmentType().length() > 0 ) {
+            optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.ENVIRONMENT_TYPE)
+                    .withOptionName("EnvironmentType").withValue(envTypeMap.get(environment.getEnvironmentType())));
+        }
+        if ( environment.getIamRoleName() != null && environment.getIamRoleName().length() > 0 ) {
+            try {
+                InstanceProfile instanceProfile = configureInstanceProfile();
+                if (instanceProfile != null) {
+                    optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
+                            .withOptionName("IamInstanceProfile").withValue(instanceProfile.getArn()));
+                }
+            } catch (Exception e) {
+                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
+                    "Unable to configure IAM instance profile for role " + environment.getIamRoleName(), e);
+                ElasticBeanstalkPlugin.getDefault().getLog().log(status);
+            }
+        }
 
         if (optionSettings.size() > 0) request.setOptionSettings(optionSettings);
 
@@ -181,6 +232,48 @@ public class ElasticBeanstalkPublishingUtils {
         }
 
         beanstalkClient.createEnvironment(request);
+    }
+
+    private InstanceProfile configureInstanceProfile() {
+        String roleName = environment.getIamRoleName();
+
+        String ASSUME_ROLE_POLICY = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":[\"ec2.amazonaws.com\"]},\"Action\":[\"sts:AssumeRole\"]}]}";
+
+        Role role = getRole(roleName);
+        if (role == null) {
+            if (roleName.equals(DEFAULT_ROLE_NAME)) {
+                role = iam.createRole(new CreateRoleRequest().withRoleName(roleName).withPath("/").withAssumeRolePolicyDocument(ASSUME_ROLE_POLICY)).getRole();
+            } else {
+                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Selected IAM role doesn't exit: " + roleName);
+                ElasticBeanstalkPlugin.getDefault().getLog().log(status);
+                return null;
+            }
+        }
+
+        InstanceProfile instanceProfile = getInstanceProfile(roleName);
+        if (instanceProfile == null) {
+            instanceProfile = iam.createInstanceProfile(new CreateInstanceProfileRequest().withInstanceProfileName(roleName).withPath("/")).getInstanceProfile();
+            iam.addRoleToInstanceProfile(new AddRoleToInstanceProfileRequest().withInstanceProfileName(roleName).withRoleName(roleName));
+        }
+        return instanceProfile;
+    }
+
+    private InstanceProfile getInstanceProfile(String profileName) throws AmazonClientException {
+        try {
+            return iam.getInstanceProfile(new GetInstanceProfileRequest().withInstanceProfileName(profileName)).getInstanceProfile();
+        } catch (AmazonServiceException ase) {
+            if (ase.getErrorCode().equals("NoSuchEntity")) return null;
+            throw ase;
+        }
+    }
+
+    private Role getRole(String roleName) throws AmazonClientException {
+        try {
+            return iam.getRole(new GetRoleRequest().withRoleName(roleName)).getRole();
+        } catch (AmazonServiceException ase) {
+            if (ase.getErrorCode().equals("NoSuchEntity")) return null;
+            throw ase;
+        }
     }
 
     public void waitForEnvironmentToBecomeAvailable(IModule moduleToPublish, IProgressMonitor monitor, Runnable runnable) throws CoreException {

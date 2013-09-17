@@ -17,7 +17,7 @@ import org.eclipse.ui.navigator.CommonActionProvider;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
-import com.amazonaws.services.dynamodb.model.DeleteTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
 
 /**
  * Provides right-click context actions for items in the DynamoDB section of the
@@ -107,7 +107,7 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
                     @Override
                     protected IStatus run(IProgressMonitor monitor) {
                         try {
-                            AwsToolkitCore.getClientFactory(accountId).getDynamoDBClient()
+                            AwsToolkitCore.getClientFactory(accountId).getDynamoDBV2Client()
                                     .deleteTable(new DeleteTableRequest().withTableName(tableName));
                         } catch ( AmazonClientException e ) {
                             return new Status(IStatus.ERROR, DynamoDBPlugin.PLUGIN_ID, "Failed to delete table", e);
@@ -120,7 +120,7 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
             }
         }
     }
-    
+
     private static class TablePropertiesAction extends Action {
 
         private final String tableName;
@@ -131,7 +131,7 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
 
         @Override
         public String getDescription() {
-            return getText();                    
+            return getText();
         }
 
         @Override
@@ -147,26 +147,26 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
         @Override
         public void run() {
             final TablePropertiesDialog tablePropertiesDialog = new TablePropertiesDialog(tableName);
-            if (tablePropertiesDialog.open() == 0) {                
+            if (tablePropertiesDialog.open() == 0) {
                 final String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
                 new Job("Updating table " + tableName) {
 
                     @Override
                     protected IStatus run(IProgressMonitor monitor) {
                         try {
-                            AwsToolkitCore.getClientFactory(accountId).getDynamoDBClient()
+                            AwsToolkitCore.getClientFactory(accountId).getDynamoDBV2Client()
                                     .updateTable(tablePropertiesDialog.getUpdateRequest());
                         } catch ( AmazonClientException e ) {
                             return new Status(IStatus.ERROR, DynamoDBPlugin.PLUGIN_ID, "Failed to update table", e);
                         }
-                        
+
                         return Status.OK_STATUS;
                     }
-                    
+
                 }.schedule();
             }
         }
-    }    
+    }
 
     private static class DeleteTableConfirmation extends MessageDialog {
 

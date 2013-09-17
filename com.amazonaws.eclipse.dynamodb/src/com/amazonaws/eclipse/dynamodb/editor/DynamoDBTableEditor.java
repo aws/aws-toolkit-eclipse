@@ -14,8 +14,16 @@
  */
 package com.amazonaws.eclipse.dynamodb.editor;
 
-import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueEditor.*;
-import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.*;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueEditor.NUMBER;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueEditor.STRING;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.N;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.NS;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.S;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.SS;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.format;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.getDataType;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.getValuesFromAttribute;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.setAttribute;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -98,22 +106,25 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.AbstractTableLabelProvider;
+import com.amazonaws.eclipse.dynamodb.AbstractAddNewAttributeDialog;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
-import com.amazonaws.services.dynamodb.AmazonDynamoDB;
-import com.amazonaws.services.dynamodb.model.AttributeAction;
-import com.amazonaws.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodb.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodb.model.Condition;
-import com.amazonaws.services.dynamodb.model.DeleteItemRequest;
-import com.amazonaws.services.dynamodb.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodb.model.DescribeTableResult;
-import com.amazonaws.services.dynamodb.model.ExpectedAttributeValue;
-import com.amazonaws.services.dynamodb.model.Key;
-import com.amazonaws.services.dynamodb.model.KeySchema;
-import com.amazonaws.services.dynamodb.model.PutItemRequest;
-import com.amazonaws.services.dynamodb.model.ScanRequest;
-import com.amazonaws.services.dynamodb.model.ScanResult;
-import com.amazonaws.services.dynamodb.model.UpdateItemRequest;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
+import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.amazonaws.services.dynamodbv2.model.KeyType;
+import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.amazonaws.services.dynamodbv2.model.TableDescription;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 
 /**
  * Scan editor for DynamoDB tables.
@@ -143,16 +154,16 @@ public class DynamoDBTableEditor extends EditorPart {
      */
     private final List<ScanConditionRow> scanConditions = new LinkedList<ScanConditionRow>();
     private final EditedItems editedItems = new EditedItems();
-    private final Collection<Key> deletedItems = new LinkedList<Key>();
-    private final Collection<Key> addedItems = new HashSet<Key>();
-    
+    private final Collection<Map<String, AttributeValue>> deletedItems = new LinkedList<Map<String, AttributeValue>>();
+    private final Collection<Map<String, AttributeValue>> addedItems = new LinkedList<Map<String, AttributeValue>>();
+
     /*
      * Table info that we fetch and store
      */
-    private KeySchema tableKey;
+    private KeySchemaWithAttributeType tableKey;
     final Set<String> knownAttributes = new HashSet<String>();
     private ScanResult scanResult = new ScanResult();
-    
+
     /*
      * Actions to enable and disable
      */
@@ -160,24 +171,24 @@ public class DynamoDBTableEditor extends EditorPart {
     private Action saveAction;
     private Action nextPageResultsAction;
     private Action exportAsCSVAction;
-    private Action addNewAttributeAction;    
+    private Action addNewAttributeAction;
 
     @Override
     public void doSave(IProgressMonitor monitor) {
-        
+
         monitor.beginTask("Saving changes", editedItems.size() + deletedItems.size());
 
         try{
             AmazonDynamoDB dynamoDBClient = AwsToolkitCore.getClientFactory(tableEditorInput.getAccountId())
-                    .getDynamoDBClient();
-            
+                    .getDynamoDBV2Client();
+
             /*
              * Save all edited items, only touching edited attributes.
              */
-            if ( !editedItems.isEmpty() ) {                
-                for ( Iterator<Entry<Key, EditedItem>> iter = editedItems.iterator(); iter.hasNext(); ) {
-                    Entry<Key, EditedItem> editedItem = iter.next();
-                    
+            if ( !editedItems.isEmpty() ) {
+                for ( Iterator<Entry<Map<String, AttributeValue>, EditedItem>> iter = editedItems.iterator(); iter.hasNext(); ) {
+                    Entry<Map<String, AttributeValue>, EditedItem> editedItem = iter.next();
+
                     try {
                         /*
                          * Due to a bug in Dynamo, updateItem will not create a
@@ -234,13 +245,13 @@ public class DynamoDBTableEditor extends EditorPart {
                     }
                 }
             }
-            
+
             /*
              * Delete all deleted items.
              */
             if ( !deletedItems.isEmpty() ) {
-                for ( Iterator<Key> iter = deletedItems.iterator(); iter.hasNext(); ) {
-                    Key deletedItem = iter.next();
+                for ( Iterator<Map<String, AttributeValue>> iter = deletedItems.iterator(); iter.hasNext(); ) {
+                	Map<String, AttributeValue> deletedItem = iter.next();
                     try {
                         dynamoDBClient.deleteItem(new DeleteItemRequest()
                                 .withTableName(tableEditorInput.getTableName()).withKey(deletedItem));
@@ -264,7 +275,7 @@ public class DynamoDBTableEditor extends EditorPart {
         } finally {
             monitor.done();
         }
-        
+
         dirty = false;
         this.saveAction.setEnabled(false);
         firePropertyChange(PROP_DIRTY);
@@ -280,7 +291,7 @@ public class DynamoDBTableEditor extends EditorPart {
         setSite(site);
         setInput(input);
         this.tableEditorInput = (TableEditorInput) input;
-        setPartName(input.getName());        
+        setPartName(input.getName());
     }
 
     @Override
@@ -421,7 +432,7 @@ public class DynamoDBTableEditor extends EditorPart {
         IHandler handler = new ActionHandler(runScanAction);
         IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
         handlerService.activateHandler(runScanAction.getActionDefinitionId(), handler);
-        
+
         saveAction = new Action() {
 
             @Override
@@ -446,12 +457,12 @@ public class DynamoDBTableEditor extends EditorPart {
         };
 
         handlerService.activateHandler(saveAction.getActionDefinitionId(), new ActionHandler(saveAction));
-        
+
         nextPageResultsAction = new Action() {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
-                return DynamoDBPlugin.getDefault().getImageRegistry().getDescriptor(DynamoDBPlugin.IMAGE_NEXT_RESULTS);                      
+                return DynamoDBPlugin.getDefault().getImageRegistry().getDescriptor(DynamoDBPlugin.IMAGE_NEXT_RESULTS);
             }
 
             @Override
@@ -463,9 +474,9 @@ public class DynamoDBTableEditor extends EditorPart {
             public void run() {
                 getNextPageResults();
             }
-            
+
         };
-                
+
         exportAsCSVAction = new Action() {
 
             @Override
@@ -505,7 +516,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     }
 
                     BufferedWriter out = new BufferedWriter(new FileWriter(csvFile));
-                    boolean seenOne = false;                    
+                    boolean seenOne = false;
                     for (String col : contentProvider.getColumns()) {
                         if ( seenOne ) {
                             out.write(",");
@@ -517,10 +528,10 @@ public class DynamoDBTableEditor extends EditorPart {
                     out.write("\n");
 
                     for ( Map<String, AttributeValue> item : items ) {
-                        seenOne = false;                        
+                        seenOne = false;
                         for (String col : contentProvider.getColumns()) {
                             if (seenOne) {
-                                out.write(",");                                
+                                out.write(",");
                             } else {
                                 seenOne = true;
                             }
@@ -542,9 +553,9 @@ public class DynamoDBTableEditor extends EditorPart {
                     AwsToolkitCore.getDefault().logException("Couldn't save CSV file", e);
                 }
             }
-            
+
         };
-        
+
         addNewAttributeAction = new Action() {
 
             @Override
@@ -567,63 +578,31 @@ public class DynamoDBTableEditor extends EditorPart {
                     viewer.getTable().getParent().layout();
                 }
             }
-            
-            final class NewAttributeDialog extends MessageDialog {
 
-                String newAttributeName = "";
-                
-                public String getNewAttributeName() {
-                    return newAttributeName.trim();
-                }
-
-                NewAttributeDialog() {
-                    super(Display.getCurrent().getActiveShell(), "Enter new attribute name", null,
-                            "Enter a new attribute name", MessageDialog.NONE, new String[] { "OK",
-                                    "Cancel" }, 0);
-                }
-                
-                @Override
-                protected Control createCustomArea(Composite parent) {
-                    final Text text = new Text(parent, SWT.BORDER);
-                    GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(text);
-                    text.addModifyListener(new ModifyListener() {
-                        
-                        public void modifyText(ModifyEvent e) {
-                            newAttributeName = text.getText();
-                            validate();
-                        }
-                    });
-                    
-                    return parent;
-                }
+            final class NewAttributeDialog extends AbstractAddNewAttributeDialog {
 
                 @Override
-                protected void createButtonsForButtonBar(Composite parent) {
-                    super.createButtonsForButtonBar(parent);
-                    validate();
-                }
-            
-                private void validate() {
+                public void validate() {
                     if ( getButton(0) == null )
                         return;
                     if ( getNewAttributeName().length() == 0 || contentProvider.columns.contains(getNewAttributeName()) ) {
                         getButton(0).setEnabled(false);
                         return;
                     }
-            
+
                     getButton(0).setEnabled(true);
                     return;
                 }
 
             }
         };
-        
+
         runScanAction.setEnabled(false);
         saveAction.setEnabled(false);
         nextPageResultsAction.setEnabled(false);
         exportAsCSVAction.setEnabled(false);
         addNewAttributeAction.setEnabled(false);
-        
+
         toolBarManager.add(runScanAction);
         toolBarManager.add(nextPageResultsAction);
         toolBarManager.add(saveAction);
@@ -631,7 +610,7 @@ public class DynamoDBTableEditor extends EditorPart {
         toolBarManager.add(addNewAttributeAction);
         toolBarManager.update(true);
     }
-    
+
     private void createResultsTable(Composite resultsComposite) {
         TableColumnLayout tableColumnLayout = new TableColumnLayout();
         resultsComposite.setLayout(tableColumnLayout);
@@ -654,11 +633,11 @@ public class DynamoDBTableEditor extends EditorPart {
         table.addListener(SWT.MouseUp, listener);
         table.addListener(SWT.FocusOut, listener);
         table.addListener(SWT.KeyDown, listener);
-        
-        MenuManager menuManager = new MenuManager("#PopupMenu");        
+
+        MenuManager menuManager = new MenuManager("#PopupMenu");
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
-            
+
             public void menuAboutToShow(IMenuManager manager) {
                 if ( table.getSelectionCount() > 0 ) {
 
@@ -686,13 +665,13 @@ public class DynamoDBTableEditor extends EditorPart {
                     });
                 }
             }
-        });        
+        });
         table.setMenu(menuManager.createContextMenu(table));
     }
 
     @Override
     public void setFocus() {
-        // no-op        
+        // no-op
     }
 
     /**
@@ -709,7 +688,7 @@ public class DynamoDBTableEditor extends EditorPart {
         addNewAttributeAction.setEnabled(false);
         editedItems.clear();
         deletedItems.clear();
-        
+
         // this.exportAsCSV.setEnabled(false);
         for ( TableColumn col : this.viewer.getTable().getColumns() ) {
             col.dispose();
@@ -722,9 +701,10 @@ public class DynamoDBTableEditor extends EditorPart {
                 if ( tableKey == null ) {
                     DescribeTableResult describeTable = AwsToolkitCore
                             .getClientFactory(DynamoDBTableEditor.this.tableEditorInput.getAccountId())
-                            .getDynamoDBClient()
+                            .getDynamoDBV2Client()
                             .describeTable(new DescribeTableRequest().withTableName(tableEditorInput.getTableName()));
-                    tableKey = describeTable.getTable().getKeySchema();
+                    TableDescription tableDescription = describeTable.getTable();
+                    tableKey = convertToKeySchemaWithAttributeType(tableDescription);
                 }
 
                 scanResult = new ScanResult();
@@ -737,7 +717,7 @@ public class DynamoDBTableEditor extends EditorPart {
                         }
                     }
                     scanResult = AwsToolkitCore.getClientFactory(DynamoDBTableEditor.this.tableEditorInput.getAccountId())
-                            .getDynamoDBClient().scan(scanRequest);
+                            .getDynamoDBV2Client().scan(scanRequest);
                 } catch ( Exception e ) {
                     StatusManager.getManager().handle(
                             new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage()), StatusManager.SHOW);
@@ -761,7 +741,7 @@ public class DynamoDBTableEditor extends EditorPart {
 
         }.start();
     }
-    
+
     /**
      * Fetches the next page of results from the scan and updates the table with them.
      */
@@ -787,7 +767,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     }
                     scanRequest.setExclusiveStartKey(scanResult.getLastEvaluatedKey());
                     scanResult = AwsToolkitCore.getClientFactory(DynamoDBTableEditor.this.tableEditorInput.getAccountId())
-                            .getDynamoDBClient().scan(scanRequest);
+                            .getDynamoDBV2Client().scan(scanRequest);
                 } catch ( Exception e ) {
                     StatusManager.getManager().handle(
                             new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage()), StatusManager.SHOW);
@@ -811,7 +791,7 @@ public class DynamoDBTableEditor extends EditorPart {
 
         }.start();
     }
-    
+
     /**
      * Content provider creates columns for the table and keeps track of them
      * for other parts of the UI.
@@ -821,7 +801,7 @@ public class DynamoDBTableEditor extends EditorPart {
         private List<Map<String, AttributeValue>> input;
         private final List<Map<String, AttributeValue>> elementList = new ArrayList<Map<String,AttributeValue>>();
         private final List<String> columns = new ArrayList<String>();
-        
+
         /**
          * Adds a single item to the table.
          */
@@ -866,7 +846,7 @@ public class DynamoDBTableEditor extends EditorPart {
             this.input = (List<Map<String, AttributeValue>>) newInput;
             this.elementList.clear();
             this.columns.clear();
-            
+
             initializeElements();
 
             if ( this.input != null ) {
@@ -900,31 +880,31 @@ public class DynamoDBTableEditor extends EditorPart {
 
                 for ( Map<String, AttributeValue> item : input ) {
                     columns.addAll(item.keySet());
-                }                
+                }
                 // We add the hash and range keys back in at the beginning, so
                 // remove them for now
-                columns.remove(tableKey.getHashKeyElement().getAttributeName());
-                if ( tableKey.getRangeKeyElement() != null ) {
-                    columns.remove(tableKey.getRangeKeyElement().getAttributeName());
+                columns.remove(tableKey.getHashKeyAttributeName());
+                if ( tableKey.hasRangeKey() ) {
+                    columns.remove(tableKey.getRangeKeyAttributeName());
                 }
-                
+
                 List<String> sortedColumns = new ArrayList<String>();
                 sortedColumns.addAll(columns);
                 Collections.sort(sortedColumns);
 
-                sortedColumns.add(0, tableKey.getHashKeyElement().getAttributeName());
-                if ( tableKey.getRangeKeyElement() != null ) {
-                    sortedColumns.add(1, tableKey.getRangeKeyElement().getAttributeName());
+                sortedColumns.add(0, tableKey.getHashKeyAttributeName());
+                if ( tableKey.hasRangeKey() ) {
+                    sortedColumns.add(1, tableKey.getRangeKeyAttributeName());
                 }
-                
+
                 synchronized (knownAttributes) {
                     knownAttributes.addAll(sortedColumns);
                 }
-                
+
                 elementList.addAll(input);
                 // empty row at the end for adding new rows
                 elementList.add(new HashMap<String, AttributeValue>());
-                
+
                 this.columns.addAll(sortedColumns);
             }
         }
@@ -948,36 +928,36 @@ public class DynamoDBTableEditor extends EditorPart {
     }
 
     private final class CreateNewItemDialog extends MessageDialog {
-    
+
         String hashKey = "";
         String rangeKey = "";
-    
+
         private CreateNewItemDialog() {
             super(Display.getCurrent().getActiveShell(), "Create new item",
                     AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON),
                     "Enter the key for the new item", MessageDialog.NONE, new String[] { "OK", "Cancel" }, 0);
         }
-    
+
         @Override
         protected Control createCustomArea(Composite parent) {
             Composite comp = new Composite(parent, SWT.NONE);
             GridLayoutFactory.fillDefaults().numColumns(2).applyTo(comp);
             GridDataFactory.fillDefaults().grab(true, true).applyTo(comp);
-            
+
             Label hashKeyLabel = new Label(comp, SWT.READ_ONLY);
-            hashKeyLabel.setText(tableKey.getHashKeyElement().getAttributeName() + ":");
+            hashKeyLabel.setText(tableKey.getHashKeyAttributeName() + ":");
             final Text hashKeyText = new Text(comp, SWT.BORDER);
             GridDataFactory.fillDefaults().grab(true, false).applyTo(hashKeyText);
-            hashKeyText.addModifyListener(new ModifyListener() {                   
+            hashKeyText.addModifyListener(new ModifyListener() {
                 public void modifyText(ModifyEvent e) {
                     hashKey = hashKeyText.getText();
                     validate();
                 }
             });
-            
-            if ( tableKey.getRangeKeyElement() != null ) {
+
+            if ( tableKey.hasRangeKey() ) {
                 Label rangeKeyLabel = new Label(comp, SWT.READ_ONLY);
-                rangeKeyLabel.setText(tableKey.getRangeKeyElement().getAttributeName() + ":");
+                rangeKeyLabel.setText(tableKey.getRangeKeyAttributeName() + ":");
                 final Text rangeKeyText = new Text(comp, SWT.BORDER);
                 GridDataFactory.fillDefaults().grab(true, false).applyTo(rangeKeyText);
                 rangeKeyText.addModifyListener(new ModifyListener() {
@@ -987,26 +967,26 @@ public class DynamoDBTableEditor extends EditorPart {
                     }
                 });
             }
-            
+
             validate();
             return comp;
         }
-        
+
         @Override
         protected void createButtonsForButtonBar(Composite parent) {
             super.createButtonsForButtonBar(parent);
             validate();
         }
-    
+
         private void validate() {
             if ( getButton(0) == null )
                 return;
-    
+
             if ( hashKey.length() == 0 ) {
                 getButton(0).setEnabled(false);
                 return;
             }
-            if ( tableKey.getRangeKeyElement() != null ) {
+            if ( tableKey.hasRangeKey() ) {
                 if ( rangeKey.length() == 0 ) {
                     getButton(0).setEnabled(false);
                     return;
@@ -1015,17 +995,16 @@ public class DynamoDBTableEditor extends EditorPart {
             getButton(0).setEnabled(true);
             return;
         }
-    
+
         Map<String, AttributeValue> getNewItem() {
             Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
             AttributeValue hashKeyAttribute = new AttributeValue();
-            setAttribute(hashKeyAttribute, Arrays.asList(hashKey), tableKey.getHashKeyElement().getAttributeType());
-            item.put(tableKey.getHashKeyElement().getAttributeName(), hashKeyAttribute);
+            setAttribute(hashKeyAttribute, Arrays.asList(hashKey), tableKey.getHashKeyAttributeType());
+            item.put(tableKey.getHashKeyAttributeName(), hashKeyAttribute);
             if ( rangeKey.length() > 0 ) {
                 AttributeValue rangeKeyAttribute = new AttributeValue();
-                setAttribute(rangeKeyAttribute, Arrays.asList(rangeKey), tableKey.getRangeKeyElement()
-                        .getAttributeType());
-                item.put(tableKey.getRangeKeyElement().getAttributeName(), rangeKeyAttribute);
+                setAttribute(rangeKeyAttribute, Arrays.asList(rangeKey), tableKey.getRangeKeyAttributeType());
+                item.put(tableKey.getRangeKeyAttributeName(), rangeKeyAttribute);
             }
             return item;
         }
@@ -1042,7 +1021,7 @@ public class DynamoDBTableEditor extends EditorPart {
 
         private TextCellEditorListener(final Table table, final TableEditor editor) {
             this.table = table;
-            this.editor = editor;            
+            this.editor = editor;
         }
 
         public void handleEvent(final Event event) {
@@ -1068,15 +1047,15 @@ public class DynamoDBTableEditor extends EditorPart {
                 // We don't care about clicks in the first 1 or 2 columns since
                 // they are read-only, except in the last row.
                 final boolean isLastRow = row == table.getItemCount() - 1;
-                int numKeyColumns = tableKey.getRangeKeyElement() == null ? 1 : 2;
+                int numKeyColumns = tableKey.hasRangeKey() ? 2 : 1;
                 for ( int col = 0; col < table.getColumnCount(); col++ ) {
-                    
+
                     Rectangle rect = item.getBounds(col);
                     if ( rect.contains(pt) ) {
                         if ( editorComposite != null && !editorComposite.isDisposed() ) {
                             editorComposite.dispose();
                         }
-                        
+
                         if ( isLastRow ) {
                             invokeNewItemDialog(item, row);
                             return;
@@ -1093,15 +1072,15 @@ public class DynamoDBTableEditor extends EditorPart {
                         Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData();
                         final AttributeValue attributeValue = dynamoDbItem.containsKey(attributeName) ? dynamoDbItem
                                 .get(attributeName) : new AttributeValue();
-                                
+
                         // If this is a binary value, don't allow editing
                         if ( attributeValue != null && (attributeValue.getBS() != null || attributeValue.getB() != null) ) {
                             invokeBinaryValueDialog(item, attributeName, column, rowNum);
                             return;
                         }
-                                
+
                         configureCellEditor(item, column, rowNum, attributeName, attributeValue);
-                        
+
                         // If this is a multi-value item, don't allow textual editing
                         if ( attributeValue != null
                                 && (attributeValue.getSS() != null || attributeValue.getNS() != null) ) {
@@ -1160,17 +1139,17 @@ public class DynamoDBTableEditor extends EditorPart {
             for (int i : table.getSelectionIndices()) {
                 selectionIndices.add(i);
             }
-            
+
             // Remove all these indices from the data model of the content
             // provider. We go through them backwards to avoid having to
             // recalculate offsets caused by the list shifting to fill in the
             // gaps.
             Collections.sort(selectionIndices);
             for (int i = selectionIndices.size() - 1; i >= 0; i--) {
-                Integer selectionIndex = selectionIndices.get(i);                
+                Integer selectionIndex = selectionIndices.get(i);
                 contentProvider.elementList.remove(selectionIndex.intValue());
 
-                Key key = getKey(table.getItem(selectionIndex));                
+                Map<String, AttributeValue> key = getKey(table.getItem(selectionIndex));
                 editedItems.remove(key);
                 // If this is a newly-added item, don't try to issue a delete
                 // request for it.
@@ -1180,9 +1159,9 @@ public class DynamoDBTableEditor extends EditorPart {
                     deletedItems.add(key);
                 }
             }
-            
+
             markDirty();
-            
+
             viewer.refresh();
         }
 
@@ -1212,7 +1191,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     TextCellEditorListener.this.editorComposite.dispose();
                 }
             });
-            
+
             editorComposite.multiValueEditorButton.addSelectionListener(new SelectionAdapter() {
 
                 @Override
@@ -1266,16 +1245,16 @@ public class DynamoDBTableEditor extends EditorPart {
             Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData();
             MultiValueAttributeEditorDialog multiValueEditorDialog = new MultiValueAttributeEditorDialog(Display
                     .getDefault().getActiveShell(), dynamoDbItem.get(attributeName));
-            
+
             int returnValue = multiValueEditorDialog.open();
             if ( returnValue == 0 ) {
                 markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), isString ? SS : NS);
             } else if (returnValue == 1) {
-                markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), isString ? S : N);                
+                markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), isString ? S : N);
             }
         }
     }
-    
+
     /**
      * Invokes a new dialog to allow creation of a new item in the table.
      */
@@ -1286,22 +1265,22 @@ public class DynamoDBTableEditor extends EditorPart {
         if ( result == 0 ) {
             Map<String, AttributeValue> newItem = dialog.getNewItem();
             contentProvider.addItem(newItem);
-            Key key = getKey(tableItem);
+            Map<String, AttributeValue> key = getKey(tableItem);
             addedItems.add(key);
             markModified(tableItem, null, row, 0,
-                    getValuesFromAttribute(newItem.get(tableKey.getHashKeyElement().getAttributeName())),
-                    getDataType(tableKey.getHashKeyElement().getAttributeType()));
-            if ( tableKey.getRangeKeyElement() != null ) {
+                    getValuesFromAttribute(newItem.get(tableKey.getHashKeyAttributeName())),
+                    getDataType(tableKey.getHashKeyAttributeType()));
+            if ( tableKey.hasRangeKey() ) {
                 markModified(tableItem, null, row, 1,
-                        getValuesFromAttribute(newItem.get(tableKey.getRangeKeyElement().getAttributeName())),
-                        getDataType(tableKey.getRangeKeyElement().getAttributeType()));
+                        getValuesFromAttribute(newItem.get(tableKey.getRangeKeyAttributeName())),
+                        getDataType(tableKey.getRangeKeyAttributeType()));
             }
         }
     }
 
     /**
      * Marks the given tree item and column modified.
-     * 
+     *
      * TODO: type checking for numbers
      */
     protected void markModified(final TableItem item, final Text editorControl, final int row, final int column, final Collection<String> newValue, int dataType) {
@@ -1313,31 +1292,31 @@ public class DynamoDBTableEditor extends EditorPart {
             attributeValue = new AttributeValue();
             dynamoDbItem.put(attributeName, attributeValue);
         }
-        
+
         setAttribute(attributeValue, newValue, dataType);
 
-        Key editedItemKey = getKey(item);
+        Map<String, AttributeValue> editedItemKey = getKey(item);
         if ( !editedItems.containsKey(editedItemKey) ) {
             editedItems.add(editedItemKey, new EditedItem(dynamoDbItem, item));
         }
-        
+
         // Don't add key attributes to the list of edited attributes
-        if ( !attributeName.equals(tableKey.getHashKeyElement().getAttributeName())
-                && (tableKey.getRangeKeyElement() == null || !attributeName.equals(tableKey.getRangeKeyElement().getAttributeName())) ) {
+        if ( !attributeName.equals(tableKey.getHashKeyAttributeName())
+                && ( !tableKey.hasRangeKey() || !attributeName.equals(tableKey.getRangeKeyAttributeName())) ) {
             editedItems.get(editedItemKey).markAttributeEdited(attributeName);
         }
 
         // We may already have another entry here, but since we're updating the
         // data model as we go, we can overwrite as many times as we want.
         editedItems.update(editedItemKey, dynamoDbItem);
-        
+
         item.setText(column, format(attributeValue));
-        
+
         // Treat the empty string as a null for easier saving
         if ( newValue.size() == 1 && newValue.iterator().next().length() == 0 ) {
             dynamoDbItem.remove(attributeName);
         }
-        
+
         item.setForeground(column, Display.getDefault().getSystemColor(SWT.COLOR_RED));
         if ( editorControl != null )
             editorControl.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
@@ -1348,14 +1327,98 @@ public class DynamoDBTableEditor extends EditorPart {
      * Returns a key for recording a change to the item given, reusing the key
      * if it exists or returning a new one otherwise.
      */
-    private Key getKey(final TableItem item) {
+    private Map<String, AttributeValue> getKey(final TableItem item) {
         @SuppressWarnings("unchecked")
-        Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData();
-        Key key = new Key().withHashKeyElement(dynamoDbItem.get(tableKey.getHashKeyElement().getAttributeName()));
-        if ( tableKey.getRangeKeyElement() != null ) {
-            key.withRangeKeyElement(dynamoDbItem.get(tableKey.getRangeKeyElement().getAttributeName()));
-        }
+        Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData(); 
         
-        return key;
+        Map<String, AttributeValue> keyAttributes = new HashMap<String, AttributeValue>();
+  
+        String hashKeyAttributeName = tableKey.getHashKeyAttributeName();
+        keyAttributes.put(hashKeyAttributeName, dynamoDbItem.get(hashKeyAttributeName));
+        
+        if ( tableKey.hasRangeKey() ) {
+        	String rangeKeyAttributeName = tableKey.getRangeKeyAttributeName();
+        	keyAttributes.put(rangeKeyAttributeName, dynamoDbItem.get(rangeKeyAttributeName));
+        }
+
+        return keyAttributes;
+    }
+    
+    /**
+     * Use DynamoDB V2 to get the attribtue names and types of both hash and range keys 
+     * of the table, and then save them in a KeySchemaWithAttributeType object.
+     */
+    private static KeySchemaWithAttributeType convertToKeySchemaWithAttributeType(
+            TableDescription table) {
+        KeySchemaWithAttributeType keySchema = new KeySchemaWithAttributeType();
+        String hashKeyAttributeName = null;
+        String rangeKeyAttributeName = null;
+        for (KeySchemaElement key : table.getKeySchema()) {
+            if (key.getKeyType().equals(KeyType.HASH.toString())) {
+                hashKeyAttributeName = key.getAttributeName();
+            } else if (key.getKeyType().equals(KeyType.RANGE.toString())) {
+                rangeKeyAttributeName = key.getAttributeName();
+            }
+        }
+        for (AttributeDefinition attribute : table.getAttributeDefinitions()) {
+            if (hashKeyAttributeName.equals(attribute.getAttributeName())) {
+                keySchema.setHashKeyElement(hashKeyAttributeName,
+                        attribute.getAttributeType());
+            }
+            if (rangeKeyAttributeName != null
+                    && rangeKeyAttributeName.equals(attribute
+                            .getAttributeName())) {
+                keySchema.setRangeKeyElement(rangeKeyAttributeName,
+                        attribute.getAttributeType());
+            }
+        }
+
+        return keySchema;
+    }
+    
+    /**
+     * DynamoDB v2 no longer returns AttributeType as part of KeySchemaElement,
+     * so we use this class to record the attribute names and types of both
+     * hash key and range key.
+     *
+     */
+    private static class KeySchemaWithAttributeType {
+
+        private String hashKeyAttributeName;
+        private String hashKeyAttributeType;
+        private String rangeKeyAttributeName;
+        private String rangeKeyAttributeType;
+
+        public void setHashKeyElement(String attributeName, String attributeType) {
+            hashKeyAttributeName = attributeName;
+            hashKeyAttributeType = attributeType;
+        }
+
+        public void setRangeKeyElement(String attributeName,
+                String attributeType) {
+            rangeKeyAttributeName = attributeName;
+            rangeKeyAttributeType = attributeType;
+        }
+
+        public boolean hasRangeKey() {
+            return rangeKeyAttributeName != null
+                    && rangeKeyAttributeType != null;
+        }
+
+        public String getHashKeyAttributeName() {
+            return hashKeyAttributeName;
+        }
+
+        public String getHashKeyAttributeType() {
+            return hashKeyAttributeType;
+        }
+
+        public String getRangeKeyAttributeName() {
+            return rangeKeyAttributeName;
+        }
+
+        public String getRangeKeyAttributeType() {
+            return rangeKeyAttributeType;
+        }
     }
 }

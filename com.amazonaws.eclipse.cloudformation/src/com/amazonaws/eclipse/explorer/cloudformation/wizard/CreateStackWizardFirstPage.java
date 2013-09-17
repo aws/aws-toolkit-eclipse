@@ -96,6 +96,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
     private static final String LOADING_STACKS = "Loading stacks...";
     private static final String OK_MESSAGE = "Provide a name and a template for your new stack.";
+    private static final String ESTIMATE_COST_OK_MESSAGE = "Provide a template to esitmate the cost";
     private static final String VALIDATING = "validating";
     private static final String INVALID = "invalid";
     private static final String VALID = "valid";
@@ -126,9 +127,14 @@ class CreateStackWizardFirstPage extends WizardPage {
     private CreateStackWizard wizard;
 
     protected CreateStackWizardFirstPage(CreateStackWizard createStackWizard) {
-        super(OK_MESSAGE);
-        setMessage(OK_MESSAGE);
+        super("");
         wizard = createStackWizard;
+        if (wizard.getDataModel().getMode() == Mode.EstimateCost) {
+            setMessage(ESTIMATE_COST_OK_MESSAGE);
+        } else {
+            setMessage(OK_MESSAGE);
+        }
+
         stackName = PojoObservables.observeValue(wizard.getDataModel(), "stackName");
         templateUrl = PojoObservables.observeValue(wizard.getDataModel(), "templateUrl");
         templateFile = PojoObservables.observeValue(wizard.getDataModel(), "templateFile");
@@ -155,8 +161,9 @@ class CreateStackWizardFirstPage extends WizardPage {
         FieldDecoration fieldDecoration = FieldDecorationRegistry.getDefault().getFieldDecoration(
                 FieldDecorationRegistry.DEC_ERROR);
         int fieldDecorationWidth = fieldDecoration.getImage().getBounds().width;
-
+        if (wizard.getDataModel().getMode() != Mode.EstimateCost) {
         createStackNameControl(comp, fieldDecorationWidth);
+        }
         createTemplateSelectionControl(comp, fieldDecorationWidth);
 
         // Some fields are only for creation, not update
@@ -191,14 +198,14 @@ class CreateStackWizardFirstPage extends WizardPage {
             stackNameControl = stackNameText;
         } else {
             Combo combo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
-            
+
             if (stackName.getValue() != null) {
             	combo.setItems(new String[] { (String)stackName.getValue() });
             	stackNameExists = true;
             } else {
             combo.setItems(new String[] { LOADING_STACKS });
             }
-            
+
             combo.select(0);
             bindingContext.bindValue(SWTObservables.observeSelection(combo), stackName).updateTargetToModel();
             stackNameControl = combo;
@@ -530,11 +537,15 @@ class CreateStackWizardFirstPage extends WizardPage {
                 IStatus status = (IStatus) value;
                 if ( status.isOK() ) {
                     setErrorMessage(null);
-                    setMessage(OK_MESSAGE, Status.OK);
-                } else if ( status.getSeverity() == Status.WARNING ) {
+                    if (wizard.getDataModel().getMode() == Mode.EstimateCost) {
+                        setMessage(ESTIMATE_COST_OK_MESSAGE, Status.OK);
+                    } else {
+                        setMessage(OK_MESSAGE, Status.OK);
+                    }
+                } else if (status.getSeverity() == Status.WARNING) {
                     setErrorMessage(null);
                     setMessage(status.getMessage(), Status.WARNING);
-                } else if ( status.getSeverity() == Status.ERROR ) {
+                } else if (status.getSeverity() == Status.ERROR) {
                     setErrorMessage(status.getMessage());
                 }
 

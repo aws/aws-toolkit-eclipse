@@ -56,20 +56,22 @@ import com.amazonaws.services.elasticbeanstalk.model.Instance;
 @SuppressWarnings("restriction")
 public class Environment extends ServerDelegate {
 
-    private static final String PROPERTY_REGION_ID               = "regionId";
-    private static final String PROPERTY_REGION_ENDPOINT         = "regionEndpoint";
-    private static final String PROPERTY_APPLICATION_NAME        = "applicationName";
-    private static final String PROPERTY_APPLICATION_DESCRIPTION = "applicationDescription";
-    private static final String PROPERTY_ENVIRONMENT_NAME        = "environmentName";
-    private static final String PROPERTY_ENVIRONMENT_DESCRIPTION = "environmentDescription";
-    private static final String PROPERTY_KEY_PAIR_NAME           = "keyPairName";
-    private static final String PROPERTY_CNAME                   = "cname";
-    private static final String PROPERTY_HEALTHCHECK_URL         = "healthcheckUrl";
-    private static final String PROPERTY_SSL_CERT_ID             = "sslCertId";
-    private static final String PROPERTY_ACCOUNT_ID              = "accountId";
-    private static final String PROPERTY_SNS_ENDPOINT            = "snsEndpoint";
-    private static final String PROPERTY_SOLUTION_STACK          = "solutionStack";
-    private static final String PROPERTY_INCREMENTAL_DEPLOYMENT  = "incrementalDeployment";
+    private static final String PROPERTY_REGION_ID                = "regionId";
+    private static final String PROPERTY_REGION_ENDPOINT          = "regionEndpoint";
+    private static final String PROPERTY_APPLICATION_NAME         = "applicationName";
+    private static final String PROPERTY_APPLICATION_DESCRIPTION  = "applicationDescription";
+    private static final String PROPERTY_ENVIRONMENT_NAME         = "environmentName";
+    private static final String PROPERTY_ENVIRONMENT_TYPE         = "environmentType";
+    private static final String PROPERTY_ENVIRONMENT_DESCRIPTION  = "environmentDescription";
+    private static final String PROPERTY_KEY_PAIR_NAME            = "keyPairName";
+    private static final String PROPERTY_CNAME                    = "cname";
+    private static final String PROPERTY_HEALTHCHECK_URL          = "healthcheckUrl";
+    private static final String PROPERTY_SSL_CERT_ID              = "sslCertId";
+    private static final String PROPERTY_ACCOUNT_ID               = "accountId";
+    private static final String PROPERTY_SNS_ENDPOINT             = "snsEndpoint";
+    private static final String PROPERTY_SOLUTION_STACK           = "solutionStack";
+    private static final String PROPERTY_INCREMENTAL_DEPLOYMENT   = "incrementalDeployment";
+    private static final String PROPERTY_IAM_ROLE_NAME            = "iamRoleName";
 
     private static Map<String, EnvironmentDescription> map = new HashMap<String, EnvironmentDescription>();
 
@@ -105,6 +107,14 @@ public class Environment extends ServerDelegate {
 
     public void setApplicationDescription(String applicationDescription) {
         setAttribute(PROPERTY_APPLICATION_DESCRIPTION, applicationDescription);
+    }
+
+    public void setEnvironmentType(String environmentType) {
+        setAttribute(PROPERTY_ENVIRONMENT_TYPE, environmentType);
+    }
+
+    public String getEnvironmentType() {
+        return getAttribute(PROPERTY_ENVIRONMENT_TYPE, (String)null);
     }
 
     public String getEnvironmentName() {
@@ -192,6 +202,29 @@ public class Environment extends ServerDelegate {
 
     public String getRegionId() {
        return getAttribute(PROPERTY_REGION_ID, (String)null);
+    }
+
+    /**
+     * Sets the name for the optional IAM role for this environment. If a role is
+     * specified, the EC2 instances launched in this environment will have that
+     * role available, including secure credentials distribution.
+     *
+     * @param name
+     *            The name for a valid IAM role.
+     */
+    public void setIamRoleName(String name) {
+        setAttribute(PROPERTY_IAM_ROLE_NAME, name);
+    }
+
+    /**
+     * Returns the name of the optional IAM role for this environment. If a role
+     * is specified, the EC2 instances launched in this environment will have
+     * that role available, including secure credentials distribution.
+     *
+     * @return The name of a valid IAM role.
+     */
+    public String getIamRoleName() {
+        return getAttribute(PROPERTY_IAM_ROLE_NAME, (String)null);
     }
 
 

@@ -46,7 +46,7 @@ public class CreateStackWizardDataModel {
     private Mode mode = Mode.Create;
 
     public static enum Mode {
-        Create, Update
+        Create, Update, EstimateCost
     };
 
     public List<TemplateParameter> getTemplateParameters() {

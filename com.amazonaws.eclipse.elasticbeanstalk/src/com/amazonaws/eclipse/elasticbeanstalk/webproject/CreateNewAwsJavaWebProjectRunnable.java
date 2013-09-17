@@ -63,9 +63,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -75,9 +73,12 @@ import org.eclipse.jst.j2ee.classpathdep.ClasspathDependencyUtil;
 import org.eclipse.jst.j2ee.classpathdep.UpdateClasspathAttributeUtil;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelProperties;
+import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetDataModelProperties;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetProjectCreationDataModelProperties;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetProjectCreationDataModelProperties.FacetDataModelMap;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
@@ -113,7 +114,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     private static final String GENERIC_JEE_RUNTIME_ID = "org.eclipse.jst.server.core.runtimeType";
 
     private final NewAwsJavaWebProjectDataModel dataModel;
-    
+
     /*
      * TODO: it would be better to inspect these from the travel log itself
      * somehow -- right now it's coupled tightly to that file structure.
@@ -140,7 +141,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
      * @see org.eclipse.jface.operation.IRunnableWithProgress#run(org.eclipse.core.runtime.IProgressMonitor)
      */
     public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
-        SubMonitor monitor = SubMonitor.convert(progressMonitor, "Creating new AWS Java web project", 100);
+        SubMonitor monitor = SubMonitor.convert(progressMonitor, "Creating new AWS Java web project", 110);
 
         try {
             IRuntime genericJeeServerRuntime = configureGenericJeeServerRuntime();
@@ -165,7 +166,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(dataModel.getProjectName());
             IJavaProject javaProject = JavaCore.create(project);
             JavaSdkManager sdkManager = JavaSdkManager.getInstance();
-            
+
             // When installing the SDK, make sure we're not in the middle of
             // bootstrapping the environment
             JavaSdkInstall sdkInstall = null;
@@ -183,7 +184,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
                     }
                 }
             }
-            
+
             if ( sdkInstall == null && installationJob != null ) {
                 installationJob.join();
             }
@@ -192,10 +193,10 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             if ( sdkInstall != null ) {
                 sdkInstall.writeMetadataToProject(javaProject);
                 AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(javaProject, sdkInstall);
-            }            
-            
+            }
+
             monitor.worked(20);
-            
+
             // Mark it as a Java EE module dependency
             // TODO: If the user changes the SDK version (through the properties page) then we'll lose the
             //       Java EE module dependency classpath entry attribute.
@@ -212,6 +213,10 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             CredentialsUtils credentialsUtils = new CredentialsUtils();
             AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(dataModel.getAccountId());
             credentialsUtils.addAwsCredentialsFileToProject(project, accountInfo.getAccessKey(), accountInfo.getSecretKey());
+            monitor.worked(10);
+
+            // Configure the Tomcat session manager
+            if (dataModel.getUseDynamoDBSessionManagement()) addSessionManagerConfigurationFiles(project);
             monitor.worked(10);
         } catch (Exception e) {
             throw new InvocationTargetException(e);
@@ -306,6 +311,43 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         }
     }
 
+    private void addSessionManagerConfigurationFiles(IProject project) throws IOException, CoreException {
+        Bundle bundle = ElasticBeanstalkPlugin.getDefault().getBundle();
+        URL url = FileLocator.resolve(bundle.getEntry("/"));
+        IPath templateRoot = new Path(url.getFile(), "templates");
+
+        FileUtils.copyDirectory(
+                templateRoot.append("dynamodb-session-manager").toFile(),
+                project.getLocation().toFile(),
+                new SvnMetadataFilter());
+
+        // Add the user's credentials to context.xml
+        File localContextXml = project.getLocation()
+            .append(".ebextensions")
+            .append("context.xml").toFile();
+        AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(dataModel.getAccountId());
+        String contextContents = FileUtils.readFileToString(localContextXml);
+        contextContents = contextContents.replace("{ACCESS_KEY}", accountInfo.getAccessKey());
+        contextContents = contextContents.replace("{SECRET_KEY}", accountInfo.getSecretKey());
+        FileUtils.writeStringToFile(localContextXml, contextContents);
+
+        project.refreshLocal(IResource.DEPTH_INFINITE, null);
+
+        // Update the J2EE Deployment Assembly by creating a link from the '/.ebextensions'
+        // folder to the '/WEB-INF/.ebextensions' folder in the web assembly mapping for WTP
+        IVirtualComponent rootComponent = ComponentCore.createComponent(project);
+        IVirtualFolder rootFolder = rootComponent.getRootFolder();
+        try {
+            Path source = new Path("/.ebextensions");
+            Path target = new Path("/WEB-INF/.ebextensions");
+            IVirtualFolder subFolder = rootFolder.getFolder(target);
+            subFolder.createLink(source, 0, null);
+        } catch( CoreException ce ) {
+            String message = "Unable to configure deployment assembly to map .ebextension directory";
+            AwsToolkitCore.getDefault().logException(message, ce);
+        }
+    }
+
     private void addTemplateFiles(IProject project) throws IOException, CoreException {
         Bundle bundle = ElasticBeanstalkPlugin.getDefault().getBundle();
         URL url = FileLocator.resolve(bundle.getEntry("/"));
@@ -327,14 +369,13 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         project.refreshLocal(IResource.DEPTH_INFINITE, null);
     }
 
-
     private void unzipSampleAppTemplate(File file, File destination) throws FileNotFoundException, IOException {
-        
+
         // Get a temp directory
         File temp = File.createTempFile("travellog", "");
         temp.delete();
         temp.mkdirs();
-        
+
         ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(file));
 
         ZipEntry zipEntry = null;
@@ -363,11 +404,11 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
                 FileUtils.copyDirectory(languageDir, travellogDir);
             }
         }
-        
+
         // Override the sample content properties
         LinkedList<String> bundlePropertiesContents = new LinkedList<String>();
         bundlePropertiesContents.add("bundleBucket = " + BUNDLE_BUCKET);
-        bundlePropertiesContents.add("bundlePath = " + LANGUAGE_BUNDLE_PATHS.get(dataModel.getLanguage()));        
+        bundlePropertiesContents.add("bundlePath = " + LANGUAGE_BUNDLE_PATHS.get(dataModel.getLanguage()));
         File bundleProperties = new File(srcDir, "content-bundle.properties");
         truncateFile(bundleProperties);
         FileUtils.writeLines(bundleProperties, bundlePropertiesContents);
@@ -388,11 +429,11 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         File serviceEndpoints = new File(srcDir, "endpoints.properties");
         truncateFile(serviceEndpoints);
         FileUtils.writeLines(serviceEndpoints, endpoints);
-        
+
         // Finally, copy the entire travellog directory into the destination
         FileUtils.copyDirectory(travellogDir, destination);
     }
-    
+
     private void truncateFile(File f) throws FileNotFoundException, IOException {
         new RandomAccessFile(f, "rw").setLength(0);
     }

@@ -1,0 +1,32 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "s3:List*",
+        "s3:Put*",
+        "s3:Get*",
+        "s3:DeleteObject",
+        "dynamodb:DescribeTable",
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:BatchGetItem",
+        "dynamodb:UpdateTable",
+        "rds:DescribeDBInstances",
+        "rds:DescribeDBSecurityGroups",
+        "redshift:DescribeClusters",
+        "redshift:DescribeClusterSecurityGroups",
+        "cloudwatch:PutMetricData",
+        "datapipeline:PollForTask",
+        "datapipeline:ReportTaskProgress",
+        "datapipeline:SetTaskStatus",
+        "datapipeline:PollForTask",
+        "datapipeline:ReportTaskRunnerHeartbeat"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}

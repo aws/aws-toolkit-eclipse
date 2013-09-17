@@ -19,12 +19,14 @@ import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.action.Action;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.forms.ManagedForm;
 import org.eclipse.wst.server.ui.editor.ServerEditorPart;
 
 import com.amazonaws.eclipse.core.ui.CancelableThread;
+
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 
 /**
@@ -42,6 +44,7 @@ public abstract class AbstractEnvironmentConfigEditorPart extends ServerEditorPa
     protected ManagedForm managedForm;
     protected Environment environment;
     protected boolean dirty = false;
+    protected Action refreshAction;
 
     // Data model and binding context
     protected EnvironmentConfigDataModel model;
@@ -73,6 +76,7 @@ public abstract class AbstractEnvironmentConfigEditorPart extends ServerEditorPa
                 }
             }
         });
+
     }
 
     @Override
@@ -80,12 +84,14 @@ public abstract class AbstractEnvironmentConfigEditorPart extends ServerEditorPa
         managedForm.getForm().setFocus();
     }
 
-    void markDirty() {
-        if ( !dirty ) {
+    public void markDirty() {
+        if (!dirty) {
             dirty = true;
             execute(new NullOperation());
         }
     }
+
+
 
     @Override
     public boolean isDirty() {
@@ -104,4 +110,21 @@ public abstract class AbstractEnvironmentConfigEditorPart extends ServerEditorPa
             }
         }
     }
+
+    public DataBindingContext getDataBindingContext() {
+           return bindingContext;
+    }
+
+    /**
+     * Refreshes the editor with the latest values
+     */
+    public abstract void refresh(String templateName);
+
+    /**
+     * Destroy the controls to let refresh method to redraw them.
+     * Sometimes we do not need to destroy these controls before refresh
+     */
+    public abstract void destroyOldLayouts();
+
+
 }

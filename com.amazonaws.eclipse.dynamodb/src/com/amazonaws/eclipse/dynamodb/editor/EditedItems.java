@@ -19,8 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.amazonaws.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodb.model.Key;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 
 /**
  * Collection type for edited items in the dynamo table editor.
@@ -32,26 +31,26 @@ public class EditedItems {
      * in the same order as insertions. This is so that updates are done in the
      * same order as edits.
      */
-    private final Map<Key, EditedItem> editedItems = new LinkedHashMap<Key, EditedItem>();
+    private final Map<Map<String, AttributeValue>, EditedItem> editedItems = new LinkedHashMap<Map<String, AttributeValue>, EditedItem>();
         
     /**
      * @see java.util.Map#get(java.lang.Object)
      */
-    public EditedItem get(Key key) {
+    public EditedItem get(Map<String, AttributeValue> key) {
         return editedItems.get(key);
     }
 
     /**
      * @see java.util.Map#put(java.lang.Object, java.lang.Object)
      */
-    public void add(Key key, EditedItem value) {
+    public void add(Map<String, AttributeValue> key, EditedItem value) {
         editedItems.put(key, value);
     }
     
     /**
      * Updates the item with the key given to contain the attributes given.
      */
-    public void update(Key key, Map<String, AttributeValue> dynamoItem) {
+    public void update(Map<String, AttributeValue> key, Map<String, AttributeValue> dynamoItem) {
         editedItems.get(key).setAttributes(dynamoItem);
     }
 
@@ -65,7 +64,7 @@ public class EditedItems {
     /**
      * @see java.util.Map#remove(java.lang.Object)
      */
-    public EditedItem remove(Key key) {
+    public EditedItem remove(Map<String, AttributeValue> key) {
         return editedItems.remove(key);
     }
 
@@ -79,7 +78,7 @@ public class EditedItems {
     /**
      * Returns an iterator over all the entries in the collection.
      */
-    public Iterator<Entry<Key, EditedItem>> iterator() {
+    public Iterator<Entry<Map<String, AttributeValue>, EditedItem>> iterator() {
         return editedItems.entrySet().iterator();
     }
 

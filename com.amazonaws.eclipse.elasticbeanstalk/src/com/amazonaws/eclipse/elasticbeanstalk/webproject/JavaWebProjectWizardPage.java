@@ -46,6 +46,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -53,8 +54,13 @@ import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
+import com.amazonaws.eclipse.core.ui.WebLinkListener;
 
 final class JavaWebProjectWizardPage extends WizardPage {
+
+    private static final String TOMCAT_SESSION_MANAGER_DOCUMENTATION =
+            "http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/java-dg-tomcat-session-manager.html";
+
     private Text projectNameText;
     private Button basicTemplateRadioButton;
     private Button travelLogRadioButton;
@@ -68,6 +74,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
         new AggregateValidationStatus(bindingContext, AggregateValidationStatus.MAX_SEVERITY);
     private Combo regionCombo;
     private Combo languageCombo;
+    private Button useDynamoDBSessionManagerCheckBox;
 
 
     JavaWebProjectWizardPage(NewAwsJavaWebProjectDataModel dataModel) {
@@ -112,8 +119,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
         GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
         layoutData.horizontalSpan = 2;
-        layoutData.minimumWidth = 100;
-        layoutData.widthHint = 500;
+        layoutData.widthHint = getContainerWidth() - 50;
 
         Group group = new Group(composite, SWT.NONE);
         group.setLayoutData(layoutData);
@@ -125,8 +131,50 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
         dataModel.setSampleAppIncluded(false);
         createSamplesGroup(composite);
+        createSessionManagerGroup(composite);
 
         bindControls();
+        composite.pack();
+    }
+
+    private void createSessionManagerGroup(Composite composite) {
+        Group group = new Group(composite, SWT.NONE);
+        group.setText("Amazon DynamoDB Session Management:");
+        GridLayout layout = new GridLayout(1, false);
+        layout.verticalSpacing = 3;
+        group.setLayout(layout);
+        GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        layoutData.horizontalSpan = 2;
+        group.setLayoutData(layoutData);
+
+        useDynamoDBSessionManagerCheckBox = new Button(group, SWT.CHECK);
+        useDynamoDBSessionManagerCheckBox.setText("Store session data in Amazon DynamoDB");
+
+        newLabel(group, "This option configures your project with a custom session manager that persists sessions using Amazon DynamoDB when running in an AWS Elastic Beanstalk environment.  ");
+        newLabel(group, "This option requires running in a Tomcat 7 environment and is not currently supported for Tomcat 6.");
+        newLink(group, "<a href=\"" + TOMCAT_SESSION_MANAGER_DOCUMENTATION + "\">More information on the Amazon DynamoDB Session Manager for Tomcat</a>");
+    }
+
+    private Label newLabel(Composite parent, String text) {
+        Label label = new Label(parent, SWT.WRAP);
+        label.setText(text);
+        GridData data = new GridData(SWT.FILL, SWT.TOP, true, false);
+        data.horizontalIndent = 20;
+        data.widthHint = getContainerWidth() - 30;
+        label.setLayoutData(data);
+        return label;
+    }
+
+    private Link newLink(Composite parent, String text) {
+        Link link = new Link(parent, SWT.WRAP);
+        link.setText(text);
+        GridData data = new GridData(SWT.FILL, SWT.TOP, true, false);
+        data.horizontalIndent = 20;
+        data.widthHint = getContainerWidth() - 30;
+        link.setLayoutData(data);
+        link.addListener(SWT.Selection, new WebLinkListener());
+
+        return link;
     }
 
     private void createSamplesGroup(Composite composite) {
@@ -146,7 +194,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
         basicTemplateDescriptionLabel.setText("A simple Java web application with a single JSP.");
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         gridData.horizontalIndent = 20;
-        gridData.widthHint = 100;
+        gridData.widthHint = getContainerWidth() - 30;
         basicTemplateDescriptionLabel.setLayoutData(gridData);
 
         travelLogRadioButton = new Button(group, SWT.RADIO);
@@ -157,7 +205,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
         Label travelLogDescriptionLabel = new Label(group, SWT.WRAP);
         gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         gridData.horizontalIndent = 20;
-        gridData.widthHint = 100;
+        gridData.widthHint = getContainerWidth() - 30;
         travelLogDescriptionLabel.setLayoutData(gridData);
         travelLogDescriptionLabel.setText("A Java web application demonstrating the use of Amazon S3, Amazon SimpleDB, and Amazon SNS.");
 
@@ -165,7 +213,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
         GridLayoutFactory.fillDefaults().numColumns(2).margins(30, 10).applyTo(regionAndLanguage);
 
         final List<Control> controlsToEnable = new LinkedList<Control>();
-        
+
         Label regionLabel = new Label(regionAndLanguage, SWT.READ_ONLY);
         regionLabel.setText("Use services in this region: ");
         controlsToEnable.add(regionLabel);
@@ -221,7 +269,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
                 SWTObservables.observeText(projectNameText, SWT.Modify),
                 PojoObservables.observeValue(dataModel, dataModel.PROJECT_NAME),
                 projectNameUpdateStrategy, null);
-        
+
         final IObservableValue accountId = new WritableValue();
         accountId.setValue(dataModel.getAccountId());
         accountSelectionComposite.addSelectionListener(new SelectionAdapter() {
@@ -238,6 +286,12 @@ final class JavaWebProjectWizardPage extends WizardPage {
                 .updateTargetToModel();
         bindingContext.bindValue(SWTObservables.observeSelection(languageCombo),
                 PojoObservables.observeValue(dataModel, dataModel.LANGUAGE), null, null).updateTargetToModel();
+        bindingContext.bindValue(SWTObservables.observeSelection(useDynamoDBSessionManagerCheckBox),
+                PojoObservables.observeValue(dataModel, dataModel.USE_DYNAMODB_SESSION_MANAGEMENT), null, null).updateTargetToModel();
+    }
+
+    private int getContainerWidth() {
+        return this.getContainer().getShell().getSize().x;
     }
 
     /**

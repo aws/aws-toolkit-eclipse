@@ -200,6 +200,12 @@ public class CreateStackWizardSecondPage extends WizardPage {
             label.setText(param.getParameterKey());
 
             Map paramMap = (Map) parameterMap.get(param.getParameterKey());
+
+            // Update the default value in the model.
+            if (wizard.getDataModel().getParameterValues().get(param.getParameterKey()) == null) {
+                wizard.getDataModel().getParameterValues().put(param.getParameterKey(), param.getDefaultValue());
+            }
+
             // If the template enumerates allowed values, present them as a
             // combo drop down
             if ( paramMap.containsKey(ALLOWED_VALUES) ) {
@@ -208,19 +214,10 @@ public class CreateStackWizardSecondPage extends WizardPage {
                 GridDataFactory.fillDefaults().grab(true, false).indent(fieldDecorationWidth, 0).applyTo(combo);
                 combo.setItems(allowedValues.toArray(new String[allowedValues.size()]));
                 observeParameter = SWTObservables.observeSelection(combo);
-                int i = 0;
-                for ( String value : allowedValues ) {
-                    if ( value.equals(param.getDefaultValue()) ) {
-                        break;
-                    }
-                    i++;
-                }
-                combo.select(i);
                 paramControl = combo;
             } else {
                 // Otherwise, just use a text field with validation constraints
                 Text text = new Text(comp, SWT.BORDER);
-                text.setText(param.getDefaultValue() == null ? "" : param.getDefaultValue());
                 GridDataFactory.fillDefaults().grab(true, false).indent(fieldDecorationWidth, 0).applyTo(text);
                 observeParameter = SWTObservables.observeText(text, SWT.Modify);
                 paramControl = text;

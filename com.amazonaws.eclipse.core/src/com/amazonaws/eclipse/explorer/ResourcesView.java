@@ -30,12 +30,20 @@ import org.eclipse.ui.navigator.CommonViewer;
 
 import com.amazonaws.eclipse.core.AccountInfoChangeListener;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.DefaultRegionChangeRefreshListener;
+import com.amazonaws.eclipse.core.ui.IRefreshable;
 
-public class ResourcesView extends CommonNavigator {
+public class ResourcesView extends CommonNavigator implements IRefreshable {
 
     private static final ExplorerNodeOpenListener EXPLORER_NODE_OPEN_LISTENER = new ExplorerNodeOpenListener();
 
     public static final AWSResourcesRootElement rootElement = new AWSResourcesRootElement();
+
+    private CommonViewer viewer;
+
+    private DefaultRegionChangeRefreshListener defaultRegionChangeRefreshListener;
+
+    private AccountChangeListener accountChangeListener;
 
     @Override
     protected Object getInitialInput() {
@@ -44,7 +52,7 @@ public class ResourcesView extends CommonNavigator {
 
     @Override
     protected CommonViewer createCommonViewerObject(Composite aParent) {
-        CommonViewer viewer = super.createCommonViewerObject(aParent);
+        viewer = super.createCommonViewerObject(aParent);
         viewer.addOpenListener(EXPLORER_NODE_OPEN_LISTENER);
         viewer.setAutoExpandLevel(1);
         return viewer;
@@ -53,21 +61,31 @@ public class ResourcesView extends CommonNavigator {
     @Override
     public void dispose() {
         getCommonViewer().removeOpenListener(EXPLORER_NODE_OPEN_LISTENER);
+        if (defaultRegionChangeRefreshListener != null) {
+            defaultRegionChangeRefreshListener.stopListening();
+        }
+        if (accountChangeListener != null) {
+            AwsToolkitCore.getDefault().removeAccountInfoChangeListener(accountChangeListener);
+        }
     }
 
     @Override
     public void init(IViewSite aSite, IMemento aMemento) throws PartInitException {
         super.init(aSite, aMemento);
-        AwsToolkitCore.getDefault().addAccountInfoChangeListener(new AccountChangeListener());
+        accountChangeListener = new AccountChangeListener();
+        AwsToolkitCore.getDefault().addAccountInfoChangeListener(accountChangeListener);
+        defaultRegionChangeRefreshListener = new DefaultRegionChangeRefreshListener(this);
     }
 
     private class AccountChangeListener extends AccountInfoChangeListener {
         @Override
         public void currentAccountChanged() {
+            ContentProviderRegistry.clearAllCachedResponses();
+
             Display.getDefault().asyncExec(new Runnable() {
                 public void run() {
-                    /* TODO: We need to refresh each ContentProviderExtension, too... */
-                    getCommonViewer().refresh();
+                    viewer.refresh();
+                    viewer.collapseAll();
                 }
             });
         }
@@ -87,5 +105,18 @@ public class ResourcesView extends CommonNavigator {
                 }
             }
         }
+
+    }
+
+    public void refreshData() {
+        ContentProviderRegistry.clearAllCachedResponses();
+
+        Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+                viewer.refresh();
+                viewer.collapseAll();
+            }
+        });
+
     }
 }

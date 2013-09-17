@@ -26,6 +26,9 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -62,7 +65,8 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     public static final String IMG_ENVIRONMENT = "environment";
     public static final String IMG_APPLICATION = "application";
 
-    // The plug-in ID
+    private static final String SUBTLE_DIALOG_FONT = "subtle-dialog";
+
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.elasticbeanstalk"; //$NON-NLS-1$
 
     public static final String DEFAULT_REGION = "us-east-1";
@@ -78,6 +82,7 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     public static final String TOMCAT_7_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"; //$NON-NLS-1$
 
     public static final Collection<String> SERVER_TYPE_IDS = new HashSet<String>();
+    private Font subtleDialogFont;
 
     static {
         SERVER_TYPE_IDS.add(TOMCAT_6_SERVER_TYPE_ID);
@@ -122,6 +127,8 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
         syncEnvironmentsJob.cancel();
         ServerCore.removeServerLifecycleListener(newServerListener);
         super.stop(context);
+        if (subtleDialogFont != null) subtleDialogFont.dispose();
+        subtleDialogFont = null;
     }
 
     /* (non-Javadoc)
@@ -147,6 +154,19 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
         imageRegistry.put(IMG_APPLICATION, ImageDescriptor.createFromFile(getClass(), "/icons/application.png"));
 
         return imageRegistry;
+    }
+
+    public Font getSubtleDialogFont() {
+        return subtleDialogFont;
+    }
+
+    public void initializeSubtleDialogFont(Font baseFont) {
+        if (getSubtleDialogFont() != null) return;
+
+        FontData[] fontData = baseFont.getFontData();
+        for (FontData fd : fontData) fd.setStyle(SWT.ITALIC);
+
+        subtleDialogFont = new Font(Display.getDefault(), fontData);
     }
 
     /**

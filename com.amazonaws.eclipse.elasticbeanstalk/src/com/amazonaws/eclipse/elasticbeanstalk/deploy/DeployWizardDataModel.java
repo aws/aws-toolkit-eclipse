@@ -20,6 +20,8 @@ import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
+import com.amazonaws.services.identitymanagement.model.InstanceProfile;
+import com.amazonaws.services.identitymanagement.model.Role;
 
 public class DeployWizardDataModel {
 
@@ -38,6 +40,7 @@ public class DeployWizardDataModel {
 
     public static final String NEW_ENVIRONMENT_NAME = "newEnvironmentName";
     public static final String NEW_ENVIRONMENT_DESCRIPTION = "newEnvironmentDescription";
+    public static final String ENVIRONMENT_TYPE = "environmentType";
 
     public static final String USING_KEY_PAIR = "usingKeyPair";
     public static final String KEY_PAIR = "keyPair";
@@ -50,6 +53,7 @@ public class DeployWizardDataModel {
     public static final String SNS_ENDPOINT = "snsEndpoint";
     public static final String SSL_CERTIFICATE_ID = "sslCertificateId";
     public static final String HEALTH_CHECK_URL = "healthCheckUrl";
+    public static final String IAM_ROLE = "iamRole";
 
     public static final String REGION_ENDPOINT = "regionEndpoint";
 
@@ -62,6 +66,7 @@ public class DeployWizardDataModel {
 
     private String newEnvironmentName;
     private String newEnvironmentDescription;
+    private String environmentType;
 
     private boolean usingCname = false;
     private String cname;
@@ -74,8 +79,10 @@ public class DeployWizardDataModel {
     private String snsEndpoint;
     private String healthCheckUrl;
     private String sslCertificateId;
+    private Role iamRole = new DefaultRole();
 
-    // Share reference to  make is easy to update the composite when region changed.
+    // Share reference to make is easy to update the composite when region
+    // changed.
     private KeyPairComposite keyPairComposite;
 
     public boolean isIncrementalDeployment() {
@@ -123,7 +130,7 @@ public class DeployWizardDataModel {
     }
 
     public String getApplicationName() {
-        if ( isCreatingNewApplication )
+        if (isCreatingNewApplication)
             return newApplicationName;
         return existingApplicationName;
     }
@@ -188,10 +195,17 @@ public class DeployWizardDataModel {
         this.newEnvironmentDescription = newEnvironmentDescription;
     }
 
+    public String getEnvironmentType() {
+        return environmentType;
+    }
+
+    public void setEnvironmentType(String environmentType) {
+        this.environmentType = environmentType;
+    }
+
     public String getRegionEndpoint() {
         return getRegion().getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
     }
-
 
     public String getSnsEndpoint() {
         return snsEndpoint;
@@ -200,7 +214,6 @@ public class DeployWizardDataModel {
     public String getEc2Endpoint() {
         return getRegion().getServiceEndpoints().get(ServiceAbbreviations.EC2);
     }
-
 
     public void setSnsEndpoint(String snsEndpoint) {
         trace("Setting sns endpoint = " + snsEndpoint);
@@ -239,5 +252,32 @@ public class DeployWizardDataModel {
 
     public KeyPairComposite getKeyPairComposite() {
         return keyPairComposite;
+    }
+
+    /**
+     * Sets the optional IAM role to use when launching this environment. Using
+     * a role will cause it to be available on the EC2 instances running as part
+     * of the Beanstalk environment, and allow applications to securely access
+     * credentials from that role.
+     *
+     * @param role
+     *            The role with which to launch EC2 instances in the Beanstalk
+     *            environment.
+     */
+    public void setIamRole(Role role) {
+        this.iamRole = role;
+    }
+
+    /**
+     * Returns the optional IAM role to use when launching this environment.
+     * Using a role will cause the role's security credentials to be securely
+     * distributed to the EC2 instances running as part of the Beanstalk
+     * environment.
+     *
+     * @return The optional role with which to launch EC2 instances in the
+     *         Beanstalk environment.
+     */
+    public Role getIamRole() {
+        return iamRole;
     }
 }

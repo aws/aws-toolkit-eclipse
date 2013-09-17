@@ -110,6 +110,7 @@ public class DeployWizard extends WizardFragment {
         environment.setApplicationName(wizardDataModel.getApplicationName());
         environment.setApplicationDescription(wizardDataModel.getNewApplicationDescription());
         environment.setEnvironmentName(wizardDataModel.getEnvironmentName());
+        environment.setEnvironmentType(wizardDataModel.getEnvironmentType());
         environment.setEnvironmentDescription(wizardDataModel.getNewEnvironmentDescription());
         environment.setRegionId(wizardDataModel.getRegion().getId());
         environment.setHealthCheckUrl(wizardDataModel.getHealthCheckUrl());
@@ -117,6 +118,9 @@ public class DeployWizard extends WizardFragment {
         environment.setSnsEndpoint(wizardDataModel.getSnsEndpoint());
         environment.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
         environment.setIncrementalDeployment(wizardDataModel.isIncrementalDeployment());
+
+        if (wizardDataModel.getIamRole() != null)
+            environment.setIamRoleName(wizardDataModel.getIamRole().getRoleName());
 
         if ( wizardDataModel.isUsingCname() )
             environment.setCname(wizardDataModel.getCname());

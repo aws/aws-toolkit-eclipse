@@ -154,7 +154,7 @@ public class AWSClientFactory {
         String serviceEndpoint = RegionUtils.getRegion(region).getServiceEndpoint(ServiceAbbreviations.S3);
         return serviceEndpoint;
     }
-    
+
     public AmazonSimpleDB getSimpleDBClient() {
         return getSimpleDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SIMPLEDB));
     }
@@ -174,7 +174,11 @@ public class AWSClientFactory {
     public AmazonDynamoDB getDynamoDBClient() {
         return getDynamoDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.DYNAMODB));
     }
-    
+
+    public com.amazonaws.services.dynamodbv2.AmazonDynamoDB getDynamoDBV2Client() {
+        return getDynamoDBV2ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.DYNAMODB));
+    }
+
     public AWSSecurityTokenService getSecurityTokenServiceClient() {
         return getSecurityTokenServiceByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.STS));
     }
@@ -186,7 +190,7 @@ public class AWSClientFactory {
     public AmazonIdentityManagement getIAMClient() {
         return getIAMClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.IAM));
     }
-    
+
     public AmazonCloudFormation getCloudFormationClient() {
         return getCloudFormationClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CLOUD_FORMATION));
     }
@@ -243,10 +247,14 @@ public class AWSClientFactory {
         return getOrCreateClient(endpoint, AmazonDynamoDBClient.class);
     }
 
+    public com.amazonaws.services.dynamodbv2.AmazonDynamoDB getDynamoDBV2ClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient.class);
+    }
+
     public AWSSecurityTokenService getSecurityTokenServiceByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSSecurityTokenServiceClient.class);
     }
-    
+
     public AmazonCloudFormation getCloudFormationClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonCloudFormationClient.class);
     }

@@ -30,6 +30,21 @@ import com.amazonaws.services.sns.model.Topic;
 
 public class SNSContentProvider extends AbstractContentProvider {
 
+    /**
+     * Parse a topic name from a topic ARN, for friendlier display in
+     * the UI.
+     *
+     *  @param topicARN the ARN of the topic
+     *  @return the user-assigned name of the topic
+     */
+    public static String parseTopicName(final String topicARN) {
+        int index = topicARN.lastIndexOf(':');
+        if (index > 0) {
+            return topicARN.substring(index + 1);
+        }
+        return topicARN;
+    }
+
     public static class SNSRootElement {
         public static final SNSRootElement ROOT_ELEMENT = new SNSRootElement();
     }
@@ -38,20 +53,15 @@ public class SNSContentProvider extends AbstractContentProvider {
         private final Topic topic;
 
         public TopicNode(Topic topic) {
-            super(parseTopicName(topic.getTopicArn()), 0,
-                loadImage(AwsToolkitCore.IMAGE_TOPIC),
-                new OpenTopicEditorAction(topic));
+            super(parseTopicName(topic.getTopicArn()),
+                  0,
+                  loadImage(AwsToolkitCore.IMAGE_TOPIC),
+                  new OpenTopicEditorAction(topic));
             this.topic = topic;
         }
 
         public Topic getTopic() {
             return topic;
-        }
-        
-        private static String parseTopicName(String topicArn) {
-            int index = topicArn.lastIndexOf(':');
-            if (index > 0) return topicArn.substring(index + 1);
-            return topicArn;
         }
     }
 

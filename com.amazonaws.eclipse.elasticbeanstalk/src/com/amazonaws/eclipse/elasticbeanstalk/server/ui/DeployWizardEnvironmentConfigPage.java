@@ -14,12 +14,23 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.server.ui;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.core.databinding.beans.PojoObservables;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.databinding.swt.ISWTObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.viewers.IViewerObservableValue;
 import org.eclipse.jface.databinding.viewers.ViewersObservables;
 import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -27,30 +38,47 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 import com.amazonaws.eclipse.ec2.databinding.ValidKeyPairValidator;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPublishingUtils;
+import com.amazonaws.eclipse.elasticbeanstalk.deploy.DefaultRole;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NoInvalidNameCharactersValidator;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
+import com.amazonaws.services.identitymanagement.model.ListRolesResult;
+import com.amazonaws.services.identitymanagement.model.Role;
 
 class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
+
+    private static final String IAM_ROLE_PERMISSIONS_DOC_URL = "http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.iam.roles.logs.html#iampolicy";
 
     private KeyPairComposite keyPairComposite;
     private Button usingCnameButton;
     private Text cname;
     private Button usingKeyPair;
+    private Button incrementalDeploymentButton;
+    private ComboViewer iamRoleComboViewer;
+    private Text healthCheckText;
+
     private ISWTObservableValue usingKeyPairObservable;
     private ISWTObservableValue usingCnameObservable;
     private ISWTObservableValue healthCheckURLObservable;
     private ISWTObservableValue sslCertObservable;
     private ISWTObservableValue snsTopicObservable;
-    private Button incrementalDeploymentButton;
+
 
     public DeployWizardEnvironmentConfigPage(DeployWizardDataModel wizardDataModel) {
         super(wizardDataModel);
@@ -71,12 +99,54 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         createCNAMEControls(composite);
         createHealthCheckURLControls(composite);
         createSNSTopicControls(composite);
+        createIamRoleControls(composite);
+        newLabel(composite, "");
         createIncrementalDeploymentControls(composite);
 
         bindControls();
         initializeDefaults();
 
+        new LoadIamRolesJob("Loading IAM Roles").schedule();
+
         return composite;
+    }
+
+    private void createIamRoleControls(Composite parent) {
+        newLabel(parent, "IAM role");
+
+        iamRoleComboViewer = new ComboViewer(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
+        iamRoleComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+        iamRoleComboViewer.setLabelProvider(new LabelProvider() {
+            @Override
+            public String getText(Object element) {
+                if (element instanceof DefaultRole) return "Default (aws-elasticbeanstalk-ec2-role)";
+                if (element instanceof Role) return ((Role)element).getRoleName();
+                else return "";
+            }
+        });
+        iamRoleComboViewer.getCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+
+        Link link = new Link(parent, SWT.WRAP);
+        WebLinkListener webLinkListener = new WebLinkListener();
+        link.addListener(SWT.Selection, webLinkListener);
+
+        link.setText("If you choose not to use the default role, you must grant the relevant permissions to Elastic Beanstalk. " +
+                "See the <a href=\"" + IAM_ROLE_PERMISSIONS_DOC_URL + "\">AWS Elastic Beanstalk Developer Guide</a> for more details.");
+
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gridData.widthHint = 200;
+        link.setLayoutData(gridData);
+    }
+
+    // Check the environment type. If it is single instance, we disable the health check URL.
+    @Override
+    public void enter() {
+        if (wizardDataModel.getEnvironmentType() != null && wizardDataModel.getEnvironmentType().equals(ConfigurationOptionConstants.SINGLE_INSTANCE)) {
+            healthCheckText.setEnabled(false);
+        } else {
+            healthCheckText.setEnabled(true);
+        }
     }
 
     private void createKeyPairComposite(Composite composite) {
@@ -126,8 +196,8 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
 
     private void createHealthCheckURLControls(Composite composite) {
         newLabel(composite, "Application health check URL");
-        Text text = newText(composite, "");
-        healthCheckURLObservable = SWTObservables.observeText(text, SWT.Modify);
+        healthCheckText = newText(composite, "");
+        healthCheckURLObservable = SWTObservables.observeText(healthCheckText, SWT.Modify);
     }
 
     private void createSNSTopicControls(Composite composite) {
@@ -203,6 +273,13 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         // Incremental deployment
         bindingContext.bindValue(SWTObservables.observeSelection(incrementalDeploymentButton),
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.INCREMENTAL_DEPLOYMENT));
+
+        // IAM Role
+        IViewerObservableValue iamRoleComboObservable = ViewersObservables.observeSingleSelection(iamRoleComboViewer);
+        bindingContext.bindValue(iamRoleComboObservable,
+            PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.IAM_ROLE));
+
+
     }
 
     @Override
@@ -218,4 +295,51 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     public String getPageDescription() {
         return "Specify advanced properties for your environment";
     }
+
+    private final class LoadIamRolesJob extends Job {
+        private LoadIamRolesJob(String name) {
+            super(name);
+            setUser(false);
+        }
+
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+            try {
+                // Just grab the IAM client for the active account/region...
+                // This wizard always works with the active account and IAM only has one region (except for GovCloud)
+                AmazonIdentityManagement iam = AwsToolkitCore.getClientFactory().getIAMClient();
+
+                final List<Role> roles = new LinkedList<Role>();
+                final DefaultRole defaultRole = new DefaultRole();
+                roles.add(defaultRole);
+
+                ListRolesRequest request = new ListRolesRequest();
+                ListRolesResult result = null;
+                do {
+                    result = iam.listRoles(request);
+                    for (Role role : result.getRoles()) {
+                        if (!role.getRoleName().equals(ElasticBeanstalkPublishingUtils.DEFAULT_ROLE_NAME)) {
+                            roles.add(role);
+                        }
+                    }
+
+                    if (result.isTruncated()) request.setMarker(result.getMarker());
+                } while (result.isTruncated());
+
+                Display.getDefault().asyncExec(new Runnable() {
+                    public void run() {
+                        iamRoleComboViewer.setInput(roles);
+                        iamRoleComboViewer.setSelection(new StructuredSelection(defaultRole));
+                    }
+                });
+                return Status.OK_STATUS;
+            } catch (Exception e) {
+                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
+                    "Unable to query AWS Identity and Access Management for available instance profiles", e);
+                ElasticBeanstalkPlugin.getDefault().getLog().log(status);
+                return status;
+            }
+        }
+    }
+
 }

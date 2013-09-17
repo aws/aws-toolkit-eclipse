@@ -49,8 +49,7 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
     @Override
     public boolean performFinish() {
         try {
-            getContainer().run(true, false,
-                    new CreateNewAwsJavaWebProjectRunnable(dataModel));
+            getContainer().run(true, false, new CreateNewAwsJavaWebProjectRunnable(dataModel));
             return true;
         } catch (InvocationTargetException e) {
             Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,

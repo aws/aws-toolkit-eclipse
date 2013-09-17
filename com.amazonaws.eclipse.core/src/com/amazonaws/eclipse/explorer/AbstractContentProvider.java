@@ -21,19 +21,15 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.eclipse.core.AccountInfoChangeListener;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.BrowserUtils;
-import com.amazonaws.eclipse.core.regions.DefaultRegionChangeRefreshListener;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
@@ -46,15 +42,9 @@ import com.amazonaws.eclipse.core.ui.IRefreshable;
  */
 public abstract class AbstractContentProvider implements ITreeContentProvider, IRefreshable {
 
-    /** Listener for changes to the current account. */
-    private static AccountInfoChangeListener accountInfoChangeListener;
-    
-    /** Listener for changes to the current region. */
-    private static DefaultRegionChangeRefreshListener regionChangeRefreshListener;
-
     /** Reference to the TreeViewer in which content will be displayed. */
     protected TreeViewer viewer;
-    
+
     /** Cache for previously loaded data */
     protected Map<Object, Object[]> cachedResponses = new HashMap<Object, Object[]>();
 
@@ -76,11 +66,11 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
      * <p>
      * Subclasses should implement this method and <b>not</b> the getElement or
      * getChildren methods.
-     * 
+     *
      * @param parentElement
      *            The parent element indicating what child data needs to be
      *            loaded.
-     * 
+     *
      * @return The child elements for the specified parent, or null if they are
      *         being loaded asynchronously, and the super class will handle
      *         displaying a loading message.
@@ -90,21 +80,21 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
     /**
      * Returns the service abbreviation uniquely identifying the service the
      * ContentProvider subclass is working with.
-     * 
+     *
      * @see ServiceAbbreviations
-     * 
+     *
      * @return the service abbreviation uniquely identifying the service the
      *         ContentProvider subclass is working with.
      */
     public abstract String getServiceAbbreviation();
-    
+
     /**
      * Thread to asynchronously load data for an AWS Explorer ContentProvider.
      * This class takes care of several error cases, such as not being signed up
      * for a service yet and handles them correctly so that subclasses don't
      * have to worry about. Subclasses simply need to implement the loadData()
      * method to return their specific data.
-     * 
+     *
      * This class also takes care of storing the returned results from
      * loadData() into the ContentProvider's cache.
      */
@@ -112,9 +102,9 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         private final Object parentElement;
 
         /** Various AWS error codes indicating that a developer isn't signed up yet. */
-        private final List<String> NOT_SIGNED_UP_ERROR_CODES = 
+        private final List<String> NOT_SIGNED_UP_ERROR_CODES =
             Arrays.asList("NotSignedUp", "SubscriptionCheckFailed", "OptInRequired");
-        
+
         public DataLoaderThread(Object parentElement) {
             this.parentElement = parentElement;
         }
@@ -123,12 +113,12 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
          * Returns the data being loaded by this thread, which is specific to
          * each individual ContentProvider (ex: SimpleDB domains, EC2 instances,
          * etc).
-         * 
+         *
          * @return The loaded data (ex: an array of EC2 instances, or SimpleDB
          *         domains, etc).
          */
         public abstract Object[] loadData();
-        
+
         @Override
         public final void run() {
             try {
@@ -141,7 +131,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
                 } else {
                     cachedResponses.put(parentElement, new Object[] { new UnableToConnectNode() });
                 }
-                
+
                 Status status = new Status(Status.WARNING, AwsToolkitCore.PLUGIN_ID, "Error loading explorer data", e);
                 StatusManager.getManager().handle(status, StatusManager.LOG);
             }
@@ -155,15 +145,18 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
      */
     public synchronized void refresh() {
         this.cachedResponses.clear();
-        
+
         Object[] children = this.getChildren(new AWSResourcesRootElement());
+        if (children.length == 0) {
+            return;
+        }
         Object tempObject = null;
         if (children.length == 1) {
             tempObject = children[0];
         }
-        
+
         final Object rootElement = tempObject;
-        
+
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
                 viewer.getTree().deselectAll();
@@ -171,6 +164,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
                 viewer.expandToLevel(1);
             }
         });
+
     }
 
     public void refreshData() {
@@ -186,95 +180,72 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
     }
 
     public final Object[] getChildren(final Object parentElement) {
-        if ( cachedResponses.containsKey(parentElement) ) {
+        if (!RegionUtils.isServiceSupportedInCurrentRegion(getServiceAbbreviation())) {
+            return new Object[0];
+        }
+
+        if ( cachedResponses.containsKey(parentElement)) {
             return cachedResponses.get(parentElement);
         }
 
-        if (AwsToolkitCore.getDefault().getAccountInfo().isValid() == false) {
-            return new Object[] {new AccountNotConfiguredNode()};
+        if (!AwsToolkitCore.getDefault().getAccountInfo().isValid()) {
+            return new Object[0];
         }
 
-        if (!RegionUtils.isServiceSupportedInCurrentRegion(getServiceAbbreviation())) return null;
-        
         Object[] children = loadChildren(parentElement);
-        if (children == null) children = Loading.LOADING;
 
+        if (children == null) {
+            children = Loading.LOADING;
+        }
         return children;
     }
 
     public void dispose() {
         ContentProviderRegistry.unregisterContentProvider(this);
+    }
 
-        if (this.accountInfoChangeListener != null) {
-            AwsToolkitCore.getDefault().removeAccountInfoChangeListener(this.accountInfoChangeListener);
-        }
-
-        if (this.regionChangeRefreshListener != null) {
-            regionChangeRefreshListener.stopListening();
-        }
+    public void clearCachedResponse() {
+        cachedResponses.clear();
     }
 
     public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
         this.viewer = (TreeViewer) viewer;
-
-        synchronized (AbstractContentProvider.class) {
-            if (accountInfoChangeListener == null) {
-                accountInfoChangeListener = new AccountInfoChangeListener() {
-                    @Override
-                    public void currentAccountChanged() {
-                        refresh();
-                    }
-                };
-                AwsToolkitCore.getDefault().addAccountInfoChangeListener(this.accountInfoChangeListener);
-            }
-        }
-
-        regionChangeRefreshListener = new DefaultRegionChangeRefreshListener(this);
     }
 
-    
     /** ExplorerNode alerting the user that they need to sign up for a service. */
     private static class NotSignedUpNode extends ExplorerNode {
-        
+
         private static final class SignUpAction extends Action {
+            public SignUpAction() {
+                super.setText("Sign up");
+                super.setImageDescriptor(AwsToolkitCore
+                    .getDefault()
+                    .getImageRegistry()
+                    .getDescriptor(AwsToolkitCore.IMAGE_EXTERNAL_LINK)
+                );
+            }
+
             @Override
             public void run() {
                 BrowserUtils.openExternalBrowser("https://aws-portal.amazon.com/gp/aws/developer/registration");
             }
         }
 
-        public NotSignedUpNode(String serviceName) {
-            super("Sign up", 0,
-                loadImage(AwsToolkitCore.IMAGE_EXTERNAL_LINK),
-                new SignUpAction());
+        public NotSignedUpNode(final String serviceName) {
+            super(serviceName + " (not signed up)",
+                  0,
+                  loadImage(AwsToolkitCore.IMAGE_EXTERNAL_LINK),
+                  new SignUpAction());
         }
     }
-    
+
     /** ExplorerNode alerting users that we couldn't connect to AWS. */
     private static class UnableToConnectNode extends ExplorerNode {
         public UnableToConnectNode() {
-            super("Unable to connect", 0,
-                loadImage(AwsToolkitCore.IMAGE_AWS_ICON));
+            super("Unable to connect",
+                  0,
+                  loadImage(AwsToolkitCore.IMAGE_AWS_ICON));
         }
     }
-    
-    /** ExplorerNode alerting users that the current account is not fully configured. */
-    private static class AccountNotConfiguredNode extends ExplorerNode {
-        private static final class OpenAccountPreferencesAction extends Action {
-            @Override
-            public void run() {
-                String resource = AwsToolkitCore.ACCOUNT_PREFERENCE_PAGE_ID;
-                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
-                    null, resource, new String[] { resource }, null);
-                dialog.open();
-            }
-        }
 
-        public AccountNotConfiguredNode() {
-            super("AWS account not configured", 0,
-                loadImage(AwsToolkitCore.IMAGE_GEARS),
-                new OpenAccountPreferencesAction());
-        }
-    }
-    
 }

@@ -28,8 +28,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.forms.ManagedForm;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -41,7 +43,7 @@ import org.eclipse.wst.server.ui.internal.ImageResource;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
-import com.amazonaws.eclipse.elasticbeanstalk.Environment;
+
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.AbstractEnvironmentConfigEditorPart;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.RefreshListener;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -67,7 +69,9 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
     private static final Collection<String> triggerNamespaces = new HashSet<String>();
     private static final Collection<String> notificationsNamespaces = new HashSet<String>();
     private static final Collection<String> containerNamespaces = new HashSet<String>();
+    private static final Collection<String> applicationEnvironmentNamespaces = new HashSet<String>();
     private static final Collection<String> environmentNamespaces = new HashSet<String>();
+
 
     static {
         serverNamespaces.add(ConfigurationOptionConstants.LAUNCHCONFIGURATION);
@@ -80,21 +84,23 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         notificationsNamespaces.add(ConfigurationOptionConstants.SNS_TOPICS);
         containerNamespaces.add(ConfigurationOptionConstants.JVMOPTIONS);
         containerNamespaces.add(ConfigurationOptionConstants.HOSTMANAGER);
-        environmentNamespaces.add(ConfigurationOptionConstants.ENVIRONMENT);
+        applicationEnvironmentNamespaces.add(ConfigurationOptionConstants.ENVIRONMENT);
+        environmentNamespaces.add(ConfigurationOptionConstants.ENVIRONMENT_TYPE);
     }
-    
+
     private static final Collection<NamespaceGroup> sectionGroups = new ArrayList<NamespaceGroup>();
     static {
         sectionGroups.add(new NamespaceGroup("Server", Position.LEFT, serverNamespaces));
         sectionGroups.add(new NamespaceGroup("Load Balancing", Position.LEFT, loadBalancingNamespaces, healthCheckNamespaces, sessionsNamespaces));
+        sectionGroups.add(new NamespaceGroup("Environment Type", Position.RIGHT, environmentNamespaces));
         sectionGroups.add(new NamespaceGroup("Auto Scaling", Position.RIGHT, autoscalingNamespaces, triggerNamespaces));
         sectionGroups.add(new NamespaceGroup("Notifications", Position.RIGHT, notificationsNamespaces));
-        sectionGroups.add(new NamespaceGroup("Container", Position.CENTER, containerNamespaces, environmentNamespaces));
+        sectionGroups.add(new NamespaceGroup("Container", Position.CENTER, containerNamespaces, applicationEnvironmentNamespaces));
     }
 
     private static final Collection<String>[] sectionOrder = new Collection[] { serverNamespaces,
-            loadBalancingNamespaces, healthCheckNamespaces, sessionsNamespaces, autoscalingNamespaces,
-            triggerNamespaces, notificationsNamespaces, containerNamespaces, environmentNamespaces, };
+            loadBalancingNamespaces, healthCheckNamespaces, sessionsNamespaces, environmentNamespaces, autoscalingNamespaces,
+            triggerNamespaces, notificationsNamespaces, containerNamespaces, applicationEnvironmentNamespaces,  };
 
     /**
      * Each time we create our control section, we create one composite for each
@@ -105,7 +111,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
     public BasicEnvironmentConfigEditorPart() {
         super();
     }
-    
+
     @Override
     public void init(IEditorSite site, IEditorInput input) {
         super.init(site, input);
@@ -118,9 +124,10 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         editorSectionsByNamespace.put(triggerNamespaces, new ScalingTriggerConfigEditorSection(this, model, environment, bindingContext));
         editorSectionsByNamespace.put(notificationsNamespaces, new NotificationsConfigEditorSection(this, model, environment, bindingContext));
         editorSectionsByNamespace.put(containerNamespaces, new ContainerConfigEditorSection(this, model, environment, bindingContext));
-        editorSectionsByNamespace.put(environmentNamespaces, new EnvironmentPropertiesConfigEditorSection(this, model, environment, bindingContext));
-    
-        model.addRefreshListener(this);       
+        editorSectionsByNamespace.put(applicationEnvironmentNamespaces, new EnvironmentPropertiesConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(environmentNamespaces, new EnvironmentTypeConfigEditorSection(this, model, environment, bindingContext));
+
+        model.addRefreshListener(this);
     }
 
     @Override
@@ -133,7 +140,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         form.setText("Environment Configuration");
         form.setImage(ImageResource.getImage(ImageResource.IMG_SERVER));
         form.getBody().setLayout(new GridLayout());
-        
+
         Composite columnComp = toolkit.createComposite(form.getBody());
         GridLayout layout = new GridLayout();
         layout.numColumns = 2;
@@ -146,7 +153,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         layoutData.horizontalSpan = 2;
         layoutData.widthHint = 600; // required for wrapping
         restartNotice.setLayoutData(layoutData);
-        
+
         // left column
         Composite leftColumnComp = toolkit.createComposite(columnComp);
         layout = new GridLayout();
@@ -157,7 +164,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         leftColumnComp.setLayout(layout);
         leftColumnComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
 
-        // right column 
+        // right column
         Composite rightColumnComp = toolkit.createComposite(columnComp);
         layout = new GridLayout();
         layout.marginHeight = 0;
@@ -166,7 +173,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         layout.horizontalSpacing = 0;
         rightColumnComp.setLayout(layout);
         rightColumnComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
-        
+
         // "center" column -- composite below the two above, spanning both columns
         Composite centerColumnComp = toolkit.createComposite(columnComp);
         layout = new GridLayout();
@@ -194,17 +201,17 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
                 parentComp = centerColumnComp;
                 break;
             }
-            
+
             Section section = toolkit.createSection(parentComp, ExpandableComposite.TWISTIE | ExpandableComposite.EXPANDED
                     | ExpandableComposite.TITLE_BAR | ExpandableComposite.FOCUS_TITLE);
             section.setText(namespaceGroup.getName());
-            
+
             layout = new GridLayout();
             layout.numColumns = 1;
             layout.verticalSpacing = 0;
             section.setLayout(layout);
             section.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
-            
+
             Composite comp = toolkit.createComposite(section);
             layout = new GridLayout();
             int numColumns = 0;
@@ -217,19 +224,19 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
                 numColumns = 2;
                 break;
             }
-            
+
             layout.numColumns = numColumns;
             layout.verticalSpacing = 0;
             comp.setLayout(layout);
             comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
             section.setClient(comp);
-                        
+
             for (String namespace : namespaceGroup.getIncludedNamespaces()) {
-                compositesByNamespace.put(namespace, comp);                
+                compositesByNamespace.put(namespace, comp);
             }
         }
-        
-        managedForm.getForm().getToolBarManager().add(new Action("Refresh", SWT.None) {
+
+        refreshAction = new Action("Refresh", SWT.None) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -240,7 +247,9 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
             public void run() {
                 refresh(null);
             }
-        });
+        };
+
+        managedForm.getForm().getToolBarManager().add(refreshAction);
 
         managedForm.getForm().getToolBarManager().update(true);
         managedForm.reflow(true);
@@ -249,8 +258,19 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
     /**
      * Refreshes the editor with the latest values
      */
-    private void refresh(String templateName) {
+    public void refresh(String templateName) {
         model.refresh(templateName);
+    }
+
+    public void destroyOldLayouts() {
+        // Not allow refresh action during the destroying of controls
+        refreshAction.setEnabled(false);
+        for (Composite composite : compositesByNamespace.values()) {
+            for (Control control : composite.getChildren()) {
+                control.dispose();
+            }
+        }
+        refreshAction.setEnabled(true);
     }
 
     private List<HumanReadableConfigEditorSection> createEditorSections(List<ConfigurationOptionDescription> options) {
@@ -265,7 +285,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
                         HumanReadableConfigEditorSection editor = editorSectionsByNamespace.get(namespaces);
                         editor.setOptions(optionsInEditorSection);
                         editorSections.add(editor);
-                        editor.setParentComposite(compositesByNamespace.get(o.getNamespace()));                        
+                        editor.setParentComposite(compositesByNamespace.get(o.getNamespace()));
                     }
                     optionsInEditorSection.add(o);
                 }
@@ -274,11 +294,11 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
 
         return editorSections;
     }
-    
+
     public void refreshStarted() {
         getEditorSite().getShell().getDisplay().syncExec(new Runnable() {
 
-            public void run() {                
+            public void run() {
                 managedForm.getForm().setText(getTitle() + " (loading...)");
             }
         });
@@ -296,10 +316,12 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
                         section.setServerEditorPart(BasicEnvironmentConfigEditorPart.this);
                         section.init(getEditorSite(), getEditorInput());
                         section.createSection(section.getParentComposite());
+                        managedForm.reflow(true);
                     }
-                    managedForm.reflow(true);
-                }
 
+                }
+                dirty = false;
+                BasicEnvironmentConfigEditorPart.this.doSaveAs();
                 managedForm.getForm().setText(getTitle());
             }
         });
@@ -317,11 +339,11 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
      * Simple data class to avoid too many levels of collection nesting.
      */
     private static final class NamespaceGroup {
-        
+
         private final Collection<String> includedNamespaces;
         final String name;
         final Position position;
-        
+
         public NamespaceGroup(String name, Position pos, Collection<String>... namespaces) {
             this.name = name;
             includedNamespaces = new HashSet<String>();
@@ -338,7 +360,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         public Collection<String> getIncludedNamespaces() {
             return includedNamespaces;
         }
-        
+
         public Position getPosition() {
             return position;
         }

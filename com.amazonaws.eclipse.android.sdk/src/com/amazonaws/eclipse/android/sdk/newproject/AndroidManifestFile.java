@@ -98,7 +98,7 @@ public class AndroidManifestFile {
      * customizations for building Android projects that work with AWS.
      *
      * Specifically, this method adds the following configuration:
-     *   uses-sdk android:minSdkVersion="8"
+     *   uses-sdk android:minSdkVersion="10"
      *   uses-permission android:name="android.permission.INTERNET"
      */
     public void initialize() {
@@ -109,7 +109,7 @@ public class AndroidManifestFile {
             manifestElement.removeChild(applicationElement);
 
             Element usesSdkElement = doc.createElement("uses-sdk");
-            usesSdkElement.setAttribute("android:minSdkVersion", "8");
+            usesSdkElement.setAttribute("android:minSdkVersion", "10");
             manifestElement.appendChild(usesSdkElement);
 
             Element usesPermissionElement = doc.createElement("uses-permission");

@@ -59,6 +59,7 @@ import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 import com.amazonaws.eclipse.databinding.NotInListValidator;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NoInvalidNameCharactersValidator;
@@ -89,6 +90,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private ControlDecoration newEnvironmentNameDecoration;
     private Text newEnvironmentNameText;
     private Text newEnvironmentDescriptionText;
+    private Combo environmentTypeCombo;
 
     // Asynchronous workers
     private LoadApplicationsThread loadApplicationsThread;
@@ -103,6 +105,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private ISWTObservableValue newApplicationDescriptionTextObservable;
     private ISWTObservableValue newEnvironmentDescriptionTextObservable;
     private ISWTObservableValue newEnvironmentNameTextObservable;
+    private ISWTObservableValue environmentTypeComboObservable;
 
     // Status of our connectivity to AWS Elastic Beanstalk
     private IStatus connectionStatus;
@@ -176,6 +179,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         newApplicationDescriptionTextObservable.setValue("");
         newEnvironmentNameTextObservable.setValue("");
         newEnvironmentDescriptionTextObservable.setValue("");
+        environmentTypeComboObservable.setValue("Load Balanced");
 
         if (RegionUtils.isServiceSupportedInCurrentRegion(ServiceAbbreviations.BEANSTALK)) {
             regionCombo.setText(RegionUtils.getCurrentRegion().getName());
@@ -319,6 +323,11 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(environmentNamesLoaded,
                 new BooleanValidator("Environment names not yet loaded")));
         new DecorationChangeListener(newEnvironmentNameDecoration, environmentNameValidator.getValidationStatus());
+
+        environmentTypeComboObservable = SWTObservables.observeSelection(environmentTypeCombo);
+        bindingContext.bindValue(
+                environmentTypeComboObservable,
+                PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.ENVIRONMENT_TYPE));
     }
 
     /**
@@ -455,6 +464,12 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
 
             newLabel(this, "Description:");
             newEnvironmentDescriptionText = newText(this);
+
+            final String[] items = {ConfigurationOptionConstants.SINGLE_INSTANCE, ConfigurationOptionConstants.LOAD_BALANCED};
+            newLabel(this, "Type:");
+            environmentTypeCombo = newCombo(this);
+            environmentTypeCombo.setItems(items);
+
         }
     }
 

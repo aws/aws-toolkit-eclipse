@@ -23,20 +23,26 @@ import java.util.Set;
 public class ContentProviderRegistry {
 
     private static Set<AbstractContentProvider> contentProviders = new HashSet<AbstractContentProvider>();
-    
+
     private ContentProviderRegistry() {}
-    
+
     public static void registerContentProvider(AbstractContentProvider contentProvider) {
         contentProviders.add(contentProvider);
     }
-    
+
     public static void unregisterContentProvider(AbstractContentProvider contentProvider) {
         contentProviders.remove(contentProvider);
     }
-    
+
     public static void refreshAllContentProviders() {
         for (AbstractContentProvider contentProvider : contentProviders) {
             contentProvider.refresh();
+        }
+    }
+
+    public static void clearAllCachedResponses () {
+        for (AbstractContentProvider contentProvider : contentProviders) {
+            contentProvider.clearCachedResponse();
         }
     }
 }

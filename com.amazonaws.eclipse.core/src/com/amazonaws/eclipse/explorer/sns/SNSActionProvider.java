@@ -25,6 +25,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.navigator.CommonActionProvider;
 import org.eclipse.ui.statushandlers.StatusManager;
@@ -33,7 +34,6 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
 import com.amazonaws.eclipse.explorer.sns.SNSContentProvider.TopicNode;
 import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.CreateTopicRequest;
 import com.amazonaws.services.sns.model.DeleteTopicRequest;
 import com.amazonaws.services.sns.model.Topic;
 
@@ -112,18 +112,8 @@ public class SNSActionProvider extends CommonActionProvider {
 
         @Override
         public void run() {
-            AmazonSNS sns = AwsToolkitCore.getClientFactory().getSNSClient();
-
-            CreateTopicDialog createTopicDialog = new CreateTopicDialog();
-            if (createTopicDialog.open() == 0) {
-                try {
-                    sns.createTopic(new CreateTopicRequest(createTopicDialog.getTopicName()));
-                    ContentProviderRegistry.refreshAllContentProviders();
-                } catch (Exception e) {
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create SNS Topic", e);
-                    StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
-                }
-            }
+            WizardDialog dialog = new WizardDialog(Display.getDefault().getActiveShell(), new CreateTopicWizard());
+            dialog.open();
         }
     }
 

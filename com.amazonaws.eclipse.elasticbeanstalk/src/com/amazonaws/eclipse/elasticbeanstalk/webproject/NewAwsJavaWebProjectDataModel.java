@@ -29,12 +29,14 @@ class NewAwsJavaWebProjectDataModel {
     private boolean sampleAppIncluded;
     private String language;
     private Region region;
+    private boolean useDynamoDBSessionManagement;
 
     public static final String ACCOUNT_ID = "accountId";
     public static final String PROJECT_NAME = "projectName";
     public static final String SAMPLE_APP_INCLUDED = "sampleAppIncluded";
     public static final String REGION = "region";
     public static final String LANGUAGE = "language";
+    public static final String USE_DYNAMODB_SESSION_MANAGEMENT = "useDynamoDBSessionManagement";
 
     /*
      * Supported languages and map of languages to directories and overrides
@@ -81,5 +83,13 @@ class NewAwsJavaWebProjectDataModel {
 
     public void setRegion(Region region) {
         this.region = region;
+    }
+
+    public boolean getUseDynamoDBSessionManagement() {
+    	return useDynamoDBSessionManagement;
+    }
+
+    public void setUseDynamoDBSessionManagement(boolean useDynamoDBSessionManagement) {
+    	this.useDynamoDBSessionManagement = useDynamoDBSessionManagement;
     }
 }

@@ -31,6 +31,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -41,9 +42,11 @@ import org.eclipse.wst.server.ui.internal.ImageResource;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.ExportConfigurationJob;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.UpdateEnvironmentConfigurationJob;
+import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.basic.AdvancedEnvironmentTypeConfigEditorSection;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -120,7 +123,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
         rightColumnComp.setLayout(layout);
         rightColumnComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
 
-        managedForm.getForm().getToolBarManager().add(new Action("Refresh", SWT.None) {
+        refreshAction = new Action("Refresh", SWT.None) {
             @Override
             public ImageDescriptor getImageDescriptor() {
                 return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh");
@@ -129,7 +132,9 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             public void run() {
                 refresh(null);
             }
-        });
+        };
+
+        managedForm.getForm().getToolBarManager().add(refreshAction);
 
         exportTemplateAction = new Action("Export current values as template", SWT.None) {
 
@@ -167,6 +172,8 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
         refresh(null);
     }
 
+
+
     /**
      * Imports a template's config settings into the editor.
      */
@@ -193,7 +200,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
     /**
      * Refreshes the editor with the latest values
      */
-    private void refresh(String templateName) {
+    public void refresh(String templateName) {
         model.refresh(templateName);
     }
 
@@ -234,8 +241,13 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             if ( !optionsByNamespace.containsKey(o.getNamespace()) ) {
                 ArrayList<ConfigurationOptionDescription> optionsInNamespace = new ArrayList<ConfigurationOptionDescription>();
                 optionsByNamespace.put(o.getNamespace(), optionsInNamespace);
-                editorSections.add(new EnvironmentConfigEditorSection(this, model, environment, bindingContext, o
-                        .getNamespace(), optionsInNamespace));
+                // We use our customized environment type section
+                if (o.getNamespace().equals(ConfigurationOptionConstants.ENVIRONMENT_TYPE) && o.getName().equals("EnvironmentType")) {
+                    editorSections.add(new AdvancedEnvironmentTypeConfigEditorSection(this, model, environment, bindingContext, o.getNamespace(),
+                            optionsInNamespace));
+                } else {
+                    editorSections.add(new EnvironmentConfigEditorSection(this, model, environment, bindingContext, o.getNamespace(), optionsInNamespace));
+                }
             }
             optionsByNamespace.get(o.getNamespace()).add(o);
         }
@@ -264,23 +276,22 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
 
             public void run() {
 
-                // Create sections if needed
-                if ( leftColumnComp.getChildren().length == 0 ) {
-                    final List<EnvironmentConfigEditorSection> editorSections = createEditorSections(model.getOptions());
+                // Every time we redraw the layouts.
+                destroyOldLayouts();
+                final List<EnvironmentConfigEditorSection> editorSections = createEditorSections(model.getOptions());
 
-                    int numLeft = 0;
-                    int numRight = 0;
-                    for ( EnvironmentConfigEditorSection section : editorSections ) {
-                        section.setServerEditorPart(EnvironmentConfigEditorPart.this);
-                        section.init(getEditorSite(), getEditorInput());
+                int numLeft = 0;
+                int numRight = 0;
+                for (EnvironmentConfigEditorSection section : editorSections) {
+                    section.setServerEditorPart(EnvironmentConfigEditorPart.this);
+                    section.init(getEditorSite(), getEditorInput());
 
-                        if ( numLeft <= numRight ) {
-                            section.createSection(leftColumnComp);
-                            numLeft += section.getNumControls();
-                        } else {
-                            section.createSection(rightColumnComp);
-                            numRight += section.getNumControls();
-                        }
+                    if (numLeft <= numRight) {
+                        section.createSection(leftColumnComp);
+                        numLeft += section.getNumControls();
+                    } else {
+                        section.createSection(rightColumnComp);
+                        numRight += section.getNumControls();
                     }
 
                     managedForm.reflow(true);
@@ -291,6 +302,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
                 importTemplateAction.setEnabled(true);
             }
         });
+
     }
 
     public void refreshError(Throwable e) {
@@ -320,11 +332,12 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
                     .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
 
+
             ValidateConfigurationSettingsResult validation = client
                     .validateConfigurationSettings(new ValidateConfigurationSettingsRequest()
                             .withApplicationName(environment.getApplicationName())
                             .withEnvironmentName(environment.getEnvironmentName())
-                            .withOptionSettings(model.createConfigurationOptions()));
+                                    .withOptionSettings(model.createConfigurationOptions()));
 
             for ( ValidationMessage status : validation.getMessages() ) {
                 if ( status.getSeverity().toLowerCase().equals("error") ) {
@@ -365,4 +378,25 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             dirty = false;
         }
     }
+
+    @Override
+    public void destroyOldLayouts() {
+        // Not allow refresh action during the destroying of controls
+        refreshAction.setEnabled(false);
+        if (leftColumnComp != null) {
+            for (Control control : leftColumnComp.getChildren()) {
+                control.dispose();
+            }
+        }
+
+        if (rightColumnComp != null) {
+            for (Control control : rightColumnComp.getChildren()) {
+                control.dispose();
+            }
+        }
+        refreshAction.setEnabled(true);
+    }
+
 }
+
+

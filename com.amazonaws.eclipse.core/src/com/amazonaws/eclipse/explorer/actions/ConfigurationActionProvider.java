@@ -112,7 +112,12 @@ public class ConfigurationActionProvider extends CommonActionProvider {
                 }
 
                 public void dispose() {
-                    if (menu != null) menu.dispose();
+                    if (regionChangeRefreshListener != null) {
+                        regionChangeRefreshListener.stopListening();
+                    }
+                    if (menu != null) {
+                        menu.dispose();
+                    }
                 }
             };
         }
@@ -134,17 +139,17 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
                     public void widgetDefaultSelected(SelectionEvent e) {}
                 });
-                
+
                 menuItem.setImage(lookupRegionFlag(region.getId()));
             }
 
             return menu;
         }
 
-        private void updateRegionFlag() {            
+        private void updateRegionFlag() {
             Region currentRegion = RegionUtils.getCurrentRegion();
             setImageDescriptor(currentRegion.getFlagImageDescriptor());
-            
+
             if (menu != null) {
                 for (MenuItem menuItem : menu.getItems()) {
                     Region region = (Region)menuItem.getData();
@@ -157,10 +162,10 @@ public class ConfigurationActionProvider extends CommonActionProvider {
             Region r = RegionUtils.getRegion(regionId);
             if (r != null)
                 return r.getFlagImage();
-            
+
             return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON);
         }
-        
+
         public void refreshData() {
             updateRegionFlag();
         }

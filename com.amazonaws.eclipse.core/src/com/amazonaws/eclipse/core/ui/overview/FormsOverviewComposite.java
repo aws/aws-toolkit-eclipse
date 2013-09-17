@@ -23,12 +23,16 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
@@ -38,6 +42,9 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
+import com.amazonaws.eclipse.core.rss.Feed;
+import com.amazonaws.eclipse.core.rss.FeedMessage;
+import com.amazonaws.eclipse.core.rss.RSSFeedParser;
 
 /**
  * Main composite displaying the AWS Toolkit for Eclipse overview page. This is
@@ -78,7 +85,7 @@ class FormsOverviewComposite extends Composite {
 
         // Create the main form
         form = resources.getFormToolkit().createScrolledForm(this);
-        TableWrapLayout tableWrapLayout = LayoutUtils.newSlimTableWrapLayout(1);
+        TableWrapLayout tableWrapLayout = LayoutUtils.newSlimTableWrapLayout(2);
         tableWrapLayout.verticalSpacing = 10;
         tableWrapLayout.horizontalSpacing = 15;
         form.getBody().setLayout(tableWrapLayout);
@@ -86,21 +93,62 @@ class FormsOverviewComposite extends Composite {
         // Header
         Composite headerComposite = new HeaderComposite(form.getBody(), resources);
         TableWrapData tableWrapData = new TableWrapData(TableWrapData.FILL_GRAB);
+        tableWrapData.colspan = 2;
         headerComposite.setLayoutData(tableWrapData);
 
         // Column of contributed overview sections and additional resources
-        Composite column = resources.getFormToolkit().createComposite(form.getBody());
+        Composite leftColumn = resources.getFormToolkit().createComposite(form.getBody());
         TableWrapLayout leftHandColumnLayout = new TableWrapLayout();
         leftHandColumnLayout.verticalSpacing = 20;
-        column.setLayout(leftHandColumnLayout);
-        
-        TableWrapData tableWrapData2 = new TableWrapData(TableWrapData.FILL_GRAB);
-        column.setLayoutData(tableWrapData2);
+        leftColumn.setLayout(leftHandColumnLayout);
 
-        createContributedOverviewSections(column);
-        
-        createResourcesSection(column)
+        TableWrapData tableWrapData2 = new TableWrapData(TableWrapData.FILL_GRAB);
+        leftColumn.setLayoutData(tableWrapData2);
+
+        createContributedOverviewSections(leftColumn);
+
+        createResourcesSection(leftColumn)
             .setLayoutData(new TableWrapData(TableWrapData.FILL));
+
+
+        // Right column widgets
+        Composite rightColumn = resources.getFormToolkit().createComposite(form.getBody());
+        TableWrapLayout rightHandColumnLayout = new TableWrapLayout();
+        rightHandColumnLayout.verticalSpacing = 20;
+        rightColumn.setLayout(rightHandColumnLayout);
+
+        createJavaBlogSection(rightColumn).setLayoutData(new TableWrapData(TableWrapData.FILL));
+    }
+
+
+    private Composite createJavaBlogSection(Composite parent) {
+        Toolkit overviewToolkit = new Toolkit();
+        overviewToolkit.setResources(resources);
+
+        Section section = resources.getFormToolkit().createSection(parent,
+            Section.CLIENT_INDENT | Section.TITLE_BAR | Section.TWISTIE | Section.EXPANDED);
+        section.setText("AWS Java Developer Blog");
+        section.setLayout(new FillLayout());
+        TableWrapData tableWrapData = new TableWrapData(TableWrapData.FILL, TableWrapData.FILL);
+        tableWrapData.grabHorizontal = true;
+        tableWrapData.grabVertical = true;
+        section.setLayoutData(tableWrapData);
+
+        Composite composite = new Composite(section, SWT.NONE);
+        composite.setLayout(new TableWrapLayout());
+        section.setClient(composite);
+
+        section.setFont(resources.getFont("module-header"));
+        section.setForeground(resources.getColor("module-header"));
+        section.setTitleBarForeground(resources.getColor("module-header"));
+
+        composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+
+        overviewToolkit.newLabel(composite, "Loading...");
+
+        new LoadJavaDeveloperBlogJob(composite, overviewToolkit).schedule();
+
+        return composite;
     }
 
     /* (non-Javadoc)
@@ -138,7 +186,7 @@ class FormsOverviewComposite extends Composite {
     private Composite createResourcesSection(Composite parent) {
         Toolkit overviewToolkit = new Toolkit();
         overviewToolkit.setResources(resources);
-        
+
         Section section = resources.getFormToolkit().createSection(parent,
             Section.CLIENT_INDENT | Section.TITLE_BAR | Section.TWISTIE | Section.EXPANDED);
         section.setText("Additional Resources");
@@ -147,7 +195,7 @@ class FormsOverviewComposite extends Composite {
         tableWrapData.grabHorizontal = true;
         tableWrapData.grabVertical = true;
         section.setLayoutData(tableWrapData);
-        
+
         Composite composite = new Composite(section, SWT.NONE);
         composite.setLayout(new TableWrapLayout());
         section.setClient(composite);
@@ -155,7 +203,7 @@ class FormsOverviewComposite extends Composite {
         section.setFont(resources.getFont("module-header"));
         section.setForeground(resources.getColor("module-header"));
         section.setTitleBarForeground(resources.getColor("module-header"));
-        
+
         composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
         overviewToolkit.newListItem(composite,
                 "AWS Toolkit for Eclipse Homepage",
@@ -174,6 +222,49 @@ class FormsOverviewComposite extends Composite {
                 AwsUrls.AWS_MANAGEMENT_CONSOLE_URL, null);
 
         return composite;
+    }
+
+    /**
+     * Simple Job for asynchronously retreiving a blog feed and updating the UI.
+     */
+    private final class LoadJavaDeveloperBlogJob extends Job {
+        private static final String JAVA_DEVELOPER_BLOG_RSS_URL = "http://java.awsblog.com/blog/feed/recentPosts.rss";
+
+        private Composite composite;
+        private Toolkit toolkit;
+
+        private LoadJavaDeveloperBlogJob(Composite composite, Toolkit toolkit) {
+            super("Loading AWS Java Blog Feed");
+
+            this.composite = composite;
+            this.toolkit = toolkit;
+        }
+
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+            try {
+                RSSFeedParser parser = new RSSFeedParser(JAVA_DEVELOPER_BLOG_RSS_URL);
+
+                Feed feed = parser.readFeed();
+                final List<FeedMessage> mostRecentPosts = feed.getMessages().subList(0, 10);
+
+                Display.getDefault().syncExec(new Runnable () {
+                    public void run() {
+                        for (Control control : composite.getChildren()) control.dispose();
+
+                        for (FeedMessage message : mostRecentPosts) {
+                            toolkit.newListItem(composite, message.getTitle(), message.getLink(), null);
+                        }
+
+                        form.reflow(true);
+                    }
+                });
+
+                return Status.OK_STATUS;
+            } catch (Exception e) {
+                return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to load AWS Java Developer Blog feed", e);
+            }
+        }
     }
 
     /**

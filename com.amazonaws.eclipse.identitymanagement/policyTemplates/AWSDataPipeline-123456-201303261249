@@ -1,0 +1,44 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "s3:List*",
+        "s3:Put*",
+        "s3:Get*",
+        "s3:DeleteObject",
+        "dynamodb:DescribeTable",
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:BatchGetItem",
+        "dynamodb:UpdateTable",
+        "ec2:DescribeInstances",
+        "ec2:RunInstances",
+        "ec2:CreateTags",
+        "ec2:StartInstances",
+        "ec2:StopInstances",
+        "ec2:TerminateInstances",
+        "elasticmapreduce:*",
+        "rds:DescribeDBInstances",
+        "rds:DescribeDBSecurityGroups",
+        "redshift:DescribeClusters",
+        "redshift:DescribeClusterSecurityGroups",
+        "sns:GetTopicAttributes",
+        "sns:ListTopics",
+        "sns:Publish",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "iam:PassRole",
+        "iam:ListRolePolicies",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListInstanceProfiles",
+        "cloudwatch:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}

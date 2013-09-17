@@ -21,6 +21,7 @@ public interface ConfigurationOptionConstants {
     public static final String JVMOPTIONS  = "aws:elasticbeanstalk:container:tomcat:jvmoptions";
     public static final String SNS_TOPICS  = "aws:elasticbeanstalk:sns:topics";
     public static final String APPLICATION = "aws:elasticbeanstalk:application";
+    public static final String ENVIRONMENT_TYPE = "aws:elasticbeanstalk:environment";
 
     public static final String TRIGGER             = "aws:autoscaling:trigger";
     public static final String ASG                 = "aws:autoscaling:asg";
@@ -28,4 +29,7 @@ public interface ConfigurationOptionConstants {
     public static final String HEALTHCHECK         = "aws:elb:healthcheck";
     public static final String LOADBALANCER        = "aws:elb:loadbalancer";
     public static final String LAUNCHCONFIGURATION = "aws:autoscaling:launchconfiguration";
+
+    public static final String SINGLE_INSTANCE = "Single Instance";
+    public static final String LOAD_BALANCED = "Load Balanced";
 }

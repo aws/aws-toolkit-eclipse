@@ -129,9 +129,6 @@ public class UpdateEnvironmentJob extends Job {
     protected IStatus run(IProgressMonitor monitor) {
         AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
                 .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
-        Region environmentRegion = RegionUtils.getRegionByEndpoint(environment.getRegionEndpoint());
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory(environment.getAccountId()).getS3ClientByEndpoint(
-                environmentRegion.getServiceEndpoint(ServiceAbbreviations.S3));
 
         cancelLaunchClientJob();
 
@@ -148,7 +145,7 @@ public class UpdateEnvironmentJob extends Job {
                     }
                 };
 
-                ElasticBeanstalkPublishingUtils utils = new ElasticBeanstalkPublishingUtils(client, s3, environment);
+                ElasticBeanstalkPublishingUtils utils = new ElasticBeanstalkPublishingUtils(environment);
                 boolean doesEnvironmentExist = utils.doesEnvironmentExist(client, environment.getEnvironmentName());
 
                 // We don't use incremental deployments when an environment doesn't exist yet
@@ -159,7 +156,7 @@ public class UpdateEnvironmentJob extends Job {
                     AWSGitPushCommand pushCommand = new AWSGitPushCommand(getPrivateGitRepoLocation(environment),
                             exportedWar.toFile(), environment, new BasicAWSCredentials(accountInfo.getAccessKey(),
                                     accountInfo.getSecretKey()));
-                    
+
                     pushCommand.execute();
                 } else {
                     if (versionLabel == null) versionLabel = UUID.randomUUID().toString();
@@ -257,7 +254,7 @@ public class UpdateEnvironmentJob extends Job {
 
             IVMConnector debuggerConnector = JavaRuntime.getDefaultVMConnector();
 
-            Map<String, Object> arguments = new HashMap<String, Object>();
+            Map<String, String> arguments = new HashMap<String, String>();
             arguments.put("timeout", "60000");
             arguments.put("hostname", getEc2InstanceHostname());
             arguments.put("port", debugPort);

@@ -28,10 +28,13 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.BrowserUtils;
 import com.amazonaws.eclipse.explorer.cloudformation.wizard.CreateStackWizardDataModel.Mode;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.CancelUpdateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
+import com.amazonaws.services.cloudformation.model.EstimateTemplateCostRequest;
+import com.amazonaws.services.cloudformation.model.EstimateTemplateCostResult;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
@@ -60,8 +63,10 @@ public class CreateStackWizard extends Wizard {
     	   setNeedsProgressMonitor(false);
            if ( mode == Mode.Update ) {
                setWindowTitle("Update Cloud Formation Stack");
-           } else {
+           } else if (mode == Mode.Create) {
                setWindowTitle("Create New Cloud Formation Stack");
+           } else {
+               setWindowTitle("Estimate the Cost of the Template");
            }
            setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry()
                    .getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
@@ -89,11 +94,22 @@ public class CreateStackWizard extends Wizard {
                             .getCloudFormationClient();
                     if ( dataModel.getMode() == Mode.Create ) {
                         cloudFormationClient.createStack(createStackRequest);
-                    } else {
+                    } else if (dataModel.getMode() == Mode.Update ){
                         cloudFormationClient.updateStack(createUpdateStackRequest(createStackRequest));
                     }
-                    // Let the user have the time to cancel the update operation in Progress.
-                    Thread.sleep(1000 * 30);
+
+                    if (dataModel.getMode() == Mode.EstimateCost) {
+                        EstimateTemplateCostRequest estimateTemplateCostRequest = createEstimateTemplateCostRequest(createStackRequest);
+                        EstimateTemplateCostResult estimateTemplateCostResult = cloudFormationClient.estimateTemplateCost(estimateTemplateCostRequest);
+
+                        String url = estimateTemplateCostResult.getUrl();
+                        BrowserUtils.openExternalBrowser(url);
+                    } else {
+                        // Let the user have the time to cancel the update
+                        // operationin Progress.
+                        Thread.sleep(1000 * 30);
+                    }
+
                     return Status.OK_STATUS;
                 } catch ( Exception e ) {
                     return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Failed to " +
@@ -125,6 +141,14 @@ public class CreateStackWizard extends Wizard {
         UpdateStackRequest rq = new UpdateStackRequest();
         rq.setStackName(createStackRequest.getStackName());
         rq.setCapabilities(createStackRequest.getCapabilities());
+        rq.setParameters(createStackRequest.getParameters());
+        rq.setTemplateBody(createStackRequest.getTemplateBody());
+        rq.setTemplateURL(createStackRequest.getTemplateURL());
+        return rq;
+    }
+
+    private EstimateTemplateCostRequest createEstimateTemplateCostRequest(CreateStackRequest createStackRequest) {
+        EstimateTemplateCostRequest rq = new EstimateTemplateCostRequest();
         rq.setParameters(createStackRequest.getParameters());
         rq.setTemplateBody(createStackRequest.getTemplateBody());
         rq.setTemplateURL(createStackRequest.getTemplateURL());

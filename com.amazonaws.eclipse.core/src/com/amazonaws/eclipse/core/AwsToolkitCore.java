@@ -31,6 +31,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
+import com.amazonaws.eclipse.core.ui.setupwizard.InitialSetupUtils;
 
 /**
  * Entry point for functionality provided by the AWS Toolkit Core plugin,
@@ -58,6 +59,9 @@ public class AwsToolkitCore extends AbstractUIPlugin {
 
     /** The ID of the AWS Toolkit Overview editor */
     public static final String OVERVIEW_EDITOR_ID = "com.amazonaws.eclipse.core.ui.overview";
+
+    /** The ID of the AWS Explorer view */
+    public static final String EXPLORER_VIEW_ID = "com.amazonaws.eclipse.explorer.view";
 
     public static final String IMAGE_REMOVE = "remove";
     public static final String IMAGE_ADD = "add";
@@ -90,6 +94,8 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     public static final String IMAGE_IAM = "iam";
     public static final String IMAGE_KEY = "key";
     public static final String IMAGE_ROLE = "role";
+    public static final String IMAGE_INFORMATION = "information";
+    public static final String IMAGE_DOWNLOAD = "download";
 
     public static final String IMAGE_FLAG_PREFIX = "flag-";
 
@@ -165,8 +171,11 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         // Start listening for account changes...
         accountInfoMonitor = new AccountInfoMonitor();
         bootstrapAccountPreferences();
+
         RegionUtils.init();
         getPreferenceStore().addPropertyChangeListener(accountInfoMonitor);
+
+        InitialSetupUtils.runInitialSetupWizard();
     }
 
     /**
@@ -318,6 +327,8 @@ public class AwsToolkitCore extends AbstractUIPlugin {
                 IMAGE_IAM,                    "/icons/iam.png",
                 IMAGE_KEY,                    "/icons/key.png",
                 IMAGE_ROLE,                   "/icons/role.png",
+                IMAGE_INFORMATION,            "/icons/information.png",
+                IMAGE_DOWNLOAD,               "/icons/download.png"
         };
 
         ImageRegistry imageRegistry = super.createImageRegistry();

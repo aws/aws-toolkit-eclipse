@@ -21,7 +21,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.amazonaws.services.dynamodb.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.util.BinaryUtils;
 
 /**
@@ -92,9 +93,9 @@ public class AttributeValueUtil {
     }
 
     static void setAttribute(AttributeValue attributeValue, final Collection<String> newValue, String dataType) {
-        if ( "N".equals(dataType) ) {
+        if ( ScalarAttributeType.N.toString().equals(dataType) ) {
             setAttribute(attributeValue, newValue, N);
-        } else if ( "S".equals(dataType) ) {
+        } else if ( ScalarAttributeType.S.toString().equals(dataType) ) {
             setAttribute(attributeValue, newValue, S);
         } else {
             throw new RuntimeException("Unknown data type " + dataType);
@@ -106,16 +107,16 @@ public class AttributeValueUtil {
      * used by this class.
      */
     static int getDataType(String dataType) {
-        if ( "S".equals(dataType) ) {
+        if ( ScalarAttributeType.S.toString().equals(dataType) ) {
             return S;
-        } else if ( "N".equals(dataType) ) {
+        } else if ( ScalarAttributeType.N.toString().equals(dataType) ) {
             return N;
+        } else if ( ScalarAttributeType.B.toString().equals(dataType) ) {
+            return B;
         } else if ( "SS".equals(dataType) ) {
             return SS;
         } else if ( "NS".equals(dataType) ) {
             return NS;
-        } else if ( "B".equals(dataType) ) {
-            return B;
         } else if ( "BS".equals(dataType) ) {
             return BS;
         } else {
