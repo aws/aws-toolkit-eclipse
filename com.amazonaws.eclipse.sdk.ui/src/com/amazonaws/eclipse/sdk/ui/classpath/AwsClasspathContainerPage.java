@@ -18,6 +18,7 @@ import java.io.IOException;
 
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ui.wizards.IClasspathContainerPage;
 import org.eclipse.jdt.ui.wizards.IClasspathContainerPageExtension;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -52,6 +53,7 @@ public class AwsClasspathContainerPage extends WizardPage
 	/**
 	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@Override
 	public void createControl(Composite parent) {
 	    JavaSdkInstall currentSdk = null;
 	    try {
@@ -69,6 +71,7 @@ public class AwsClasspathContainerPage extends WizardPage
 		this.setControl(sdkVersionInfoComposite);
 	}
 	
+	@Override
 	public boolean finish() {
 	    try {
 	        SdkProjectMetadata sdkProjectMetadataFile = new SdkProjectMetadata(project.getProject());
@@ -88,6 +91,7 @@ public class AwsClasspathContainerPage extends WizardPage
 	/**
 	 * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPageExtension#initialize(org.eclipse.jdt.core.IJavaProject, org.eclipse.jdt.core.IClasspathEntry[])
 	 */
+	@Override
 	public void initialize(IJavaProject project, IClasspathEntry[] currentEntries) {
 	    this.project = project;
 	}
@@ -95,13 +99,15 @@ public class AwsClasspathContainerPage extends WizardPage
 	/**
 	 * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPage#getSelection()
 	 */
+	@Override
 	public IClasspathEntry getSelection() {
-	    return null;
+	    return JavaCore.newContainerEntry(AwsClasspathContainer.ID);
 	}
 
 	/**
 	 * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPage#setSelection(org.eclipse.jdt.core.IClasspathEntry)
 	 */
+	@Override
 	public void setSelection(IClasspathEntry containerEntry) {}
 
 }

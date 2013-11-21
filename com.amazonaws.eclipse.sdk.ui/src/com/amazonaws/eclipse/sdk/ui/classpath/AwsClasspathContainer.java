@@ -35,6 +35,8 @@ import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
  */
 public class AwsClasspathContainer implements IClasspathContainer {
 
+	public final static Path ID = new Path("com.amazonaws.eclipse.sdk.AWS_JAVA_SDK");
+	
     /** The SDK containing the libraries to expose on the Java Project classpath */
     private JavaSdkInstall sdkInstall;
 
@@ -56,14 +58,16 @@ public class AwsClasspathContainer implements IClasspathContainer {
     /* (non-Javadoc)
      * @see org.eclipse.jdt.core.IClasspathContainer#getClasspathEntries()
      */
-    public IClasspathEntry[] getClasspathEntries() {
+    @Override
+	public IClasspathEntry[] getClasspathEntries() {
         return loadSdkClasspathEntriesAsArray(sdkInstall);
     }
 
     /**
      * @see org.eclipse.jdt.core.IClasspathContainer#getDescription()
      */
-    public String getDescription() {
+    @Override
+	public String getDescription() {
         return "AWS SDK for Java";
     }
 
@@ -78,15 +82,17 @@ public class AwsClasspathContainer implements IClasspathContainer {
     /**
      * @see org.eclipse.jdt.core.IClasspathContainer#getKind()
      */
-    public int getKind() {
+    @Override
+	public int getKind() {
         return IClasspathContainer.K_APPLICATION;
     }
 
     /**
      * @see org.eclipse.jdt.core.IClasspathContainer#getPath()
      */
-    public IPath getPath() {
-        return new Path("com.amazonaws.eclipse.sdk.AWS_JAVA_SDK");
+    @Override
+	public IPath getPath() {
+        return ID;
     }
 
 
