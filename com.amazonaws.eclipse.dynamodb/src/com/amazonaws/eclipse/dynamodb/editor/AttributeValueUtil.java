@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.dynamodb.editor;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,7 +58,7 @@ public class AttributeValueUtil {
             attributeValue.setSS(newValue);
             break;
         case BS:
-            attributeValue.setB(getByteBuffer(newValue.iterator().next()));
+            attributeValue.setBS(getByteBuffers(newValue));
             break;
         case N:
             attributeValue.setN(newValue.iterator().next());
@@ -66,7 +67,7 @@ public class AttributeValueUtil {
             attributeValue.setS(newValue.iterator().next());
             break;
         case B:
-            attributeValue.setBS(getByteBuffers(newValue));
+            attributeValue.setB(getByteBuffer(newValue.iterator().next()));
             break;
         default:
             throw new RuntimeException("Unknown data type " + dataType);
@@ -97,6 +98,8 @@ public class AttributeValueUtil {
             setAttribute(attributeValue, newValue, N);
         } else if ( ScalarAttributeType.S.toString().equals(dataType) ) {
             setAttribute(attributeValue, newValue, S);
+        } else if ( ScalarAttributeType.B.toString().equals(dataType) ) {
+            setAttribute(attributeValue, newValue, B);
         } else {
             throw new RuntimeException("Unknown data type " + dataType);
         }
@@ -150,7 +153,7 @@ public class AttributeValueUtil {
         else if ( value.getS() != null )
             return value.getS();
         else if ( value.getSS() != null )
-            return join(value.getSS());
+            return join(value.getSS(), true);
         else if ( value.getB() != null )
             return base64Format(value.getB());
         else if ( value.getBS() != null )
@@ -162,10 +165,7 @@ public class AttributeValueUtil {
      * Returns the given byte buffer list as a base-64 formatted list
      */
     private static String joinBase64(List<ByteBuffer> bs) {
-        List<String> base64Strings = new LinkedList<String>();
-        for (ByteBuffer b : bs) {
-            base64Strings.add(base64Format(b));
-        }
+        Collection<String> base64Strings = base64FormatOfBinarySet(bs);
         return join(base64Strings);
     }
 
@@ -175,17 +175,39 @@ public class AttributeValueUtil {
     private static String base64Format(ByteBuffer b) {
         return BinaryUtils.toBase64(b.array());
     }
+    
+    /**
+     * Returns a base-64 string of the given bytes
+     */
+    private static Collection<String> base64FormatOfBinarySet(Collection<ByteBuffer> bs) {
+        List<String> base64Strings = new LinkedList<String>();
+        for (ByteBuffer b : bs) {
+            base64Strings.add(base64Format(b));
+        }
+        return base64Strings;
+    }
 
     /**
      * Joins a collection of values with commas, enclosed by brackets. An empty
      * or null set of values returns the empty string.
      */
     static String join(final Collection<String> values) {
+        return join(values, false);
+    }
+
+    /**
+     * Joins a collection of values with commas, enclosed by brackets. An empty
+     * or null set of values returns the empty string.
+     * 
+     * @param quoted
+     *            Whether each value should be quoted in the output.
+     */
+    static String join(final Collection<String> values, boolean quoted) {
         if ( values == null || values.isEmpty() ) {
             return "";
         }
 
-        StringBuilder builder = new StringBuilder("[");
+        StringBuilder builder = new StringBuilder("{");
         boolean seenOne = false;
         for ( String s : values ) {
             if ( seenOne ) {
@@ -193,9 +215,9 @@ public class AttributeValueUtil {
             } else {
                 seenOne = true;
             }
-            builder.append(s);
+            builder.append(quoted ? "\"" + s + "\"" : s);
         }
-        builder.append("]");
+        builder.append("}");
 
         return builder.toString();
     }
@@ -216,12 +238,69 @@ public class AttributeValueUtil {
         } else if ( value.getSS() != null ) {
             return value.getSS();
         } else if ( value.getB() != null ) {
-            return Arrays.asList(value.getS());
-        } else if ( value.getSS() != null ) {
-            return value.getSS();
+            return Arrays.asList(base64Format(value.getB()));
+        } else if ( value.getBS() != null ) {
+            return base64FormatOfBinarySet(value.getBS());
         } else {
             return Collections.emptyList();
         }
+    }
+    
+    /**
+     * Validates the user input of a scalar attribute value.
+     */
+    public static boolean validateScalarAttributeInput(String attributeInput, int dataType, boolean acceptEmpty) {
+        if ( null == attributeInput ) {
+            return false;
+        }
+        if ( attributeInput.isEmpty() ) {
+            return acceptEmpty;
+        }
+        if ( dataType == S ) {
+            return attributeInput.length() > 0;
+        } else if ( dataType == N ) {
+            return validateNumberStringInput(attributeInput);
+        } else if ( dataType == B ) {
+            return validateBase64StringInput(attributeInput);
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * Returns the warning message for the given attribute type.
+     */
+    public static String getScalarAttributeValidationWarning(String attributeName, int dataType) {
+        if ( dataType == S ) {
+            return "Invalid String value for " + attributeName + ".";
+        } else if ( dataType == N ) {
+            return "Invalid Number value for " + attributeName + ".";
+        } else if ( dataType == B ) {
+            return "Invalid Base64 string for " + attributeName + ".";
+        } else {
+            return "";
+        }
+    }
+    
+    /**
+     * Validates the user input of Base64 string.
+     */
+    private static boolean validateBase64StringInput(String base64) {
+        byte[] decoded = BinaryUtils.fromBase64(base64);
+        String encodedAgain = BinaryUtils.toBase64(decoded);
+        return base64.equals(encodedAgain);
+    }
+    
+    /**
+     * Validates the user input of a number.
+     */
+    private static boolean validateNumberStringInput(String number) {
+        try {
+            new BigInteger(number, 10);
+        } catch ( NumberFormatException e ) {
+            return false;
+        }
+        return true;
     }
 
 }

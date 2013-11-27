@@ -36,6 +36,10 @@ public class SimpleDBLabelProvider extends ExplorerNodeLabelProvider {
      */
     @Override
     public Image getDefaultImage(final Object element) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_TABLE);
+        if ( element instanceof SimpleDBRootElement ) {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_SIMPLEDB_SERVICE);
+        } else {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_TABLE);
+        }
     }
 }

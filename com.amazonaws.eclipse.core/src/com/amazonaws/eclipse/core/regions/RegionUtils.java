@@ -85,6 +85,24 @@ public class RegionUtils {
     }
 
     /**
+     * Add a service endpoint to the special "local" region, causing the
+     * service to show up in the AWS Explorer when the region is set to local
+     * and setting the port that the local service is expected to listen on.
+     */
+    public synchronized static void addLocalService(
+            String serviceName,
+            int port) {
+
+        Region local = getRegion("local");
+        if (local == null) {
+            throw new IllegalStateException("No local region found!");
+        }
+
+        local.getServiceEndpoints().put(serviceName,
+                                        "http://localhost:" + port);
+    }
+
+    /**
      * Returns a list of the regions that support the service given.
      *
      * @see ServiceAbbreviations
@@ -119,12 +137,13 @@ public class RegionUtils {
         IPreferenceStore preferenceStore = AwsToolkitCore.getDefault().getPreferenceStore();
         String defaultRegion = preferenceStore.getString(PreferenceConstants.P_DEFAULT_REGION);
 
-        for ( Region region : getRegions() ) {
-            if ( region.getId().equals(defaultRegion) )
-                return region;
+        Region rval = getRegion(defaultRegion);
+
+        if (rval == null) {
+            throw new RuntimeException("Unable to determine default region");
         }
 
-        throw new RuntimeException("Unable to determine default region");
+        return rval;
     }
 
     /**
@@ -143,25 +162,33 @@ public class RegionUtils {
         try {
             targetEndpointUrl = new URL(endpoint);
         } catch ( MalformedURLException e ) {
-            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
+            throw new RuntimeException(
+                    "Unable to parse service endpoint: " + e.getMessage());
         }
 
         String targetHost = targetEndpointUrl.getHost();
         for ( Region region : getRegions() ) {
-            for ( String serviceEndpoint : region.getServiceEndpoints().values() ) {
+            for ( String serviceEndpoint
+                        : region.getServiceEndpoints().values() ) {
                 try {
                     URL serviceEndpointUrl = new URL(serviceEndpoint);
-                    if ( serviceEndpointUrl.getHost().equals(targetHost) )
+                    if ( serviceEndpointUrl.getHost().equals(targetHost) ) {
                         return region;
+                    }
                 } catch ( MalformedURLException e ) {
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
-                            "Unable to parse service endpoint: " + serviceEndpoint, e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                    Status status = new Status(
+                        Status.ERROR,
+                        AwsToolkitCore.PLUGIN_ID,
+                        "Unable to parse service endpoint: " + serviceEndpoint,
+                        e);
+                    StatusManager.getManager()
+                        .handle(status, StatusManager.LOG);
                 }
             }
         }
 
-        throw new RuntimeException("No region found with any service for endpoint " + endpoint);
+        throw new RuntimeException(
+                "No region found with any service for endpoint " + endpoint);
     }
 
 
@@ -174,7 +201,8 @@ public class RegionUtils {
         if ( System.getProperty(REGIONS_FILE_OVERRIDE) != null ) {
             loadRegionsFromOverrideFile();
         } else {
-            IPath stateLocation = Platform.getStateLocation(AwsToolkitCore.getDefault().getBundle());
+            IPath stateLocation = Platform.getStateLocation(
+                AwsToolkitCore.getDefault().getBundle());
             File regionsDir = new File(stateLocation.toFile(), "regions");
             File regionsFile = new File(regionsDir, "regions.xml");
 
@@ -191,17 +219,20 @@ public class RegionUtils {
     private static void loadRegionsFromOverrideFile() {
         try {
             System.setProperty("com.amazonaws.sdk.disableCertChecking", "true");
-            File regionsFile = new File(System.getProperty(REGIONS_FILE_OVERRIDE));
+            File regionsFile =
+                new File(System.getProperty(REGIONS_FILE_OVERRIDE));
             FileInputStream override = new FileInputStream(regionsFile);
             RegionMetadataParser parser = new RegionMetadataParser();
             regions = parser.parseRegionMetadata(override);
             try {
                 cacheFlags(regionsFile.getParentFile());
             } catch ( Exception e ) {
-                AwsToolkitCore.getDefault().logException("Couldn't cache flag icons", e);
+                AwsToolkitCore.getDefault().logException(
+                        "Couldn't cache flag icons", e);
             }
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException("Couldn't load regions override", e);
+            AwsToolkitCore.getDefault().logException(
+                    "Couldn't load regions override", e);
         }
     }
 
@@ -220,13 +251,17 @@ public class RegionUtils {
         }
 
         try {
-            AmazonS3 s3 = AwsToolkitCore.getClientFactory().getAnonymousS3Client();
-            ObjectMetadata objectMetadata = s3.getObjectMetadata("aws-vs-toolkit", "ServiceEndPoints.xml");
-            if ( objectMetadata.getLastModified().after(regionsFileLastModified) ) {
+            AmazonS3 s3 =
+                AwsToolkitCore.getClientFactory().getAnonymousS3Client();
+            ObjectMetadata objectMetadata =
+                s3.getObjectMetadata("aws-vs-toolkit", "ServiceEndPoints.xml");
+            if ( objectMetadata.getLastModified()
+                        .after(regionsFileLastModified) ) {
                 cacheRegionsFile(regionsFile, s3);
             }
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException("Failed to cache regions file", e);
+            AwsToolkitCore.getDefault().logException(
+                    "Failed to cache regions file", e);
         }
     }
 
@@ -238,15 +273,16 @@ public class RegionUtils {
     private static void initCachedRegions(File regionsFile) {
         try {
             InputStream inputStream = new FileInputStream(regionsFile);
-            RegionMetadataParser parser = new RegionMetadataParser();
-            regions = parser.parseRegionMetadata(inputStream);
+            regions = parseRegionMetadata(inputStream);
             try {
                 cacheFlags(regionsFile.getParentFile());
             } catch ( Exception e ) {
-                AwsToolkitCore.getDefault().logException("Couldn't cache flag icons", e);
+                AwsToolkitCore.getDefault().logException(
+                        "Couldn't cache flag icons", e);
             }
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException("Couldn't read regions file", e);
+            AwsToolkitCore.getDefault().logException(
+                    "Couldn't read regions file", e);
             // Clear out the regions file so that it will get cached again at
             // next startup
             regionsFile.delete();
@@ -259,16 +295,35 @@ public class RegionUtils {
      */
     private static void initBundledRegions() {
         ClassLoader classLoader = RegionUtils.class.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("/etc/regions.xml");
-        RegionMetadataParser parser = new RegionMetadataParser();
-        regions = parser.parseRegionMetadata(inputStream);
+        InputStream inputStream =
+            classLoader.getResourceAsStream("/etc/regions.xml");
+        regions = parseRegionMetadata(inputStream);
         for ( Region r : regions ) {
+            if (r == LocalRegion.INSTANCE) {
+                // No flag to load for the local region.
+                continue;
+            }
+
             AwsToolkitCore
-                    .getDefault()
-                    .getImageRegistry()
-                    .put(AwsToolkitCore.IMAGE_FLAG_PREFIX + r.getId(),
-                            ImageDescriptor.createFromFile(RegionUtils.class, r.getFlagIconPath()));
+                .getDefault()
+                .getImageRegistry()
+                .put(AwsToolkitCore.IMAGE_FLAG_PREFIX + r.getId(),
+                    ImageDescriptor.createFromFile(RegionUtils.class,
+                                                   r.getFlagIconPath()));
         }
+    }
+
+    private static final RegionMetadataParser PARSER =
+        new RegionMetadataParser();
+
+    /**
+     * Parses a list of regions from the given input stream. Adds in the
+     * special "local" region.
+     */
+    private static List<Region> parseRegionMetadata(InputStream inputStream) {
+        List<Region> list = PARSER.parseRegionMetadata(inputStream);
+        list.add(LocalRegion.INSTANCE);
+        return list;
     }
 
     /**
@@ -285,13 +340,17 @@ public class RegionUtils {
 //            String endpointsUrl = CLOUDFRONT_DISTRO + "ServiceEndPoints.xml";
 //            fetchFile(endpointsUrl, regionsFile);
 //        } catch ( Exception e ) {
-//            AwsToolkitCore.getDefault().logException("Couldn't fetch regions file from cloudfront, trying s3", e);
+//            AwsToolkitCore.getDefault().logException(
+//                "Couldn't fetch regions file from cloudfront, trying s3", e);
             try {
                 // Then from s3
                 truncateFile(regionsFile);
-                s3.getObject(new GetObjectRequest("aws-vs-toolkit", "ServiceEndPoints.xml"), regionsFile);
+                s3.getObject(new GetObjectRequest("aws-vs-toolkit",
+                                                  "ServiceEndPoints.xml"),
+                             regionsFile);
             } catch ( Exception s3Exception ) {
-                AwsToolkitCore.getDefault().logException("Couldn't fetch regions file from s3", s3Exception);
+                AwsToolkitCore.getDefault().logException(
+                    "Couldn't fetch regions file from s3", s3Exception);
             }
 //        }
     }
@@ -299,7 +358,8 @@ public class RegionUtils {
     /**
      * Set the length of the file given to 0 bytes.
      */
-    private static void truncateFile(File file) throws FileNotFoundException, IOException {
+    private static void truncateFile(File file)
+            throws FileNotFoundException, IOException {
         if ( file.exists() ) {
             RandomAccessFile raf = new RandomAccessFile(file, "rw");
             raf.getChannel().truncate(0);
@@ -310,35 +370,45 @@ public class RegionUtils {
     /**
      * Caches flag icons as necessary, also registering images for them
      */
-    private static void cacheFlags(File regionsDir) throws ClientProtocolException, IOException {
+    private static void cacheFlags(File regionsDir)
+            throws ClientProtocolException, IOException {
         if ( !regionsDir.exists() ) {
             return;
         }
 
         for ( Region r : regions ) {
+            if (r == LocalRegion.INSTANCE) {
+                // Local region has no flag to initialize.
+                continue;
+            }
+
             File icon = new File(regionsDir, r.getFlagIconPath());
             if ( icon.exists() == false ) {
                 icon.getParentFile().mkdirs();
                 String iconUrl = CLOUDFRONT_DISTRO + r.getFlagIconPath();
                 fetchFile(iconUrl, icon);
             }
+
             AwsToolkitCore
-                    .getDefault()
-                    .getImageRegistry()
-                    .put(AwsToolkitCore.IMAGE_FLAG_PREFIX + r.getId(),
-                            ImageDescriptor.createFromURL(icon.getAbsoluteFile().toURI().toURL()));
+                .getDefault()
+                .getImageRegistry()
+                .put(AwsToolkitCore.IMAGE_FLAG_PREFIX + r.getId(),
+                    ImageDescriptor.createFromURL(
+                        icon.getAbsoluteFile().toURI().toURL()));
         }
     }
 
     /**
      * Fetches a file from the URL given and writes it to the destination given.
      */
-    private static void fetchFile(String url, File destinationFile) throws IOException, ClientProtocolException,
-            FileNotFoundException {
+    private static void fetchFile(String url, File destinationFile)
+            throws IOException, ClientProtocolException, FileNotFoundException {
 
         HttpParams httpClientParams = new BasicHttpParams();
         HttpProtocolParams.setUserAgent(httpClientParams,
-                new AwsClientUtils().formUserAgentString("AWS-Toolkit-For-Eclipse", AwsToolkitCore.getDefault()));
+                new AwsClientUtils()
+                    .formUserAgentString("AWS-Toolkit-For-Eclipse",
+                                         AwsToolkitCore.getDefault()));
         HttpClient httpclient = new DefaultHttpClient(httpClientParams);
         HttpGet httpget = new HttpGet(url);
         HttpResponse response = httpclient.execute(httpget);

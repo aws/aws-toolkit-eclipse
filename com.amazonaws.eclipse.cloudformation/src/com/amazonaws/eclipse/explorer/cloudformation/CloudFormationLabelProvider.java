@@ -24,12 +24,16 @@ public class CloudFormationLabelProvider extends ExplorerNodeLabelProvider {
     @Override
     public String getText(Object element) {
         if (element instanceof CloudFormationRootElement) return "AWS CloudFormation";
-        
+
         return getExplorerNodeText(element);
     }
-    
+
     @Override
     public Image getDefaultImage(Object element) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_STACK);
+        if (element instanceof CloudFormationRootElement) {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_CLOUDFORMATION_SERVICE);
+        } else {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_STACK);
+        }
     }
 }

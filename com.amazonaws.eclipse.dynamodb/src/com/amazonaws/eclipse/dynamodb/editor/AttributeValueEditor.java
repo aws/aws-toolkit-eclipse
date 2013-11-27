@@ -14,6 +14,12 @@
  */
 package com.amazonaws.eclipse.dynamodb.editor;
 
+
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.N;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.S;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.NS;
+import static com.amazonaws.eclipse.dynamodb.editor.AttributeValueUtil.SS;
+
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
@@ -73,12 +79,14 @@ final class AttributeValueEditor extends Composite {
 
         // Button for changing data type
         dataTypeButton = new Button(this, SWT.None);
-        boolean isNumeric = false;
+        int selectedType;
         if ( attributeValue.getN() != null || attributeValue.getNS() != null ) {
             dataTypeButton.setImage(DynamoDBPlugin.getDefault().getImageRegistry().get(DynamoDBPlugin.IMAGE_ONE));
-            isNumeric = true;
+            selectedType = NUMBER;
         } else {
+            // Default image and selected type is STRING
             dataTypeButton.setImage(DynamoDBPlugin.getDefault().getImageRegistry().get(DynamoDBPlugin.IMAGE_A));
+            selectedType = STRING;
         }
 
         GridDataFactory.fillDefaults().align(SWT.RIGHT, SWT.TOP).grab(false, true).applyTo(this.dataTypeButton);
@@ -91,7 +99,7 @@ final class AttributeValueEditor extends Composite {
         dataTypeCombo.setVisible(false);
         dataTypeCombo.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
         dataTypeCombo.setItems(DATA_TYPE_ITEMS);
-        dataTypeCombo.select(isNumeric ? NUMBER : STRING);
+        dataTypeCombo.select(selectedType);
 
         if ( editor != null ) {
             Point comboSize = dataTypeCombo.computeSize(SWT.DEFAULT, controlHeight);
@@ -138,16 +146,34 @@ final class AttributeValueEditor extends Composite {
                 GridDataFactory.createFrom((GridData) dataTypeButton.getLayoutData()).exclude(false)
                         .applyTo(dataTypeButton);
 
-                if ( dataTypeCombo.getSelectionIndex() == 0 ) {
+                if ( dataTypeCombo.getSelectionIndex() == STRING ) {
                     dataTypeButton.setImage(DynamoDBPlugin.getDefault().getImageRegistry().get(DynamoDBPlugin.IMAGE_A));
                 } else {
-                    dataTypeButton.setImage(DynamoDBPlugin.getDefault().getImageRegistry()
-                            .get(DynamoDBPlugin.IMAGE_ONE));
+                    dataTypeButton.setImage(DynamoDBPlugin.getDefault().getImageRegistry().get(DynamoDBPlugin.IMAGE_ONE));
                 }
 
                 parent.layout();
                 parent.setRedraw(true);
             }
         });
+    }
+    
+    /**
+     *  Returns the currently selected data type.
+     */
+    public int getSelectedDataType(boolean isSetType) {
+        int dataType;
+        switch (this.dataTypeCombo.getSelectionIndex()) {
+        case STRING:
+            dataType = isSetType ? SS : S;
+            break;
+        case NUMBER:
+            dataType = isSetType ? NS : N;
+            break;
+        default:
+            throw new RuntimeException("Unexpected selection index "
+                    + this.dataTypeCombo.getSelectionIndex());
+        }
+        return dataType;
     }
 }

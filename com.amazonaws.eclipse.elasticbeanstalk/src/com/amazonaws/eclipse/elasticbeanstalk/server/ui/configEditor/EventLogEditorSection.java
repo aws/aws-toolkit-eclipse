@@ -49,6 +49,9 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.IServerListener;
+import org.eclipse.wst.server.core.ServerEvent;
 import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -71,6 +74,7 @@ public class EventLogEditorSection extends ServerEditorSection {
     private boolean tableDataLoaded = false;
 
     private static final Object JOB_FAMILY = new Object();
+    private AutoRefreshListener autoRefreshListener;
 
     @Override
     public void createSection(Composite parent) {
@@ -94,7 +98,20 @@ public class EventLogEditorSection extends ServerEditorSection {
         section.setLayout(layout);
 
         createEventsTable(composite);
+        configureAutoRefresh();
         refresh();
+    }
+
+    private void configureAutoRefresh() {
+        autoRefreshListener = new AutoRefreshListener();
+        Environment environment = (Environment) server.loadAdapter(Environment.class, null);
+        environment.getServer().addServerListener(autoRefreshListener);
+
+        // Go ahead and start auto refreshing if the server is already
+        // starting up, since we won't see the starting event
+        if (environment.getServer().getServerState() == IServer.STATE_STARTING) {
+            EventLogRefreshManager.getInstance().startAutoRefresh(this);
+        }
     }
 
     protected TreeColumn newColumn(String columnText, int weight) {
@@ -108,6 +125,21 @@ public class EventLogEditorSection extends ServerEditorSection {
         tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
 
         return column;
+    }
+
+    private final class AutoRefreshListener implements IServerListener {
+        public void serverChanged(ServerEvent event) {
+            if ((event.getKind() & ServerEvent.SERVER_CHANGE) == 0) return;
+
+            switch (event.getState()) {
+            case IServer.STATE_STARTING:
+                EventLogRefreshManager.getInstance().startAutoRefresh(EventLogEditorSection.this);
+                break;
+            default:
+                EventLogRefreshManager.getInstance().stopAutoRefresh(EventLogEditorSection.this);
+                break;
+            }
+        }
     }
 
     /** Populates the Event Log context menu with actions. */
@@ -300,6 +332,18 @@ public class EventLogEditorSection extends ServerEditorSection {
                 return null;
             }
         });
+    }
+
+    @Override
+    public void dispose() {
+        Environment environment = (Environment) server.loadAdapter(Environment.class, null);
+        environment.getServer().removeServerListener(autoRefreshListener);
+
+        super.dispose();
+    }
+
+    public String getServerName() {
+        return server.getName();
     }
 
     /**

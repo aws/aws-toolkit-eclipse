@@ -31,6 +31,7 @@ import com.amazonaws.eclipse.ec2.Ec2Plugin;
 public class EventLogEditorPart extends ServerEditorPart {
 
     private ManagedForm managedForm;
+    private EventLogEditorSection eventLog;
 
     @Override
     public void createPartControl(Composite parent) {
@@ -49,10 +50,10 @@ public class EventLogEditorPart extends ServerEditorPart {
         columnComp.setLayout(new FillLayout());
         form.getBody().setLayout(layout);
 
-        final EventLogEditorSection editorSection = new EventLogEditorSection();
-        editorSection.setServerEditorPart(this);
-        editorSection.init(this.getEditorSite(), this.getEditorInput());
-        editorSection.createSection(columnComp);
+        eventLog = new EventLogEditorSection();
+        eventLog.setServerEditorPart(this);
+        eventLog.init(this.getEditorSite(), this.getEditorInput());
+        eventLog.createSection(columnComp);
 
         managedForm.getForm().getToolBarManager().add(new Action("Refresh", SWT.None) {
             @Override
@@ -61,7 +62,7 @@ public class EventLogEditorPart extends ServerEditorPart {
             }
             @Override
             public void run() {
-                editorSection.refresh();
+                eventLog.refresh();
             }
         });
         managedForm.getForm().getToolBarManager().update(true);
@@ -72,6 +73,6 @@ public class EventLogEditorPart extends ServerEditorPart {
     @Override
     public void setFocus() {
         managedForm.setFocus();
+        eventLog.refresh();
     }
-
 }

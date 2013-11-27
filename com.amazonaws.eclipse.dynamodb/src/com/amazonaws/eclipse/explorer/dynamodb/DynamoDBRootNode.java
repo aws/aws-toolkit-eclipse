@@ -24,9 +24,9 @@ import com.amazonaws.eclipse.explorer.ExplorerNode;
 public class DynamoDBRootNode extends ExplorerNode {
 
     public static final DynamoDBRootNode NODE = new DynamoDBRootNode();
-    
+
     private DynamoDBRootNode() {
-        super("Amazon DynamoDB", 1, DynamoDBPlugin.getDefault().getImageRegistry().get(DynamoDBPlugin.IMAGE_TABLE));
+        super("Amazon DynamoDB", 1, DynamoDBPlugin.getDefault().getImageRegistry().get(DynamoDBPlugin.IMAGE_DYNAMODB_SERVICE));
     }
 
 }

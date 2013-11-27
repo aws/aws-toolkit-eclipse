@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Control;
  * particular control and adds an error decoration whenever validation
  * fails.
  */
-class ErrorDecorator implements IValueChangeListener {
+public class ErrorDecorator implements IValueChangeListener {
 
     private final ControlDecoration decoration;
 

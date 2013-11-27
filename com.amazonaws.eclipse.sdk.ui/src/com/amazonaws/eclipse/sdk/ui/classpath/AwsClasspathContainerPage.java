@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
  * A copy of the License is located at
- * 
+ *
  *  http://aws.amazon.com/apache2.0
- * 
+ *
  * or in the "license" file accompanying this file. This file is distributed
  * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  * express or implied. See the License for the specific language governing
@@ -34,30 +34,29 @@ import com.amazonaws.eclipse.sdk.ui.SdkVersionInfoComposite;
  * A Wizard page to modify the version of the AWS SDK for Java being used by
  * a particular project.
  */
-public class AwsClasspathContainerPage extends WizardPage 
+public class AwsClasspathContainerPage extends WizardPage
         implements IClasspathContainerPage, IClasspathContainerPageExtension {
 
-	private IJavaProject project;
-	private SdkVersionInfoComposite sdkVersionInfoComposite;
+    private IJavaProject project;
+    private SdkVersionInfoComposite sdkVersionInfoComposite;
 
-	public AwsClasspathContainerPage() {
-		super("AWS SDK for Java");
-		
-		setDescription("Add the AWS SDK for Java to your project's classpath.");
-		setTitle("AWS SDK for Java");
-		
-		ImageRegistry imageRegistry = AwsToolkitCore.getDefault().getImageRegistry();
+    public AwsClasspathContainerPage() {
+        super("AWS SDK for Java");
+
+        setDescription("Add the AWS SDK for Java to your project's classpath.");
+        setTitle("AWS SDK for Java");
+
+        ImageRegistry imageRegistry = AwsToolkitCore.getDefault().getImageRegistry();
         setImageDescriptor(imageRegistry.getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
-	}
+    }
 
-	/**
-	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
-	 */
-	@Override
-	public void createControl(Composite parent) {
-	    JavaSdkInstall currentSdk = null;
-	    try {
-	        SdkProjectMetadata sdkProjectMetadataFile = new SdkProjectMetadata(project.getProject());
+    /**
+     * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
+     */
+    public void createControl(Composite parent) {
+        JavaSdkInstall currentSdk = null;
+        try {
+            SdkProjectMetadata sdkProjectMetadataFile = new SdkProjectMetadata(project.getProject());
 
             currentSdk = new JavaSdkInstall(sdkProjectMetadataFile.getSdkInstallRootForProject());
         } catch (IOException e) {
@@ -68,46 +67,42 @@ public class AwsClasspathContainerPage extends WizardPage
         } else {
             sdkVersionInfoComposite = new SdkVersionInfoComposite(parent, currentSdk);
         }
-		this.setControl(sdkVersionInfoComposite);
-	}
-	
-	@Override
-	public boolean finish() {
-	    try {
-	        SdkProjectMetadata sdkProjectMetadataFile = new SdkProjectMetadata(project.getProject());
-	        AwsSdkClasspathUtils.removeAwsSdkFromProjectClasspath(
-	                project, new JavaSdkInstall(sdkProjectMetadataFile.getSdkInstallRootForProject()));
+        this.setControl(sdkVersionInfoComposite);
+    }
+
+    public boolean finish() {
+        try {
+            SdkProjectMetadata sdkProjectMetadataFile = new SdkProjectMetadata(project.getProject());
+            AwsSdkClasspathUtils.removeAwsSdkFromProjectClasspath(
+                    project, new JavaSdkInstall(sdkProjectMetadataFile.getSdkInstallRootForProject()));
             sdkVersionInfoComposite.getCurrentSdk().writeMetadataToProject(project);
-	        AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(
-	                project, sdkVersionInfoComposite.getCurrentSdk());
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	        return false;
-	    }
-		
-		return true;
-	}
+            AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(
+                    project, sdkVersionInfoComposite.getCurrentSdk());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
 
-	/**
-	 * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPageExtension#initialize(org.eclipse.jdt.core.IJavaProject, org.eclipse.jdt.core.IClasspathEntry[])
-	 */
-	@Override
-	public void initialize(IJavaProject project, IClasspathEntry[] currentEntries) {
-	    this.project = project;
-	}
-	
-	/**
-	 * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPage#getSelection()
-	 */
-	@Override
-	public IClasspathEntry getSelection() {
-	    return JavaCore.newContainerEntry(AwsClasspathContainer.ID);
-	}
+        return true;
+    }
 
-	/**
-	 * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPage#setSelection(org.eclipse.jdt.core.IClasspathEntry)
-	 */
-	@Override
-	public void setSelection(IClasspathEntry containerEntry) {}
+    /**
+     * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPageExtension#initialize(org.eclipse.jdt.core.IJavaProject, org.eclipse.jdt.core.IClasspathEntry[])
+     */
+    public void initialize(IJavaProject project, IClasspathEntry[] currentEntries) {
+        this.project = project;
+    }
+
+    /**
+     * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPage#getSelection()
+     */
+    public IClasspathEntry getSelection() {
+        return JavaCore.newContainerEntry(AwsClasspathContainer.ID);
+    }
+
+    /**
+     * @see org.eclipse.jdt.ui.wizards.IClasspathContainerPage#setSelection(org.eclipse.jdt.core.IClasspathEntry)
+     */
+    public void setSelection(IClasspathEntry containerEntry) {}
 
 }

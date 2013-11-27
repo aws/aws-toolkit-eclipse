@@ -110,7 +110,10 @@ class CreateTableWizard extends Wizard {
 
         createTableRequest.setKeySchema(keySchema);
         createTableRequest.setAttributeDefinitions(dataModel.getAttributeDefinitions());
-        createTableRequest.setLocalSecondaryIndexes(dataModel.getLocalSecondaryIndices());
+        if ( dataModel.getLocalSecondaryIndices() != null
+                && ( !dataModel.getLocalSecondaryIndices().isEmpty() ) ) {
+            createTableRequest.setLocalSecondaryIndexes(dataModel.getLocalSecondaryIndices());
+        }
         return createTableRequest;
 
     }

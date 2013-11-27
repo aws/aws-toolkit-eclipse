@@ -27,17 +27,17 @@ public class ElasticBeanstalkLabelProvider extends ExplorerNodeLabelProvider {
     public Image getDefaultImage(Object element) {
         ImageRegistry imageRegistry = ElasticBeanstalkPlugin.getDefault().getImageRegistry();
         if ( element instanceof ElasticBeanstalkRootElement ) {
-            return imageRegistry.get(ElasticBeanstalkPlugin.IMG_ENVIRONMENT);
-        } 
-        
+            return imageRegistry.get(ElasticBeanstalkPlugin.IMG_SERVICE);
+        }
+
         if ( element instanceof ApplicationDescription ) {
             return imageRegistry.get(ElasticBeanstalkPlugin.IMG_APPLICATION);
-        } 
+        }
 
         if ( element instanceof EnvironmentDescription ) {
             return imageRegistry.get(ElasticBeanstalkPlugin.IMG_ENVIRONMENT);
         }
-        
+
         return null;
     }
 
@@ -45,16 +45,16 @@ public class ElasticBeanstalkLabelProvider extends ExplorerNodeLabelProvider {
     public String getText(Object element) {
         if ( element instanceof ElasticBeanstalkRootElement ) {
             return "AWS Elastic Beanstalk";
-        } 
-        
+        }
+
         if ( element instanceof ApplicationDescription ) {
             return ((ApplicationDescription) element).getApplicationName();
-        } 
+        }
 
         if ( element instanceof EnvironmentDescription ) {
             return ((EnvironmentDescription) element).getEnvironmentName();
         }
-        
+
         return getExplorerNodeText(element);
     }
 

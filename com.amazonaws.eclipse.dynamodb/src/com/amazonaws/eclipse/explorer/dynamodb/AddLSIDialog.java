@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.explorer.dynamodb;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 
 import org.eclipse.core.databinding.AggregateValidationStatus;
@@ -38,6 +39,8 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -62,41 +65,65 @@ import com.amazonaws.services.dynamodbv2.model.Projection;
 
 public class AddLSIDialog extends TitleAreaDialog {
 
+    /** Widget used as data-binding targets **/
     private Text attributeNameText;
     private Text indexNameText;
     private Combo attributeTypeCombo;
     private Combo projectionTypeCombo;
-    private LocalSecondaryIndex localSecondaryIndex;
-    private Button okButton;
     private Button addAttributeButton;
-    private AttributeDefinition attributeDefinition;
-
-    private IObservableValue indexName;
-    private IObservableValue secondaryIndexName;
-    private IObservableValue attributeName;
-    private IObservableValue attributeType;
-    private IObservableValue projectionType;
+    private Button okButton;
+    
+    /** The data objects that will be used to generate the service request **/
+    private final LocalSecondaryIndex localSecondaryIndex;
+    private final AttributeDefinition indexRangeKeyAttributeDefinition;
 
     private final DataBindingContext bindingContext = new DataBindingContext();
-    private static final String[] DATA_TYPE_STRINGS = new String[] { "String", "Number" };
+    
+    /** The model value objects for data-binding **/
+    private final IObservableValue indexNameModel;
+    private final IObservableValue indexRangeKeyNameInKeySchemaDefinitionModel;
+    private final IObservableValue indexRangeKeyNameInAttributeDefinitionsModel;
+    private final IObservableValue indexRangeKeyAttributeTypeModel;
+    private final IObservableValue projectionTypeModel;
+    
+    private final String primaryRangeKeyName;
+    private final int primaryRangeKeyTypeComboIndex;
+
+    private static final String[] DATA_TYPE_STRINGS = new String[] { "String", "Number", "Binary" };
     private static final String[] PROJECTED_ATTRIBUTES = new String[] { "All Attributes", "Table and Index Keys", "Specify Attributes" };
 
     public AddLSIDialog(Shell parentShell, CreateTableDataModel dataModel) {
         super(parentShell);
-        // Initialize the variable to use it for databinding
+        // Initialize the variable necessary for data-binding
         localSecondaryIndex = new LocalSecondaryIndex();
-        localSecondaryIndex.withKeySchema(new KeySchemaElement().withAttributeName(dataModel.getHashKeyName()).withKeyType(KeyType.HASH));
-        localSecondaryIndex.getKeySchema().add(new KeySchemaElement().withKeyType(KeyType.RANGE));
-        localSecondaryIndex.setProjection(new Projection().withNonKeyAttributes(new LinkedList<String>()));
-
-        // Generate these IObservableValue
-        indexName = PojoObservables.observeValue(localSecondaryIndex, "indexName");
-        attributeDefinition = new AttributeDefinition();
-        dataModel.getAttributeDefinitions().add(attributeDefinition);
-        secondaryIndexName = PojoObservables.observeValue(localSecondaryIndex.getKeySchema().get(1), "attributeName");
-        attributeType = PojoObservables.observeValue(attributeDefinition, "attributeType");
-        attributeName = PojoObservables.observeValue(attributeDefinition, "attributeName");
-        projectionType = PojoObservables.observeValue(localSecondaryIndex.getProjection(), "projectionType");
+        // The index range key to be defined by the user
+        KeySchemaElement rangeKeySchemaDefinition = new KeySchemaElement()
+                .withAttributeName(null) 
+                .withKeyType(KeyType.RANGE);
+        localSecondaryIndex.withKeySchema(
+                new KeySchemaElement()
+                                .withAttributeName(dataModel.getHashKeyName())
+                                .withKeyType(KeyType.HASH),
+                rangeKeySchemaDefinition);
+        localSecondaryIndex.setProjection(new Projection());
+        // The attribute definition for the index range key
+        indexRangeKeyAttributeDefinition = new AttributeDefinition();
+        
+        // Initialize IObservableValue objects that keep track of data variables
+        indexNameModel = PojoObservables.observeValue(localSecondaryIndex, "indexName");
+        indexRangeKeyNameInKeySchemaDefinitionModel = PojoObservables.observeValue(rangeKeySchemaDefinition, "attributeName");
+        indexRangeKeyAttributeTypeModel = PojoObservables.observeValue(indexRangeKeyAttributeDefinition, "attributeType");
+        indexRangeKeyNameInAttributeDefinitionsModel = PojoObservables.observeValue(indexRangeKeyAttributeDefinition, "attributeName");
+        projectionTypeModel = PojoObservables.observeValue(localSecondaryIndex.getProjection(), "projectionType");
+        
+        // Get the information of the primary range key
+        if (dataModel.getEnableRangeKey()) {
+            primaryRangeKeyName = dataModel.getRangeKeyName();
+            primaryRangeKeyTypeComboIndex = Arrays.<String>asList(DATA_TYPE_STRINGS).indexOf(dataModel.getRangeKeyType());
+        } else {
+            primaryRangeKeyName = null;
+            primaryRangeKeyTypeComboIndex = -1;
+        }
 
         setShellStyle(SWT.RESIZE);
 
@@ -129,28 +156,42 @@ public class AddLSIDialog extends TitleAreaDialog {
         GridDataFactory.fillDefaults().grab(true, true).applyTo(composite);
         composite.setLayout(new GridLayout(2, false));
 
-        // Attribute name
+        // Index range key attribute name
         new Label(composite, SWT.NONE | SWT.READ_ONLY).setText("Attribute to Index:");
         attributeNameText = new Text(composite, SWT.BORDER);
-        bindingContext.bindValue(SWTObservables.observeText(attributeNameText, SWT.Modify), secondaryIndexName);
-        ChainValidator<String> attributeNameValidationStatusProvider = new ChainValidator<String>(secondaryIndexName, new NotEmptyValidator("Please provide a attribute name"));
+        bindingContext.bindValue(SWTObservables.observeText(attributeNameText, SWT.Modify), indexRangeKeyNameInKeySchemaDefinitionModel);
+        ChainValidator<String> attributeNameValidationStatusProvider = new ChainValidator<String>(indexRangeKeyNameInKeySchemaDefinitionModel, new NotEmptyValidator("Please provide an attribute name"));
         bindingContext.addValidationStatusProvider(attributeNameValidationStatusProvider);
-        bindingContext.bindValue(SWTObservables.observeText(attributeNameText, SWT.Modify), attributeName);
+        bindingContext.bindValue(SWTObservables.observeText(attributeNameText, SWT.Modify), indexRangeKeyNameInAttributeDefinitionsModel);
+        attributeNameText.addModifyListener(new ModifyListener() {
+            
+            public void modifyText(ModifyEvent e) {
+                if (attributeNameText.getText().equals(primaryRangeKeyName)
+                        && attributeTypeCombo != null
+                        && primaryRangeKeyTypeComboIndex > -1) {
+                    attributeTypeCombo.select(primaryRangeKeyTypeComboIndex);
+                    attributeTypeCombo.setEnabled(false);
+                } else if (attributeTypeCombo != null) {
+                    attributeTypeCombo.setEnabled(true);
+                }
+                
+            }
+        });
         GridDataFactory.fillDefaults().grab(true, false).applyTo(attributeNameText);
 
-        // Attribute type
+        // Index range key attribute type
         new Label(composite, SWT.NONE | SWT.READ_ONLY).setText("Attribute Type:");
         attributeTypeCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
         attributeTypeCombo.setItems(DATA_TYPE_STRINGS);
         attributeTypeCombo.select(0);
-        bindingContext.bindValue(SWTObservables.observeSelection(attributeTypeCombo), attributeType);
+        bindingContext.bindValue(SWTObservables.observeSelection(attributeTypeCombo), indexRangeKeyAttributeTypeModel);
 
         // Index name
         new Label(composite, SWT.NONE | SWT.READ_ONLY).setText("Index Name:");
         indexNameText = new Text(composite, SWT.BORDER);
         GridDataFactory.fillDefaults().grab(true, false).applyTo(indexNameText);
-        bindingContext.bindValue(SWTObservables.observeText(indexNameText, SWT.Modify), indexName);
-        ChainValidator<String> indexNameValidationStatusProvider = new ChainValidator<String>(indexName, new NotEmptyValidator("Please provide an index name"));
+        bindingContext.bindValue(SWTObservables.observeText(indexNameText, SWT.Modify), indexNameModel);
+        ChainValidator<String> indexNameValidationStatusProvider = new ChainValidator<String>(indexNameModel, new NotEmptyValidator("Please provide an index name"));
         bindingContext.addValidationStatusProvider(indexNameValidationStatusProvider);
 
         // Projection type
@@ -158,11 +199,12 @@ public class AddLSIDialog extends TitleAreaDialog {
         projectionTypeCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
         projectionTypeCombo.setItems(PROJECTED_ATTRIBUTES);
         projectionTypeCombo.select(0);
-        bindingContext.bindValue(SWTObservables.observeSelection(projectionTypeCombo), projectionType);
+        bindingContext.bindValue(SWTObservables.observeSelection(projectionTypeCombo), projectionTypeModel);
         projectionTypeCombo.addSelectionListener(new SelectionListener() {
 
             public void widgetSelected(SelectionEvent e) {
                 if (projectionTypeCombo.getSelectionIndex() == 2) {
+                    // Enable the list for adding non-key attributes to the projection
                     addAttributeButton.setEnabled(true);
                 } else {
                     addAttributeButton.setEnabled(false);
@@ -173,7 +215,7 @@ public class AddLSIDialog extends TitleAreaDialog {
             }
         });
 
-        // Attribute list in projection
+        // Non-key attributes in the projection
         final AttributeList attributeList = new AttributeList(composite);
         GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, SWT.DEFAULT).applyTo(attributeList);
         addAttributeButton = new Button(composite, SWT.PUSH);
@@ -185,6 +227,10 @@ public class AddLSIDialog extends TitleAreaDialog {
             public void widgetSelected(SelectionEvent e) {
                 AddNewAttributeDialog newAttributeTable = new AddNewAttributeDialog();
                 if (newAttributeTable.open() == 0) {
+                    // lazy-initialize the list
+                    if (null == localSecondaryIndex.getProjection().getNonKeyAttributes()) {
+                        localSecondaryIndex.getProjection().setNonKeyAttributes(new LinkedList<String>());
+                    }
                     localSecondaryIndex.getProjection().getNonKeyAttributes().add(newAttributeTable.getNewAttributeName());
                     attributeList.refresh();
                 }
@@ -208,10 +254,14 @@ public class AddLSIDialog extends TitleAreaDialog {
                 IStatus status = (IStatus) value;
                 if (status.getSeverity() == Status.ERROR) {
                     setErrorMessage(status.getMessage());
-                    okButton.setEnabled(false);
+                    if (okButton != null) {
+                        okButton.setEnabled(false);
+                    }
                 } else {
                     setErrorMessage(null);
-                    okButton.setEnabled(true);
+                    if (okButton != null) {
+                        okButton.setEnabled(true);
+                    }
                 }
             }
         });
@@ -222,6 +272,19 @@ public class AddLSIDialog extends TitleAreaDialog {
 
     public LocalSecondaryIndex getLocalSecondaryIndex() {
         return localSecondaryIndex;
+    }
+    
+    /** Returns null if the index range key is the same as the primary range key.
+     * In this case, the main table attribute definition 
+     * @return
+     */
+    public AttributeDefinition getIndexRangeKeyAttributeDefinition() {
+        if (indexRangeKeyAttributeDefinition.getAttributeName().equals(primaryRangeKeyName)) {
+            return null;
+        } else {
+            return indexRangeKeyAttributeDefinition;
+        }
+        
     }
 
     private class AddNewAttributeDialog extends AbstractAddNewAttributeDialog {
@@ -239,7 +302,7 @@ public class AddLSIDialog extends TitleAreaDialog {
         }
     }
 
-    // The list for attributes in the projection
+    /** The list widget for adding projected non-key attributes. **/
     private class AttributeList extends Composite {
 
         private ListViewer viewer;
@@ -270,7 +333,10 @@ public class AddLSIDialog extends TitleAreaDialog {
 
                             @Override
                             public void run() {
-                                localSecondaryIndex.getProjection().getNonKeyAttributes().remove(viewer.getList().getSelectionIndex());
+                                // In theory, this should never be null.
+                                if (null != localSecondaryIndex.getProjection().getNonKeyAttributes()) {
+                                    localSecondaryIndex.getProjection().getNonKeyAttributes().remove(viewer.getList().getSelectionIndex());
+                                }
                                 refresh();
                             }
 
@@ -304,7 +370,9 @@ public class AddLSIDialog extends TitleAreaDialog {
 
         @Override
         public Object[] getElements(Object inputElement) {
-            return localSecondaryIndex.getProjection().getNonKeyAttributes().toArray();
+            return localSecondaryIndex.getProjection().getNonKeyAttributes() != null ? 
+                        localSecondaryIndex.getProjection().getNonKeyAttributes().toArray()
+                        : new String[] {};
         }
     }
 }

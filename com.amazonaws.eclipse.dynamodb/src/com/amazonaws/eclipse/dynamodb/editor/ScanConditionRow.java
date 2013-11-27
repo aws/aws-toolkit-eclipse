@@ -324,7 +324,7 @@ final class ScanConditionRow extends Composite {
     
     private void invokeMultiValueEditorDialog() {
         MultiValueAttributeEditorDialog multiValueEditorDialog = new MultiValueAttributeEditorDialog(Display
-                .getDefault().getActiveShell(), comparisonValue);
+                .getDefault().getActiveShell(), comparisonValue, dataTypeCombo.getSelectionIndex());
 
         int returnValue = multiValueEditorDialog.open();
         if ( returnValue == 0 || returnValue == 1) { // Save set or single

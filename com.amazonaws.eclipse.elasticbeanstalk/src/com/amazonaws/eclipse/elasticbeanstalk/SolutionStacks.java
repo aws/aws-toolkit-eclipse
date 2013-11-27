@@ -15,39 +15,24 @@
 package com.amazonaws.eclipse.elasticbeanstalk;
 
 public class SolutionStacks {
-    public static final String TOMCAT_6_32BIT_AMAZON_LINUX = "32bit Amazon Linux running Tomcat 6";
-    public static final String TOMCAT_6_64BIT_AMAZON_LINUX = "64bit Amazon Linux running Tomcat 6";
-	
-    public static final String TOMCAT_7_32BIT_AMAZON_LINUX = "32bit Amazon Linux running Tomcat 7";
-    public static final String TOMCAT_7_64BIT_AMAZON_LINUX = "64bit Amazon Linux running Tomcat 7";
+    private static final String TOMCAT_6_64BIT_AMAZON_LINUX = "64bit Amazon Linux running Tomcat 6";
+    private static final String TOMCAT_7_64BIT_AMAZON_LINUX = "64bit Amazon Linux 2013.09 running Tomcat 7 Java 7";
+    public static final String DEFAULT_SOLUTION_STACK = TOMCAT_7_64BIT_AMAZON_LINUX;
 
-    public static final String TOMCAT_6_32BIT_AMAZON_LINUX_LEGACY = "32bit Amazon Linux running Tomcat 6 (legacy)";
-    public static final String TOMCAT_6_64BIT_AMAZON_LINUX_LEGACY = "64bit Amazon Linux running Tomcat 6 (legacy)";
+    public static String lookupSolutionStackByServerTypeId(String serverTypeId) {
+        if (serverTypeId.equalsIgnoreCase("com.amazonaws.eclipse.elasticbeanstalk.servers.environment")) {
+            return TOMCAT_6_64BIT_AMAZON_LINUX;
+        } else if (serverTypeId.equalsIgnoreCase("com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7")) {
+            return TOMCAT_7_64BIT_AMAZON_LINUX;
+        }
 
-    public static final String TOMCAT_7_32BIT_AMAZON_LINUX_LEGACY = "32bit Amazon Linux running Tomcat 7 (legacy)";
-    public static final String TOMCAT_7_64BIT_AMAZON_LINUX_LEGACY = "64bit Amazon Linux running Tomcat 7 (legacy)";
+        throw new RuntimeException("Unknown server type: " + serverTypeId);
+    }
 
-	public static String lookupSolutionStackByServerTypeId(String serverTypeId) {
-		if (serverTypeId.equalsIgnoreCase("com.amazonaws.eclipse.elasticbeanstalk.servers.environment")) {
-			return TOMCAT_6_64BIT_AMAZON_LINUX;
-		} else if (serverTypeId.equalsIgnoreCase("com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7")) {
-			return TOMCAT_7_64BIT_AMAZON_LINUX;
-		}
-		// TODO: it would be nice to have a different server type for legacy stacks to be able to 
-		// support a subset of operations, but we don't differentiate right now.
-
-		throw new RuntimeException("Unknown server type: " + serverTypeId);
-	}
-	
     public static String lookupServerTypeIdBySolutionStack(String solutionStack) {
-        if ( solutionStack.equals(TOMCAT_6_64BIT_AMAZON_LINUX) || solutionStack.equals(TOMCAT_6_32BIT_AMAZON_LINUX)
-                || solutionStack.equals(TOMCAT_6_64BIT_AMAZON_LINUX_LEGACY)
-                || solutionStack.equals(TOMCAT_6_32BIT_AMAZON_LINUX_LEGACY) ) {
+        if (solutionStack.contains(" Tomcat 6")) {
             return ElasticBeanstalkPlugin.TOMCAT_6_SERVER_TYPE_ID;
-        } else if ( solutionStack.equals(TOMCAT_7_64BIT_AMAZON_LINUX)
-                || solutionStack.equals(TOMCAT_7_32BIT_AMAZON_LINUX)
-                || solutionStack.equals(TOMCAT_7_64BIT_AMAZON_LINUX_LEGACY)
-                || solutionStack.equals(TOMCAT_7_32BIT_AMAZON_LINUX_LEGACY) ) {
+        } else if (solutionStack.contains(" Tomcat 7")) {
             return ElasticBeanstalkPlugin.TOMCAT_7_SERVER_TYPE_ID;
         }
 

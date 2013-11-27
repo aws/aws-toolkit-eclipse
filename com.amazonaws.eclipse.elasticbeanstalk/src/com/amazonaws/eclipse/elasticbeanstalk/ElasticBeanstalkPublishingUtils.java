@@ -40,9 +40,14 @@ import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
+import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationRequest;
 import com.amazonaws.services.elasticbeanstalk.model.CreateApplicationVersionRequest;
 import com.amazonaws.services.elasticbeanstalk.model.CreateEnvironmentRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationVersionsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEventsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
@@ -58,11 +63,7 @@ import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
 import com.amazonaws.services.identitymanagement.model.GetInstanceProfileRequest;
 import com.amazonaws.services.identitymanagement.model.GetRoleRequest;
 import com.amazonaws.services.identitymanagement.model.InstanceProfile;
-import com.amazonaws.services.identitymanagement.model.ListRolePoliciesRequest;
-import com.amazonaws.services.identitymanagement.model.ListRolePoliciesResult;
-import com.amazonaws.services.identitymanagement.model.PutRolePolicyRequest;
 import com.amazonaws.services.identitymanagement.model.Role;
-import com.amazonaws.services.identitymanagement.model.UpdateAssumeRolePolicyRequest;
 import com.amazonaws.services.s3.AmazonS3;
 
 public class ElasticBeanstalkPublishingUtils {
@@ -168,10 +169,53 @@ public class ElasticBeanstalkPublishingUtils {
     }
 
     /**
-     * Creates a new environment
+     * Creates a new Elastic Beanstalk application, after checking to make sure
+     * it doesn't already exist.
+     *
+     * @param applicationName
+     *            The name of the application to create.
+     * @param description
+     *            An optional description for the new environment.
      */
-    void createNewEnvironment(String versionLabel) {
+    public void createNewApplication(String applicationName, String description) {
+        List<ApplicationDescription> applications = beanstalkClient.describeApplications(
+                new DescribeApplicationsRequest().withApplicationNames(applicationName)).getApplications();
 
+        if (applications.isEmpty()) {
+            beanstalkClient.createApplication(new CreateApplicationRequest(applicationName).withDescription(description));
+        }
+    }
+
+    /**
+     * Returns the version label for the latest version registered for the
+     * specified application.
+     *
+     * @param applicationName
+     *            The name of the application whose latest version should be
+     *            returned.
+     *
+     * @return The label of the latest version registered for the specified
+     *         application, or null if no versions are registered.
+     *
+     * @throws AmazonServiceException
+     *             If the specified application doesn't exist.
+     */
+    public String getLatestApplicationVersion(String applicationName) {
+        List<ApplicationVersionDescription> applicationVersions = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(applicationName)).getApplicationVersions();
+
+        if (applicationVersions.isEmpty()) return null;
+
+        return applicationVersions.get(0).getVersionLabel();
+    }
+
+    /**
+     * Creates a new environment, using the specified version as the initial
+     * version to deploy.
+     *
+     * @param versionLabel
+     *            The initial version to deploy to the new environment.
+     */
+    public void createNewEnvironment(String versionLabel) {
         // Map the UI value to the one on the wire
         Map<String, String> envTypeMap = new HashMap<String, String>();
         envTypeMap.put(ConfigurationOptionConstants.SINGLE_INSTANCE, "SingleInstance");
@@ -179,7 +223,7 @@ public class ElasticBeanstalkPublishingUtils {
 
         String solutionStackName = environment.getSolutionStack();
         if (solutionStackName == null) {
-            solutionStackName = SolutionStacks.TOMCAT_6_64BIT_AMAZON_LINUX;
+            solutionStackName = SolutionStacks.DEFAULT_SOLUTION_STACK;
         }
 
         CreateEnvironmentRequest request = new CreateEnvironmentRequest()

@@ -71,7 +71,7 @@ public class CreateTableFirstPage extends WizardPage {
         super.dispose();
     }
 
-    private static final String[] DATA_TYPE_STRINGS = new String[] { "String", "Number" };
+    private static final String[] DATA_TYPE_STRINGS = new String[] { "String", "Number", "Binary" };
 
     CreateTableFirstPage(CreateTableWizard wizard) {
         super("Configure table");

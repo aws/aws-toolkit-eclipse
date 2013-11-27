@@ -24,14 +24,14 @@ public class EC2LabelProvider extends ExplorerNodeLabelProvider {
     @Override
     public String getText(Object element) {
         if (element instanceof EC2RootElement) return "Amazon EC2";
-        
+
         return getExplorerNodeText(element);
     }
 
     @Override
     public Image getDefaultImage(Object element) {
         if ( element instanceof EC2RootElement ) {
-            return Ec2Plugin.getDefault().getImageRegistry().get("server");
+            return Ec2Plugin.getDefault().getImageRegistry().get("ec2-service");
         }
 
         return null;

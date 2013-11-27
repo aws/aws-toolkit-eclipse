@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
@@ -45,8 +44,10 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentInfoDescription;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentInfoType;
 import com.amazonaws.services.elasticbeanstalk.model.RequestEnvironmentInfoRequest;
 import com.amazonaws.services.elasticbeanstalk.model.RetrieveEnvironmentInfoRequest;
+import com.amazonaws.services.elasticbeanstalk.model.RetrieveEnvironmentInfoResult;
 
 
 public class LogTailEditorSection extends ServerEditorSection {
@@ -111,9 +112,25 @@ public class LogTailEditorSection extends ServerEditorSection {
                 else throw ase;
             }
 
-            final List<EnvironmentInfoDescription> envInfos = elasticBeanstalk.retrieveEnvironmentInfo(
-                    new RetrieveEnvironmentInfoRequest().withEnvironmentName(environment.getEnvironmentName())
-                            .withInfoType("tail")).getEnvironmentInfo();
+            RetrieveEnvironmentInfoResult infoResult;
+            long pollingStartTime = System.currentTimeMillis();
+            while (true) {
+                infoResult = elasticBeanstalk.retrieveEnvironmentInfo(
+                        new RetrieveEnvironmentInfoRequest(EnvironmentInfoType.Tail)
+                            .withEnvironmentName(environment.getEnvironmentName()));
+
+                // Break once we find environment info
+                if (infoResult.getEnvironmentInfo().size() > 0) break;
+
+                // Or if we don't see any env info after waiting a while
+                if (System.currentTimeMillis() - pollingStartTime > 1000*60*5) break;
+
+                // Otherwise, keep polling
+                try {Thread.sleep(1000 * 5);}
+                catch (InterruptedException e) { return Status.CANCEL_STATUS; }
+            }
+            final List<EnvironmentInfoDescription> envInfos = infoResult.getEnvironmentInfo();
+
             DefaultHttpClient client = new DefaultHttpClient();
             DefaultHttpRequestRetryHandler retryhandler = new DefaultHttpRequestRetryHandler(3, true);
             client.setHttpRequestRetryHandler(retryhandler);
@@ -142,9 +159,9 @@ public class LogTailEditorSection extends ServerEditorSection {
 
                 // The message is a url to fetch for logs
                 HttpGet rq = new HttpGet(envInfo.getMessage());
-                try {                    
+                try {
                     HttpResponse response = client.execute(rq);
-                    InputStream content = response.getEntity().getContent();                    
+                    InputStream content = response.getEntity().getContent();
                     builder.append(IOUtils.toString(content));
                 } catch ( Exception e ) {
                     builder.append("Exception fetching " + envInfo.getMessage());

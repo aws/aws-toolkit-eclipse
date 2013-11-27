@@ -63,6 +63,7 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     public static final String IMG_EXPORT = "export";
     public static final String IMG_CLIPBOARD = "clipboard";
     public static final String IMG_ENVIRONMENT = "environment";
+    public static final String IMG_SERVICE = "beanstalk-service";
     public static final String IMG_APPLICATION = "application";
 
     private static final String SUBTLE_DIALOG_FONT = "subtle-dialog";
@@ -151,6 +152,7 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
         imageRegistry.put(IMG_AWS_BOX, ImageDescriptor.createFromFile(getClass(), "/icons/aws-box.gif"));
         imageRegistry.put(IMG_CLIPBOARD, ImageDescriptor.createFromFile(getClass(), "/icons/clipboard.gif"));
         imageRegistry.put(IMG_ENVIRONMENT, ImageDescriptor.createFromFile(getClass(), "/icons/environment.png"));
+        imageRegistry.put(IMG_SERVICE, ImageDescriptor.createFromFile(getClass(), "/icons/beanstalk-service.png"));
         imageRegistry.put(IMG_APPLICATION, ImageDescriptor.createFromFile(getClass(), "/icons/application.png"));
 
         return imageRegistry;

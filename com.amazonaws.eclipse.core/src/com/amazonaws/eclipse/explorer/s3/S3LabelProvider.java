@@ -41,7 +41,11 @@ public class S3LabelProvider extends ExplorerNodeLabelProvider {
      */
     @Override
     public Image getDefaultImage(Object element) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_BUCKET);
+        if ( element instanceof S3RootElement ) {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_S3_SERVICE);
+        } else {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_BUCKET);
+        }
     }
 
 }

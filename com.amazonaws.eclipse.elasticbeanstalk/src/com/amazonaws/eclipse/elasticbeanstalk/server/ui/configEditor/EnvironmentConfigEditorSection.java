@@ -98,7 +98,6 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
     public EnvironmentConfigEditorSection(AbstractEnvironmentConfigEditorPart parentEditor,
             EnvironmentConfigDataModel model, Environment environment, DataBindingContext bindingContext,
             String namespace, List<ConfigurationOptionDescription> options) {
-        super();
         this.parentEditor = parentEditor;
         this.bindingContext = bindingContext;
         this.environment = environment;

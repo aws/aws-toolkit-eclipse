@@ -31,6 +31,10 @@ public class SQSLabelProvider extends ExplorerNodeLabelProvider {
 
     @Override
     public Image getDefaultImage(Object element) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_QUEUE);
+        if (element instanceof SQSRootElement) {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_SQS_SERVICE);
+        } else {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_QUEUE);
+        }
     }
 }

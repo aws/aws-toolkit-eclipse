@@ -32,7 +32,6 @@ public class IdentityManagementLabelProvider extends ExplorerNodeLabelProvider {
 
     @Override
     public Image getDefaultImage(Object element) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_IAM);
-
+        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_IAM_SERVICE);
     }
 }

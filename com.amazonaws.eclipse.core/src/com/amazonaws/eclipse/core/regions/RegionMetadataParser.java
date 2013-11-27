@@ -1,16 +1,16 @@
 /*
- * Copyright 2011-2012 Amazon Technologies, Inc. 
+ * Copyright 2011-2012 Amazon Technologies, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
- * OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and 
- * limitations under the License. 
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.amazonaws.eclipse.core.regions;
 
@@ -38,14 +38,14 @@ public class RegionMetadataParser {
     private static final String SERVICE_TAG = "service";
     private static final String SERVICE_NAME_ATTRIBUTE = "name";
     private static final String FLAG_ICON_TAG = "flag-icon";
-    
+
     /**
      * Parses the specified input stream and returns a list of the regions
      * declared in it.
-     * 
+     *
      * @param input
      *            The stream containing the region metadata to parse.
-     * 
+     *
      * @return The list of parsed regions.
      */
     public List<Region> parseRegionMetadata(InputStream input) {
@@ -57,7 +57,7 @@ public class RegionMetadataParser {
         } catch (Exception e) {
             throw new RuntimeException("Unable to parse region metadata file: " + e.getMessage(), e);
         }
-        
+
         NodeList regionNodes = document.getElementsByTagName(REGION_TAG);
         List<Region> regions = new ArrayList<Region>();
         for (int i = 0; i < regionNodes.getLength(); i++) {
@@ -67,20 +67,20 @@ public class RegionMetadataParser {
                 regions.add(parseRegionElement(element));
             }
         }
-        
+
         return regions;
     }
 
-    
+
     /*
-     * Private Interface 
+     * Private Interface
      */
-    
+
     private Region parseRegionElement(Element regionElement) {
         String name = getTagValue(REGION_DISPLAY_NAME_TAG, regionElement);
         String id = getTagValue(REGION_SYSTEM_ID_TAG, regionElement);
         String flagIcon = getTagValue(FLAG_ICON_TAG, regionElement);
-        Region region = new Region(name, id, flagIcon);
+        Region region = new RegionImpl(name, id, flagIcon);
 
         NodeList serviceNodes = regionElement.getElementsByTagName(SERVICE_TAG);
         for (int i = 0; i < serviceNodes.getLength(); i++) {
@@ -89,21 +89,22 @@ public class RegionMetadataParser {
                 Element element = (Element)node;
                 String serviceName = element.getAttribute(SERVICE_NAME_ATTRIBUTE);
                 String endpoint = element.getTextContent();
-                
+
                 region.getServiceEndpoints().put(serviceName, endpoint);
             }
         }
-        
+
         return region;
     }
-    
+
     private static String getTagValue(String tagName, Element element){
         Node tagNode = element.getElementsByTagName(tagName).item(0);
-        if ( tagNode == null )
+        if ( tagNode == null ) {
             return null;
+        }
         NodeList nodes= tagNode.getChildNodes();
-        Node node = (Node)nodes.item(0); 
-     
-        return node.getNodeValue();    
+        Node node = nodes.item(0);
+
+        return node.getNodeValue();
     }
 }

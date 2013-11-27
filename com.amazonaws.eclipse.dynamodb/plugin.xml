@@ -54,10 +54,10 @@
                name="Run scan">
          </command>
     </extension>
-	<extension point="org.eclipse.ui.bindings">
-		<key sequence="Ctrl+R"
-			commandId="com.amazonaws.eclipse.dynamodb.editor.runScan"
-			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+    <extension point="org.eclipse.ui.bindings">
+        <key sequence="Ctrl+R"
+            commandId="com.amazonaws.eclipse.dynamodb.editor.runScan"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
     </extension>
     
     <extension
@@ -67,5 +67,31 @@
                name="Save changes to DynamoDB">
          </command>
     </extension>
+    
+    <extension point="org.eclipse.ui.preferencePages">
+        <page
+            category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+            class="com.amazonaws.eclipse.dynamodb.preferences.TestToolPreferencePage"
+            id="com.amazonaws.eclipse.dynamodb.preferences.TestToolPreferencePage"
+            name="DynamoDB Local Test Tool">
+        </page>
+    </extension>
+    
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer class="com.amazonaws.eclipse.dynamodb.preferences.PreferenceInitializer" />
+    </extension>
+    
+    <extension point="org.eclipse.ui.decorators">
+       <decorator
+           class="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBTableNodeDecorator"
+           id="com.amazonaws.eclipse.explorer.dynamodb.decorator"
+           label="DynamoDB Table Decorator"
+           lightweight="true"
+           state="true">
+         <enablement>
+           <objectClass name="com.amazonaws.eclipse.explorer.dynamodb.DynamoDBTableNode"/>
+         </enablement>
+       </decorator>
+     </extension>
     
  </plugin>

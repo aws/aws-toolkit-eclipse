@@ -67,6 +67,8 @@ import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -86,7 +88,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Table;
@@ -109,9 +110,8 @@ import com.amazonaws.eclipse.core.ui.AbstractTableLabelProvider;
 import com.amazonaws.eclipse.dynamodb.AbstractAddNewAttributeDialog;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.Condition;
@@ -119,6 +119,7 @@ import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
@@ -927,76 +928,29 @@ public class DynamoDBTableEditor extends EditorPart {
         }
     }
 
-    private final class CreateNewItemDialog extends MessageDialog {
-
-        String hashKey = "";
-        String rangeKey = "";
-
+    /**
+     * CreateNewItemDialog now extends AttributeValueInputDialog, which is a
+     * more generic class that includes basic dialog template and value
+     * validation.
+     */
+    private final class CreateNewItemDialog extends AttributeValueInputDialog {
+        @SuppressWarnings("serial")
         private CreateNewItemDialog() {
-            super(Display.getCurrent().getActiveShell(), "Create new item",
-                    AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON),
-                    "Enter the key for the new item", MessageDialog.NONE, new String[] { "OK", "Cancel" }, 0);
+            super("Create new item",
+                  "Enter the key for the new item",
+                  true,
+                  Arrays.asList(tableKey.getHashKeyAttributeName(), tableKey.getRangeKeyAttributeName()),
+                  new HashMap<String, Integer>()
+                  {{
+                       put(tableKey.getHashKeyAttributeName(), getDataType(tableKey.getHashKeyAttributeType()));
+                       put(tableKey.getRangeKeyAttributeName(), getDataType(tableKey.getRangeKeyAttributeType()));
+                  }},
+                  null);
         }
-
-        @Override
-        protected Control createCustomArea(Composite parent) {
-            Composite comp = new Composite(parent, SWT.NONE);
-            GridLayoutFactory.fillDefaults().numColumns(2).applyTo(comp);
-            GridDataFactory.fillDefaults().grab(true, true).applyTo(comp);
-
-            Label hashKeyLabel = new Label(comp, SWT.READ_ONLY);
-            hashKeyLabel.setText(tableKey.getHashKeyAttributeName() + ":");
-            final Text hashKeyText = new Text(comp, SWT.BORDER);
-            GridDataFactory.fillDefaults().grab(true, false).applyTo(hashKeyText);
-            hashKeyText.addModifyListener(new ModifyListener() {
-                public void modifyText(ModifyEvent e) {
-                    hashKey = hashKeyText.getText();
-                    validate();
-                }
-            });
-
-            if ( tableKey.hasRangeKey() ) {
-                Label rangeKeyLabel = new Label(comp, SWT.READ_ONLY);
-                rangeKeyLabel.setText(tableKey.getRangeKeyAttributeName() + ":");
-                final Text rangeKeyText = new Text(comp, SWT.BORDER);
-                GridDataFactory.fillDefaults().grab(true, false).applyTo(rangeKeyText);
-                rangeKeyText.addModifyListener(new ModifyListener() {
-                    public void modifyText(ModifyEvent e) {
-                        rangeKey = rangeKeyText.getText();
-                        validate();
-                    }
-                });
-            }
-
-            validate();
-            return comp;
-        }
-
-        @Override
-        protected void createButtonsForButtonBar(Composite parent) {
-            super.createButtonsForButtonBar(parent);
-            validate();
-        }
-
-        private void validate() {
-            if ( getButton(0) == null )
-                return;
-
-            if ( hashKey.length() == 0 ) {
-                getButton(0).setEnabled(false);
-                return;
-            }
-            if ( tableKey.hasRangeKey() ) {
-                if ( rangeKey.length() == 0 ) {
-                    getButton(0).setEnabled(false);
-                    return;
-                }
-            }
-            getButton(0).setEnabled(true);
-            return;
-        }
-
+        
         Map<String, AttributeValue> getNewItem() {
+            String hashKey = attributeValues.get(tableKey.getHashKeyAttributeName());
+            String rangeKey = attributeValues.get(tableKey.getRangeKeyAttributeName());
             Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
             AttributeValue hashKeyAttribute = new AttributeValue();
             setAttribute(hashKeyAttribute, Arrays.asList(hashKey), tableKey.getHashKeyAttributeType());
@@ -1083,13 +1037,13 @@ public class DynamoDBTableEditor extends EditorPart {
 
                         // If this is a multi-value item, don't allow textual editing
                         if ( attributeValue != null
-                                && (attributeValue.getSS() != null || attributeValue.getNS() != null) ) {
+                                && (attributeValue.getSS() != null || attributeValue.getNS() != null || attributeValue.getBS() != null) ) {
                             editorComposite.editorText.setEditable(false);
                             editorComposite.editorText.addMouseListener(new MouseAdapter() {
                                 @Override
                                 public void mouseUp(MouseEvent e) {
                                     invokeMultiValueDialog(item, attributeName, column, rowNum,
-                                            editorComposite.dataTypeCombo.getSelectionIndex() == STRING);
+                                            editorComposite.dataTypeCombo.getSelectionIndex());
                                     editorComposite.dispose();
                                 }
                             });
@@ -1183,7 +1137,50 @@ public class DynamoDBTableEditor extends EditorPart {
             editorComposite.editorText.addModifyListener(new ModifyListener() {
                 public void modifyText(final ModifyEvent e) {
                     Text text = editorComposite.editorText;
-                    markModified(item, text, rowNum, column, Arrays.asList(text.getText()), editorComposite.dataTypeCombo.getSelectionIndex() == STRING ? S : N);
+                    int dataType = editorComposite.getSelectedDataType(false);
+                    markModified(item, text, rowNum, column, Arrays.asList(text.getText()), dataType);
+                }
+            });
+            
+            /*
+             * We validate the user input of the scalar value when the text
+             * editor is being disposed. (For set type, the validation happens in MultiValueAttributeEditorDialog.)
+             */
+            editorComposite.editorText.addDisposeListener(new DisposeListener() {
+                @SuppressWarnings({ "serial", "unchecked" })
+                public void widgetDisposed(DisposeEvent e) {
+                    AttributeValue updateAttributeValue = ( (Map<String, AttributeValue>)item.getData() ).get(attributeName);
+                    boolean isScalarAttribute = updateAttributeValue != null &&
+                                                    ( updateAttributeValue.getN() != null
+                                                        || updateAttributeValue.getS() != null
+                                                        || updateAttributeValue.getB() != null);
+                    /* Only do validation when it is a scalar type. */
+                    if ( isScalarAttribute ) {
+                        final String attributeInput = editorComposite.editorText.getText();
+                        final int dataType = editorComposite.getSelectedDataType(false);
+                        if ( !AttributeValueUtil.validateScalarAttributeInput(attributeInput, dataType, false) ) {
+                            /* Open up a non-cancelable input dialog */
+                            AttributeValueInputDialog attributeValueInputDialog = new AttributeValueInputDialog(
+                                    "Invalid attribute value",
+                                    "Please provide a valid value for the following attribute",
+                                    false,
+                                    Arrays.asList(attributeName),
+                                    new HashMap<String, Integer>()
+                                    {{
+                                        put(attributeName, dataType);
+                                    }},
+                                    new HashMap<String, String>()
+                                    {{
+                                        put(attributeName, attributeInput);
+                                    }});
+                            attributeValueInputDialog.open();
+                            /* Update the attribute editor and markModified */
+                            Text text = editorComposite.editorText;
+                            String validatedValue = attributeValueInputDialog.getInputValue(attributeName);
+                            text.setText(validatedValue);
+                            markModified(item, text, rowNum, column, Arrays.asList(text.getText()), dataType);
+                        }
+                    }
                 }
             });
             editorComposite.editorText.addTraverseListener(new TraverseListener() {
@@ -1197,7 +1194,7 @@ public class DynamoDBTableEditor extends EditorPart {
                 @Override
                 public void widgetSelected(final SelectionEvent e) {
                     invokeMultiValueDialog(item, attributeName, column, rowNum,
-                            editorComposite.dataTypeCombo.getSelectionIndex() == STRING);
+                            editorComposite.dataTypeCombo.getSelectionIndex());
                     editorComposite.dispose();
                 }
             });
@@ -1240,18 +1237,24 @@ public class DynamoDBTableEditor extends EditorPart {
                                             final String attributeName,
                                             final int column,
                                             final int row,
-                                            final boolean isString) {
+                                            final int selectedType) {
             @SuppressWarnings("unchecked")
             Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData();
             MultiValueAttributeEditorDialog multiValueEditorDialog = new MultiValueAttributeEditorDialog(Display
-                    .getDefault().getActiveShell(), dynamoDbItem.get(attributeName));
+                    .getDefault().getActiveShell(), dynamoDbItem.get(attributeName), selectedType);
 
             int returnValue = multiValueEditorDialog.open();
+            /* Save set */
             if ( returnValue == 0 ) {
-                markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), isString ? SS : NS);
-            } else if (returnValue == 1) {
-                markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), isString ? S : N);
+                int dataType = editorComposite.getSelectedDataType(true);
+                markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), dataType);
+            } 
+            /* Save single value */
+            else if ( returnValue == 1 ) {
+                int dataType = editorComposite.getSelectedDataType(false);
+                markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), dataType);
             }
+            /* Don't do anything when the user pressed Cancel */
         }
     }
 

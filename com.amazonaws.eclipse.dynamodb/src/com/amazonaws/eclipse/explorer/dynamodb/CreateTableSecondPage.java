@@ -87,6 +87,12 @@ public class CreateTableSecondPage extends WizardPage {
                 AddLSIDialog addLSIDialog = new AddLSIDialog(Display.getCurrent().getActiveShell(), wizard.getDataModel());
                 if (addLSIDialog.open() == 0) {
                     localSecondaryIndices.add(addLSIDialog.getLocalSecondaryIndex());
+                    AttributeDefinition indexRangeKeyttributeDefinition = addLSIDialog.getIndexRangeKeyAttributeDefinition();
+                    // Only add to attribute definition to the data model if the
+                    // index is not on the primary range key.
+                    if (indexRangeKeyttributeDefinition != null) {
+                        wizard.getDataModel().getAttributeDefinitions().add(indexRangeKeyttributeDefinition);
+                    }
                     indexTable.refresh();
                 }
             }
@@ -119,6 +125,11 @@ public class CreateTableSecondPage extends WizardPage {
             if (attribute.getAttributeName().equals(attributeName)) {
                 return attribute.getAttributeType();
             }
+        }
+        // Primary range key is not added to the attribute definition
+        // before finalizing the CreateTable request.
+        if (attributeName.equals(wizard.getDataModel().getRangeKeyName())) {
+            return wizard.getDataModel().getRangeKeyType();
         }
         return "";
     }

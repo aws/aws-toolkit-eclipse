@@ -30,7 +30,6 @@ public class ConfigurationSettingValidator implements IValidator {
     private ConfigurationOptionDescription configOption;
 
     public ConfigurationSettingValidator(ConfigurationOptionDescription configOption) {
-        super();
         this.configOption = configOption;
     }
 
@@ -65,7 +64,7 @@ public class ConfigurationSettingValidator implements IValidator {
             }
         }
 
-        if ( configOption.getRegex() != null ) {
+        if ( configOption.getRegex() != null && s != null && s.length() > 0 ) {
             Pattern regex = Pattern.compile(configOption.getRegex().getPattern());
             if ( !regex.matcher(s).matches() ) {
                 return ValidationStatus.error(configOption.getName() + " must match the regular expression "

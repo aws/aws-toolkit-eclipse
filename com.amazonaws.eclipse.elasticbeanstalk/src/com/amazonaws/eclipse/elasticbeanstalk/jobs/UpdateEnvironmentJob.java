@@ -43,12 +43,10 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.ui.internal.LaunchClientJob;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkHttpLaunchable;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkLaunchableAdapter;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
@@ -60,7 +58,6 @@ import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
-import com.amazonaws.services.s3.AmazonS3;
 
 public class UpdateEnvironmentJob extends Job {
 
@@ -148,16 +145,38 @@ public class UpdateEnvironmentJob extends Job {
                 ElasticBeanstalkPublishingUtils utils = new ElasticBeanstalkPublishingUtils(environment);
                 boolean doesEnvironmentExist = utils.doesEnvironmentExist(client, environment.getEnvironmentName());
 
-                // We don't use incremental deployments when an environment doesn't exist yet
-                if (environment.getIncrementalDeployment() && doesEnvironmentExist) {
-
+                if (environment.getIncrementalDeployment()) {
                     AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(environment.getAccountId());
+                    AWSGitPushCommand pushCommand = new AWSGitPushCommand(
+                            getPrivateGitRepoLocation(environment), exportedWar.toFile(), environment,
+                            new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey()));
 
-                    AWSGitPushCommand pushCommand = new AWSGitPushCommand(getPrivateGitRepoLocation(environment),
-                            exportedWar.toFile(), environment, new BasicAWSCredentials(accountInfo.getAccessKey(),
-                                    accountInfo.getSecretKey()));
+                    if (doesEnvironmentExist) {
+                        /*
+                         * If the environment already exists, then all we have to do is push through
+                         * Git and it'll automatically create a new application version and kick off
+                         * a deployment to the environment.
+                         */
+                        pushCommand.execute();
+                    } else {
+                        /*
+                         * If the environment doesn't exist yet, then we need to create the application
+                         * and push a new version with Git, then grab the ID of that new version and
+                         * call the Beanstalk CreateEnvironment API.
+                         */
+                        utils.createNewApplication(environment.getApplicationName(),
+                                                   environment.getApplicationDescription());
+                        pushCommand.skipEnvironmentDeployment(true);
+                        pushCommand.execute();
 
-                    pushCommand.execute();
+                        try {
+                            versionLabel = utils.getLatestApplicationVersion(environment.getApplicationName());
+                            utils.createNewEnvironment(versionLabel);
+                        } catch (AmazonClientException ace) {
+                            throw new CoreException(new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
+                                "Unable to create new environment: " + ace.getMessage(), ace));
+                        }
+                    }
                 } else {
                     if (versionLabel == null) versionLabel = UUID.randomUUID().toString();
                     utils.publishApplicationToElasticBeanstalk(exportedWar, versionLabel, new SubProgressMonitor(monitor, 20));

@@ -18,8 +18,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -27,6 +31,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.BrowserUtils;
@@ -46,8 +51,10 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
     protected TreeViewer viewer;
 
     /** Cache for previously loaded data */
-    protected Map<Object, Object[]> cachedResponses = new HashMap<Object, Object[]>();
-
+    protected Map<Object, Object[]> cachedResponses = new ConcurrentHashMap<Object, Object[]>();
+    
+    protected BackgroundContentUpdateJobFactory backgroundJobFactory;
+    
     /**
      * Creates a new AbstractContentProvider and registers it with the registry
      * of AWS Explorer ContentProviders.
@@ -123,6 +130,9 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         public final void run() {
             try {
                 cachedResponses.put(parentElement, loadData());
+                if ( null != backgroundJobFactory ) {
+                    backgroundJobFactory.startBackgroundContentUpdateJob(parentElement);
+                }
             } catch (Exception e) {
                 if ( e instanceof AmazonServiceException
                         && NOT_SIGNED_UP_ERROR_CODES.contains(((AmazonServiceException) e).getErrorCode()) ) {
@@ -185,6 +195,10 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         }
 
         if ( cachedResponses.containsKey(parentElement)) {
+            if ( null != backgroundJobFactory ) {
+                backgroundJobFactory.startBackgroundContentUpdateJob(parentElement);
+            }
+            
             return cachedResponses.get(parentElement);
         }
 
@@ -210,6 +224,16 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
 
     public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
         this.viewer = (TreeViewer) viewer;
+    }
+
+    /**
+     * Sets a background job factory which will create Job and execute it
+     * periodically to update the content. The underlying Job object will be
+     * scheduled whenever {@link AbstractContentProvider#getChildren(Object)}
+     * method is called.
+     */
+    public void setBackgroundJobFactory(BackgroundContentUpdateJobFactory backgroundJobFactory) {
+        this.backgroundJobFactory = backgroundJobFactory;
     }
 
     /** ExplorerNode alerting the user that they need to sign up for a service. */
@@ -245,6 +269,67 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
             super("Unable to connect",
                   0,
                   loadImage(AwsToolkitCore.IMAGE_AWS_ICON));
+        }
+    }
+    
+    protected abstract class BackgroundContentUpdateJobFactory {
+
+        private Map<Object, Job> backgroundJobs = new ConcurrentHashMap<Object, Job>();
+        
+        /**
+         * Defines the behavior of the background job. Returned boolean values
+         * indicates whether the background should keep running.
+         */
+        protected abstract boolean executeBackgroundJob(Object parentElement) throws AmazonClientException;
+
+        /**
+         * This method will be used for setting the delay between subsequent
+         * execution of the background job.
+         */
+        protected abstract long getRefreshDelay();
+
+        private Job getBackgroundJobByParentElement(Object parentElement) {
+            return backgroundJobs.get(parentElement);
+        }
+        
+        public synchronized void startBackgroundContentUpdateJob(final Object parentElement) {
+            Job currentJob = getBackgroundJobByParentElement(parentElement);
+            if ( currentJob == null ) {
+                /*
+                 * Initiates a new background job for asynchronously updating the
+                 * content. (e.g. updating TableNode status)
+                 */
+                final Job newJob = new Job("Updating contents") {
+                    
+                    private Object updatedParentElement = parentElement;
+
+                    @Override
+                    protected IStatus run(IProgressMonitor monitor) {
+                        try {
+                            if ( executeBackgroundJob(updatedParentElement) ) {
+                                /* Reschedule the job after some delay */
+                                this.schedule(getRefreshDelay());
+                            } else {
+                                /* If the background job has already finished its work,
+                                 * remove the parent element from the map. */
+                                backgroundJobs.remove(updatedParentElement);
+                            }
+                        } catch (AmazonClientException e) {
+                            return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
+                                    "Unable to update the content: " + e.getMessage(), e);
+                        }
+
+                        return Status.OK_STATUS;
+                    }
+
+                };
+                newJob.schedule();
+                backgroundJobs.put(parentElement, newJob);
+            } else {
+                /* Restart the current job */
+                currentJob.cancel();
+                currentJob.schedule();
+            }
         }
     }
 

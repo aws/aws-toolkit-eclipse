@@ -16,7 +16,10 @@ import org.eclipse.ui.navigator.CommonActionProvider;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
+import com.amazonaws.eclipse.dynamodb.testtool.StartTestToolWizard;
+import com.amazonaws.eclipse.dynamodb.testtool.TestToolManager;
 import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
 
 /**
@@ -28,8 +31,9 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
     @Override
     public void fillContextMenu(IMenuManager menu) {
         StructuredSelection selection = (StructuredSelection) getActionSite().getStructuredViewer().getSelection();
-        if ( selection.size() != 1 )
+        if ( selection.size() != 1 ) {
             return;
+        }
 
         menu.add(new CreateTableAction());
 
@@ -38,6 +42,83 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
             menu.add(new DeleteTableAction(tableName));
             menu.add(new Separator());
             menu.add(new TablePropertiesAction(tableName));
+        } else {
+            if ("local".equals(RegionUtils.getCurrentRegion().getId())) {
+                if (TestToolManager.INSTANCE.isRunning()) {
+                    menu.add(new StopTestToolAction());
+                } else if (TestToolManager.INSTANCE.isJava7Available()) {
+                    menu.add(new StartTestToolAction());
+                }
+            }
+        }
+    }
+
+    private static class StartTestToolAction extends Action {
+        @Override
+        public String getDescription() {
+            return "Start the DynamoDB Local Test Tool";
+        }
+
+        @Override
+        public String getToolTipText() {
+            return getDescription();
+        }
+
+        @Override
+        public ImageDescriptor getImageDescriptor() {
+            return AwsToolkitCore.getDefault()
+                .getImageRegistry()
+                .getDescriptor(AwsToolkitCore.IMAGE_DATABASE);
+        }
+
+        @Override
+        public String getText() {
+            return "Start DynamoDB Local";
+        }
+
+        @Override
+        public void run() {
+            WizardDialog dialog = new WizardDialog(
+                Display.getCurrent().getActiveShell(),
+                new StartTestToolWizard()
+            );
+            dialog.open();
+
+            if (null != DynamoDBContentProvider.getInstance()) {
+                DynamoDBContentProvider.getInstance().refresh();
+            }
+        }
+    }
+
+    private static class StopTestToolAction extends Action {
+        @Override
+        public String getDescription() {
+            return "Stop the DynamoDB Local Test Tool";
+        }
+
+        @Override
+        public String getToolTipText() {
+            return getDescription();
+        }
+
+        @Override
+        public ImageDescriptor getImageDescriptor() {
+            return AwsToolkitCore.getDefault()
+                .getImageRegistry()
+                .getDescriptor(AwsToolkitCore.IMAGE_DATABASE);
+        }
+
+        @Override
+        public String getText() {
+            return "Stop DynamoDB Local";
+        }
+
+        @Override
+        public void run() {
+            TestToolManager.INSTANCE.stopVersion();
+            if (null != DynamoDBContentProvider.getInstance()) {
+                DynamoDBContentProvider.getInstance().refresh();
+            }
         }
     }
 
@@ -67,6 +148,10 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
         public void run() {
             WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), new CreateTableWizard());
             dialog.open();
+
+            if ( null != DynamoDBContentProvider.getInstance() ) {
+                DynamoDBContentProvider.getInstance().refresh();
+            }
         }
     }
 
@@ -113,7 +198,9 @@ public class DynamoDBExplorerActionProvider extends CommonActionProvider {
                             return new Status(IStatus.ERROR, DynamoDBPlugin.PLUGIN_ID, "Failed to delete table", e);
                         }
 
-                        DynamoDBContentProvider.getInstance().refresh();
+                        if ( null != DynamoDBContentProvider.getInstance() ) {
+                            DynamoDBContentProvider.getInstance().refresh();
+                        }
                         return Status.OK_STATUS;
                     }
                 }.schedule();

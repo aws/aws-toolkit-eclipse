@@ -21,6 +21,9 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
@@ -40,6 +43,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 
+
 /**
  * Simple table dialog to allow use user to enter multiple values for an
  * attribute.
@@ -47,7 +51,10 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 public class MultiValueEditorDialog extends MessageDialog {
 
     private static final String NEW_VALUE = "<new value>";
+    private boolean editLocked = false;
+    private int lockedRowIndex = -1;
     protected final List<String> values = new ArrayList<String>();
+    protected String columnText = "Attributes";
 
     public List<String> getValues() {
         return this.values;
@@ -88,7 +95,7 @@ public class MultiValueEditorDialog extends MessageDialog {
         this.tableViewer = new TableViewer(composite);
         this.tableViewer.getTable().setHeaderVisible(true);
         TableColumn tableColumn = new TableColumn(this.tableViewer.getTable(), SWT.NONE);
-        tableColumn.setText("Attributes");
+        tableColumn.setText(columnText);
         layout.setColumnData(tableColumn, new ColumnWeightData(100));
 
         this.tableViewer.setContentProvider(new AbstractTableContentProvider() {
@@ -131,31 +138,44 @@ public class MultiValueEditorDialog extends MessageDialog {
                             final int column = i;
                             final Text text = new Text(table, SWT.NONE);
                             final int idx = index;
-
+                            if ( isRowUneditable(idx) ) {
+                                return;
+                            }
                             Listener textListener = new Listener() {
 
                                 public void handleEvent(final Event e) {
-                                    switch (e.type) {
-                                    case SWT.FocusOut:
-                                        modifyValue(item, column, idx, text);
+                                    if ( e.type == SWT.Traverse && e.detail == SWT.TRAVERSE_ESCAPE ) {
+                                        /* Skip data validation and dispose the text editor */
                                         text.dispose();
-                                        break;
-                                    case SWT.Traverse:
-                                        switch (e.detail) {
-                                        case SWT.TRAVERSE_RETURN:
-                                            modifyValue(item, column, idx, text);
-                                            // FALL THROUGH
-                                        case SWT.TRAVERSE_ESCAPE:
-                                            text.dispose();
-                                            e.doit = false;
+                                        e.doit = false;
+                                        return;
+                                    } else if ( e.type == SWT.Traverse && e.detail != SWT.TRAVERSE_RETURN ) {
+                                        /* No-op for keys other than escape or return. */
+                                        return;
+                                    } else {
+                                        /* For all other events, we first validate the data */
+                                        if ( !validateAttributeValue(text.getText()) ) {
+                                            lockTableEditor(idx);
+                                            return;
                                         }
-                                        break;
+                                        /* First unlock everything */
+                                        unlockTableEditor();
+                                        /* Then we handle different events */
+                                        if ( e.type == SWT.FocusOut  ) {
+                                            modifyValue(item, column, idx, text);
+                                            text.dispose();
+                                        } else if ( e.type == SWT.Traverse && e.detail ==  SWT.TRAVERSE_RETURN ) {
+                                            modifyValue(item, column, idx, text);
+                                        } else if ( e.type == SWT.Modify ) {
+                                            /* No-op */
+                                        }
                                     }
                                 }
                             };
 
                             text.addListener(SWT.FocusOut, textListener);
                             text.addListener(SWT.Traverse, textListener);
+                            text.addListener(SWT.Modify, textListener);
                             editor.setEditor(text, item, i);
                             text.setText(item.getText(i));
 
@@ -173,6 +193,24 @@ public class MultiValueEditorDialog extends MessageDialog {
                     index++;
                 }
             }
+        });
+        
+        /* Suppress changing to other table rows when the editor is locked. */
+        this.tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            
+            private boolean update = true;
+            private ISelection lastSelection;
+            
+            public void selectionChanged(SelectionChangedEvent event) {
+                if ( update && isLocked() ) {
+                    update = false; // avoid infinite loop
+                    tableViewer.setSelection(lastSelection);
+                    update = true;
+                } else if ( !isLocked() ) {
+                    lastSelection = event.getSelection();
+                }
+            }
+
         });
 
         this.tableViewer.setInput(values.size());
@@ -205,5 +243,44 @@ public class MultiValueEditorDialog extends MessageDialog {
                 this.values.set(index, newValue);
             }
         }
+    }
+    
+    /**
+     * Base class always returns true when validating the data.
+     */
+    protected boolean validateAttributeValue(String attributeValue) {
+        return true;
+    }
+    /**
+     * Add a customized suffix for the column text.
+     */
+    protected void addColumnTextDescription(String columnTextSuffix) {
+        this.columnText = this.columnText + " " + columnTextSuffix;
+    }
+    
+    /**
+     * @param index
+     *            The index of the locked row.
+     */
+    protected void lockTableEditor(int index) {
+        editLocked = true;
+        lockedRowIndex = index;
+        this.getButton(0).setEnabled(false);
+        this.getButtonBar().update(); 
+    }
+    
+    protected void unlockTableEditor() {
+        editLocked = false;
+        lockedRowIndex = -1;
+        this.getButton(0).setEnabled(true);
+        this.getButtonBar().update(); 
+    }
+    
+    private boolean isLocked() {
+        return editLocked;
+    }
+    
+    private boolean isRowUneditable(int index) {
+        return editLocked && index != lockedRowIndex;
     }
 }

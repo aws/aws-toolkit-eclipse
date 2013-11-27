@@ -31,6 +31,10 @@ public class SNSLabelProvider extends ExplorerNodeLabelProvider {
 
     @Override
     public Image getDefaultImage(Object element) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_TOPIC);
+        if (element instanceof SNSRootElement) {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_SNS_SERVICE);
+        } else {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_TOPIC);
+        }
     }
 }

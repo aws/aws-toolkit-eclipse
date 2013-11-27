@@ -52,12 +52,12 @@ public class AWSGitPushCommand {
     private final File archiveFile;
 
     private final Environment environment;
+    private boolean skipEnvironmentDeployment;
 
     private final String accessKey;
     private final String secretKey;
 
     public AWSGitPushCommand(File repoLocation, File archiveFile, Environment environment, AWSCredentials credentials) {
-        super();
         this.repoLocation = repoLocation;
         this.archiveFile = archiveFile;
         this.environment = environment;
@@ -96,6 +96,20 @@ public class AWSGitPushCommand {
         }
     }
 
+    /**
+     * Use this method to configure this request to only create a new
+     * application version, and not automatically deploy it to the specified
+     * environment.
+     *
+     * @param skipEnvironmentDeployment
+     *            True if this Git Push should only create a new application
+     *            version, and not automatically deploy it to the specified
+     *            environment.
+     */
+    public void skipEnvironmentDeployment(boolean skipEnvironmentDeployment) {
+        this.skipEnvironmentDeployment = skipEnvironmentDeployment;
+    }
+
     private void throwCoreException(String customMessage, Throwable t) throws CoreException {
         if (customMessage != null) customMessage = ": " + customMessage;
         else customMessage = "";
@@ -112,7 +126,10 @@ public class AWSGitPushCommand {
         Region region = RegionUtils.getRegionByEndpoint(environment.getRegionEndpoint());
         request.setRegion(region.getId());
         request.setApplication(environment.getApplicationName());
-        request.setEnvironment(environment.getEnvironmentName());
+
+        if (!skipEnvironmentDeployment) {
+            request.setEnvironment(environment.getEnvironmentName());
+        }
         AWSGitPushAuth auth = new AWSGitPushAuth(request);
         URI uri = auth.deriveRemote(accessKey, secretKey);
 

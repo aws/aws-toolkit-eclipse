@@ -63,6 +63,15 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     /** The ID of the AWS Explorer view */
     public static final String EXPLORER_VIEW_ID = "com.amazonaws.eclipse.explorer.view";
 
+    public static final String IMAGE_CLOUDFORMATION_SERVICE = "cloudformation-service";
+    public static final String IMAGE_CLOUDFRONT_SERVICE = "cloudfront-service";
+    public static final String IMAGE_IAM_SERVICE = "iam-service";
+    public static final String IMAGE_RDS_SERVICE = "rds-service";
+    public static final String IMAGE_S3_SERVICE = "s3-service";
+    public static final String IMAGE_SIMPLEDB_SERVICE = "simpledb-service";
+    public static final String IMAGE_SNS_SERVICE = "sns-service";
+    public static final String IMAGE_SQS_SERVICE = "sqs-service";
+
     public static final String IMAGE_REMOVE = "remove";
     public static final String IMAGE_ADD = "add";
     public static final String IMAGE_AWS_TOOLKIT_TITLE = "aws-toolkit-title";
@@ -91,7 +100,6 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     public static final String IMAGE_GREY_CIRCLE = "grey-circle";
     public static final String IMAGE_USER = "user";
     public static final String IMAGE_GROUP = "group";
-    public static final String IMAGE_IAM = "iam";
     public static final String IMAGE_KEY = "key";
     public static final String IMAGE_ROLE = "role";
     public static final String IMAGE_INFORMATION = "information";
@@ -297,6 +305,15 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         String[] images = new String[] {
                 IMAGE_WIZARD_CONFIGURE_DATABASE, "/icons/wizards/configure_database.png",
 
+                IMAGE_CLOUDFORMATION_SERVICE, "/icons/cloudformation-service.png",
+                IMAGE_CLOUDFRONT_SERVICE,     "/icons/cloudfront-service.png",
+                IMAGE_IAM_SERVICE,            "/icons/iam-service.png",
+                IMAGE_RDS_SERVICE,            "/icons/rds-service.png",
+                IMAGE_S3_SERVICE,             "/icons/s3-service.png",
+                IMAGE_SIMPLEDB_SERVICE,       "/icons/simpledb-service.png",
+                IMAGE_SNS_SERVICE,            "/icons/sns-service.png",
+                IMAGE_SQS_SERVICE,            "/icons/sqs-service.png",
+
                 IMAGE_ADD,                    "/icons/add.png",
                 IMAGE_REMOVE,                 "/icons/remove.gif",
                 IMAGE_REFRESH,                "/icons/refresh.png",
@@ -324,7 +341,6 @@ public class AwsToolkitCore extends AbstractUIPlugin {
                 IMAGE_RED_CIRCLE,             "/icons/red-circle.png",
                 IMAGE_USER,                   "/icons/user.png",
                 IMAGE_GROUP,                  "/icons/group.png",
-                IMAGE_IAM,                    "/icons/iam.png",
                 IMAGE_KEY,                    "/icons/key.png",
                 IMAGE_ROLE,                   "/icons/role.png",
                 IMAGE_INFORMATION,            "/icons/information.png",

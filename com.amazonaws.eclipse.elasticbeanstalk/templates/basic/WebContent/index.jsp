@@ -5,14 +5,14 @@
 <%@ page import="com.amazonaws.services.ec2.model.*" %>
 <%@ page import="com.amazonaws.services.s3.*" %>
 <%@ page import="com.amazonaws.services.s3.model.*" %>
-<%@ page import="com.amazonaws.services.simpledb.*" %>
-<%@ page import="com.amazonaws.services.simpledb.model.*" %>
+<%@ page import="com.amazonaws.services.dynamodbv2.*" %>
+<%@ page import="com.amazonaws.services.dynamodbv2.model.*" %>
 
 <%! // Share the client objects across threads to
     // avoid creating new clients for each web request
-    private AmazonEC2      ec2;
-    private AmazonS3        s3;
-    private AmazonSimpleDB sdb;
+    private AmazonEC2         ec2;
+    private AmazonS3           s3;
+    private AmazonDynamoDB dynamo;
  %>
 
 <%
@@ -31,11 +31,10 @@
 
 <%
     if (ec2 == null) {
-        AWSCredentials credentials = new PropertiesCredentials(
-            getClass().getClassLoader().getResourceAsStream("AwsCredentials.properties"));
-        ec2 = new AmazonEC2Client(credentials);
-        s3  = new AmazonS3Client(credentials);
-        sdb = new AmazonSimpleDBClient(credentials);
+        AWSCredentialsProvider credentialsProvider = new ClasspathPropertiesFileCredentialsProvider();
+        ec2    = new AmazonEC2Client(credentialsProvider);
+        s3     = new AmazonS3Client(credentialsProvider);
+        dynamo = new AmazonDynamoDBClient(credentialsProvider);
     }
 %>
 
@@ -58,10 +57,10 @@
         </div>
 
         <div class="section grid grid5 sdb">
-            <h2>Amazon SimpleDB Domains:</h2>
+            <h2>Amazon DynamoDB Tables:</h2>
             <ul>
-            <% for (String domainName : sdb.listDomains().getDomainNames()) { %>
-               <li> <%= domainName %></li>
+            <% for (String tableName : dynamo.listTables().getTableNames()) { %>
+               <li> <%= tableName %></li>
             <% } %>
             </ul>
         </div>

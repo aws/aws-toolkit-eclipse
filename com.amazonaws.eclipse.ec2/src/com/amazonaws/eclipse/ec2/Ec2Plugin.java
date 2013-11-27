@@ -87,10 +87,10 @@ public class Ec2Plugin extends AbstractUIPlugin {
         for (Handler handler : amazonLogger.getHandlers()) {
             amazonLogger.removeHandler(handler);
         }
-        
+
         convertLegacyProperties();
     }
-    
+
     /**
      * Bootstraps legacy customers to new data storage formats.
      */
@@ -98,7 +98,7 @@ public class Ec2Plugin extends AbstractUIPlugin {
         try {
             KeyPairManager.convertLegacyPrivateKeyFiles();
         } catch ( Exception ignored ) {
-            // best try 
+            // best try
         }
     }
 
@@ -141,6 +141,7 @@ public class Ec2Plugin extends AbstractUIPlugin {
                                         "terminate",   			"/icons/media_stop_red.png",
                                         "stop",                 "/icons/media_pause.png",
                                         "start",                "/icons/media_play_green.png",
+                                        "ec2-service",          "/icons/ec2-service.png",
 
                                         "filter",				"/icons/filter.gif",
 

@@ -31,7 +31,11 @@ public class CloudFrontLabelProvider extends ExplorerNodeLabelProvider {
 
     @Override
     public Image getDefaultImage(Object element) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_DISTRIBUTION);
+        if (element instanceof CloudFrontRootElement) {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_CLOUDFRONT_SERVICE);
+        } else {
+            return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_DISTRIBUTION);
+        }
     }
 
 }

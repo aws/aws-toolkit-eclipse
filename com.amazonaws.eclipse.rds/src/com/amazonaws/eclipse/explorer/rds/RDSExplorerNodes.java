@@ -23,7 +23,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 
 public class RDSExplorerNodes {
     public static final ExplorerNode RDS_ROOT_NODE =
-        new ExplorerNode("Amazon RDS", 1, loadImage(AwsToolkitCore.IMAGE_DATABASE), null);
+        new ExplorerNode("Amazon RDS", 1, loadImage(AwsToolkitCore.IMAGE_RDS_SERVICE), null);
 
     public static class DatabaseNode extends ExplorerNode {
         private final DBInstance dbInstance;
