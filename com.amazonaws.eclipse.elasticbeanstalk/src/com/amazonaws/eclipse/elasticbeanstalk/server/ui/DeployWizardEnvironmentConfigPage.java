@@ -72,12 +72,14 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     private Button incrementalDeploymentButton;
     private ComboViewer iamRoleComboViewer;
     private Text healthCheckText;
+    private Text workerQueueUrlText;
 
     private ISWTObservableValue usingKeyPairObservable;
     private ISWTObservableValue usingCnameObservable;
     private ISWTObservableValue healthCheckURLObservable;
     private ISWTObservableValue sslCertObservable;
     private ISWTObservableValue snsTopicObservable;
+    private ISWTObservableValue workerQueueUrlObservable;
 
 
     public DeployWizardEnvironmentConfigPage(DeployWizardDataModel wizardDataModel) {
@@ -98,6 +100,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         createSSLCertControls(composite);
         createCNAMEControls(composite);
         createHealthCheckURLControls(composite);
+        createQueueURLControls(composite);
         createSNSTopicControls(composite);
         createIamRoleControls(composite);
         newLabel(composite, "");
@@ -119,9 +122,14 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         iamRoleComboViewer.setLabelProvider(new LabelProvider() {
             @Override
             public String getText(Object element) {
-                if (element instanceof DefaultRole) return "Default (aws-elasticbeanstalk-ec2-role)";
-                if (element instanceof Role) return ((Role)element).getRoleName();
-                else return "";
+                if (element instanceof DefaultRole) {
+                    return "Default (aws-elasticbeanstalk-ec2-role)";
+                }
+                if (element instanceof Role) {
+                    return ((Role)element).getRoleName();
+                } else {
+                    return "";
+                }
             }
         });
         iamRoleComboViewer.getCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -139,13 +147,40 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         link.setLayoutData(gridData);
     }
 
-    // Check the environment type. If it is single instance, we disable the health check URL.
+    private void createQueueURLControls(final Composite parent) {
+        newLabel(parent, "Worker Queue URL");
+
+        workerQueueUrlText = newText(parent, "");
+        workerQueueUrlObservable = SWTObservables.observeText(workerQueueUrlText, SWT.Modify);
+    }
+
     @Override
     public void enter() {
-        if (wizardDataModel.getEnvironmentType() != null && wizardDataModel.getEnvironmentType().equals(ConfigurationOptionConstants.SINGLE_INSTANCE)) {
+        String environmentType = wizardDataModel.getEnvironmentType();
+
+        // Health check isn't applicable for single-instance environments.
+        if (ConfigurationOptionConstants.SINGLE_INSTANCE_ENV.equals(environmentType)) {
+            healthCheckText.setText("");
             healthCheckText.setEnabled(false);
         } else {
             healthCheckText.setEnabled(true);
+        }
+
+        // CName isn't applicable for worker environments; worker queue is.
+        if (ConfigurationOptionConstants.WORKER_ENV.equals(environmentType)) {
+            usingCnameButton.setSelection(false);
+            usingCnameButton.setEnabled(false);
+
+            cname.setText("");
+            cname.setEnabled(false);
+
+            workerQueueUrlText.setEnabled(true);
+        } else {
+            usingCnameButton.setEnabled(true);
+            cname.setEnabled(usingCnameButton.getSelection());
+
+            workerQueueUrlText.setText("");
+            workerQueueUrlText.setEnabled(false);
         }
     }
 
@@ -215,6 +250,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         sslCertObservable.setValue("");
         snsTopicObservable.setValue("");
         healthCheckURLObservable.setValue("");
+        workerQueueUrlObservable.setValue("");
 
         // No change event is necessarily fired from the above updates, so we
         // fire one manually in order to display the appropriate button enablement
@@ -279,7 +315,12 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         bindingContext.bindValue(iamRoleComboObservable,
             PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.IAM_ROLE));
 
-
+        // Worker Queue URL
+        bindingContext.bindValue(
+            workerQueueUrlObservable,
+            PojoObservables.observeValue(
+                wizardDataModel,
+                DeployWizardDataModel.WORKER_QUEUE_URL));
     }
 
     @Override
@@ -323,7 +364,9 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
                         }
                     }
 
-                    if (result.isTruncated()) request.setMarker(result.getMarker());
+                    if (result.isTruncated()) {
+                        request.setMarker(result.getMarker());
+                    }
                 } while (result.isTruncated());
 
                 Display.getDefault().asyncExec(new Runnable() {

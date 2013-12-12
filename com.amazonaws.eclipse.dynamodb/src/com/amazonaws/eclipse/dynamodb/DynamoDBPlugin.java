@@ -63,13 +63,12 @@ public class DynamoDBPlugin extends AbstractUIPlugin {
     @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
+        plugin = this;
 
         setDefaultDynamoDBLocalPort();
 
         listener = new DefaultTestToolPortListener();
         getPreferenceStore().addPropertyChangeListener(listener);
-
-        plugin = this;
     }
 
     /*

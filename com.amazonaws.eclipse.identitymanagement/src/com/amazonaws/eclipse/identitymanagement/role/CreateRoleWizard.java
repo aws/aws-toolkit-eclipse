@@ -29,7 +29,7 @@ import com.amazonaws.auth.policy.Condition;
 import com.amazonaws.auth.policy.Policy;
 import com.amazonaws.auth.policy.Principal;
 import com.amazonaws.auth.policy.Principal.Services;
-import com.amazonaws.auth.policy.Principal.WebIdentityProvider;
+import com.amazonaws.auth.policy.Principal.WebIdentityProviders;
 import com.amazonaws.auth.policy.STSActions;
 import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.auth.policy.Statement.Effect;
@@ -166,11 +166,11 @@ public class CreateRoleWizard extends Wizard {
             principal = new Principal(dataModel.getAccountId());
         } else if (dataModel.getWebProviderRoles()) {
               if (dataModel.getWebProvider().equals("Facebook")) {
-                  principal = new Principal(WebIdentityProvider.Facebook);
+                  principal = new Principal(WebIdentityProviders.Facebook);
               } else if (dataModel.getWebProvider().equals("Google")) {
-                  principal = new Principal(WebIdentityProvider.Google);
+                  principal = new Principal(WebIdentityProviders.Google);
               } else {
-                  principal = new Principal(WebIdentityProvider.Amazon);
+                  principal = new Principal(WebIdentityProviders.Amazon);
               }
         } else {
             principal = new Principal(dataModel.getInternalAccountId());

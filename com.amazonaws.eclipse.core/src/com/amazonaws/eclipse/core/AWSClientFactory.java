@@ -15,6 +15,7 @@
 package com.amazonaws.eclipse.core;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -32,7 +33,9 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.Service;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
@@ -277,11 +280,47 @@ public class AWSClientFactory {
             AWSCredentials credentials = new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey());
 
             T client = constructor.newInstance(credentials, config);
-            client.setEndpoint(endpoint);
+
+            /*
+             * If a serviceId is explicitly specified with the region metadata,
+             * and this client has a 3-argument form of setEndpoint (for sigv4
+             * overrides), then explicitly pass in the service Id and region Id
+             * in case it can't be parsed from the endpoint URL by the default
+             * setEndpoint method.
+             */
+            Service service = RegionUtils.getServiceByEndpoint(endpoint);
+            Method sigv4SetEndpointMethod = lookupSigV4SetEndpointMethod(clientClass);
+            if (service.getServiceId() != null && sigv4SetEndpointMethod != null) {
+                Region region = RegionUtils.getRegionByEndpoint(endpoint);
+                sigv4SetEndpointMethod.invoke(client, endpoint, service.getServiceId(), region.getId());
+            } else {
+                client.setEndpoint(endpoint);
+            }
 
             return client;
         } catch (Exception e) {
             throw new RuntimeException("Unable to create client: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Returns the 3-argument form of setEndpoint that is used to override
+     * values for sigv4 signing, or null if the specified class does not support
+     * that version of setEndpoint.
+     *
+     * @param clientClass
+     *            The class to introspect.
+     *
+     * @return The 3-argument method form of setEndpoint, or null if it doesn't
+     *         exist in the specified class.
+     */
+    private <T extends AmazonWebServiceClient> Method lookupSigV4SetEndpointMethod(Class<T> clientClass) {
+        try {
+            return clientClass.getMethod("setEndpoint", String.class, String.class, String.class);
+        } catch (SecurityException e) {
+            throw new RuntimeException("Unable to lookup class methods via reflection", e);
+        } catch (NoSuchMethodException e) {
+            return null;
         }
     }
 

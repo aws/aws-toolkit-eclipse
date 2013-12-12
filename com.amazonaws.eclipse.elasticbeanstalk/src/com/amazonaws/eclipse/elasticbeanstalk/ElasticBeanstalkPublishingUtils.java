@@ -19,6 +19,7 @@ import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trac
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +54,7 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeEventsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentHealth;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentTier;
 import com.amazonaws.services.elasticbeanstalk.model.EventDescription;
 import com.amazonaws.services.elasticbeanstalk.model.S3Location;
 import com.amazonaws.services.elasticbeanstalk.model.UpdateEnvironmentRequest;
@@ -63,6 +65,7 @@ import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
 import com.amazonaws.services.identitymanagement.model.GetInstanceProfileRequest;
 import com.amazonaws.services.identitymanagement.model.GetRoleRequest;
 import com.amazonaws.services.identitymanagement.model.InstanceProfile;
+import com.amazonaws.services.identitymanagement.model.PutRolePolicyRequest;
 import com.amazonaws.services.identitymanagement.model.Role;
 import com.amazonaws.services.s3.AmazonS3;
 
@@ -203,9 +206,31 @@ public class ElasticBeanstalkPublishingUtils {
     public String getLatestApplicationVersion(String applicationName) {
         List<ApplicationVersionDescription> applicationVersions = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(applicationName)).getApplicationVersions();
 
-        if (applicationVersions.isEmpty()) return null;
+        if (applicationVersions.isEmpty()) {
+            return null;
+        }
 
         return applicationVersions.get(0).getVersionLabel();
+    }
+
+    private static final Map<String, String> ENV_TIER_MAP;
+    static {
+        Map<String, String> map = new HashMap<String, String>();
+
+        map.put(ConfigurationOptionConstants.WEB_SERVER, "Standard");
+        map.put(ConfigurationOptionConstants.WORKER, "SQS/HTTP");
+
+        ENV_TIER_MAP = Collections.unmodifiableMap(map);
+    }
+
+    private static final Map<String, String> ENV_TYPE_MAP;
+    static {
+        Map<String, String> map = new HashMap<String, String>();
+
+        map.put(ConfigurationOptionConstants.SINGLE_INSTANCE_ENV, "SingleInstance");
+        map.put(ConfigurationOptionConstants.LOAD_BALANCED_ENV, "LoadBalanced");
+
+        ENV_TYPE_MAP = Collections.unmodifiableMap(map);
     }
 
     /**
@@ -216,10 +241,6 @@ public class ElasticBeanstalkPublishingUtils {
      *            The initial version to deploy to the new environment.
      */
     public void createNewEnvironment(String versionLabel) {
-        // Map the UI value to the one on the wire
-        Map<String, String> envTypeMap = new HashMap<String, String>();
-        envTypeMap.put(ConfigurationOptionConstants.SINGLE_INSTANCE, "SingleInstance");
-        envTypeMap.put(ConfigurationOptionConstants.LOAD_BALANCED, "LoadBalanced");
 
         String solutionStackName = environment.getSolutionStack();
         if (solutionStackName == null) {
@@ -234,7 +255,7 @@ public class ElasticBeanstalkPublishingUtils {
             .withVersionLabel(versionLabel);
 
         List<ConfigurationOptionSetting> optionSettings = new ArrayList<ConfigurationOptionSetting>();
-        if ( environment.getKeyPairName() != null ) {
+        if ( environment.getKeyPairName() != null && environment.getKeyPairName().length() > 0 ) {
             optionSettings.add(new ConfigurationOptionSetting()
                     .withNamespace("aws:autoscaling:launchconfiguration").withOptionName("EC2KeyName")
                     .withValue(environment.getKeyPairName()));
@@ -251,27 +272,37 @@ public class ElasticBeanstalkPublishingUtils {
             optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.SNS_TOPICS)
                     .withOptionName("Notification Endpoint").withValue(environment.getSnsEndpoint()));
         }
+        if ( environment.getEnvironmentTier() != null && environment.getEnvironmentTier().length() > 0 ) {
+            request.setTier(new EnvironmentTier()
+                .withName(environment.getEnvironmentTier())
+                .withType(ENV_TIER_MAP.get(environment.getEnvironmentTier()))
+                .withVersion("1.0"));
+        }
         if ( environment.getEnvironmentType() != null && environment.getEnvironmentType().length() > 0 ) {
-            optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.ENVIRONMENT_TYPE)
-                    .withOptionName("EnvironmentType").withValue(envTypeMap.get(environment.getEnvironmentType())));
+            optionSettings.add(new ConfigurationOptionSetting()
+                .withNamespace(ConfigurationOptionConstants.ENVIRONMENT_TYPE)
+                .withOptionName("EnvironmentType")
+                .withValue(ENV_TYPE_MAP.get(environment.getEnvironmentType())));
         }
         if ( environment.getIamRoleName() != null && environment.getIamRoleName().length() > 0 ) {
-            try {
-                InstanceProfile instanceProfile = configureInstanceProfile();
-                if (instanceProfile != null) {
-                    optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
-                            .withOptionName("IamInstanceProfile").withValue(instanceProfile.getArn()));
-                }
-            } catch (Exception e) {
-                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
-                    "Unable to configure IAM instance profile for role " + environment.getIamRoleName(), e);
-                ElasticBeanstalkPlugin.getDefault().getLog().log(status);
+            InstanceProfile instanceProfile = configureInstanceProfile();
+            if (instanceProfile != null) {
+                optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
+                        .withOptionName("IamInstanceProfile").withValue(instanceProfile.getArn()));
             }
         }
+        if ( environment.getWorkerQueueUrl() != null && environment.getWorkerQueueUrl().length() > 0 ) {
+            optionSettings.add(new ConfigurationOptionSetting()
+                .withNamespace(ConfigurationOptionConstants.SQSD)
+                .withOptionName("WorkerQueueURL")
+                .withValue(environment.getWorkerQueueUrl()));
+        }
 
-        if (optionSettings.size() > 0) request.setOptionSettings(optionSettings);
+        if (optionSettings.size() > 0) {
+            request.setOptionSettings(optionSettings);
+        }
 
-        if (environment.getCname() != null) {
+        if (environment.getCname() != null && environment.getCname().length() > 0) {
             request.setCNAMEPrefix(environment.getCname());
         }
 
@@ -282,11 +313,16 @@ public class ElasticBeanstalkPublishingUtils {
         String roleName = environment.getIamRoleName();
 
         String ASSUME_ROLE_POLICY = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":[\"ec2.amazonaws.com\"]},\"Action\":[\"sts:AssumeRole\"]}]}";
+        String DEFAULT_ACCESS_POLICY = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"sqs:*\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"cloudwatch:*\"],\"Resource\":\"*\"}]}";
 
         Role role = getRole(roleName);
         if (role == null) {
             if (roleName.equals(DEFAULT_ROLE_NAME)) {
                 role = iam.createRole(new CreateRoleRequest().withRoleName(roleName).withPath("/").withAssumeRolePolicyDocument(ASSUME_ROLE_POLICY)).getRole();
+                iam.putRolePolicy(new PutRolePolicyRequest()
+                    .withRoleName(roleName)
+                    .withPolicyName("DefaultAccessPolicy-" + roleName)
+                    .withPolicyDocument(DEFAULT_ACCESS_POLICY));
             } else {
                 Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Selected IAM role doesn't exit: " + roleName);
                 ElasticBeanstalkPlugin.getDefault().getLog().log(status);
@@ -306,7 +342,9 @@ public class ElasticBeanstalkPublishingUtils {
         try {
             return iam.getInstanceProfile(new GetInstanceProfileRequest().withInstanceProfileName(profileName)).getInstanceProfile();
         } catch (AmazonServiceException ase) {
-            if (ase.getErrorCode().equals("NoSuchEntity")) return null;
+            if (ase.getErrorCode().equals("NoSuchEntity")) {
+                return null;
+            }
             throw ase;
         }
     }
@@ -315,7 +353,9 @@ public class ElasticBeanstalkPublishingUtils {
         try {
             return iam.getRole(new GetRoleRequest().withRoleName(roleName)).getRole();
         } catch (AmazonServiceException ase) {
-            if (ase.getErrorCode().equals("NoSuchEntity")) return null;
+            if (ase.getErrorCode().equals("NoSuchEntity")) {
+                return null;
+            }
             throw ase;
         }
     }
@@ -345,7 +385,9 @@ public class ElasticBeanstalkPublishingUtils {
             }
 
             try {Thread.sleep(PAUSE);} catch (Exception e) {}
-            if (monitor.isCanceled()) return;
+            if (monitor.isCanceled()) {
+                return;
+            }
 
             if (runnable != null) {
                 try {
@@ -409,13 +451,16 @@ public class ElasticBeanstalkPublishingUtils {
     }
 
     private void checkForCancellation(IProgressMonitor monitor) throws CoreException {
-        if (monitor.isCanceled())
+        if (monitor.isCanceled()) {
             throw new CoreException(new Status(Status.CANCEL, ElasticBeanstalkPlugin.PLUGIN_ID, "Canceled"));
+        }
     }
 
     private boolean isLaunchingNewEnvironment(String environmentName) {
         List<EnvironmentDescription> environments = beanstalkClient.describeEnvironments(new DescribeEnvironmentsRequest().withEnvironmentNames(environmentName)).getEnvironments();
-        if (environments.isEmpty()) return true;
+        if (environments.isEmpty()) {
+            return true;
+        }
         return environments.get(0).getStatus().equals(EnvironmentStatus.Launching.toString());
     }
 
@@ -423,7 +468,9 @@ public class ElasticBeanstalkPublishingUtils {
         List<EnvironmentDescription> environments = beanstalkClient.describeEnvironments(new DescribeEnvironmentsRequest()
             .withEnvironmentNames(environmentName)).getEnvironments();
 
-        if (environments.isEmpty()) return false;
+        if (environments.isEmpty()) {
+            return false;
+        }
 
         String status = environments.get(0).getStatus();
         return (!status.equals(EnvironmentStatus.Terminated.toString()) &&

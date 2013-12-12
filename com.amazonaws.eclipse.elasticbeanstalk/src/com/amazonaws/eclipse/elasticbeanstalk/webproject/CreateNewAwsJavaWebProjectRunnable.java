@@ -30,25 +30,15 @@ package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IProject;
@@ -91,9 +81,6 @@ import org.osgi.framework.Bundle;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
@@ -216,7 +203,9 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             monitor.worked(10);
 
             // Configure the Tomcat session manager
-            if (dataModel.getUseDynamoDBSessionManagement()) addSessionManagerConfigurationFiles(project);
+            if (dataModel.getUseDynamoDBSessionManagement()) {
+                addSessionManagerConfigurationFiles(project);
+            }
             monitor.worked(10);
         } catch (Exception e) {
             throw new InvocationTargetException(e);
@@ -228,7 +217,9 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     private IClasspathEntry findSdkClasspathEntry(IJavaProject javaProject) throws JavaModelException {
         IPath expectedPath = new AwsClasspathContainer(JavaSdkManager.getInstance().getDefaultSdkInstall()).getPath();
         for (IClasspathEntry entry : javaProject.getRawClasspath()) {
-            if (entry.getPath().equals(expectedPath)) return entry;
+            if (entry.getPath().equals(expectedPath)) {
+                return entry;
+            }
         }
 
         return null;
@@ -237,7 +228,9 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     private IRuntime configureGenericJeeServerRuntime() {
         // Return the existing AWS generic J2EE runtime if it already exists
         IRuntime runtime = ServerCore.findRuntime(ELASTIC_BEANSTALK_RUNTIME_ID);
-        if (runtime != null) return runtime;
+        if (runtime != null) {
+            return runtime;
+        }
 
         // Otherwise try to create a new one...
         try {
@@ -251,8 +244,9 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             try {
                 File source = new File(url.getFile(), "runtime-lib/j2ee.jar");
                 File dest = new File(ElasticBeanstalkPlugin.getDefault().getStateLocation().toFile(), "runtime-lib/j2ee.jar");
-                if ( !dest.exists() )
+                if ( !dest.exists() ) {
                     FileUtils.copyFile(source, dest);
+                }
                 workingCopy.setLocation(new Path(dest.getParentFile().getAbsolutePath()));
             } catch ( Exception e ) {
                 // If we can't copy the j2ee jar into the workspace, fall back
@@ -265,13 +259,6 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             ElasticBeanstalkPlugin.getDefault().getLog()
                     .log(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, e.getMessage(), e));
             return null;
-        }
-    }
-
-    /** Filename filter that selects all ZIP files. */
-    private static final class ZipFileFilter implements FilenameFilter {
-        public boolean accept(File dir, String name) {
-            return (name.toLowerCase().endsWith(".zip"));
         }
     }
 
@@ -353,88 +340,26 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         URL url = FileLocator.resolve(bundle.getEntry("/"));
         IPath templateRoot = new Path(url.getFile(), "templates");
 
-        if (dataModel.isSampleAppIncluded()) {
-            // The TravelLog sample app template is zipped up, so we need to extract it to the right location
-            for (File file : templateRoot.append("TravelLog").toFile().listFiles(new ZipFileFilter())) {
-                unzipSampleAppTemplate(file, project.getLocation().toFile());
-            }
-        } else {
-            // The basic template can simply be copied over without being unzipped
+        switch (dataModel.getProjectTemplate()) {
+        case WORKER:
+            FileUtils.copyDirectory(
+                templateRoot.append("worker").toFile(),
+                project.getLocation().toFile(),
+                new SvnMetadataFilter());
+            break;
+
+        case DEFAULT:
             FileUtils.copyDirectory(
                 templateRoot.append("basic").toFile(),
                 project.getLocation().toFile(),
                 new SvnMetadataFilter());
+            break;
+
+        default:
+            throw new IllegalStateException("Unknown project template: " +
+                                            dataModel.getProjectTemplate());
         }
 
         project.refreshLocal(IResource.DEPTH_INFINITE, null);
-    }
-
-    private void unzipSampleAppTemplate(File file, File destination) throws FileNotFoundException, IOException {
-
-        // Get a temp directory
-        File temp = File.createTempFile("travellog", "");
-        temp.delete();
-        temp.mkdirs();
-
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(file));
-
-        ZipEntry zipEntry = null;
-        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-            IPath path = new Path(zipEntry.getName());
-
-            File destinationFile = new File(temp, path.toOSString());
-            if ( zipEntry.isDirectory() ) {
-                destinationFile.mkdirs();
-            } else {
-                FileOutputStream outputStream = new FileOutputStream(destinationFile);
-                IOUtils.copy(zipInputStream, outputStream);
-                outputStream.close();
-            }
-        }
-        zipInputStream.close();
-
-        File travellogDir = new File(temp, "travellog");
-        File srcDir = new File(travellogDir, "src");
-
-        // Override the language-specific files
-        if ( !dataModel.getLanguage().equals(NewAwsJavaWebProjectDataModel.ENGLISH) ) {
-            File languagesDir = new File(temp, LANGUAGES_DIR);
-            File languageDir = new File(languagesDir, LANGUAGE_DIRS.get(dataModel.getLanguage()));
-            if ( languageDir.exists() ) {
-                FileUtils.copyDirectory(languageDir, travellogDir);
-            }
-        }
-
-        // Override the sample content properties
-        LinkedList<String> bundlePropertiesContents = new LinkedList<String>();
-        bundlePropertiesContents.add("bundleBucket = " + BUNDLE_BUCKET);
-        bundlePropertiesContents.add("bundlePath = " + LANGUAGE_BUNDLE_PATHS.get(dataModel.getLanguage()));
-        File bundleProperties = new File(srcDir, "content-bundle.properties");
-        truncateFile(bundleProperties);
-        FileUtils.writeLines(bundleProperties, bundlePropertiesContents);
-
-        // Override the service endpoints
-        Region region = dataModel.getRegion();
-        List<String> endpoints = new LinkedList<String>();
-        for ( String service : new String[] { ServiceAbbreviations.S3, ServiceAbbreviations.SIMPLEDB,
-                ServiceAbbreviations.SNS } ) {
-            String endpoint;
-            if ( region.isServiceSupported(service) ) {
-                endpoint = region.getServiceEndpoint(service);
-            } else {
-                endpoint = RegionUtils.getRegionsForService(service).get(0).getServiceEndpoint(service);
-            }
-            endpoints.add(service + " = " + endpoint);
-        }
-        File serviceEndpoints = new File(srcDir, "endpoints.properties");
-        truncateFile(serviceEndpoints);
-        FileUtils.writeLines(serviceEndpoints, endpoints);
-
-        // Finally, copy the entire travellog directory into the destination
-        FileUtils.copyDirectory(travellogDir, destination);
-    }
-
-    private void truncateFile(File f) throws FileNotFoundException, IOException {
-        new RandomAccessFile(f, "rw").setLength(0);
     }
 }

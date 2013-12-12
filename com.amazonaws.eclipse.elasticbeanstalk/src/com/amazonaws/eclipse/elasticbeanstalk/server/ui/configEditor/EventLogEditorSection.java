@@ -76,6 +76,8 @@ public class EventLogEditorSection extends ServerEditorSection {
     private static final Object JOB_FAMILY = new Object();
     private AutoRefreshListener autoRefreshListener;
 
+    private boolean disposed;
+
     @Override
     public void createSection(Composite parent) {
         super.createSection(parent);
@@ -120,8 +122,9 @@ public class EventLogEditorSection extends ServerEditorSection {
         column.setText(columnText);
 
         TreeColumnLayout tableColumnLayout = (TreeColumnLayout) viewer.getTree().getParent().getLayout();
-        if ( tableColumnLayout == null )
+        if ( tableColumnLayout == null ) {
             tableColumnLayout = new TreeColumnLayout();
+        }
         tableColumnLayout.setColumnData(column, new ColumnWeightData(weight));
 
         return column;
@@ -129,7 +132,9 @@ public class EventLogEditorSection extends ServerEditorSection {
 
     private final class AutoRefreshListener implements IServerListener {
         public void serverChanged(ServerEvent event) {
-            if ((event.getKind() & ServerEvent.SERVER_CHANGE) == 0) return;
+            if ((event.getKind() & ServerEvent.SERVER_CHANGE) == 0) {
+                return;
+            }
 
             switch (event.getState()) {
             case IServer.STATE_STARTING:
@@ -139,6 +144,10 @@ public class EventLogEditorSection extends ServerEditorSection {
                 EventLogRefreshManager.getInstance().stopAutoRefresh(EventLogEditorSection.this);
                 break;
             }
+        }
+
+        public void dispose() {
+            EventLogRefreshManager.getInstance().stopAutoRefresh(EventLogEditorSection.this);
         }
     }
 
@@ -157,8 +166,11 @@ public class EventLogEditorSection extends ServerEditorSection {
 
                 String eventText = "";
                 for (TreeItem treeItem : viewer.getTree().getSelection()) {
-                    if (eventText == null) eventText = treeItem.getData().toString();
-                    else eventText += "\n" + treeItem.getData().toString();
+                    if (eventText == null) {
+                        eventText = treeItem.getData().toString();
+                    } else {
+                        eventText += "\n" + treeItem.getData().toString();
+                    }
                 }
 
                 TextTransfer textTransfer = TextTransfer.getInstance();
@@ -191,6 +203,10 @@ public class EventLogEditorSection extends ServerEditorSection {
 
              Display.getDefault().syncExec(new Runnable() {
                 public void run() {
+                    if (disposed) {
+                        return;
+                    }
+
                     // Preserve the current column widths
                     int[] colWidth = new int[viewer.getTree().getColumns().length];
                     int i = 0;
@@ -251,8 +267,11 @@ public class EventLogEditorSection extends ServerEditorSection {
 
             @SuppressWarnings("unchecked")
             public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-                if (newInput == null) events = new ArrayList<EventDescription>();
-                else events = (List<EventDescription>)newInput;
+                if (newInput == null) {
+                    events = new ArrayList<EventDescription>();
+                } else {
+                    events = (List<EventDescription>)newInput;
+                }
             }
 
             public void dispose() {
@@ -306,8 +325,12 @@ public class EventLogEditorSection extends ServerEditorSection {
             }
 
             public Image getColumnImage(Object element, int columnIndex) {
-                if (element == null) return null;
-                if (columnIndex != 0) return null;
+                if (element == null) {
+                    return null;
+                }
+                if (columnIndex != 0) {
+                    return null;
+                }
 
                 EventSeverity eventSeverity = null;
                 try {
@@ -336,8 +359,13 @@ public class EventLogEditorSection extends ServerEditorSection {
 
     @Override
     public void dispose() {
-        Environment environment = (Environment) server.loadAdapter(Environment.class, null);
-        environment.getServer().removeServerListener(autoRefreshListener);
+        disposed = true;
+
+        if (autoRefreshListener != null) {
+            Environment environment = (Environment) server.loadAdapter(Environment.class, null);
+            environment.getServer().removeServerListener(autoRefreshListener);
+            autoRefreshListener.dispose();
+        }
 
         super.dispose();
     }

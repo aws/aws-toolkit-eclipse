@@ -40,6 +40,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.InstanceType;
+import com.amazonaws.eclipse.ec2.InstanceTypes;
 import com.amazonaws.eclipse.ec2.ui.ChargeWarningComposite;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairSelectionTable;
@@ -109,7 +110,7 @@ public class LaunchWizardPage extends WizardPage {
             securityGroupSelectionComposite.getRefreshSecurityGroupsAction().run();
             keyPairComposite.getKeyPairSelectionTable().refreshKeyPairs();
             loadAvailabilityZones();
-            
+
             try {
                 loadInstanceProfiles();
             } catch ( Exception e ) {
@@ -196,7 +197,7 @@ public class LaunchWizardPage extends WizardPage {
         instanceProfileCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         instanceProfileCombo.setItems(new String[] { NO_INSTANCE_PROFILE });
         instanceProfileCombo.select(0);
-        
+
         newLabel(parent, "User Data:");
         userDataText = new Text(parent, SWT.MULTI | SWT.BORDER);
         userDataText.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -238,7 +239,7 @@ public class LaunchWizardPage extends WizardPage {
             StatusManager.getManager().handle(status, StatusManager.LOG);
         }
     }
-    
+
     private void loadInstanceProfiles() {
         ListInstanceProfilesResult listInstanceProfiles = AwsToolkitCore.getClientFactory()
                 .getIAMClient().listInstanceProfiles();
@@ -247,7 +248,7 @@ public class LaunchWizardPage extends WizardPage {
         for ( InstanceProfile profile : listInstanceProfiles.getInstanceProfiles() ) {
             profileNames.add(profile.getInstanceProfileName());
             instanceProfileCombo.setData(profile.getInstanceProfileName(), profile);
-        }        
+        }
         instanceProfileCombo.setItems(profileNames.toArray(new String[profileNames.size()]));
         instanceProfileCombo.select(0);
     }
@@ -261,7 +262,7 @@ public class LaunchWizardPage extends WizardPage {
     private void populateValidInstanceTypes() {
         instanceTypeCombo.removeAll();
 
-        for (InstanceType instanceType : InstanceType.values()) {
+        for (InstanceType instanceType : InstanceTypes.getInstanceTypes()) {
             // Only display instance types that will work with the selected AMI
             if ( !instanceType.canLaunch(image) )
                 continue;
@@ -420,7 +421,7 @@ public class LaunchWizardPage extends WizardPage {
     public String getKeyPairName() {
         return keyPairComposite.getKeyPairSelectionTable().getSelectedKeyPair().getKeyName();
     }
-    
+
     /**
      * Returns the arn of the selected instance profile, or null if none is
      * selected.

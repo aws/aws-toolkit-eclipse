@@ -50,6 +50,16 @@ public interface Region {
     Map<String, String> getServiceEndpoints();
 
     /**
+     * Returns a map of the available services in this region. THe keys of the
+     * map are service abbreviations, as defined in {@link ServiceAbbreviations},
+     * and the values are {@link Service} objects that provide information on
+     * connecting to the service.
+     *
+     * @return A map of the available services in this region.
+     */
+    public Map<String, Service> getServicesByName();
+
+    /**
      * Returns the endpoint for the service given.
      *
      * @see ServiceAbbreviations

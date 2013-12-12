@@ -14,13 +14,11 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
 import org.eclipse.core.databinding.beans.PojoObservables;
+import org.eclipse.core.databinding.conversion.Converter;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
@@ -32,7 +30,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.databinding.swt.SWTObservables;
-import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -41,7 +38,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
@@ -50,9 +46,6 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
 
@@ -63,7 +56,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
     private Text projectNameText;
     private Button basicTemplateRadioButton;
-    private Button travelLogRadioButton;
+    private Button workerTemplateRadioButton;
     private AccountSelectionComposite accountSelectionComposite;
 
     private final NewAwsJavaWebProjectDataModel dataModel;
@@ -72,8 +65,8 @@ final class JavaWebProjectWizardPage extends WizardPage {
     /** Collective status of all validators in our binding context */
     protected AggregateValidationStatus aggregateValidationStatus =
         new AggregateValidationStatus(bindingContext, AggregateValidationStatus.MAX_SEVERITY);
-    private Combo regionCombo;
-    private Combo languageCombo;
+
+    private Group sessionManagerGroup;
     private Button useDynamoDBSessionManagerCheckBox;
 
 
@@ -87,7 +80,9 @@ final class JavaWebProjectWizardPage extends WizardPage {
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
-                if (value instanceof IStatus == false) return;
+                if (value instanceof IStatus == false) {
+                    return;
+                }
 
                 IStatus status = (IStatus)value;
                 if (status.getSeverity() == IStatus.OK) {
@@ -129,7 +124,8 @@ final class JavaWebProjectWizardPage extends WizardPage {
         dataModel.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
         accountSelectionComposite.selectAccountId(dataModel.getAccountId());
 
-        dataModel.setSampleAppIncluded(false);
+        dataModel.setProjectTemplate(JavaWebProjectTemplate.DEFAULT);
+
         createSamplesGroup(composite);
         createSessionManagerGroup(composite);
 
@@ -138,21 +134,21 @@ final class JavaWebProjectWizardPage extends WizardPage {
     }
 
     private void createSessionManagerGroup(Composite composite) {
-        Group group = new Group(composite, SWT.NONE);
-        group.setText("Amazon DynamoDB Session Management:");
+        sessionManagerGroup = new Group(composite, SWT.NONE);
+        sessionManagerGroup.setText("Amazon DynamoDB Session Management:");
         GridLayout layout = new GridLayout(1, false);
         layout.verticalSpacing = 3;
-        group.setLayout(layout);
+        sessionManagerGroup.setLayout(layout);
         GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
         layoutData.horizontalSpan = 2;
-        group.setLayoutData(layoutData);
+        sessionManagerGroup.setLayoutData(layoutData);
 
-        useDynamoDBSessionManagerCheckBox = new Button(group, SWT.CHECK);
+        useDynamoDBSessionManagerCheckBox = new Button(sessionManagerGroup, SWT.CHECK);
         useDynamoDBSessionManagerCheckBox.setText("Store session data in Amazon DynamoDB");
 
-        newLabel(group, "This option configures your project with a custom session manager that persists sessions using Amazon DynamoDB when running in an AWS Elastic Beanstalk environment.  ");
-        newLabel(group, "This option requires running in a Tomcat 7 environment and is not currently supported for Tomcat 6.");
-        newLink(group, "<a href=\"" + TOMCAT_SESSION_MANAGER_DOCUMENTATION + "\">More information on the Amazon DynamoDB Session Manager for Tomcat</a>");
+        newLabel(sessionManagerGroup, "This option configures your project with a custom session manager that persists sessions using Amazon DynamoDB when running in an AWS Elastic Beanstalk environment.  ");
+        newLabel(sessionManagerGroup, "This option requires running in a Tomcat 7 environment and is not currently supported for Tomcat 6.");
+        newLink(sessionManagerGroup, "<a href=\"" + TOMCAT_SESSION_MANAGER_DOCUMENTATION + "\">More information on the Amazon DynamoDB Session Manager for Tomcat</a>");
     }
 
     private Label newLabel(Composite parent, String text) {
@@ -197,67 +193,40 @@ final class JavaWebProjectWizardPage extends WizardPage {
         gridData.widthHint = getContainerWidth() - 30;
         basicTemplateDescriptionLabel.setLayoutData(gridData);
 
-        travelLogRadioButton = new Button(group, SWT.RADIO);
-        travelLogRadioButton.setText("Travel Log - Sample Java Web Application");
+        basicTemplateRadioButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(final SelectionEvent event) {
+                sessionManagerGroup.setEnabled(true);
+                for (Control control : sessionManagerGroup.getChildren()) {
+                    control.setEnabled(true);
+                }
+            }
+        });
+
+        workerTemplateRadioButton = new Button(group, SWT.RADIO);
+        workerTemplateRadioButton.setText("Basic Amazon Elastic Beanstalk Worker Tier Application");
         gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         gridData.verticalIndent = 5;
-        travelLogRadioButton.setLayoutData(gridData);
-        Label travelLogDescriptionLabel = new Label(group, SWT.WRAP);
+        workerTemplateRadioButton.setLayoutData(gridData);
+
+        Label workerDescriptionLabel = new Label(group, SWT.WRAP);
         gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         gridData.horizontalIndent = 20;
         gridData.widthHint = getContainerWidth() - 30;
-        travelLogDescriptionLabel.setLayoutData(gridData);
-        travelLogDescriptionLabel.setText("A Java web application demonstrating the use of Amazon S3, Amazon SimpleDB, and Amazon SNS.");
+        workerDescriptionLabel.setLayoutData(gridData);
+        workerDescriptionLabel.setText(
+            "A simple Amazon Elastic Beanstalk Worker Tier Application that "
+            + "accepts work requests via POST request.");
 
-        Composite regionAndLanguage = new Composite(group, SWT.None);
-        GridLayoutFactory.fillDefaults().numColumns(2).margins(30, 10).applyTo(regionAndLanguage);
-
-        final List<Control> controlsToEnable = new LinkedList<Control>();
-
-        Label regionLabel = new Label(regionAndLanguage, SWT.READ_ONLY);
-        regionLabel.setText("Use services in this region: ");
-        controlsToEnable.add(regionLabel);
-
-        regionCombo = new Combo(regionAndLanguage, SWT.DROP_DOWN | SWT.READ_ONLY);
-        for ( Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.BEANSTALK) ) {
-            regionCombo.add(region.getName());
-            regionCombo.setData(region.getName(), region);
-        }
-        regionCombo.select(0);
-        controlsToEnable.add(regionCombo);
-
-        SelectionAdapter regionListener = new SelectionAdapter() {
-
+        workerTemplateRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
-                dataModel.setRegion((Region) regionCombo.getData(regionCombo.getText()));
-            }
-        };
-        regionCombo.addSelectionListener(regionListener);
-        regionListener.widgetSelected(null);
-
-        Label languageLabel = new Label(regionAndLanguage, SWT.READ_ONLY);
-        languageLabel.setText("Language: ");
-        controlsToEnable.add(languageLabel);
-
-        languageCombo = new Combo(regionAndLanguage, SWT.DROP_DOWN | SWT.READ_ONLY);
-        for ( String lang : NewAwsJavaWebProjectDataModel.LANGUAGES ) {
-            languageCombo.add(lang);
-        }
-        languageCombo.select(0);
-        controlsToEnable.add(languageCombo);
-
-        SelectionAdapter travelLogSelectionListener = new SelectionAdapter() {
-
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                for ( Control control : controlsToEnable ) {
-                    control.setEnabled(travelLogRadioButton.getSelection());
+            public void widgetSelected(final SelectionEvent event) {
+                sessionManagerGroup.setEnabled(false);
+                for (Control control : sessionManagerGroup.getChildren()) {
+                    control.setEnabled(false);
                 }
             }
-        };
-        travelLogRadioButton.addSelectionListener(travelLogSelectionListener);
-        travelLogSelectionListener.widgetSelected(null);
+        });
     }
 
     @SuppressWarnings("static-access")
@@ -281,11 +250,26 @@ final class JavaWebProjectWizardPage extends WizardPage {
         bindingContext.bindValue(accountId,
                 PojoObservables.observeValue(dataModel, dataModel.ACCOUNT_ID), new UpdateValueStrategy(
                         UpdateValueStrategy.POLICY_UPDATE), new UpdateValueStrategy(UpdateValueStrategy.POLICY_NEVER));
-        bindingContext.bindValue(SWTObservables.observeSelection(travelLogRadioButton),
-                PojoObservables.observeValue(dataModel, dataModel.SAMPLE_APP_INCLUDED), null, null)
-                .updateTargetToModel();
-        bindingContext.bindValue(SWTObservables.observeSelection(languageCombo),
-                PojoObservables.observeValue(dataModel, dataModel.LANGUAGE), null, null).updateTargetToModel();
+
+        UpdateValueStrategy strategy = new UpdateValueStrategy();
+        strategy.setConverter(new Converter(Boolean.class, JavaWebProjectTemplate.class) {
+            public Object convert(Object fromObject) {
+                Boolean from = (Boolean) fromObject;
+                if (from == null || from == false) {
+                    return JavaWebProjectTemplate.DEFAULT;
+                } else {
+                    return JavaWebProjectTemplate.WORKER;
+                }
+            }
+        });
+
+        bindingContext.bindValue(
+            SWTObservables.observeSelection(workerTemplateRadioButton),
+            PojoObservables.observeValue(dataModel, dataModel.PROJECT_TEMPLATE),
+            strategy,
+            new UpdateValueStrategy(UpdateValueStrategy.POLICY_NEVER)
+        );
+
         bindingContext.bindValue(SWTObservables.observeSelection(useDynamoDBSessionManagerCheckBox),
                 PojoObservables.observeValue(dataModel, dataModel.USE_DYNAMODB_SESSION_MANAGEMENT), null, null).updateTargetToModel();
     }

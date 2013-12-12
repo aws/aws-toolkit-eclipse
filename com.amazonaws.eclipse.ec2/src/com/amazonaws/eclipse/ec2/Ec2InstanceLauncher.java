@@ -69,10 +69,10 @@ public class Ec2InstanceLauncher {
 
     /** The endpoint of the EC2 region in which instances should be launched */
     private String regionEndpoint;
-    
+
     /** The arn of the instance profile to launch with */
     private String instanceProfileArn;
-    
+
     /**
      * Optional progress monitor so that this launcher can poll to see if the
      * user has canceled the launch request.
@@ -96,7 +96,7 @@ public class Ec2InstanceLauncher {
         this.imageId = imageId;
         this.keyPairName = keyPairName;
         this.numberOfInstances = 1;
-        this.instanceType = InstanceType.DEFAULT.id;
+        this.instanceType = InstanceTypes.getDefaultInstanceType().id;
     }
 
     /*

@@ -18,53 +18,10 @@ package com.amazonaws.eclipse.ec2;
 import com.amazonaws.services.ec2.model.Image;
 
 /**
- * Represents the different types of instances supported by EC2 and their
- * various attributes, such as memory, disk space, architecture, etc.
+ * Represents a type of Amazon EC2 instance, including information on memory,
+ * disk space, architecture, etc.
  */
-public enum InstanceType {
-    // Standard Instance Types
-    MICRO("Micro",        "t1.micro",   "613 MB", "0 (EBS only)", 1, "32/64", true,  true, true),
-    SMALL("Small",        "m1.small",   "1.7 GB",  "160 GB",      1, "32/64", true,  true, false),
-    MEDIUM("Medium",      "m1.medium", "3.75 GB",  "410 GB",      2, "32/64", true,  true, false),
-    LARGE("Large",        "m1.large",   "7.5 GB",  "850 GB",      4,    "64", false, true, false),
-    XLARGE("Extra Large", "m1.xlarge",   "15 GB", "1690 GB",      8,    "64", false, true, false),
-
-    M3_XLARGE("General Purpose M3 Extra Large",    "m3.xlarge",  "15 GB", "0 (EBS only)",   13,   "64", false, true, true),
-    M3_2XLARGE("General Purpose M3 2 Extra Large", "m3.2xlarge", "30 GB", "0 (EBS only)",   26,   "64", false, true, true),
-
-    // Compute Optimized
-    C3_LARGE("Compute Optimized C3 Large",           "c3.large",   "3.75 GB",  "2 x 16 GB SSD",     7,   "64", false, true, false, true),
-    C3_XLARGE("Compute Optimized C3 Extra Large",    "c3.xlarge",     "7 GB",  "2 x 40 GB SSD",    14,   "64", false, true, false, true),
-    C3_2XLARGE("Compute Optimized C3 2 Extra Large", "c3.2xlarge",   "15 GB",  "2 x 80 GB SSD",    28,   "64", false, true, false, true),
-    C3_4XLARGE("Compute Optimized C3 4 Extra Large", "c3.4xlarge",   "30 GB",  "2 x 160 GB SSD",   55,   "64", false, true, false, true),
-    C3_8XLARGE("Compute Optimized C3 8 Extra Large", "c3.8xlarge",   "60 GB",  "2 x 320 GB SSD",  108,   "64", false, true, false, true),
-
-    // Storage Optimized
-    HI1_4XLARGE("Storage Optimized HI1 4 Extra Large)", "hi1.4xlarge", "60.5 GB", "2 x 1024 GB SSD", 35,  "64", false, true, false),
-    HS1_8XLARGE("Storage Optimized HS1 8 Extra Large)", "hs1.8xlarge", "117 GB", "24 x 2048 GB",     35,  "64", false, true, false),
-
-    // High Memory Instance Types
-    HIGH_MEM_EXTRA_LARGE("High-Mem Extra Large",                "m2.xlarge",  "17.1 GB",     "420 GB",      2, "64", false, true, false),
-    HIGH_MEM_DOUBLE_EXTRA_LARGE("High-Mem Double Extra Large",  "m2.2xlarge", "34.2 GB",     "850 GB",      4, "64", false, true, false),
-    HIGH_MEM_QUAD_EXTRA_LARGE("High-Mem Quadruple Extra Large", "m2.4xlarge", "68.4 GB",    "1690 GB",      8, "64", false, true, false),
-    CR1_8XLARGE("Memory Optimized CR1 8 Extra Large",           "cr1.8xlarge", "244 GB", "2 x 120 GB SSD", 88, "64", false, true, false),
-
-    // High CPU Instance Types
-    MEDIUM_HCPU("High-CPU Medium",      "c1.medium", "1.7 GB",  "350 GB",  5, "32/64",  true, true, false),
-    XLARGE_HCPU("High-CPU Extra Large", "c1.xlarge",   "7 GB", "1690 GB", 20,    "64", false, true, false),
-
-    // Cluster Compute Instance Types
-    CLUSTER_QUAD_EXTRA_LARGE("Cluster Compute Quadruple Extra Large", "cc1.4xlarge",   "23 GB",    "1690 GB", 33, "64", false, true, false, true),
-    CLUSTER_EIGHT_EXTRA_LARGE("Cluster Compute Eight Extra Large",    "cc1.8xlarge", "60.5 GB",    "3370 GB", 88, "64", false, true, false, true),
-    CLUSTER_GPU_QUAD_EXTRA_LARGE("Cluster GPU Quadruple Extra Large", "cg1.4xlarge",   "22 GB",    "1690 GB", 33, "64", false, true, false, true),
-    CC2_8XLARGE("Cluster Compute CC2 8 Extra Large",                  "cc2.8xlarge", "60.5 GB", "4 x 840 GB", 88, "64", false, true, false),
-
-    // GPU
-    G2_2XLARGE("GPU G2 2 Extra Large", "g2.2xlarge", "15 GB",   "1 x 60 GB SSD",   26,    "64", false, true, false),
-    ;
-
-    /** The default instance type is a small instance */
-    public static InstanceType DEFAULT = SMALL;
+public class InstanceType {
 
     /** The presentation/display name of this instance type. */
     public final String name;
@@ -72,22 +29,22 @@ public enum InstanceType {
     /** The EC2 ID for this instance type. */
     public final String id;
 
-    /** The RAM (measured in Gigabytes) available on this instance type. */
+    /** The RAM (with units) available on this instance type. */
     public final String memoryWithUnits;
 
-    /** The disk space available on this instance type. */
+    /** The disk space (with units) available on this instance type. */
     public final String diskSpaceWithUnits;
 
     /** The number of virtual cores available on this instance type. */
     public final int numberOfVirtualCores;
 
-    /** The architecture bits (32bit or 64bit) on this instance type. */
+    /** The architecture type (32, 64, or 32/64) on this instance type. */
     public final String architectureBits;
 
-    /** Whether this instance type supports 32-bit amis */
+    /** Whether this instance type supports 32-bit AMIs */
     public final boolean supports32Bit;
 
-    /** Whether this instance type supports 64-bit amis */
+    /** Whether this instance type supports 64-bit AMIs */
     public final boolean supports64Bit;
 
     /** Whether this instance type requires an EBS-backed image */
@@ -97,39 +54,49 @@ public enum InstanceType {
     public final boolean requiresHvmImage;
 
 
-    private InstanceType(String name, String id, String memoryInGigabytes,
-            String diskSpaceInGigabytes, int numberOfVirtualCores, String architectureBits,
-            boolean supports32Bit, boolean supports64Bit, boolean requiresEbsVolume) {
-        this(name, id, memoryInGigabytes, diskSpaceInGigabytes, numberOfVirtualCores, architectureBits, supports32Bit, supports64Bit, requiresEbsVolume, false);
+    public InstanceType(String name, String id,
+            String memoryWithUnits,
+            String diskSpaceWithUnits,
+            int virtualCores,
+            String architecture,
+            boolean requiresEbsVolume) {
+        this(name, id, memoryWithUnits, diskSpaceWithUnits, virtualCores, architecture, requiresEbsVolume, false);
     }
 
-    private InstanceType(String name, String id, String memoryInGigabytes,
-            String diskSpaceInGigabytes, int numberOfVirtualCores, String architectureBits,
-            boolean supports32Bit, boolean supports64Bit, boolean requiresEbsVolume, boolean requiresHvmImage) {
+    public InstanceType(String name, String id,
+            String memoryWithUnits,
+            String diskSpaceWithUnits,
+            int virtualCores,
+            String architecture,
+            boolean requiresEbsVolume,
+            boolean requiresHvmImage) {
         this.name = name;
         this.id = id;
-        this.diskSpaceWithUnits = diskSpaceInGigabytes;
-        this.memoryWithUnits = memoryInGigabytes;
-        this.numberOfVirtualCores = numberOfVirtualCores;
-        this.architectureBits = architectureBits;
-        this.supports32Bit = supports32Bit;
-        this.supports64Bit = supports64Bit;
+        this.diskSpaceWithUnits = diskSpaceWithUnits;
+        this.memoryWithUnits = memoryWithUnits;
+        this.numberOfVirtualCores = virtualCores;
+        this.architectureBits = architecture;
         this.requiresEbsVolume = requiresEbsVolume;
         this.requiresHvmImage = requiresHvmImage;
+        this.supports32Bit = architecture.contains("32");
+        this.supports64Bit = architecture.contains("64");
     }
 
     /**
-     * Returns whether a new instance of this type can legally be launched with
-     * the image given.
+     * Returns whether a new instance of this type can be launched with
+     * a specified image.
      */
     public boolean canLaunch(Image image) {
         if ( image == null ) return false;
+
         int requiredArchitectureBits = 32;
         if ( image.getArchitecture().equalsIgnoreCase("x86_64") ) {
             requiredArchitectureBits = 64;
         }
-        if ( (requiredArchitectureBits == 64 && !supports64Bit) || (requiredArchitectureBits == 32 && !supports32Bit) )
+        if ( (requiredArchitectureBits == 64 && !supports64Bit) ||
+             (requiredArchitectureBits == 32 && !supports32Bit) )
             return false;
+
         if ( requiresEbsVolume && !image.getRootDeviceType().equalsIgnoreCase("ebs") )
             return false;
         if ( requiresHvmImage && !image.getVirtualizationType().equalsIgnoreCase("hvm") )

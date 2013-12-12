@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.core.regions;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,6 +33,9 @@ class LocalRegion implements Region {
 
     private final Map<String, String> serviceEndpoints =
         new ConcurrentHashMap<String, String>();
+
+    private final Map<String, Service> servicesByName =
+        new ConcurrentHashMap<String, Service>();
 
     private LocalRegion() {
     }
@@ -64,6 +68,18 @@ class LocalRegion implements Region {
      */
     public Map<String, String> getServiceEndpoints() {
         return serviceEndpoints;
+    }
+
+    /**
+     * Returns a map of the available services in this region. THe keys of the
+     * map are service abbreviations, as defined in {@link ServiceAbbreviations},
+     * and the values are {@link Service} objects that provide information on
+     * connecting to the service.
+     *
+     * @return A map of the available services in this region.
+     */
+    public Map<String, Service> getServicesByName() {
+        return servicesByName;
     }
 
     /**

@@ -22,6 +22,7 @@ public interface ConfigurationOptionConstants {
     public static final String SNS_TOPICS  = "aws:elasticbeanstalk:sns:topics";
     public static final String APPLICATION = "aws:elasticbeanstalk:application";
     public static final String ENVIRONMENT_TYPE = "aws:elasticbeanstalk:environment";
+    public static final String SQSD                = "aws:elasticbeanstalk:sqsd";
 
     public static final String TRIGGER             = "aws:autoscaling:trigger";
     public static final String ASG                 = "aws:autoscaling:asg";
@@ -30,6 +31,10 @@ public interface ConfigurationOptionConstants {
     public static final String LOADBALANCER        = "aws:elb:loadbalancer";
     public static final String LAUNCHCONFIGURATION = "aws:autoscaling:launchconfiguration";
 
-    public static final String SINGLE_INSTANCE = "Single Instance";
-    public static final String LOAD_BALANCED = "Load Balanced";
+    public static final String WEB_SERVER = "WebServer";
+    public static final String WORKER = "Worker";
+
+    public static final String SINGLE_INSTANCE_ENV = "Single Instance Web Server Environment";
+    public static final String LOAD_BALANCED_ENV = "Load Balanced Web Server Environment";
+    public static final String WORKER_ENV = "Worker Environment";
 }

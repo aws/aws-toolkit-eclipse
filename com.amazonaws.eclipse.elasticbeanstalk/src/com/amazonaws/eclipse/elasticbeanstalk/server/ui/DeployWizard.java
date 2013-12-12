@@ -28,6 +28,7 @@ import org.eclipse.wst.server.ui.wizard.WizardFragment;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.SolutionStacks;
@@ -85,7 +86,9 @@ public class DeployWizard extends WizardFragment {
         @SuppressWarnings("unchecked")
         List<WizardFragment> childFragments = getChildFragments();
         for (WizardFragment fragment : childFragments) {
-            if (fragment.isComplete() == false) return false;
+            if (fragment.isComplete() == false) {
+                return false;
+            }
         }
         return true;
     }
@@ -110,7 +113,17 @@ public class DeployWizard extends WizardFragment {
         environment.setApplicationName(wizardDataModel.getApplicationName());
         environment.setApplicationDescription(wizardDataModel.getNewApplicationDescription());
         environment.setEnvironmentName(wizardDataModel.getEnvironmentName());
-        environment.setEnvironmentType(wizardDataModel.getEnvironmentType());
+
+        // Environment type is overloaded in the UI to cover both tier and
+        // type; separate them out here.
+        if (ConfigurationOptionConstants.WORKER_ENV.equals(wizardDataModel.getEnvironmentType())) {
+            environment.setEnvironmentTier(ConfigurationOptionConstants.WORKER);
+            environment.setEnvironmentType(ConfigurationOptionConstants.LOAD_BALANCED_ENV);
+        } else {
+            environment.setEnvironmentTier(ConfigurationOptionConstants.WEB_SERVER);
+            environment.setEnvironmentType(wizardDataModel.getEnvironmentType());
+        }
+
         environment.setEnvironmentDescription(wizardDataModel.getNewEnvironmentDescription());
         environment.setRegionId(wizardDataModel.getRegion().getId());
         environment.setHealthCheckUrl(wizardDataModel.getHealthCheckUrl());
@@ -118,14 +131,18 @@ public class DeployWizard extends WizardFragment {
         environment.setSnsEndpoint(wizardDataModel.getSnsEndpoint());
         environment.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
         environment.setIncrementalDeployment(wizardDataModel.isIncrementalDeployment());
+        environment.setWorkerQueueUrl(wizardDataModel.getWorkerQueueUrl());
 
-        if (wizardDataModel.getIamRole() != null)
+        if (wizardDataModel.getIamRole() != null) {
             environment.setIamRoleName(wizardDataModel.getIamRole().getRoleName());
+        }
 
-        if ( wizardDataModel.isUsingCname() )
+        if ( wizardDataModel.isUsingCname() ) {
             environment.setCname(wizardDataModel.getCname());
-        if ( wizardDataModel.isUsingKeyPair() )
+        }
+        if ( wizardDataModel.isUsingKeyPair() && wizardDataModel.getKeyPair() != null ) {
             environment.setKeyPairName(wizardDataModel.getKeyPair().getKeyName());
+        }
 
         String serverTypeId = serverWorkingCopy.getServerType().getId();
         environment.setSolutionStack(SolutionStacks.lookupSolutionStackByServerTypeId(serverTypeId));

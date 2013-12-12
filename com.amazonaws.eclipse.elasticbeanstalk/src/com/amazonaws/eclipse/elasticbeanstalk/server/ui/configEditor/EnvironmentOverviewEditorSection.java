@@ -39,6 +39,7 @@ import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.overview.HyperlinkHandler;
 import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
@@ -61,6 +62,7 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
     private Text regionNameLabel;
     private Text applicationNameLabel;
     private Text applicationVersionLabel;
+    private Text applicationTierLabel;
     private Text statusLabel;
     private Text healthLabel;
     private Text solutionStackLabel;
@@ -123,14 +125,18 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         environmentNameLabel = createRow(composite, "Environment Name: ", environment.getEnvironmentName());
         environmentDescriptionLabel = createRow(composite, "Environment Description: ", environment.getEnvironmentDescription());
 
-        createLabel(toolkit, composite, "Environment URL:");
-        environmentUrlHyperlink = toolkit.createHyperlink(composite, "", SWT.NONE);
-        environmentUrlHyperlink.addHyperlinkListener(new HyperlinkHandler());
+        if (ConfigurationOptionConstants.WEB_SERVER.equals(environment.getEnvironmentTier())) {
+            createLabel(toolkit, composite, "Environment URL:");
+            environmentUrlHyperlink = toolkit.createHyperlink(composite, "", SWT.NONE);
+            environmentUrlHyperlink.addHyperlinkListener(new HyperlinkHandler());
+        }
 
         regionNameLabel = createRow(composite, "AWS Region: ", "");
 
         applicationNameLabel = createRow(composite, "Application Name: ", environment.getApplicationName());
         applicationVersionLabel = createRow(composite, "Application Version: ", environment.getEnvironmentDescription());
+
+        applicationTierLabel = createRow(composite, "Application Tier: ", environment.getEnvironmentTier());
 
         statusLabel = createRow(composite, "Status:", "");
         healthLabel = createRow(composite, "Health: ", "");
@@ -164,15 +170,19 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         EnvironmentDescription environmentDescription = environment.getCachedEnvironmentDescription();
         if (environmentDescription != null) {
             environmentNameLabel.setText(environmentDescription.getEnvironmentName());
-            if ( environmentDescription.getDescription() != null )
+            if ( environmentDescription.getDescription() != null ) {
                 environmentDescriptionLabel.setText(environmentDescription.getDescription());
+            }
 
-            String environmentUrl = "http://" + environmentDescription.getCNAME();
-            environmentUrlHyperlink.setText(environmentUrl);
-            environmentUrlHyperlink.setHref(environmentUrl);
+            if (environmentUrlHyperlink != null) {
+                String environmentUrl = "http://" + environmentDescription.getCNAME();
+                environmentUrlHyperlink.setText(environmentUrl);
+                environmentUrlHyperlink.setHref(environmentUrl);
+            }
 
             applicationNameLabel.setText(environmentDescription.getApplicationName());
             applicationVersionLabel.setText(environmentDescription.getVersionLabel());
+            applicationTierLabel.setText(environmentDescription.getTier().getName());
             statusLabel.setText(environmentDescription.getStatus());
 
             healthLabel.setText(environmentDescription.getHealth());
@@ -181,8 +191,9 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
             dateUpdatedLabel.setText(environmentDescription.getDateUpdated().toString());
         } else {
             environmentNameLabel.setText(environment.getEnvironmentName());
-            if ( environment.getEnvironmentDescription() != null )
+            if ( environment.getEnvironmentDescription() != null ) {
                 environmentDescriptionLabel.setText(environment.getEnvironmentDescription());
+            }
 
             environmentUrlHyperlink.setText("");
             environmentUrlHyperlink.setHref("");
@@ -206,8 +217,11 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
             new DescribeEnvironmentsRequest()
                 .withEnvironmentNames(environment.getEnvironmentName())).getEnvironments();
 
-        if (environments.isEmpty()) return null;
-        else return environments.get(0);
+        if (environments.isEmpty()) {
+            return null;
+        } else {
+            return environments.get(0);
+        }
     }
 
     protected Text createRow(Composite composite, String labelText, String value) {

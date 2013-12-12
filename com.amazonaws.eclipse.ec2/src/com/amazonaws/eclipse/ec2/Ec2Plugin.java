@@ -15,12 +15,15 @@
 
 package com.amazonaws.eclipse.ec2;
 
-import java.io.IOException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.widgets.Display;
@@ -68,11 +71,7 @@ public class Ec2Plugin extends AbstractUIPlugin {
         super.start(context);
         plugin = this;
 
-        /*
-         * TODO: We could look for a system property specifying where a log file
-         *       to write messages to. That might be useful for debugging issues
-         *       for users.
-         */
+        loadInstanceTypes();
 
         Logger rootLogger = Logger.getLogger("");
         for (Handler handler : rootLogger.getHandlers()) {
@@ -89,6 +88,25 @@ public class Ec2Plugin extends AbstractUIPlugin {
         }
 
         convertLegacyProperties();
+    }
+
+    /**
+     * Convenience method to log a status message for this plugin.
+     *
+     * @param status The status to log.
+     */
+    public static void log(IStatus status) {
+        getDefault().getLog().log(status);
+    }
+
+    private void loadInstanceTypes() {
+        new Job("Loading Amazon EC2 Instance Types") {
+            @Override
+            protected IStatus run(IProgressMonitor arg0) {
+                InstanceTypes.initialize();
+                return Status.OK_STATUS;
+            }
+        }.schedule();
     }
 
     /**

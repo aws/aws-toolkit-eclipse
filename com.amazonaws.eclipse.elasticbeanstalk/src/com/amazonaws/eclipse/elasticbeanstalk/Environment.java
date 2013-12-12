@@ -49,8 +49,8 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettin
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesResult;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
 import com.amazonaws.services.elasticbeanstalk.model.Instance;
 
 @SuppressWarnings("restriction")
@@ -61,6 +61,7 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_APPLICATION_NAME         = "applicationName";
     private static final String PROPERTY_APPLICATION_DESCRIPTION  = "applicationDescription";
     private static final String PROPERTY_ENVIRONMENT_NAME         = "environmentName";
+    private static final String PROPERTY_ENVIRONMENT_TIER         = "environmentTier";
     private static final String PROPERTY_ENVIRONMENT_TYPE         = "environmentType";
     private static final String PROPERTY_ENVIRONMENT_DESCRIPTION  = "environmentDescription";
     private static final String PROPERTY_KEY_PAIR_NAME            = "keyPairName";
@@ -72,6 +73,7 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_SOLUTION_STACK           = "solutionStack";
     private static final String PROPERTY_INCREMENTAL_DEPLOYMENT   = "incrementalDeployment";
     private static final String PROPERTY_IAM_ROLE_NAME            = "iamRoleName";
+    private static final String PROPERTY_WORKER_QUEUE_URL         = "workerQueueUrl";
 
     private static Map<String, EnvironmentDescription> map = new HashMap<String, EnvironmentDescription>();
 
@@ -109,6 +111,14 @@ public class Environment extends ServerDelegate {
         setAttribute(PROPERTY_APPLICATION_DESCRIPTION, applicationDescription);
     }
 
+    public String getEnvironmentTier() {
+        return getAttribute(PROPERTY_ENVIRONMENT_TIER, (String) null);
+    }
+
+    public void setEnvironmentTier(String environmentTier) {
+        setAttribute(PROPERTY_ENVIRONMENT_TIER, environmentTier);
+    }
+
     public void setEnvironmentType(String environmentType) {
         setAttribute(PROPERTY_ENVIRONMENT_TYPE, environmentType);
     }
@@ -135,8 +145,12 @@ public class Environment extends ServerDelegate {
 
     public String getEnvironmentUrl() {
         EnvironmentDescription cachedEnvironmentDescription = getCachedEnvironmentDescription();
-        if (cachedEnvironmentDescription == null) return null;
-        if (cachedEnvironmentDescription.getCNAME() == null) return null;
+        if (cachedEnvironmentDescription == null) {
+            return null;
+        }
+        if (cachedEnvironmentDescription.getCNAME() == null) {
+            return null;
+        }
         return "http://" + cachedEnvironmentDescription.getCNAME();
     }
 
@@ -227,6 +241,13 @@ public class Environment extends ServerDelegate {
         return getAttribute(PROPERTY_IAM_ROLE_NAME, (String)null);
     }
 
+    public String getWorkerQueueUrl() {
+        return getAttribute(PROPERTY_WORKER_QUEUE_URL, (String) null);
+    }
+
+    public void setWorkerQueueUrl(String url) {
+        setAttribute(PROPERTY_WORKER_QUEUE_URL, url);
+    }
 
     /*
      * TODO: We can't quite turn this on yet because WTPWarUtils runs an operation that tries to lock
@@ -243,10 +264,14 @@ public class Environment extends ServerDelegate {
     @Override
     public IStatus canModifyModules(IModule[] add, IModule[] remove) {
         // If we're not adding any modules, we know this request is fine
-        if (add == null) return Status.OK_STATUS;
+        if (add == null) {
+            return Status.OK_STATUS;
+        }
 
-        if (add.length > 1) return new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
-            "Only one web application can run in each AWS Elastic Beanstalk environment");
+        if (add.length > 1) {
+            return new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
+                "Only one web application can run in each AWS Elastic Beanstalk environment");
+        }
 
         for (IModule module : add) {
             String moduleTypeId = module.getModuleType().getId().toLowerCase();
@@ -257,7 +282,9 @@ public class Environment extends ServerDelegate {
 
             if (module.getProject() != null) {
                 IStatus status = FacetUtil.verifyFacets(module.getProject(), getServer());
-                if (status != null && !status.isOK()) return status;
+                if (status != null && !status.isOK()) {
+                    return status;
+                }
             }
         }
 
@@ -269,7 +296,9 @@ public class Environment extends ServerDelegate {
      */
     @Override
     public IModule[] getChildModules(IModule[] module) {
-        if (module == null) return null;
+        if (module == null) {
+            return null;
+        }
 
         IModuleType moduleType = module[0].getModuleType();
 
@@ -389,8 +418,9 @@ public class Environment extends ServerDelegate {
     public boolean isIngressAllowed(int port, List<ConfigurationSettingsDescription> settings) {
         String securityGroup = Environment.getSecurityGroup(settings);
 
-        if (securityGroup == null)
+        if (securityGroup == null) {
             throw new RuntimeException("Couldn't determine security group of environent");
+        }
 
         AmazonEC2 ec2 = getEc2Client();
 
@@ -442,17 +472,28 @@ public class Environment extends ServerDelegate {
     public boolean doesEnvironmentExistInBeanstalk() {
         AWSElasticBeanstalk beanstalk = getClient();
 
-        DescribeEnvironmentsResult describeEnvironmentsResult = beanstalk.describeEnvironments(
-            new DescribeEnvironmentsRequest().withEnvironmentNames(getEnvironmentName()).withApplicationName(getApplicationName()));
+        List<EnvironmentDescription> environments =
+            beanstalk.describeEnvironments(new DescribeEnvironmentsRequest()
+                .withEnvironmentNames(getEnvironmentName())
+                .withApplicationName(getApplicationName()))
+            .getEnvironments();
 
-        return (describeEnvironmentsResult.getEnvironments().size() > 0);
+        if (environments.isEmpty()) {
+            return false;
+        }
+
+        String status = environments.get(0).getStatus();
+        return (!status.equals(EnvironmentStatus.Terminated.toString()) &&
+                !status.equals(EnvironmentStatus.Terminating.toString()));
     }
 
     /**
      * Returns the list of current settings for this environment
      */
     public List<ConfigurationSettingsDescription> getCurrentSettings() {
-        if (doesEnvironmentExistInBeanstalk() == false) return new ArrayList<ConfigurationSettingsDescription>();
+        if (doesEnvironmentExistInBeanstalk() == false) {
+            return new ArrayList<ConfigurationSettingsDescription>();
+        }
 
         AWSElasticBeanstalk beanstalk = getClient();
         return beanstalk.describeConfigurationSettings(

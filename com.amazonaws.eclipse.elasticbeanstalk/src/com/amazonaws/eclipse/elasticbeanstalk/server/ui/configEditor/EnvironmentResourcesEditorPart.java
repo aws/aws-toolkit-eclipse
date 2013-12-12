@@ -14,18 +14,26 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.ui.forms.ManagedForm;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
@@ -39,7 +47,9 @@ import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.ec2.ui.views.instances.InstanceSelectionTable;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
+import com.amazonaws.eclipse.explorer.sqs.AddMessageAction;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
@@ -50,6 +60,9 @@ import com.amazonaws.services.elasticbeanstalk.model.Instance;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.QueueAttributeName;
 
 public class EnvironmentResourcesEditorPart extends ServerEditorPart {
 
@@ -57,6 +70,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
     private EnvironmentInstancesEditorSection instancesEditorSection;
     private EnvironmentAutoScalingEditorSection autoScalingEditorSection;
     private EnvironmentElasticLoadBalancingEditorSection elasticLoadBalancingEditorSection;
+    private EnvironmentQueueEditorSection queueEditorSection;
 
     @Override
     public void createPartControl(Composite parent) {
@@ -76,21 +90,30 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
         Composite composite = toolkit.createComposite(form.getBody());
         composite.setLayout(new GridLayout(2, true));
 
-        autoScalingEditorSection = new EnvironmentAutoScalingEditorSection();
-        autoScalingEditorSection.setServerEditorPart(this);
-        autoScalingEditorSection.init(this.getEditorSite(), this.getEditorInput());
-        autoScalingEditorSection.createSection(composite);
+        if (!getEnvironment().getEnvironmentType().equals(ConfigurationOptionConstants.SINGLE_INSTANCE_ENV)) {
 
-        elasticLoadBalancingEditorSection = new EnvironmentElasticLoadBalancingEditorSection();
-        elasticLoadBalancingEditorSection.setServerEditorPart(this);
-        elasticLoadBalancingEditorSection.init(this.getEditorSite(), this.getEditorInput());
-        elasticLoadBalancingEditorSection.createSection(composite);
+            autoScalingEditorSection = new EnvironmentAutoScalingEditorSection();
+            autoScalingEditorSection.setServerEditorPart(this);
+            autoScalingEditorSection.init(this.getEditorSite(), this.getEditorInput());
+            autoScalingEditorSection.createSection(composite);
+
+            if (ConfigurationOptionConstants.WEB_SERVER.equals(getEnvironment().getEnvironmentTier())) {
+                elasticLoadBalancingEditorSection = new EnvironmentElasticLoadBalancingEditorSection();
+                elasticLoadBalancingEditorSection.setServerEditorPart(this);
+                elasticLoadBalancingEditorSection.init(this.getEditorSite(), this.getEditorInput());
+                elasticLoadBalancingEditorSection.createSection(composite);
+            } else {
+                queueEditorSection = new EnvironmentQueueEditorSection();
+                queueEditorSection.setServerEditorPart(this);
+                queueEditorSection.init(this.getEditorSite(), this.getEditorInput());
+                queueEditorSection.createSection(composite);
+            }
+        }
 
         instancesEditorSection = new EnvironmentInstancesEditorSection();
         instancesEditorSection.setServerEditorPart(this);
         instancesEditorSection.init(this.getEditorSite(), this.getEditorInput());
         instancesEditorSection.createSection(composite);
-
 
         form.getToolBarManager().add(new RefreshAction());
         form.getToolBarManager().update(true);
@@ -115,15 +138,27 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
     private class RefreshThread extends Thread {
         @Override
         public void run() {
-            if (getEnvironment().doesEnvironmentExistInBeanstalk() == false) return;
+            if (getEnvironment().doesEnvironmentExistInBeanstalk() == false) {
+                return;
+            }
 
             DescribeEnvironmentResourcesRequest request = new DescribeEnvironmentResourcesRequest()
                 .withEnvironmentName(getEnvironment().getEnvironmentName());
             EnvironmentResourceDescription resources = getClient().describeEnvironmentResources(request).getEnvironmentResources();
 
             instancesEditorSection.update(resources);
-            autoScalingEditorSection.update(resources);
-            elasticLoadBalancingEditorSection.update(resources);
+
+            if (autoScalingEditorSection != null) {
+                autoScalingEditorSection.update(resources);
+            }
+
+            if (elasticLoadBalancingEditorSection != null) {
+                elasticLoadBalancingEditorSection.update(resources);
+            }
+
+            if (queueEditorSection != null) {
+                queueEditorSection.update(resources);
+            }
         }
     }
 
@@ -154,6 +189,132 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
         }
 
         public abstract void update(EnvironmentResourceDescription resources);
+    }
+
+    private class EnvironmentQueueEditorSection extends AbstractEnvironmentResourcesEditorSection {
+
+        private Label nameLabel;
+        private Link urlLink;
+        private Label createdLabel;
+        private Label numberOfMessagesLabel;
+        private Label numberOfMessagesInFlightLabel;
+
+        @Override
+        public void createSection(Composite parent) {
+            super.createSection(parent);
+
+            Composite composite = createSection(
+                parent,
+                "Amazon SQS Queue",
+                "Your Amazon SQS Queue queues work items for delivery to your "
+                + "worker tier environment."
+            );
+            section.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+            composite.setLayout(new GridLayout(2, false));
+
+            GridDataFactory gdf = GridDataFactory
+                .swtDefaults()
+                .align(SWT.FILL, SWT.TOP)
+                .grab(true, false);
+
+            new Label(composite, SWT.NONE).setText("Name:");
+            nameLabel = new Label(composite, SWT.NONE);
+            gdf.applyTo(nameLabel);
+
+            new Label(composite, SWT.NONE).setText("URL:");
+            urlLink = new Link(composite, SWT.NONE);
+            urlLink.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent event) {
+                    String queueUrl = event.text;
+
+                    AmazonSQS sqs = AwsToolkitCore
+                        .getClientFactory(getEnvironment().getAccountId())
+                        .getSQSClientByEndpoint(getEndpointFromUrl(queueUrl));
+
+                    new AddMessageAction(sqs, event.text, null).run();
+                }
+            });
+            gdf.applyTo(urlLink);
+
+            new Label(composite, SWT.NONE).setText("Created:");
+            createdLabel = new Label(composite, SWT.NONE);
+            gdf.applyTo(createdLabel);
+
+            new Label(composite, SWT.NONE).setText("Messages Available:");
+            numberOfMessagesLabel = new Label(composite, SWT.NONE);
+            gdf.applyTo(numberOfMessagesLabel);
+
+            new Label(composite, SWT.NONE).setText("Messages in Flight:");
+            numberOfMessagesInFlightLabel = new Label(composite, SWT.NONE);
+            gdf.applyTo(numberOfMessagesInFlightLabel);
+        }
+
+        @Override
+        public void update(final EnvironmentResourceDescription resources) {
+            if (resources.getQueues().isEmpty()) {
+                return;
+            }
+
+            final String queueName = resources.getQueues().get(0).getName();
+            final String queueUrl = resources.getQueues().get(0).getURL();
+
+            AmazonSQS sqs = AwsToolkitCore
+                .getClientFactory(getEnvironment().getAccountId())
+                .getSQSClientByEndpoint(getEndpointFromUrl(queueUrl));
+
+            final Map<String, String> attributes =
+                sqs.getQueueAttributes(new GetQueueAttributesRequest()
+                    .withQueueUrl(queueUrl)
+                    .withAttributeNames(
+                        QueueAttributeName.ApproximateNumberOfMessages,
+                        QueueAttributeName.ApproximateNumberOfMessagesNotVisible,
+                        QueueAttributeName.CreatedTimestamp,
+                        QueueAttributeName.DelaySeconds))
+                .getAttributes();
+
+            if (attributes.isEmpty()) {
+                return;
+            }
+
+            Display.getDefault().asyncExec(new Runnable() {
+                public void run() {
+                    nameLabel.setText(queueName);
+                    urlLink.setText("<a>" + queueUrl + "</a>");
+
+                    String createdTimestamp = attributes.get("CreatedTimestamp");
+                    if (createdTimestamp != null) {
+                        String text;
+                        try {
+                            long timestamp = Long.parseLong(createdTimestamp);
+                            text = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy")
+                                .format(new Date(timestamp * 1000L));
+                        } catch (NumberFormatException exception) {
+                            text = "";
+                        }
+                        createdLabel.setText(text);
+                    }
+
+                    String numberOfMessages = attributes.get("ApproximateNumberOfMessages");
+                    numberOfMessagesLabel.setText(numberOfMessages == null ? "" : numberOfMessages);
+
+                    String numberOfMessagesInFlight = attributes.get("ApproximateNumberOfMessagesNotVisible");
+                    numberOfMessagesInFlightLabel.setText(numberOfMessagesInFlight == null ? "" : numberOfMessagesInFlight);
+                }
+            });
+        }
+
+        private String getEndpointFromUrl(final String url) {
+            try {
+
+                URI parsed = new URI(url);
+                return parsed.getScheme() + "://" + parsed.getAuthority();
+
+            } catch (URISyntaxException exception) {
+                throw new RuntimeException("Could not parse URL: " + url,
+                                           exception);
+            }
+        }
     }
 
     private class EnvironmentAutoScalingEditorSection extends AbstractEnvironmentResourcesEditorSection {
@@ -211,6 +372,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
             gdf.applyTo(maxSizeLabel);
         }
 
+        @Override
         public void update(EnvironmentResourceDescription resources) {
             Region region = RegionUtils.getRegionByEndpoint(getEnvironment().getRegionEndpoint());
             String endpoint = region.getServiceEndpoints().get(ServiceAbbreviations.AUTOSCALING);
@@ -278,18 +440,23 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
             gdf.applyTo(availabilityZonesLabel);
         }
 
+        @Override
         public void update(EnvironmentResourceDescription resources) {
             Region region = RegionUtils.getRegionByEndpoint(getEnvironment().getRegionEndpoint());
             String endpoint = region.getServiceEndpoints().get(ServiceAbbreviations.ELB);
             AmazonElasticLoadBalancing elb = AwsToolkitCore.getClientFactory(getEnvironment().getAccountId()).getElasticLoadBalancingClientByEndpoint(endpoint);
 
-            if (resources.getLoadBalancers() == null || resources.getLoadBalancers().size() == 0) return;
+            if (resources.getLoadBalancers() == null || resources.getLoadBalancers().size() == 0) {
+                return;
+            }
 
             String loadBalancerName = resources.getLoadBalancers().get(0).getName();
             DescribeLoadBalancersRequest request = new DescribeLoadBalancersRequest().withLoadBalancerNames(loadBalancerName);
             List<LoadBalancerDescription> loadBalancers = elb.describeLoadBalancers(request).getLoadBalancerDescriptions();
 
-            if (loadBalancers.size() == 0) return;
+            if (loadBalancers.size() == 0) {
+                return;
+            }
 
             final LoadBalancerDescription lb = loadBalancers.get(0);
 
@@ -331,6 +498,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
         }
 
 
+        @Override
         public void update(EnvironmentResourceDescription resources) {
             List<String> instanceIds = new ArrayList<String>();
             for (Instance instance : resources.getInstances()) {

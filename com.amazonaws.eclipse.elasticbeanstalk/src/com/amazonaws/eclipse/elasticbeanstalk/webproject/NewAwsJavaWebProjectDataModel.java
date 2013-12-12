@@ -26,14 +26,14 @@ class NewAwsJavaWebProjectDataModel {
 
     private String accountId;
     private String projectName;
-    private boolean sampleAppIncluded;
+    private JavaWebProjectTemplate projectTemplate;
     private String language;
     private Region region;
     private boolean useDynamoDBSessionManagement;
 
     public static final String ACCOUNT_ID = "accountId";
     public static final String PROJECT_NAME = "projectName";
-    public static final String SAMPLE_APP_INCLUDED = "sampleAppIncluded";
+    public static final String PROJECT_TEMPLATE = "projectTemplate";
     public static final String REGION = "region";
     public static final String LANGUAGE = "language";
     public static final String USE_DYNAMODB_SESSION_MANAGEMENT = "useDynamoDBSessionManagement";
@@ -61,12 +61,12 @@ class NewAwsJavaWebProjectDataModel {
         this.projectName = projectName;
     }
 
-    public boolean isSampleAppIncluded() {
-        return sampleAppIncluded;
+    public JavaWebProjectTemplate getProjectTemplate() {
+        return projectTemplate;
     }
 
-    public void setSampleAppIncluded(boolean sampleAppIncluded) {
-        this.sampleAppIncluded = sampleAppIncluded;
+    public void setProjectTemplate(JavaWebProjectTemplate projectTemplate) {
+        this.projectTemplate = projectTemplate;
     }
 
     public String getLanguage() {

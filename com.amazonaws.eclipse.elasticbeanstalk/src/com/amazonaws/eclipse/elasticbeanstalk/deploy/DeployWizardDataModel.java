@@ -20,7 +20,6 @@ import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
-import com.amazonaws.services.identitymanagement.model.InstanceProfile;
 import com.amazonaws.services.identitymanagement.model.Role;
 
 public class DeployWizardDataModel {
@@ -57,6 +56,8 @@ public class DeployWizardDataModel {
 
     public static final String REGION_ENDPOINT = "regionEndpoint";
 
+    public static final String WORKER_QUEUE_URL = "workerQueueUrl";
+
     private Region region;
 
     private String existingApplicationName;
@@ -80,6 +81,8 @@ public class DeployWizardDataModel {
     private String healthCheckUrl;
     private String sslCertificateId;
     private Role iamRole = new DefaultRole();
+
+    private String workerQueueUrl;
 
     // Share reference to make is easy to update the composite when region
     // changed.
@@ -130,8 +133,9 @@ public class DeployWizardDataModel {
     }
 
     public String getApplicationName() {
-        if (isCreatingNewApplication)
+        if (isCreatingNewApplication) {
             return newApplicationName;
+        }
         return existingApplicationName;
     }
 
@@ -279,5 +283,13 @@ public class DeployWizardDataModel {
      */
     public Role getIamRole() {
         return iamRole;
+    }
+
+    public String getWorkerQueueUrl() {
+        return workerQueueUrl;
+    }
+
+    public void setWorkerQueueUrl(String value) {
+        workerQueueUrl = value;
     }
 }

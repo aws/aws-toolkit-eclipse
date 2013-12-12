@@ -47,6 +47,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkHttpLaunchable;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkLaunchableAdapter;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
@@ -97,11 +98,15 @@ public class UpdateEnvironmentJob extends Job {
     // since use a scheduling rule to lock the server, which
     // locks up if we try to save files deployed to that server.
     private void cancelLaunchClientJob() {
-        if (launchClientJob != null) return;
+        if (launchClientJob != null) {
+            return;
+        }
 
         launchClientJob = findLaunchClientJob();
 
-        if (launchClientJob != null) launchClientJob.cancel();
+        if (launchClientJob != null) {
+            launchClientJob.cancel();
+        }
     }
 
     private Job findLaunchClientJob() {
@@ -178,7 +183,9 @@ public class UpdateEnvironmentJob extends Job {
                         }
                     }
                 } else {
-                    if (versionLabel == null) versionLabel = UUID.randomUUID().toString();
+                    if (versionLabel == null) {
+                        versionLabel = UUID.randomUUID().toString();
+                    }
                     utils.publishApplicationToElasticBeanstalk(exportedWar, versionLabel, new SubProgressMonitor(monitor, 20));
                 }
 
@@ -224,7 +231,13 @@ public class UpdateEnvironmentJob extends Job {
             }
         }
 
-        if (monitor.isCanceled() == false && launchClientJob != null) launchClientJob.schedule();
+        if (monitor.isCanceled() == false
+                && launchClientJob != null
+                && ConfigurationOptionConstants.WEB_SERVER
+                        .equals(environment.getEnvironmentTier())) {
+
+            launchClientJob.schedule();
+        }
 
         return Status.OK_STATUS;
     }
@@ -268,8 +281,9 @@ public class UpdateEnvironmentJob extends Job {
             List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();
 
             String debugPort = Environment.getDebugPort(settings);
-            if ( !confirmSecurityGroupIngress(debugPort, settings) )
+            if ( !confirmSecurityGroupIngress(debugPort, settings) ) {
                 return;
+            }
 
             IVMConnector debuggerConnector = JavaRuntime.getDefaultVMConnector();
 
@@ -293,8 +307,9 @@ public class UpdateEnvironmentJob extends Job {
         int debugPortInt = Integer.parseInt(debugPort);
         String securityGroup = Environment.getSecurityGroup(settings);
 
-        if ( environment.isIngressAllowed(debugPortInt, settings) )
+        if ( environment.isIngressAllowed(debugPortInt, settings) ) {
             return true;
+        }
 
         // Prompt the user for security group ingress -- this is an edge case to
         // cover races only. In almost all cases, the user should have been
@@ -356,8 +371,9 @@ public class UpdateEnvironmentJob extends Job {
         DescribeInstancesResult describeInstances = environment.getEc2Client().describeInstances(
                 new DescribeInstancesRequest().withInstanceIds(instanceId));
         if ( describeInstances.getReservations().isEmpty()
-                || describeInstances.getReservations().get(0).getInstances().isEmpty() )
+                || describeInstances.getReservations().get(0).getInstances().isEmpty() ) {
             return null;
+        }
         return describeInstances.getReservations().get(0).getInstances().get(0).getPublicDnsName();
     }
 

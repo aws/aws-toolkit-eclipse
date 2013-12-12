@@ -46,6 +46,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.InstanceType;
+import com.amazonaws.eclipse.ec2.InstanceTypes;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable;
 import com.amazonaws.eclipse.ec2.ui.ebs.CreateNewVolumeDialog;
@@ -350,7 +351,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         instanceStateDropDownMenuHandler = new MenuHandler();
         instanceStateDropDownMenuHandler.addListener(this);
         instanceStateDropDownMenuHandler.add("ALL", "All Instances", true);
-        for (InstanceType instanceType : InstanceType.values()) {
+        for (InstanceType instanceType : InstanceTypes.getInstanceTypes()) {
             instanceStateDropDownMenuHandler.add(instanceType.id, instanceType.name + " Instances");
         }
         instanceStateDropDownMenuHandler.add("windows", "Windows Instances");
@@ -496,7 +497,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
                     selectionTableListener.loadingData();
                     enableDropDowns(false);
                 }
-    
+
                 List<Reservation> reservations = null;
                 try {
                     boolean needsToDescribeInstances = true;
@@ -510,31 +511,31 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
                         if (instancesToDisplay.size() == 0) {
                             needsToDescribeInstances = false;
                         };
-    
+
                         describeInstancesRequest.setInstanceIds(instancesToDisplay);
                     }
-    
+
                     final List<Instance> allInstances = new ArrayList<Instance>();
                     final Map<String, List<String>> securityGroupsByInstanceId = new HashMap<String, List<String>>();
-    
+
                     if (needsToDescribeInstances) {
                         DescribeInstancesResult response = getAwsEc2Client().describeInstances(describeInstancesRequest);
                         reservations = response.getReservations();
-    
+
                         noOfInstances = -1;	//Reset the value
-    
+
                         Set<String> allSecurityGroups = new TreeSet<String>();
-    
+
                         for (Reservation reservation : reservations) {
                             List<Instance> instances = reservation.getInstances();
-    
+
                             List<String> groupNames = reservation.getGroupNames();
                             Collections.sort(groupNames);
                             allSecurityGroups.addAll(groupNames);
-    
+
                             //Filter Security Groups
                             if (securityGroupDropDownMenuHandler.getCurrentSelection().getMenuId().equals("ALL")  || groupNames.contains(securityGroupDropDownMenuHandler.getCurrentSelection().getMenuId())) {
-    
+
                                 for (Instance instance : instances) {
                                     //Filter Instances
                                     if (!instanceStateDropDownMenuHandler.getCurrentSelection().getMenuId().equals("ALL")) {
@@ -545,15 +546,15 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
                                             continue;
                                         }
                                     }
-    
+
                                     allInstances.add(instance);
-    
+
                                     // Populate the map of instance IDs -> security groups
                                     securityGroupsByInstanceId.put(instance.getInstanceId(), groupNames);
                                 }
                             }
                         }
-    
+
                         //Populate all Security Groups dynamically
                         securityGroupDropDownMenuHandler.clear();
                         securityGroupDropDownMenuHandler.add(allSecurityGroupFilterItem);
@@ -561,7 +562,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
                             securityGroupDropDownMenuHandler.add(new MenuItem(securityGroup, securityGroup));
                         }
                     }
-    
+
                     noOfInstances = allInstances.size();
                     setInput(allInstances, securityGroupsByInstanceId);
                 } catch (Exception e) {

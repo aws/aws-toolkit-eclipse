@@ -31,8 +31,9 @@ class RegionImpl implements Region {
     private final String name;
     private final String id;
     private final String flagIconPath;
-    private final Map<String, String> serviceEndpoints =
-        new HashMap<String, String>();
+    private final Map<String, String> serviceEndpoints = new HashMap<String, String>();
+    private final Map<String, Service> servicesByName = new HashMap<String, Service>();
+
 
     public RegionImpl(String name, String id, String flagIconPath) {
         this.name = name;
@@ -68,6 +69,18 @@ class RegionImpl implements Region {
      */
     public Map<String, String> getServiceEndpoints() {
         return serviceEndpoints;
+    }
+
+    /**
+     * Returns a map of the available services in this region. THe keys of the
+     * map are service abbreviations, as defined in {@link ServiceAbbreviations},
+     * and the values are {@link Service} objects that provide information on
+     * connecting to the service.
+     *
+     * @return A map of the available services in this region.
+     */
+    public Map<String, Service> getServicesByName() {
+        return servicesByName;
     }
 
     /**

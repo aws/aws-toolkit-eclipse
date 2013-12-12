@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<EC2MetaInfo>
+  
+  <DefaultInstanceType id="m1.small" />
+  
+  <InstanceTypes>
+    <InstanceType id="t1.micro">
+      <DisplayName>Micro</DisplayName>
+      <Memory>613 MB</Memory>
+      <DiskSpace>0 (EBS only)</DiskSpace>
+      <VirtualCores>1</VirtualCores>
+      <ArchitectureBits>32/64</ArchitectureBits>
+      <RequiresEBSVolume>true</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="m1.small">
+      <DisplayName>Small</DisplayName>
+      <Memory>1.7 GB</Memory>
+      <DiskSpace>160 GB</DiskSpace>
+      <VirtualCores>1</VirtualCores>
+      <ArchitectureBits>32/64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="m1.medium">
+      <DisplayName>Medium</DisplayName>
+      <Memory>3.75 GB</Memory>
+      <DiskSpace>400 GB</DiskSpace>
+      <VirtualCores>2</VirtualCores>
+      <ArchitectureBits>32/64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="m1.large">
+      <DisplayName>Large</DisplayName>
+      <Memory>7.5 GB</Memory>
+      <DiskSpace>850 GB</DiskSpace>
+      <VirtualCores>4</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="m1.xlarge">
+      <DisplayName>Extra Large</DisplayName>
+      <Memory>15 GB</Memory>
+      <DiskSpace>1690 GB</DiskSpace>
+      <VirtualCores>8</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+
+    <InstanceType id="m3.xlarge">
+      <DisplayName>High-CPU Extra Large</DisplayName>
+      <Memory>30 GB</Memory>
+      <DiskSpace>0 (EBS only)</DiskSpace>
+      <VirtualCores>4</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>true</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="m3.2xlarge">
+      <DisplayName>High-CPU Double Extra Large</DisplayName>
+      <Memory>34.2 GB</Memory>
+      <DiskSpace>0 (EBS only)</DiskSpace>
+      <VirtualCores>8</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>true</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    
+    <InstanceType id="m2.xlarge">
+      <DisplayName>High-Mem Extra Large</DisplayName>
+      <Memory>17.1 GB</Memory>
+      <DiskSpace>420 GB</DiskSpace>
+      <VirtualCores>2</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="m2.2xlarge">
+      <DisplayName>High-Mem Double Extra Large</DisplayName>
+      <Memory>34.2 GB</Memory>
+      <DiskSpace>850 GB</DiskSpace>
+      <VirtualCores>4</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="m2.4xlarge">
+      <DisplayName>High-Mem Quadruple Extra Large</DisplayName>
+      <Memory>68.4 GB</Memory>
+      <DiskSpace>1690 GB</DiskSpace>
+      <VirtualCores>8</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="c1.medium">
+      <DisplayName>High-CPU Medium</DisplayName>
+      <Memory>1.7 GB</Memory>
+      <DiskSpace>350 GB</DiskSpace>
+      <VirtualCores>5</VirtualCores>
+      <ArchitectureBits>32/64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="c1.xlarge">
+      <DisplayName>High-CPU Extra Large</DisplayName>
+      <Memory>7 GB</Memory>
+      <DiskSpace>1690 GB</DiskSpace>
+      <VirtualCores>20</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>false</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="cc1.4xlarge">
+      <DisplayName>Cluster Compute Quadruple Extra Large</DisplayName>
+      <Memory>23 GB</Memory>
+      <DiskSpace>1690 GB</DiskSpace>
+      <VirtualCores>33</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>true</RequiresHvmImage>
+    </InstanceType>
+    <InstanceType id="cc2.8xlarge">
+      <DisplayName>Cluster Compute Eight Extra Large</DisplayName>
+      <Memory>60.5 GB</Memory>
+      <DiskSpace>3370 GB</DiskSpace>
+      <VirtualCores>88</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>true</RequiresHvmImage>
+    </InstanceType>
+
+    <InstanceType id="cg1.4xlarge">
+      <DisplayName>Cluster GPU Quadruple Extra Large</DisplayName>
+      <Memory>22 GB</Memory>
+      <DiskSpace>1690 GB</DiskSpace>
+      <VirtualCores>33</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>false</RequiresEBSVolume>
+      <RequiresHvmImage>true</RequiresHvmImage>
+    </InstanceType>
+
+    <InstanceType id="hi1.4xlarge">
+      <DisplayName>High I/O Quadruple Extra Large</DisplayName>
+      <Memory>60.5 GB</Memory>
+      <DiskSpace>0 (EBS only)</DiskSpace>
+      <VirtualCores>16</VirtualCores>
+      <ArchitectureBits>64</ArchitectureBits>
+      <RequiresEBSVolume>true</RequiresEBSVolume>
+      <RequiresHvmImage>true</RequiresHvmImage>
+    </InstanceType>
+  </InstanceTypes>
+</EC2MetaInfo>

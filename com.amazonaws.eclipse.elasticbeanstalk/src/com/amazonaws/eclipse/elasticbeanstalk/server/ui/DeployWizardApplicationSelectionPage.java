@@ -179,7 +179,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         newApplicationDescriptionTextObservable.setValue("");
         newEnvironmentNameTextObservable.setValue("");
         newEnvironmentDescriptionTextObservable.setValue("");
-        environmentTypeComboObservable.setValue("Load Balanced");
+        environmentTypeComboObservable.setValue(ConfigurationOptionConstants.LOAD_BALANCED_ENV);
 
         if (RegionUtils.isServiceSupportedInCurrentRegion(ServiceAbbreviations.BEANSTALK)) {
             regionCombo.setText(RegionUtils.getCurrentRegion().getName());
@@ -263,6 +263,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private void createImportSection(final Composite composite) {
         Hyperlink link = new Hyperlink(composite, SWT.None);
         link.addHyperlinkListener(new HyperlinkAdapter() {
+            @Override
             public void linkActivated(HyperlinkEvent e) {
                 ImportEnvironmentsWizard newWizard = new ImportEnvironmentsWizard();
                 WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), newWizard);
@@ -465,7 +466,12 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
             newLabel(this, "Description:");
             newEnvironmentDescriptionText = newText(this);
 
-            final String[] items = {ConfigurationOptionConstants.SINGLE_INSTANCE, ConfigurationOptionConstants.LOAD_BALANCED};
+            final String[] items = {
+                ConfigurationOptionConstants.SINGLE_INSTANCE_ENV,
+                ConfigurationOptionConstants.LOAD_BALANCED_ENV,
+                ConfigurationOptionConstants.WORKER_ENV
+            };
+
             newLabel(this, "Type:");
             environmentTypeCombo = newCombo(this);
             environmentTypeCombo.setItems(items);
@@ -557,7 +563,9 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
                         List<String> environmentNames = new ArrayList<String>();
                         for ( EnvironmentDescription environment : environments ) {
                             // Skip any terminated environments, since we can safely reuse their names
-                            if ( isEnvironmentTerminated(environment) ) continue;
+                            if ( isEnvironmentTerminated(environment) ) {
+                                continue;
+                            }
                             environmentNames.add(environment.getEnvironmentName());
                         }
                         Collections.sort(environmentNames);
@@ -579,7 +587,9 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     }
 
     private boolean isEnvironmentTerminated(EnvironmentDescription environment) {
-        if (environment == null || environment.getStatus() == null) return false;
+        if (environment == null || environment.getStatus() == null) {
+            return false;
+        }
 
         try {
             EnvironmentStatus status = EnvironmentStatus.valueOf(environment.getStatus());

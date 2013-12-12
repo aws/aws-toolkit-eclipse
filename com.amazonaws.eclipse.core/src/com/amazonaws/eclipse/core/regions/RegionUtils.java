@@ -147,6 +147,27 @@ public class RegionUtils {
     }
 
     /**
+     * Searches through the defined services in all regions looking for a
+     * service running on the specified endpoint.
+     *
+     * @param endpoint
+     *            The endpoint of the desired service.
+     * @return The service running on the specified endpoint.
+     *
+     * @throws IllegalArgumentException
+     *             if no service is found with the specified endpoint.
+     */
+    public static Service getServiceByEndpoint(String endpoint) {
+        for (Region region : regions) {
+            for (Service service : region.getServicesByName().values()) {
+                if (service.getEndpoint().equals(endpoint)) return service;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown service endpoint: " + endpoint);
+    }
+
+    /**
      * Searches through all known regions to find one with any service at the
      * specified endpoint. If no region is found with a service at that
      * endpoint, an exception is thrown.
@@ -213,6 +234,14 @@ public class RegionUtils {
         // Fall back onto the version we ship with the toolkit
         if ( regions == null ) {
             initBundledRegions();
+        }
+
+        // If the preference store references an unknown starting region,
+        // go ahead and set the starting region to any existing region
+        IPreferenceStore preferenceStore = AwsToolkitCore.getDefault().getPreferenceStore();
+        Region defaultRegion = getRegion(preferenceStore.getString(PreferenceConstants.P_DEFAULT_REGION));
+        if (defaultRegion == null) {
+            preferenceStore.setValue(PreferenceConstants.P_DEFAULT_REGION, regions.get(0).getId());
         }
     }
 

@@ -36,6 +36,10 @@ public class ConfigurationSettingValidator implements IValidator {
     public IStatus validate(Object value) {
         String s = (String) value;
 
+        if (s == null || s.length() == 0) {
+            return ValidationStatus.ok();
+        }
+
         if ( configOption.getMaxValue() != null ) {
             try {
                 Integer i = Integer.parseInt(s);
@@ -43,7 +47,7 @@ public class ConfigurationSettingValidator implements IValidator {
                     return ValidationStatus.error(configOption.getName() + " must be at most " + configOption.getMaxValue());
                 }
             } catch ( NumberFormatException e ) {
-                return ValidationStatus.error(s + " isn't an integer");
+                return ValidationStatus.error(s + " isn't an integer (" + configOption.getNamespace() + ":" + configOption.getName() + ")");
             }
         }
 
@@ -54,7 +58,7 @@ public class ConfigurationSettingValidator implements IValidator {
                     return ValidationStatus.error(configOption.getName() + " must be at least " + configOption.getMinValue());
                 }
             } catch ( NumberFormatException e ) {
-                return ValidationStatus.error(s + " isn't an integer");
+                return ValidationStatus.error(s + " isn't an integer (" + configOption.getNamespace() + ":" + configOption.getName() + ")");
             }
         }
 

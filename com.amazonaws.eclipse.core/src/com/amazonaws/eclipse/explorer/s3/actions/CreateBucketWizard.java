@@ -124,7 +124,7 @@ class CreateBucketWizard extends Wizard {
             }
 
             try {
-                UTILS.validateBucketName(bucketName);
+                BucketNameUtils.validateBucketName(bucketName);
             } catch (IllegalArgumentException exception) {
                 return ValidationStatus.error(exception.getMessage());
             }
@@ -137,8 +137,6 @@ class CreateBucketWizard extends Wizard {
          */
         private IsBucketNameValid() {
         }
-
-        private static final BucketNameUtils UTILS = new BucketNameUtils();
     }
 
     /**

@@ -39,7 +39,7 @@ import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
-class AddMessageAction extends Action {
+public class AddMessageAction extends Action {
     private final AmazonSQS sqs;
     private final String queueUrl;
     private final IRefreshable refreshable;
@@ -65,11 +65,13 @@ class AddMessageAction extends Action {
 
             sqs.sendMessage(sendMessageRequest);
 
-            if (refreshable != null) refreshable.refreshData();
+            if (refreshable != null) {
+                refreshable.refreshData();
+            }
         }
     }
 
-    private final class AddMessageDialog extends MessageDialog {
+    private static class AddMessageDialog extends MessageDialog {
         private Text text;
         private String message;
         private int messageDelay = -1;
