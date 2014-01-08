@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.core.regions;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

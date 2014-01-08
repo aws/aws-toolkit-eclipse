@@ -256,7 +256,9 @@ public class TestToolManager {
             currentProcess = process;
             currentlyRunningVersion = version;
 
-            RegionUtils.addLocalService(ServiceAbbreviations.DYNAMODB, port);
+            RegionUtils.addLocalService(ServiceAbbreviations.DYNAMODB,
+                                        "dynamodb",
+                                        port);
 
             // If the process dies for some reason other than that we killed
             // it, clear out our internal state so the user can start another
@@ -326,7 +328,7 @@ public class TestToolManager {
 
             int worked = 0;
             while (!download.isDone()) {
-                int bytes = (int) download.getProgress().getBytesTransfered();
+                int bytes = (int) download.getProgress().getBytesTransferred();
                 if (bytes > worked) {
                     int newWork = bytes - worked;
                     monitor.worked(newWork);

@@ -45,15 +45,14 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
-import org.eclipse.ui.forms.events.IExpansionListener;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
-import com.amazonaws.eclipse.sdk.ui.SdkChangeListener;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
+import com.amazonaws.eclipse.sdk.ui.SdkChangeListener;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
 import com.amazonaws.eclipse.sdk.ui.SdkVersionInfoComposite;
 import com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainer;
@@ -87,13 +86,15 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
         }
         return layout;
     }
-    
+
     /**
      * Returns a list of Sample projects selected by the user on the wizard page.
      * @return a list of Sample projects selected by the user on the wizard page.
      */
     public List<SdkSample> getSelectedSamples() {
-        if (sdkSamplesComposite == null) return null;
+        if (sdkSamplesComposite == null) {
+            return null;
+        }
 
         return sdkSamplesComposite.getSelectedSamples();
     }
@@ -121,34 +122,36 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
     public String getSecretKey() {
         return AwsToolkitCore.getDefault().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getSecretKey();
     }
-    
+
     private ScrolledComposite scrolledComp;
     private ControlAdapter resizeListener;
 
+    @Override
     public void createControl(final Composite parent) {
-        
+
         initializeDialogUnits(parent);
 
         scrolledComp = new ScrolledComposite(parent, SWT.V_SCROLL);
         scrolledComp.setExpandHorizontal(true);
         scrolledComp.setExpandVertical(true);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(scrolledComp);
-        
+
         final Composite composite = new Composite(scrolledComp, SWT.NULL);
-        
+
         composite.setFont(parent.getFont());
         composite.setLayout(initGridLayout(new GridLayout(1, false), true));
         composite.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         scrolledComp.setContent(composite);
-        
+
         resizeListener = new ControlAdapter() {
+            @Override
             public void controlResized(ControlEvent e) {
                 Rectangle r = scrolledComp.getClientArea();
                 scrolledComp.setMinSize(composite.computeSize(r.width, SWT.DEFAULT));
             }
         };
         scrolledComp.addControlListener(resizeListener);
-        
+
         Control nameControl = createNameControl(composite);
         nameControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         nameControl.addListener(SWT.Modify, new Listener() {
@@ -158,18 +161,18 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
                 }
             }
         });
-        
+
         Control accountSelectionControl = createAccountSelectionComposite(composite);
         accountSelectionControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        
+
         // Check to see if we have an SDK. If we don't, we need to wait before
         // continuing
-        JavaSdkManager sdkManager = JavaSdkManager.getInstance();        
+        JavaSdkManager sdkManager = JavaSdkManager.getInstance();
         synchronized ( sdkManager ) {
             JavaSdkInstall defaultSDKInstall = sdkManager.getDefaultSdkInstall();
             if ( defaultSDKInstall == null ) {
                 setPageComplete(false);
-                
+
                 Job installationJob = sdkManager.getInstallationJob();
                 if ( installationJob == null ) {
                     JavaSdkPlugin
@@ -179,7 +182,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
                                     "Unable to check status of AWS SDK for Java download"));
                     return;
                 }
-                
+
                 final Composite pleaseWait = new Composite(composite, SWT.None);
                 pleaseWait.setLayout(initGridLayout(new GridLayout(1, false), true));
                 pleaseWait.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -204,15 +207,15 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
                         });
                     }
                 });
-                
+
             } else {
                 createSDKOptionsControls(composite);
             }
         }
-        
+
         setControl(scrolledComp);
     }
-    
+
     /*
      * This is kind of hacky, but the parent class doesn't give us any other way
      * to hook into the validation state. We need to do this to make sure that
@@ -250,6 +253,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
         dropDown.setLayoutData(g);
 
         dropDown.addExpansionListener(new ExpansionAdapter() {
+            @Override
             public void expansionStateChanged(ExpansionEvent e) {
                 resizeListener.controlResized(null);
             }
@@ -274,7 +278,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
         g.grabExcessHorizontalSpace = true;
         group.setLayoutData(g);
         group.setText("AWS SDK for Java Samples");
-       
+
         sdkSamplesComposite = new SdkSamplesComposite(group, JavaSdkManager.getInstance().getDefaultSdkInstall());
 
         return sdkSamplesComposite;
@@ -313,7 +317,15 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
 
             this.setLayout(new GridLayout());
             List<SdkSample> samples = sdkInstall.getSamples();
+
             for (SdkSample sample : samples) {
+                if (sample.getName() == null
+                 || sample.getDescription() == null) {
+                    // Sanity check - skip samples without names and
+                    // descriptions.
+                    continue;
+                }
+
                 Button button = new Button(this, SWT.CHECK | SWT.WRAP);
                 button.setText(sample.getName());
                 button.setData(sample);
@@ -334,10 +346,14 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
             List<SdkSample> selectedSamples = new ArrayList<SdkSample>();
 
             // Bail out early if the list of buttons doesn't exist yet
-            if (buttons == null) return selectedSamples;
+            if (buttons == null) {
+                return selectedSamples;
+            }
 
             for (Button b : buttons) {
-                if (b.isDisposed() || b.getSelection() == false) continue;
+                if (b.isDisposed() || b.getSelection() == false) {
+                    continue;
+                }
                 selectedSamples.add((SdkSample)b.getData());
             }
             return selectedSamples;

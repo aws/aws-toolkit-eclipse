@@ -97,7 +97,9 @@ public class DynamoDBPlugin extends AbstractUIPlugin {
         int defaultPort = getPreferenceStore()
             .getInt(TestToolPreferencePage.DEFAULT_PORT_PREFERENCE_NAME);
 
-        RegionUtils.addLocalService(ServiceAbbreviations.DYNAMODB, defaultPort);
+        RegionUtils.addLocalService(ServiceAbbreviations.DYNAMODB,
+                                    "dynamodb",
+                                    defaultPort);
     }
 
     /**
@@ -149,6 +151,7 @@ public class DynamoDBPlugin extends AbstractUIPlugin {
                     && !TestToolManager.INSTANCE.isRunning()) {
 
                 RegionUtils.addLocalService(ServiceAbbreviations.DYNAMODB,
+                                            "dynamodb",
                                             (Integer) event.getNewValue());
             }
         }

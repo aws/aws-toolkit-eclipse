@@ -90,16 +90,21 @@ public class RegionUtils {
      * and setting the port that the local service is expected to listen on.
      */
     public synchronized static void addLocalService(
-            String serviceName,
-            int port) {
+            final String serviceName,
+            final String serviceId,
+            final int port) {
 
         Region local = getRegion("local");
         if (local == null) {
             throw new IllegalStateException("No local region found!");
         }
 
-        local.getServiceEndpoints().put(serviceName,
-                                        "http://localhost:" + port);
+        Service service = new Service(serviceName,
+                                      serviceId,
+                                      "http://localhost:" + port);
+
+        local.getServicesByName().put(serviceName, service);
+        local.getServiceEndpoints().put(serviceName, service.getEndpoint());
     }
 
     /**
@@ -160,7 +165,9 @@ public class RegionUtils {
     public static Service getServiceByEndpoint(String endpoint) {
         for (Region region : regions) {
             for (Service service : region.getServicesByName().values()) {
-                if (service.getEndpoint().equals(endpoint)) return service;
+                if (service.getEndpoint().equals(endpoint)) {
+                    return service;
+                }
             }
         }
 
@@ -251,8 +258,7 @@ public class RegionUtils {
             File regionsFile =
                 new File(System.getProperty(REGIONS_FILE_OVERRIDE));
             FileInputStream override = new FileInputStream(regionsFile);
-            RegionMetadataParser parser = new RegionMetadataParser();
-            regions = parser.parseRegionMetadata(override);
+            regions = parseRegionMetadata(override);
             try {
                 cacheFlags(regionsFile.getParentFile());
             } catch ( Exception e ) {
