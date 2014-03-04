@@ -41,17 +41,18 @@ import com.amazonaws.services.ec2.model.Tag;
 class ViewContentAndLabelProvider extends BaseLabelProvider
 		implements ITreeContentProvider, ITableLabelProvider {
 
-	static final int INSTANCE_ID_COLUMN = 0;
-	static final int PUBLIC_DNS_COLUMN = 1;
-    static final int IMAGE_ID_COLUMN = 2;
-    static final int ROOT_DEVICE_COLUMN = 3;
-	static final int STATE_COLUMN = 4;
-	static final int INSTANCE_TYPE_COLUMN = 5;
-	static final int AVAILABILITY_ZONE_COLUMN = 6;
-	static final int KEY_NAME_COLUMN = 7;
-	static final int LAUNCH_TIME_COLUMN = 8;
-	static final int SECURITY_GROUPS_COLUMN = 9;
-	static final int TAGS_COLUMN = 10;
+	static final int NAME_COLUMN = 0;
+	static final int INSTANCE_ID_COLUMN = 1;
+	static final int PUBLIC_DNS_COLUMN = 2;
+    static final int IMAGE_ID_COLUMN = 3;
+    static final int ROOT_DEVICE_COLUMN = 4;
+	static final int STATE_COLUMN = 5;
+	static final int INSTANCE_TYPE_COLUMN = 6;
+	static final int AVAILABILITY_ZONE_COLUMN = 7;
+	static final int KEY_NAME_COLUMN = 8;
+	static final int LAUNCH_TIME_COLUMN = 9;
+	static final int SECURITY_GROUPS_COLUMN = 10;
+	static final int TAGS_COLUMN = 11;
 
 	private final DateFormat dateFormat;
 	private KeyPairManager keyPairManager = new KeyPairManager();
@@ -142,11 +143,21 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
             return formatSecurityGroups(instancesViewInput.securityGroupMap.get(instance.getInstanceId()));
         case TAGS_COLUMN:
             return TagFormatter.formatTags(instance.getTags());
+        case NAME_COLUMN:
+            return getTagValue("Name", instance.getTags());
         default:
             return "???";
         }
 
     }
+	
+	static String getTagValue(String key, List<Tag> tags) {
+		for (Tag t : tags) {
+			if (t.getKey().equals(key))
+				return t.getValue();
+		}
+		return "";
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)

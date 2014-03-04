@@ -83,6 +83,9 @@ class InstanceComparator extends SelectionTableComparator {
 		case ViewContentAndLabelProvider.TAGS_COLUMN:
             return TagFormatter.formatTags(i1.getTags()).compareTo(
                     TagFormatter.formatTags(i2.getTags()));
+		case ViewContentAndLabelProvider.NAME_COLUMN:
+			return ViewContentAndLabelProvider.getTagValue("Name", i1.getTags())
+					.compareTo(ViewContentAndLabelProvider.getTagValue("Name", i2.getTags()));
 		default:
 			return 0;
 		}

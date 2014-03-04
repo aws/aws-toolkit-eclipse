@@ -244,6 +244,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      */
     @Override
     protected void createColumns() {
+    	newColumn("Name", 15);
         newColumn("Instance ID", 10);
         newColumn("Public DNS Name", 15);
         newColumn("Image ID", 10);
