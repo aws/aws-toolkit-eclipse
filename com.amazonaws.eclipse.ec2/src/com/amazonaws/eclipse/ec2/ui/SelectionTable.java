@@ -234,6 +234,12 @@ public abstract class SelectionTable extends Composite {
 
         return column;
     }
+    
+    protected void removeColumns() {
+    	viewer.getTree().removeAll();
+    	for (TreeColumn col : viewer.getTree().getColumns())
+    		col.dispose();
+    }
 
     /**
      * Creates and configures the actual tree control.

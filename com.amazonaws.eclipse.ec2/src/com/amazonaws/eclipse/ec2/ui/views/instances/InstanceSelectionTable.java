@@ -32,6 +32,8 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -90,6 +92,11 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
 
     /** DropDown menu handler for Security Group */
     private MenuHandler securityGroupDropDownMenuHandler;
+    
+    /** DropDown menu for adding a tag column */
+    private IAction addTagColumnDropDownAction;
+    /** DropDown menu handler for add tag column */
+    private MenuHandler addTagColumnDropDownMenuHandler;
 
     /** Holds the ALL option for Security Group Filter Item */
     private MenuItem allSecurityGroupFilterItem;
@@ -246,6 +253,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     protected void createColumns() {
     	if (contentAndLabelProvider == null)
     		 contentAndLabelProvider = new ViewContentAndLabelProvider();
+    	removeColumns();
         for (TableColumn col : contentAndLabelProvider.getColumns())
         	newColumn(col.getColumnName(), 10);
     }
@@ -350,6 +358,12 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         instanceStateDropDownMenuHandler.add("windows", "Windows Instances");
         instanceStateFilterDropDownAction = new MenuAction("Status Filter", "Filter by instance state", "filter", instanceStateDropDownMenuHandler);
 
+        addTagColumnDropDownMenuHandler = new MenuHandler();
+        addTagColumnDropDownMenuHandler.addListener(this);
+        addTagColumnDropDownMenuHandler.add("CONFIGURE_TAG_COLUMNS", "Configure Tag Columns");
+        addTagColumnDropDownAction = new MenuAction("Configure Tag Columns Action", "add/remove tag columns", "filter", addTagColumnDropDownMenuHandler);
+        
+        
         securityGroupDropDownMenuHandler = new MenuHandler();
         securityGroupDropDownMenuHandler.addListener(this);
         allSecurityGroupFilterItem = securityGroupDropDownMenuHandler.add("ALL", "All Security Groups", true);
@@ -584,6 +598,19 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      *  @see com.amazonaws.eclipse.ec2.utils.IMenu#menuClicked(com.amazonaws.eclipse.ec2.utils.IMenu.MenuItem)
      */
     public void menuClicked(MenuItem menuItemSelected) {
+    	if (menuItemSelected.getMenuId().equals("CONFIGURE_TAG_COLUMNS")) {
+    		InputDialog inputDialog = new InputDialog(getShell(),
+    				"Configure Tag Columns",
+    				"Enter the tags you want to see (comma-separated):",
+    				"Name", null);
+    		inputDialog.open();
+    		String tagStr = inputDialog.getValue();
+    		String[] tags = tagStr.split(",");
+    		for (int i = 0; i < tags.length; i++)
+    			tags[i] = tags[i].trim();
+    		contentAndLabelProvider.setColumns(tags);
+    		createColumns();
+    	}
         refreshData();
     }
 
@@ -595,9 +622,14 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     private void enableDropDowns(boolean checked) {
         instanceStateFilterDropDownAction.setEnabled(checked);
         securityGroupFilterDropDownAction.setEnabled(checked);
+        addTagColumnDropDownAction.setEnabled(true);
     }
 
 	public ViewContentAndLabelProvider getContentAndLabelProvider() {
 		return this.contentAndLabelProvider;
+	}
+
+	public IAction getAddTagColumnsAction() {
+		return addTagColumnDropDownAction;
 	}
 }

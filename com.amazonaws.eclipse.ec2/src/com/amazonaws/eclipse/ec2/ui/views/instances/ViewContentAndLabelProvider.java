@@ -38,12 +38,13 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	private List<TableColumn> columns = new ArrayList<TableColumn>();
 	
 	public ViewContentAndLabelProvider() {
-		setColumns();
+		setColumns(new String[0]);
 	}
 	
-	private void setColumns() {
+	void setColumns(String[] tags) {
 		columns = new ArrayList<TableColumn>();
-		columns.add(new TagColumn("Name"));
+		for (String tag : tags)
+			columns.add(new TagColumn(tag));
 		columns.add(new BuiltinColumn(BuiltinColumn.INSTANCE_ID_COLUMN, instancesViewInput));
 		columns.add(new BuiltinColumn(BuiltinColumn.PUBLIC_DNS_COLUMN, instancesViewInput));
 		columns.add(new BuiltinColumn(BuiltinColumn.IMAGE_ID_COLUMN, instancesViewInput));
@@ -69,7 +70,6 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	 */
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		instancesViewInput = (InstancesViewInput)newInput;
-		setColumns();
 	}
 
 	/* (non-Javadoc)
