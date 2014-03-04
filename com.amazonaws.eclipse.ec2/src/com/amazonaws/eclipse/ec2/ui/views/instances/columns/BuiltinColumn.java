@@ -62,8 +62,10 @@ public class BuiltinColumn extends TableColumn {
 				return "";
 			return dateFormat.format(instance.getLaunchTime());
 		case SECURITY_GROUPS_COLUMN:
-			return formatSecurityGroups(viewInput.securityGroupMap.get(instance
-					.getInstanceId()));
+			if (viewInput != null)
+				return formatSecurityGroups(viewInput.securityGroupMap.get(instance
+						.getInstanceId()));
+			else return "error";
 		case TAGS_COLUMN:
 			return TagFormatter.formatTags(instance.getTags());
 		default:
