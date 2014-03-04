@@ -33,7 +33,6 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -256,6 +255,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     	removeColumns();
         for (TableColumn col : contentAndLabelProvider.getColumns())
         	newColumn(col.getColumnName(), 10);
+        setComparator(new InstanceComparator(this, 0));
     }
 
     /* (non-Javadoc)
