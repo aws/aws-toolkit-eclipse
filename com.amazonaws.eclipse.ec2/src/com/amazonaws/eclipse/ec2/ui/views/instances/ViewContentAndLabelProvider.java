@@ -15,12 +15,8 @@
 
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
-import java.text.DateFormat;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -28,12 +24,10 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.ec2.Ec2Plugin;
-import com.amazonaws.eclipse.ec2.TagFormatter;
-import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.BuiltinColumn;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.TableColumn;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.TagColumn;
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.Tag;
 
 /**
  * Label and content provider for the EC2 Instance table.
@@ -41,43 +35,30 @@ import com.amazonaws.services.ec2.model.Tag;
 class ViewContentAndLabelProvider extends BaseLabelProvider
 		implements ITreeContentProvider, ITableLabelProvider {
 
-	static final int NAME_COLUMN = 0;
-	static final int INSTANCE_ID_COLUMN = 1;
-	static final int PUBLIC_DNS_COLUMN = 2;
-    static final int IMAGE_ID_COLUMN = 3;
-    static final int ROOT_DEVICE_COLUMN = 4;
-	static final int STATE_COLUMN = 5;
-	static final int INSTANCE_TYPE_COLUMN = 6;
-	static final int AVAILABILITY_ZONE_COLUMN = 7;
-	static final int KEY_NAME_COLUMN = 8;
-	static final int LAUNCH_TIME_COLUMN = 9;
-	static final int SECURITY_GROUPS_COLUMN = 10;
-	static final int TAGS_COLUMN = 11;
-
-	private final DateFormat dateFormat;
-	private KeyPairManager keyPairManager = new KeyPairManager();
+	private List<TableColumn> columns = new ArrayList<TableColumn>();
+	
+	public ViewContentAndLabelProvider() {
+		setColumns();
+	}
+	
+	private void setColumns() {
+		columns = new ArrayList<TableColumn>();
+		columns.add(new TagColumn("Name"));
+		columns.add(new BuiltinColumn(BuiltinColumn.INSTANCE_ID_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.PUBLIC_DNS_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.IMAGE_ID_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.ROOT_DEVICE_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.STATE_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.INSTANCE_TYPE_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.AVAILABILITY_ZONE_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.KEY_NAME_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.LAUNCH_TIME_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.SECURITY_GROUPS_COLUMN, instancesViewInput));
+		columns.add(new BuiltinColumn(BuiltinColumn.TAGS_COLUMN, instancesViewInput));
+	}
 
 	/** The input to be displayed by this content / label provider */
 	private InstancesViewInput instancesViewInput;
-
-	/** Map of instance states to images representing those states */
-	private static final Map<String, Image> stateImageMap = new HashMap<String, Image>();
-
-	static {
-		stateImageMap.put("running", Ec2Plugin.getDefault().getImageRegistry().get("status-running"));
-		stateImageMap.put("rebooting", Ec2Plugin.getDefault().getImageRegistry().get("status-rebooting"));
-		stateImageMap.put("shutting-down", Ec2Plugin.getDefault().getImageRegistry().get("status-waiting"));
-		stateImageMap.put("pending", Ec2Plugin.getDefault().getImageRegistry().get("status-waiting"));
-        stateImageMap.put("stopping", Ec2Plugin.getDefault().getImageRegistry().get("status-waiting"));
-        stateImageMap.put("stopped", Ec2Plugin.getDefault().getImageRegistry().get("status-terminated"));
-		stateImageMap.put("terminated", Ec2Plugin.getDefault().getImageRegistry().get("status-terminated"));
-	}
-
-	/** Default constructor */
-	ViewContentAndLabelProvider() {
-		dateFormat = DateFormat.getDateTimeInstance();
-	}
-
 
 	/*
 	 * IStructuredContentProvider Interface
@@ -88,6 +69,7 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	 */
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		instancesViewInput = (InstancesViewInput)newInput;
+		setColumns();
 	}
 
 	/* (non-Javadoc)
@@ -117,47 +99,8 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	 */
 	public String getColumnText(Object obj, int index) {
 		Instance instance = (Instance)obj;
-
-        switch (index) {
-        case INSTANCE_ID_COLUMN:
-            return instance.getInstanceId();
-        case PUBLIC_DNS_COLUMN:
-            return instance.getPublicDnsName();
-        case ROOT_DEVICE_COLUMN:
-            return instance.getRootDeviceType();
-        case STATE_COLUMN:
-            return instance.getState().getName();
-        case INSTANCE_TYPE_COLUMN:
-            return instance.getInstanceType().toString();
-        case AVAILABILITY_ZONE_COLUMN:
-            return instance.getPlacement().getAvailabilityZone();
-        case IMAGE_ID_COLUMN:
-            return instance.getImageId();
-        case KEY_NAME_COLUMN:
-            return instance.getKeyName();
-        case LAUNCH_TIME_COLUMN:
-            if ( instance.getLaunchTime() == null )
-                return "";
-            return dateFormat.format(instance.getLaunchTime());
-        case SECURITY_GROUPS_COLUMN:
-            return formatSecurityGroups(instancesViewInput.securityGroupMap.get(instance.getInstanceId()));
-        case TAGS_COLUMN:
-            return TagFormatter.formatTags(instance.getTags());
-        case NAME_COLUMN:
-            return getTagValue("Name", instance.getTags());
-        default:
-            return "???";
-        }
-
+		return columns.get(index).getText(instance);
     }
-	
-	static String getTagValue(String key, List<Tag> tags) {
-		for (Tag t : tags) {
-			if (t.getKey().equals(key))
-				return t.getValue();
-		}
-		return "";
-	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
@@ -166,22 +109,7 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 
 		Instance instance = (Instance)obj;
 
-		switch (index) {
-		case INSTANCE_ID_COLUMN:
-		    return Ec2Plugin.getDefault().getImageRegistry().get("server");
-		case KEY_NAME_COLUMN:
-			if (keyPairManager.isKeyPairValid(AwsToolkitCore.getDefault().getCurrentAccountId(), instance.getKeyName())) {
-				return Ec2Plugin.getDefault().getImageRegistry().get("check");
-			} else {
-				return Ec2Plugin.getDefault().getImageRegistry().get("error");
-			}
-
-		case STATE_COLUMN:
-			String state = instance.getState().getName().toLowerCase();
-			return stateImageMap.get(state);
-		}
-
-		return null;
+		return columns.get(index).getImage(instance);
 	}
 
 	/* (non-Javadoc)
@@ -221,29 +149,6 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	 * Private Interface
 	 */
 
-	/**
-	 * Takes the list of security groups and turns it into a comma separated
-	 * string list.
-	 *
-	 * @param securityGroups
-	 *            A list of security groups to turn into a comma separated
-	 *            string list.
-	 *
-	 * @return A comma separated list containing the contents of the specified
-	 *         list of security groups.
-	 */
-	private String formatSecurityGroups(List<String> securityGroups) {
-		if (securityGroups == null) return "";
-
-		String allSecurityGroups = "";
-		for (String securityGroup : securityGroups) {
-			if (allSecurityGroups.length() > 0) allSecurityGroups += ", ";
-			allSecurityGroups += securityGroup;
-		}
-
-		return allSecurityGroups;
-	}
-
     public Object[] getChildren(Object parentElement) {
 		return new Object[0];
 	}
@@ -255,31 +160,8 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	public boolean hasChildren(Object element) {
 		return false;
 	}
-}
 
-/**
- * Simple container for the instances and security group mappings displayed
- * by the viewer associated with this content/label provider.
- */
-class InstancesViewInput {
-	/** The EC2 instances being displayed by this viewer */
-	public final List<Instance> instances;
-
-	/** A map of instance ids -> security groups */
-	public final Map<String, List<String>> securityGroupMap;
-
-	/**
-	 * Constructs a new InstancesViewInput object with the specified list of
-	 * instances and mapping of instances to security groups.
-	 *
-	 * @param instances
-	 *            A list of the instances that should be displayed.
-	 * @param securityGroupMap
-	 *            A map of instance ids to the list of security groups in which
-	 *            that instance was launched.
-	 */
-	public InstancesViewInput(final List<Instance> instances, final Map<String, List<String>> securityGroupMap) {
-		this.instances = instances;
-		this.securityGroupMap = securityGroupMap;
+	public List<TableColumn> getColumns() {
+		return columns;
 	}
 }

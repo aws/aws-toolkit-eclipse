@@ -50,6 +50,7 @@ import com.amazonaws.eclipse.ec2.InstanceTypes;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable;
 import com.amazonaws.eclipse.ec2.ui.ebs.CreateNewVolumeDialog;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.TableColumn;
 import com.amazonaws.eclipse.ec2.utils.DynamicMenuAction;
 import com.amazonaws.eclipse.ec2.utils.IMenu;
 import com.amazonaws.eclipse.ec2.utils.MenuAction;
@@ -127,11 +128,10 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     public InstanceSelectionTable(Composite parent) {
         super(parent, true, false);
 
-        contentAndLabelProvider = new ViewContentAndLabelProvider();
         viewer.setContentProvider(contentAndLabelProvider);
         viewer.setLabelProvider(contentAndLabelProvider);
 
-        setComparator(new InstanceComparator(this, ViewContentAndLabelProvider.LAUNCH_TIME_COLUMN));
+        setComparator(new InstanceComparator(this, 0));
 
         refreshInstanceListTimer = new RefreshTimer(this);
         refreshInstanceListTimer.startTimer();
@@ -244,18 +244,10 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      */
     @Override
     protected void createColumns() {
-    	newColumn("Name", 15);
-        newColumn("Instance ID", 10);
-        newColumn("Public DNS Name", 15);
-        newColumn("Image ID", 10);
-        newColumn("Root Device Type", 10);
-        newColumn("State", 10);
-        newColumn("Type", 10);
-        newColumn("Availability Zone", 10);
-        newColumn("Key Pair", 10);
-        newColumn("Launch Time", 15);
-        newColumn("Security Groups", 15);
-        newColumn("Tags", 15);
+    	if (contentAndLabelProvider == null)
+    		 contentAndLabelProvider = new ViewContentAndLabelProvider();
+        for (TableColumn col : contentAndLabelProvider.getColumns())
+        	newColumn(col.getColumnName(), 10);
     }
 
     /* (non-Javadoc)
@@ -604,4 +596,8 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         instanceStateFilterDropDownAction.setEnabled(checked);
         securityGroupFilterDropDownAction.setEnabled(checked);
     }
+
+	public ViewContentAndLabelProvider getContentAndLabelProvider() {
+		return this.contentAndLabelProvider;
+	}
 }
