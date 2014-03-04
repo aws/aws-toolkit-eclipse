@@ -103,7 +103,8 @@ public class MenuAction extends Action implements IMenuCreator {
 	        	
 				// Every Time new object is created, so getMenuId is used for
 				// determining the current selection
-	        	action.setChecked(menuHandler.getCurrentSelection().getMenuId().equals(menuItem.getMenuId()));
+	        	if (menuHandler.getCurrentSelection() != null)
+	        		action.setChecked(menuHandler.getCurrentSelection().getMenuId().equals(menuItem.getMenuId()));
         	}
         }
         
