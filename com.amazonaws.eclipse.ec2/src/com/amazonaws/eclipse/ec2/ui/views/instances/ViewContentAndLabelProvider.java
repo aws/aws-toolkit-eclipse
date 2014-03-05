@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 
 import com.amazonaws.eclipse.ec2.ui.views.instances.columns.BuiltinColumn;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.BuiltinColumn.ColumnType;
 import com.amazonaws.eclipse.ec2.ui.views.instances.columns.TableColumn;
 import com.amazonaws.eclipse.ec2.ui.views.instances.columns.TagColumn;
 import com.amazonaws.services.ec2.model.Instance;
@@ -38,24 +39,15 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	private List<TableColumn> columns = new ArrayList<TableColumn>();
 	
 	public ViewContentAndLabelProvider() {
-		setColumns(new String[0]);
+		setColumns(new String[0], ColumnType.values());
 	}
 	
-	void setColumns(String[] tags) {
+	void setColumns(String[] tags, ColumnType[] builtins) {
 		columns = new ArrayList<TableColumn>();
 		for (String tag : tags)
 			columns.add(new TagColumn(tag));
-		columns.add(new BuiltinColumn(BuiltinColumn.INSTANCE_ID_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.PUBLIC_DNS_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.IMAGE_ID_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.ROOT_DEVICE_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.STATE_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.INSTANCE_TYPE_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.AVAILABILITY_ZONE_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.KEY_NAME_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.LAUNCH_TIME_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.SECURITY_GROUPS_COLUMN, instancesViewInput));
-		columns.add(new BuiltinColumn(BuiltinColumn.TAGS_COLUMN, instancesViewInput));
+		for (BuiltinColumn.ColumnType t : builtins)
+			columns.add(new BuiltinColumn(t, instancesViewInput));
 	}
 
 	/** The input to be displayed by this content / label provider */

@@ -15,28 +15,31 @@ import com.amazonaws.eclipse.ec2.ui.views.instances.InstancesViewInput;
 import com.amazonaws.services.ec2.model.Instance;
 
 public class BuiltinColumn extends TableColumn {
-	private int column;
+	private ColumnType column;
 	private final DateFormat dateFormat;
 	private InstancesViewInput viewInput;
 	private KeyPairManager keyPairManager = new KeyPairManager();
 
-	public BuiltinColumn(int column, InstancesViewInput viewInput) {
+	public BuiltinColumn(ColumnType column, InstancesViewInput viewInput) {
 		this.column = column;
 		dateFormat = DateFormat.getDateTimeInstance();
 		this.viewInput = viewInput;
 	}
 
-	public static final int INSTANCE_ID_COLUMN = 1;
-	public static final int PUBLIC_DNS_COLUMN = 2;
-	public static final int IMAGE_ID_COLUMN = 3;
-	public static final int ROOT_DEVICE_COLUMN = 4;
-	public static final int STATE_COLUMN = 5;
-	public static final int INSTANCE_TYPE_COLUMN = 6;
-	public static final int AVAILABILITY_ZONE_COLUMN = 7;
-	public static final int KEY_NAME_COLUMN = 8;
-	public static final int LAUNCH_TIME_COLUMN = 9;
-	public static final int SECURITY_GROUPS_COLUMN = 10;
-	public static final int TAGS_COLUMN = 11;
+	public enum ColumnType {
+		INSTANCE_ID_COLUMN,
+		PUBLIC_DNS_COLUMN,
+		IMAGE_ID_COLUMN,
+		ROOT_DEVICE_COLUMN,
+		STATE_COLUMN,
+		INSTANCE_TYPE_COLUMN,
+		AVAILABILITY_ZONE_COLUMN,
+		KEY_NAME_COLUMN,
+		LAUNCH_TIME_COLUMN,
+		SECURITY_GROUPS_COLUMN,
+		TAGS_COLUMN,
+		PRIVATE_IP_COLUMN
+	};
 
 	@Override
 	public String getText(Instance instance) {
@@ -68,6 +71,8 @@ public class BuiltinColumn extends TableColumn {
 			else return "error";
 		case TAGS_COLUMN:
 			return TagFormatter.formatTags(instance.getTags());
+		case PRIVATE_IP_COLUMN:
+			return instance.getPrivateIpAddress();
 		default:
 			return "???";
 		}
@@ -114,9 +119,9 @@ public class BuiltinColumn extends TableColumn {
 		case STATE_COLUMN:
 			String state = instance.getState().getName().toLowerCase();
 			return stateImageMap.get(state);
+		default:
+			return null;
 		}
-
-		return null;
 	}
 
 	/** Map of instance states to images representing those states */
@@ -227,6 +232,8 @@ public class BuiltinColumn extends TableColumn {
 			return "Security Groups";
 		case TAGS_COLUMN:
 			return "Tags";
+		case PRIVATE_IP_COLUMN:
+			return "Private IP";
 		default:
 			return "???";
 		}

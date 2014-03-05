@@ -32,7 +32,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -51,6 +50,8 @@ import com.amazonaws.eclipse.ec2.InstanceTypes;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable;
 import com.amazonaws.eclipse.ec2.ui.ebs.CreateNewVolumeDialog;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.BuiltinColumn.ColumnType;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.ConfigureColumnsDialog;
 import com.amazonaws.eclipse.ec2.ui.views.instances.columns.TableColumn;
 import com.amazonaws.eclipse.ec2.utils.DynamicMenuAction;
 import com.amazonaws.eclipse.ec2.utils.IMenu;
@@ -363,7 +364,6 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         addTagColumnDropDownMenuHandler.add("CONFIGURE_TAG_COLUMNS", "Configure Tag Columns");
         addTagColumnDropDownAction = new MenuAction("Configure Tag Columns Action", "add/remove tag columns", "filter", addTagColumnDropDownMenuHandler);
         
-        
         securityGroupDropDownMenuHandler = new MenuHandler();
         securityGroupDropDownMenuHandler.addListener(this);
         allSecurityGroupFilterItem = securityGroupDropDownMenuHandler.add("ALL", "All Security Groups", true);
@@ -599,16 +599,16 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      */
     public void menuClicked(MenuItem menuItemSelected) {
     	if (menuItemSelected.getMenuId().equals("CONFIGURE_TAG_COLUMNS")) {
-    		InputDialog inputDialog = new InputDialog(getShell(),
-    				"Configure Tag Columns",
-    				"Enter the tags you want to see (comma-separated):",
-    				"Name", null);
-    		inputDialog.open();
-    		String tagStr = inputDialog.getValue();
+    		ConfigureColumnsDialog d = new ConfigureColumnsDialog(getShell());
+    		d.open();
+    		String tagStr = d.getTagColumnText();
     		String[] tags = tagStr.split(",");
     		for (int i = 0; i < tags.length; i++)
     			tags[i] = tags[i].trim();
-    		contentAndLabelProvider.setColumns(tags);
+    		System.out.println(d.getBuiltinColumns());
+    		
+    		Set<ColumnType> keySet = d.getBuiltinColumns().keySet();
+    		contentAndLabelProvider.setColumns(tags, keySet.toArray(new ColumnType[keySet.size()]));
     		createColumns();
     	}
         refreshData();
