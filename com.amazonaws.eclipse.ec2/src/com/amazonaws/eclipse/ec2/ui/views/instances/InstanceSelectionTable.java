@@ -61,6 +61,7 @@ import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
+import com.amazonaws.services.ec2.model.Tag;
 
 /**
  * Table displaying EC2 instances and a context menu with actions like opening
@@ -76,7 +77,6 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     private Action openShellAction;
     private Action openShellDialogAction;
     private Action createAmiAction;
-    private Action copyPublicDnsNameAction;
     private Action attachNewVolumeAction;
     private Action startInstancesAction;
     private Action stopInstancesAction;
@@ -259,6 +259,28 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         setComparator(new InstanceComparator(this, 0));
     }
 
+    private IMenuManager createCopyMenu() {
+    	final Instance inst = getSelectedInstance();
+        IMenuManager copyMenu = new MenuManager("Copy...", null);
+        if (inst.getState().getName().equalsIgnoreCase("running")) {
+	        copyMenu.add(new Action("Copy Private IP", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+	            public void run() { copyToClipboard(inst.getPrivateIpAddress()); }
+	        });
+	        copyMenu.add(new Action("Copy Public DNS Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+	            public void run() { copyToClipboard(inst.getPublicDnsName()); }
+	        });
+        }
+        copyMenu.add(new Action("Copy Tag:Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+            public void run() {
+            	for (Tag t : inst.getTags())
+            		if (t.getKey().equals("Name"))
+            			copyToClipboard(t.getValue());
+            }
+        });
+        
+        return copyMenu;
+    }
+    
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#fillContextMenu(org.eclipse.jface.action.IMenuManager)
      */
@@ -276,8 +298,9 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         manager.add(new Separator());
         manager.add(createAmiAction);
         manager.add(new Separator());
-        manager.add(copyPublicDnsNameAction);
-
+        if (getAllSelectedInstances().size() == 1)
+        	manager.add(createCopyMenu());
+        
         final boolean isRunningInstanceSelected = isRunningInstanceSelected();
         final boolean exactlyOneInstanceSelected =
             isRunningInstanceSelected && (getAllSelectedInstances().size() == 1);
@@ -296,7 +319,6 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         openShellAction.setEnabled(canOpenShell);
         openShellDialogAction.setEnabled(canOpenShell);
 
-        copyPublicDnsNameAction.setEnabled(exactlyOneInstanceSelected);
         createAmiAction.setEnabled(exactlyOneInstanceSelected && instanceLaunchedWithKey);
 
         // These calls seem like a no-op, but it basically forces a refresh of the enablement state
@@ -323,15 +345,6 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         openShellAction = new OpenShellAction(this);
         openShellDialogAction = new OpenShellDialogAction(this);
         createAmiAction = new CreateAmiAction(this);
-
-        copyPublicDnsNameAction = new Action("Copy Public DNS Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
-            public void run() {
-                copyPublicDnsNameToClipboard(getSelectedInstance());
-            }
-            public String getToolTipText() {
-                return "Copies this instance's public DNS name to the clipboard.";
-            }
-        };
 
         attachNewVolumeAction = new Action("Attach New Volume...") {
             public void run() {
@@ -377,10 +390,10 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
 
 
 
-    protected void copyPublicDnsNameToClipboard(Instance instance) {
+    protected void copyToClipboard(String textData) {
+    	if (textData == null || textData.isEmpty())
+    		return;
         Clipboard clipboard = new Clipboard(Display.getCurrent());
-
-        String textData = instance.getPublicDnsName();
         TextTransfer textTransfer = TextTransfer.getInstance();
         Transfer[] transfers = new Transfer[]{textTransfer};
         Object[] data = new Object[]{textData};
