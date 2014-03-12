@@ -33,6 +33,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -50,6 +51,9 @@ import com.amazonaws.eclipse.ec2.InstanceTypes;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable;
 import com.amazonaws.eclipse.ec2.ui.ebs.CreateNewVolumeDialog;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.BuiltinColumn.ColumnType;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.ConfigureColumnsDialog;
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.TableColumn;
 import com.amazonaws.eclipse.ec2.utils.DynamicMenuAction;
 import com.amazonaws.eclipse.ec2.utils.IMenu;
 import com.amazonaws.eclipse.ec2.utils.MenuAction;
@@ -58,6 +62,7 @@ import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
+import com.amazonaws.services.ec2.model.Tag;
 
 /**
  * Table displaying EC2 instances and a context menu with actions like opening
@@ -73,7 +78,6 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     private Action openShellAction;
     private Action openShellDialogAction;
     private Action createAmiAction;
-    private Action copyPublicDnsNameAction;
     private Action attachNewVolumeAction;
     private Action startInstancesAction;
     private Action stopInstancesAction;
@@ -89,6 +93,11 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
 
     /** DropDown menu handler for Security Group */
     private MenuHandler securityGroupDropDownMenuHandler;
+    
+    /** DropDown menu for adding a tag column */
+    private IAction addConfigureColumnDropDownAction;
+    /** DropDown menu handler for add tag column */
+    private MenuHandler addConfigureColumnDropDownMenuHandler;
 
     /** Holds the ALL option for Security Group Filter Item */
     private MenuItem allSecurityGroupFilterItem;
@@ -127,11 +136,10 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     public InstanceSelectionTable(Composite parent) {
         super(parent, true, false);
 
-        contentAndLabelProvider = new ViewContentAndLabelProvider();
         viewer.setContentProvider(contentAndLabelProvider);
         viewer.setLabelProvider(contentAndLabelProvider);
 
-        setComparator(new InstanceComparator(this, ViewContentAndLabelProvider.LAUNCH_TIME_COLUMN));
+        setComparator(new InstanceComparator(this, 0));
 
         refreshInstanceListTimer = new RefreshTimer(this);
         refreshInstanceListTimer.startTimer();
@@ -244,19 +252,36 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      */
     @Override
     protected void createColumns() {
-        newColumn("Instance ID", 10);
-        newColumn("Public DNS Name", 15);
-        newColumn("Image ID", 10);
-        newColumn("Root Device Type", 10);
-        newColumn("State", 10);
-        newColumn("Type", 10);
-        newColumn("Availability Zone", 10);
-        newColumn("Key Pair", 10);
-        newColumn("Launch Time", 15);
-        newColumn("Security Groups", 15);
-        newColumn("Tags", 15);
+    	if (contentAndLabelProvider == null)
+    		 contentAndLabelProvider = new ViewContentAndLabelProvider();
+    	removeColumns();
+        for (TableColumn col : contentAndLabelProvider.getColumns())
+        	newColumn(col.getColumnName(), 10);
+        setComparator(new InstanceComparator(this, 0));
     }
 
+    private IMenuManager createCopyMenu() {
+    	final Instance inst = getSelectedInstance();
+        IMenuManager copyMenu = new MenuManager("Copy...", null);
+        if (inst.getState().getName().equalsIgnoreCase("running")) {
+	        copyMenu.add(new Action("Copy Private IP", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+	            public void run() { copyToClipboard(inst.getPrivateIpAddress()); }
+	        });
+	        copyMenu.add(new Action("Copy Public DNS Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+	            public void run() { copyToClipboard(inst.getPublicDnsName()); }
+	        });
+        }
+        copyMenu.add(new Action("Copy Tag:Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+            public void run() {
+            	for (Tag t : inst.getTags())
+            		if (t.getKey().equals("Name"))
+            			copyToClipboard(t.getValue());
+            }
+        });
+        
+        return copyMenu;
+    }
+    
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#fillContextMenu(org.eclipse.jface.action.IMenuManager)
      */
@@ -274,8 +299,9 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         manager.add(new Separator());
         manager.add(createAmiAction);
         manager.add(new Separator());
-        manager.add(copyPublicDnsNameAction);
-
+        if (getAllSelectedInstances().size() == 1)
+        	manager.add(createCopyMenu());
+        
         final boolean isRunningInstanceSelected = isRunningInstanceSelected();
         final boolean exactlyOneInstanceSelected =
             isRunningInstanceSelected && (getAllSelectedInstances().size() == 1);
@@ -294,7 +320,6 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         openShellAction.setEnabled(canOpenShell);
         openShellDialogAction.setEnabled(canOpenShell);
 
-        copyPublicDnsNameAction.setEnabled(exactlyOneInstanceSelected);
         createAmiAction.setEnabled(exactlyOneInstanceSelected && instanceLaunchedWithKey);
 
         // These calls seem like a no-op, but it basically forces a refresh of the enablement state
@@ -322,15 +347,6 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         openShellDialogAction = new OpenShellDialogAction(this);
         createAmiAction = new CreateAmiAction(this);
 
-        copyPublicDnsNameAction = new Action("Copy Public DNS Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
-            public void run() {
-                copyPublicDnsNameToClipboard(getSelectedInstance());
-            }
-            public String getToolTipText() {
-                return "Copies this instance's public DNS name to the clipboard.";
-            }
-        };
-
         attachNewVolumeAction = new Action("Attach New Volume...") {
             public void run() {
                 Instance instance = getSelectedInstance();
@@ -357,6 +373,12 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         instanceStateDropDownMenuHandler.add("windows", "Windows Instances");
         instanceStateFilterDropDownAction = new MenuAction("Status Filter", "Filter by instance state", "filter", instanceStateDropDownMenuHandler);
 
+        addConfigureColumnDropDownMenuHandler = new MenuHandler();
+        addConfigureColumnDropDownMenuHandler.addListener(this);
+        addConfigureColumnDropDownMenuHandler.add("CONFIGURE_COLUMNS", "Configure Columns...");
+        addConfigureColumnDropDownAction = new MenuAction("Configure Columns Action","add/remove columns", "gears", addConfigureColumnDropDownMenuHandler);
+        ((MenuAction)addConfigureColumnDropDownAction).setActionStyle(IAction.AS_PUSH_BUTTON);
+        
         securityGroupDropDownMenuHandler = new MenuHandler();
         securityGroupDropDownMenuHandler.addListener(this);
         allSecurityGroupFilterItem = securityGroupDropDownMenuHandler.add("ALL", "All Security Groups", true);
@@ -370,10 +392,10 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
 
 
 
-    protected void copyPublicDnsNameToClipboard(Instance instance) {
+    protected void copyToClipboard(String textData) {
+    	if (textData == null || textData.isEmpty())
+    		return;
         Clipboard clipboard = new Clipboard(Display.getCurrent());
-
-        String textData = instance.getPublicDnsName();
         TextTransfer textTransfer = TextTransfer.getInstance();
         Transfer[] transfers = new Transfer[]{textTransfer};
         Object[] data = new Object[]{textData};
@@ -591,6 +613,30 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      *  @see com.amazonaws.eclipse.ec2.utils.IMenu#menuClicked(com.amazonaws.eclipse.ec2.utils.IMenu.MenuItem)
      */
     public void menuClicked(MenuItem menuItemSelected) {
+    	if (menuItemSelected.getMenuId().equals("CONFIGURE_COLUMNS")) {
+    		ConfigureColumnsDialog d = new ConfigureColumnsDialog(getShell());
+    		d.initialize(contentAndLabelProvider.getColumns());
+    		if (d.open() == Window.OK) {
+	    		String tagStr = d.getTagColumnText();
+	    		String[] tags = tagStr.split(",");
+	    		List<String> newTags = new ArrayList<String>();
+	    		for (int i = 0; i < tags.length; i++) {
+	    			tags[i] = tags[i].trim();
+	    			if (!tags[i].isEmpty())
+	    				newTags.add(tags[i]);
+	    		}
+	    		
+	    		List<ColumnType> newCols = new ArrayList<ColumnType>();
+	    		for (ColumnType t : d.getBuiltinColumns().keySet()) {
+	    			if (d.getBuiltinColumns().get(t))
+	    				newCols.add(t);
+	    		}
+	    		contentAndLabelProvider.setColumns(newTags.toArray(new String[newTags.size()]),
+	    				newCols.toArray(new ColumnType[newCols.size()]));
+	    		createColumns();
+    		}
+    		else return;
+    	}
         refreshData();
     }
 
@@ -602,5 +648,14 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     private void enableDropDowns(boolean checked) {
         instanceStateFilterDropDownAction.setEnabled(checked);
         securityGroupFilterDropDownAction.setEnabled(checked);
+        addConfigureColumnDropDownAction.setEnabled(true);
     }
+
+	public ViewContentAndLabelProvider getContentAndLabelProvider() {
+		return this.contentAndLabelProvider;
+	}
+
+	public IAction getConfigureColumnsAction() {
+		return addConfigureColumnDropDownAction;
+	}
 }
