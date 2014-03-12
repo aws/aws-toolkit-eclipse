@@ -375,7 +375,8 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         addTagColumnDropDownMenuHandler = new MenuHandler();
         addTagColumnDropDownMenuHandler.addListener(this);
         addTagColumnDropDownMenuHandler.add("CONFIGURE_TAG_COLUMNS", "Configure Tag Columns");
-        addTagColumnDropDownAction = new MenuAction("Configure Tag Columns Action", "add/remove tag columns", "filter", addTagColumnDropDownMenuHandler);
+        addTagColumnDropDownAction = new MenuAction("Configure Tag Columns Action","add/remove tag columns", "filter", addTagColumnDropDownMenuHandler);
+        ((MenuAction)addTagColumnDropDownAction).setActionStyle(IAction.AS_PUSH_BUTTON);
         
         securityGroupDropDownMenuHandler = new MenuHandler();
         securityGroupDropDownMenuHandler.addListener(this);
