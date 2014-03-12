@@ -33,6 +33,7 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -614,16 +615,17 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     public void menuClicked(MenuItem menuItemSelected) {
     	if (menuItemSelected.getMenuId().equals("CONFIGURE_TAG_COLUMNS")) {
     		ConfigureColumnsDialog d = new ConfigureColumnsDialog(getShell());
-    		d.open();
-    		String tagStr = d.getTagColumnText();
-    		String[] tags = tagStr.split(",");
-    		for (int i = 0; i < tags.length; i++)
-    			tags[i] = tags[i].trim();
-    		System.out.println(d.getBuiltinColumns());
-    		
-    		Set<ColumnType> keySet = d.getBuiltinColumns().keySet();
-    		contentAndLabelProvider.setColumns(tags, keySet.toArray(new ColumnType[keySet.size()]));
-    		createColumns();
+    		if (d.open() == Window.OK) {
+	    		String tagStr = d.getTagColumnText();
+	    		String[] tags = tagStr.split(",");
+	    		for (int i = 0; i < tags.length; i++)
+	    			tags[i] = tags[i].trim();
+	    		
+	    		Set<ColumnType> keySet = d.getBuiltinColumns().keySet();
+	    		contentAndLabelProvider.setColumns(tags, keySet.toArray(new ColumnType[keySet.size()]));
+	    		createColumns();
+    		}
+    		else return;
     	}
         refreshData();
     }
