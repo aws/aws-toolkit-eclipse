@@ -95,9 +95,9 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     private MenuHandler securityGroupDropDownMenuHandler;
     
     /** DropDown menu for adding a tag column */
-    private IAction addTagColumnDropDownAction;
+    private IAction addConfigureColumnDropDownAction;
     /** DropDown menu handler for add tag column */
-    private MenuHandler addTagColumnDropDownMenuHandler;
+    private MenuHandler addConfigureColumnDropDownMenuHandler;
 
     /** Holds the ALL option for Security Group Filter Item */
     private MenuItem allSecurityGroupFilterItem;
@@ -373,11 +373,11 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         instanceStateDropDownMenuHandler.add("windows", "Windows Instances");
         instanceStateFilterDropDownAction = new MenuAction("Status Filter", "Filter by instance state", "filter", instanceStateDropDownMenuHandler);
 
-        addTagColumnDropDownMenuHandler = new MenuHandler();
-        addTagColumnDropDownMenuHandler.addListener(this);
-        addTagColumnDropDownMenuHandler.add("CONFIGURE_COLUMNS", "Configure Columns...");
-        addTagColumnDropDownAction = new MenuAction("Configure Columns Action","add/remove columns", "gears", addTagColumnDropDownMenuHandler);
-        ((MenuAction)addTagColumnDropDownAction).setActionStyle(IAction.AS_PUSH_BUTTON);
+        addConfigureColumnDropDownMenuHandler = new MenuHandler();
+        addConfigureColumnDropDownMenuHandler.addListener(this);
+        addConfigureColumnDropDownMenuHandler.add("CONFIGURE_COLUMNS", "Configure Columns...");
+        addConfigureColumnDropDownAction = new MenuAction("Configure Columns Action","add/remove columns", "gears", addConfigureColumnDropDownMenuHandler);
+        ((MenuAction)addConfigureColumnDropDownAction).setActionStyle(IAction.AS_PUSH_BUTTON);
         
         securityGroupDropDownMenuHandler = new MenuHandler();
         securityGroupDropDownMenuHandler.addListener(this);
@@ -648,14 +648,14 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     private void enableDropDowns(boolean checked) {
         instanceStateFilterDropDownAction.setEnabled(checked);
         securityGroupFilterDropDownAction.setEnabled(checked);
-        addTagColumnDropDownAction.setEnabled(true);
+        addConfigureColumnDropDownAction.setEnabled(true);
     }
 
 	public ViewContentAndLabelProvider getContentAndLabelProvider() {
 		return this.contentAndLabelProvider;
 	}
 
-	public IAction getAddTagColumnsAction() {
-		return addTagColumnDropDownAction;
+	public IAction getConfigureColumnsAction() {
+		return addConfigureColumnDropDownAction;
 	}
 }

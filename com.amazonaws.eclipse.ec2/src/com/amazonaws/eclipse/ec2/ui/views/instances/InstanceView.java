@@ -116,7 +116,7 @@ public class InstanceView extends ViewPart implements IRefreshable, SelectionTab
 		bars.getToolBarManager().add(selectionTable.getSecurityGroupFilterAction());
 		
 		/** Adds Dropdown filter action for Display tag columns */
-		bars.getToolBarManager().add(selectionTable.getAddTagColumnsAction());
+		bars.getToolBarManager().add(selectionTable.getConfigureColumnsAction());
 	}
 	
 	/**
