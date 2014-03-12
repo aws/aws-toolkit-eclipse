@@ -150,6 +150,7 @@ public class Ec2Plugin extends AbstractUIPlugin {
                                         "check",     			"/icons/check2.png",
                                         "console",   			"/icons/console.png",
                                         "error",     			"/icons/error.png",
+                                        "gears",				"/icons/gears.png",
                                         "info",          		"/icons/info.gif",
                                         "launch",    			"/icons/server_into.png",
                                         "reboot",    			"/icons/replace2.png",

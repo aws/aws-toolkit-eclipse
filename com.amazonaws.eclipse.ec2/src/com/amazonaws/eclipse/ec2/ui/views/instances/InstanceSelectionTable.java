@@ -375,8 +375,8 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
 
         addTagColumnDropDownMenuHandler = new MenuHandler();
         addTagColumnDropDownMenuHandler.addListener(this);
-        addTagColumnDropDownMenuHandler.add("CONFIGURE_TAG_COLUMNS", "Configure Tag Columns");
-        addTagColumnDropDownAction = new MenuAction("Configure Tag Columns Action","add/remove tag columns", "filter", addTagColumnDropDownMenuHandler);
+        addTagColumnDropDownMenuHandler.add("CONFIGURE_COLUMNS", "Configure Columns...");
+        addTagColumnDropDownAction = new MenuAction("Configure Columns Action","add/remove columns", "gears", addTagColumnDropDownMenuHandler);
         ((MenuAction)addTagColumnDropDownAction).setActionStyle(IAction.AS_PUSH_BUTTON);
         
         securityGroupDropDownMenuHandler = new MenuHandler();
@@ -613,7 +613,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      *  @see com.amazonaws.eclipse.ec2.utils.IMenu#menuClicked(com.amazonaws.eclipse.ec2.utils.IMenu.MenuItem)
      */
     public void menuClicked(MenuItem menuItemSelected) {
-    	if (menuItemSelected.getMenuId().equals("CONFIGURE_TAG_COLUMNS")) {
+    	if (menuItemSelected.getMenuId().equals("CONFIGURE_COLUMNS")) {
     		ConfigureColumnsDialog d = new ConfigureColumnsDialog(getShell());
     		if (d.open() == Window.OK) {
 	    		String tagStr = d.getTagColumnText();

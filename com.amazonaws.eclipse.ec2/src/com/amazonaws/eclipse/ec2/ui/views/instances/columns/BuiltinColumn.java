@@ -38,7 +38,35 @@ public class BuiltinColumn extends TableColumn {
 		LAUNCH_TIME_COLUMN,
 		SECURITY_GROUPS_COLUMN,
 		TAGS_COLUMN,
-		PRIVATE_IP_COLUMN
+		PRIVATE_IP_COLUMN;
+
+		@SuppressWarnings("serial")
+		static final Map<ColumnType, String> names = new HashMap<ColumnType, String>() {{
+			put(INSTANCE_ID_COLUMN, "Instance ID");
+			put(PUBLIC_DNS_COLUMN, "Public DNS");
+			put(IMAGE_ID_COLUMN, "Image ID");
+			put(ROOT_DEVICE_COLUMN, "Root Device");
+			put(STATE_COLUMN, "State");
+			put(INSTANCE_TYPE_COLUMN, "Type");
+			put(AVAILABILITY_ZONE_COLUMN, "Availability Zone");
+			put(KEY_NAME_COLUMN, "Key Name");
+			put(LAUNCH_TIME_COLUMN, "Launch Time");
+			put(SECURITY_GROUPS_COLUMN, "Security Groups");
+			put(TAGS_COLUMN, "Tags");
+			put(PRIVATE_IP_COLUMN, "Private IP");
+		}};
+
+		public String getName() {
+			return names.get(this);
+		}
+
+		public static ColumnType fromName(String name) {
+			for (ColumnType c : values()) {
+				if (names.get(c).equals(name))
+					return c;
+			}
+			throw new IllegalArgumentException("Unknown Column name, " + name);
+		}
 	};
 
 	@Override
@@ -209,34 +237,7 @@ public class BuiltinColumn extends TableColumn {
 
 	@Override
 	public String getColumnName() {
-		switch (this.column) {
-		case INSTANCE_ID_COLUMN:
-			return "Instance ID";
-		case PUBLIC_DNS_COLUMN:
-			return "Public DNS Name";
-		case ROOT_DEVICE_COLUMN:
-			return "Root Device Type";
-		case STATE_COLUMN:
-			return "State";
-		case INSTANCE_TYPE_COLUMN:
-			return "Type";
-		case AVAILABILITY_ZONE_COLUMN:
-			return "Availability Zone";
-		case IMAGE_ID_COLUMN:
-			return "Image ID";
-		case KEY_NAME_COLUMN:
-			return "Key Pair";
-		case LAUNCH_TIME_COLUMN:
-			return "Launch Time";
-		case SECURITY_GROUPS_COLUMN:
-			return "Security Groups";
-		case TAGS_COLUMN:
-			return "Tags";
-		case PRIVATE_IP_COLUMN:
-			return "Private IP";
-		default:
-			return "???";
-		}
+		return ColumnType.names.get(column);
 	}
 
 }
