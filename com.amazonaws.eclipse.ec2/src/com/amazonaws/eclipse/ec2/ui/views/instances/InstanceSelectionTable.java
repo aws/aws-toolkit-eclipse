@@ -615,14 +615,24 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     public void menuClicked(MenuItem menuItemSelected) {
     	if (menuItemSelected.getMenuId().equals("CONFIGURE_COLUMNS")) {
     		ConfigureColumnsDialog d = new ConfigureColumnsDialog(getShell());
+    		d.initialize(contentAndLabelProvider.getColumns());
     		if (d.open() == Window.OK) {
 	    		String tagStr = d.getTagColumnText();
 	    		String[] tags = tagStr.split(",");
-	    		for (int i = 0; i < tags.length; i++)
+	    		List<String> newTags = new ArrayList<String>();
+	    		for (int i = 0; i < tags.length; i++) {
 	    			tags[i] = tags[i].trim();
+	    			if (!tags[i].isEmpty())
+	    				newTags.add(tags[i]);
+	    		}
 	    		
-	    		Set<ColumnType> keySet = d.getBuiltinColumns().keySet();
-	    		contentAndLabelProvider.setColumns(tags, keySet.toArray(new ColumnType[keySet.size()]));
+	    		List<ColumnType> newCols = new ArrayList<ColumnType>();
+	    		for (ColumnType t : d.getBuiltinColumns().keySet()) {
+	    			if (d.getBuiltinColumns().get(t))
+	    				newCols.add(t);
+	    		}
+	    		contentAndLabelProvider.setColumns(newTags.toArray(new String[newTags.size()]),
+	    				newCols.toArray(new ColumnType[newCols.size()]));
 	    		createColumns();
     		}
     		else return;

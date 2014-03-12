@@ -240,4 +240,8 @@ public class BuiltinColumn extends TableColumn {
 		return ColumnType.names.get(column);
 	}
 
+	public ColumnType getColumnType() {
+		return column;
+	}
+
 }

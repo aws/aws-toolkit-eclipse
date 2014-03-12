@@ -1,6 +1,7 @@
 package com.amazonaws.eclipse.ec2.ui.views.instances.columns;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -19,10 +20,13 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.amazonaws.eclipse.ec2.ui.views.instances.columns.BuiltinColumn.ColumnType;
+
 public class ConfigureColumnsDialog extends Dialog {
 	private String tagColumnStr;
 	private Map<BuiltinColumn.ColumnType, Boolean> builtinColumns
 		= new HashMap<BuiltinColumn.ColumnType, Boolean>();
+	private List<TableColumn> columns;
 	
 	public ConfigureColumnsDialog(Shell parentShell) {
 		super(parentShell);
@@ -30,6 +34,21 @@ public class ConfigureColumnsDialog extends Dialog {
 
 	protected boolean isResizable() {
 		return true;
+	}
+	
+	private void initializeTagText(Text tagColumnText) {
+		tagColumnText.setText("");
+		for (TableColumn c : columns) {
+			if (c instanceof TagColumn) {
+				String t = tagColumnText.getText();
+				String tagName = ((TagColumn)c).getTagName();
+				if (t.isEmpty())
+					tagColumnText.setText(tagName);
+				else
+					tagColumnText.setText(tagColumnText.getText() + "," + tagName);
+			}
+		}
+		tagColumnStr = tagColumnText.getText();
 	}
 	
 	@Override
@@ -45,6 +64,7 @@ public class ConfigureColumnsDialog extends Dialog {
 				tagColumnStr = ((Text)event.widget).getText();
 			}
 		});
+		initializeTagText(tagColumnText);
 		
 		Group builtins = new Group(composite, SWT.NONE);
 		builtins.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -54,6 +74,7 @@ public class ConfigureColumnsDialog extends Dialog {
 			Button ck = new Button(builtins, SWT.CHECK);
 			ck.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 			ck.setText(t.getName());
+			initializeCheckbox(ck, t);
 			ck.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
 					Button changedCk = (Button)e.widget;
@@ -67,10 +88,16 @@ public class ConfigureColumnsDialog extends Dialog {
 				}
 			});
 		}
-
 		return composite;
 	}
 	
+	private void initializeCheckbox(Button ck, ColumnType t) {
+		for (TableColumn c : columns) {
+			if (c instanceof BuiltinColumn && t == ColumnType.fromName(c.getColumnName()))
+				ck.setSelection(true);
+		}
+	}
+
 	public String getTagColumnText() {
 		return tagColumnStr==null? "" : tagColumnStr;
 	}
@@ -85,6 +112,14 @@ public class ConfigureColumnsDialog extends Dialog {
 
 	public Map<BuiltinColumn.ColumnType, Boolean> getBuiltinColumns() {
 		return builtinColumns;
+	}
+
+	public void initialize(List<TableColumn> columns) {
+		this.columns = columns;
+		for (TableColumn c : columns) {
+			if (c instanceof BuiltinColumn)
+				builtinColumns.put(((BuiltinColumn)c).getColumnType(), true);
+		}
 	}
 
 }

@@ -37,6 +37,10 @@ public class TagColumn extends TableColumn {
 		return getText(i1).compareTo(getText(i2));
 	}
 
+	public String getTagName() {
+		return key;
+	}
+	
 	@Override
 	public String getColumnName() {
 		return "Tag:" + key;
