@@ -56,30 +56,4 @@ class InstanceComparator extends SelectionTableComparator {
 		List<TableColumn> columns = instanceSelectionTable.getContentAndLabelProvider().getColumns();
 		return columns.get(this.sortColumn).compare(i1, i2);
 	}
-
-//	/**
-//	 * Formats a list of security groups as a string for easy comparison.
-//	 * It's assumed that the list of security groups is already sorted.
-//	 *
-//	 * @param securityGroupList
-//	 *            The list to format as a single string.
-//	 *
-//	 * @return A single string containing the specified list of security
-//	 *         groups.
-//	 */
-//	private String formatSecurityGroups(List<String> securityGroupList) {
-//	    if (securityGroupList == null) return "";
-//
-//		String formattedList = "";
-//		for (String group : securityGroupList) {
-//			if (formattedList.length() > 0) {
-//				formattedList += ", ";
-//			}
-//
-//			formattedList += group;
-//		}
-//
-//		return formattedList;
-//	}
-
 }
