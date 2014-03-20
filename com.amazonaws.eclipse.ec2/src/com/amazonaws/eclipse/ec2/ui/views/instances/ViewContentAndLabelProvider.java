@@ -62,6 +62,12 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
 	 */
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		instancesViewInput = (InstancesViewInput)newInput;
+		for (TableColumn c : columns) {
+			if (c instanceof BuiltinColumn) {
+				BuiltinColumn bc = ((BuiltinColumn) c);
+				bc.setViewInput(instancesViewInput);
+			}
+		}
 	}
 
 	/* (non-Javadoc)

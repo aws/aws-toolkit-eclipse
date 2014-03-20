@@ -244,4 +244,8 @@ public class BuiltinColumn extends TableColumn {
 		return column;
 	}
 
+	public void setViewInput(InstancesViewInput instancesViewInput) {
+		this.viewInput = instancesViewInput;
+	}
+
 }
