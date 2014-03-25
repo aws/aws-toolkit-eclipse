@@ -31,6 +31,8 @@ import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.reconciler.IReconciler;
@@ -47,8 +49,16 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.amazonaws.eclipse.cloudformation.templates.editor.hyperlink.TemplateHyperlinkDetector;
+
 
 final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration {
+
+    TemplateEditor editor = null;
+
+    public TemplateSourceViewerConfiguration(TemplateEditor editor) {
+        this.editor = editor;
+    }
 
     @Override
     public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
@@ -65,7 +75,7 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
         return reconciler;
     }
 
-    @Override
+	@Override
     public IReconciler getReconciler(ISourceViewer sourceViewer) {
         TemplateReconcilingStrategy reconcilingStrategy = new TemplateReconcilingStrategy(sourceViewer);
         MonoReconciler reconciler = new MonoReconciler(reconcilingStrategy, false);
@@ -174,7 +184,17 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
     public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
         return new IAutoEditStrategy[] { new TemplateAutoEditStrategy() };
     }
-    
-    
+
+    @Override
+	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+    	// TODO: Should this be creating a new instance every time?
+		return new IHyperlinkDetector[] {new TemplateHyperlinkDetector(editor)};
+	}
+
+	@Override
+	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
+		// TODO Auto-generated method stub
+		return super.getHyperlinkPresenter(sourceViewer);
+	}
 
 }

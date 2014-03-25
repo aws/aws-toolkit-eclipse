@@ -79,7 +79,7 @@ public class TemplateSchemaRules {
         return pseudoParameters;
     }
     
-    public List<IntrinsicFunction> getIntrinsicFuntions() {
+    public List<IntrinsicFunction> getIntrinsicFunctions() {
         // TODO: Caching
 
         ArrayList<IntrinsicFunction> intrinsicFunctions = new ArrayList<IntrinsicFunction>();

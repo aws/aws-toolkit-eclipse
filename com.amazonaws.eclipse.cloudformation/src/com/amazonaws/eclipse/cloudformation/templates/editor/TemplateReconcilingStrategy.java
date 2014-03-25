@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import org.codehaus.jackson.JsonLocation;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonStreamContext;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -35,6 +36,7 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 
 import com.amazonaws.eclipse.cloudformation.templates.TemplateArrayNode;
+import com.amazonaws.eclipse.cloudformation.templates.TemplateNamedObjectNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateObjectNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateValueNode;
@@ -94,24 +96,41 @@ public class TemplateReconcilingStrategy implements IReconcilingStrategy, IRecon
         JsonToken token = parser.getCurrentToken();
         if (token != JsonToken.START_OBJECT) throw new IllegalArgumentException("Current token not an object start token when attempting to parse an object: " + token);
 
-        TemplateObjectNode object = new TemplateObjectNode(getParserCurrentLocation(parser));
-        
+        // TODO: find a better way of identifying the root level node of parameters, mappings, resources, etc.
+        JsonStreamContext parent = parser.getParsingContext().getParent();
+        JsonStreamContext grandParent = (parent == null ? null : parent.getParent());
+        JsonStreamContext greatGrandParent = (grandParent == null ? null : grandParent.getParent());
+        boolean createNamedObject = (greatGrandParent != null && greatGrandParent.inRoot());
+
+        JsonLocation startLocation = getParserCurrentLocation(parser);
+        TemplateObjectNode object = (createNamedObject ? new TemplateNamedObjectNode(startLocation)
+                : new TemplateObjectNode(startLocation));
+
         do {
+            JsonLocation textStartLocation = parser.getCurrentLocation();
             token = nextToken(parser);
             if (token == JsonToken.END_OBJECT) break;
             
             if (token != JsonToken.FIELD_NAME) throw new RuntimeException("Unexpected token: " + token);
             String currentField = parser.getText();
-            
+            JsonLocation textEndLocation = parser.getCurrentLocation();
+
             token = nextToken(parser);
-            if (token == JsonToken.START_OBJECT) object.put(currentField, parseObject(parser));
-            if (token == JsonToken.START_ARRAY)  object.put(currentField, parseArray(parser));
-            if (token == JsonToken.VALUE_STRING) object.put(currentField, parseValue(parser));
+            if (token == JsonToken.START_OBJECT) {
+                TemplateObjectNode parsedObject = parseObject(parser);
+                object.put(currentField, textStartLocation, textEndLocation, parsedObject);
+                if (parsedObject instanceof TemplateNamedObjectNode) {
+                    TemplateNamedObjectNode namedObject = TemplateNamedObjectNode.class.cast(parsedObject);
+                    namedObject.setName(currentField);
+                }
+            }
+            if (token == JsonToken.START_ARRAY)  object.put(currentField, textStartLocation, textEndLocation, parseArray(parser));
+            if (token == JsonToken.VALUE_STRING) object.put(currentField, textStartLocation, textEndLocation, parseValue(parser));
         } while (true);
 
         if (token != JsonToken.END_OBJECT) throw new RuntimeException("Current token not an object end token: " + token);
         object.setEndLocation(getParserCurrentLocation(parser));
-        
+
         return object;
     }
 

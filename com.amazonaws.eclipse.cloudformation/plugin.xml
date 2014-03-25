@@ -47,6 +47,7 @@
              extensions="template,cftemplate"
              icon="icons/stack.png"
              id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor"
+             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
              name="Amazon CloudFormation Template Editor">
      </editor>
   </extension>

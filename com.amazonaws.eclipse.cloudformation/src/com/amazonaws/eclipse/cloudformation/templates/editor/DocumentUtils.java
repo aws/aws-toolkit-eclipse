@@ -17,7 +17,9 @@ package com.amazonaws.eclipse.cloudformation.templates.editor;
 import java.util.Stack;
 
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Region;
 
+import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
 import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocument;
 
 /**
@@ -142,5 +144,25 @@ public class DocumentUtils {
         } catch (BadLocationException e) {
             throw new RuntimeException("Error reading ahead to next char", e);
         }
+    }
+
+    public static Region getNamedNodeNameRegion(TemplateDocument document, TemplateNode node) {
+        if (node != null && node.getParent() != null) {
+            TemplateNode parentNode = node.getParent();
+            int startLocation = (int) parentNode.getStartLocation().getCharOffset();
+            int endLocation = (int) parentNode.getEndLocation().getCharOffset();
+
+            try {
+                while (true) {
+                    if ('"' == document.getChar(++startLocation)) break;
+                }
+                while (true) {
+                    if ('"' == document.getChar(--endLocation)) break;
+                }
+                return new Region(startLocation, endLocation - startLocation);
+            } catch (BadLocationException e) {
+            }
+        }
+        return null;
     }
 }

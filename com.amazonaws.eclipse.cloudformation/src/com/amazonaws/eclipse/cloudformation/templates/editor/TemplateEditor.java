@@ -34,6 +34,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateArrayNode;
+import com.amazonaws.eclipse.cloudformation.templates.TemplateNamedObjectNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateObjectNode;
 
@@ -98,6 +99,36 @@ public class TemplateEditor extends TextEditor {
             }
             return node;
         }
+
+        public TemplateNode findNamedNode(String name) {
+            return findNamedNode(name, model);
+        }
+
+        public TemplateNode findNamedNode(String name, TemplateNode node) {
+            if (node.isObject()) {
+                TemplateObjectNode object = (TemplateObjectNode)node;
+
+                if (object instanceof TemplateNamedObjectNode) {
+                    TemplateNamedObjectNode namedNode = TemplateNamedObjectNode.class.cast(object);
+                    if (namedNode.getName().contentEquals(name)) {
+                        return node;
+                    }
+                }
+
+                for (Entry<String, TemplateNode> entry : object.getFields()) {
+                    TemplateNode foundNode = findNamedNode(name, entry.getValue());
+                    if (foundNode != null) {
+                        return foundNode;
+                    }
+                }
+            } else if (node.isArray()) {
+                TemplateArrayNode array = (TemplateArrayNode)node;
+                for (TemplateNode member : array.getMembers()) {
+                    return findNamedNode(name, member);
+                }
+            }
+            return null;
+        }
     }
 
     private boolean match(int offset, TemplateNode node) {
@@ -138,7 +169,7 @@ public class TemplateEditor extends TextEditor {
 
     public TemplateEditor() {
         setDocumentProvider(new TemplateDocumentProvider());
-        setSourceViewerConfiguration(new TemplateSourceViewerConfiguration());
+        setSourceViewerConfiguration(new TemplateSourceViewerConfiguration(this));
     }
 
     public TemplateDocument getTemplateDocument() {
@@ -158,6 +189,6 @@ public class TemplateEditor extends TextEditor {
            return myOutlinePage;
         }
         return super.getAdapter(required);
-     }
-
+    }
+    
 }

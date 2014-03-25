@@ -349,7 +349,7 @@ public class TemplateContentAssistProcessor implements IContentAssistProcessor {
     private void addIntrinsicFunctionCompletions(int offset, List<ICompletionProposal> proposals) {
         TemplateSchemaRules schemaRules = getTemplateSchema();
 
-        for (IntrinsicFunction function : schemaRules.getIntrinsicFuntions()) {
+        for (IntrinsicFunction function : schemaRules.getIntrinsicFunctions()) {
             if (function.getName().equals("Ref")) {
                 // text, offset, 0, text.length(), null, text, contextInfo, description)
                 String refLiteral = "{ \"Ref\" : \"\" }";

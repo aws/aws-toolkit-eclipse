@@ -128,7 +128,7 @@ public class TemplateScanner extends RuleBasedScanner {
             templateWordRule.addWord(pseudoParameter.getName(), PSEUDO_PARAMETER_TOKEN);
         }
 
-        for (IntrinsicFunction intrinsicFunction : schemaRules.getIntrinsicFuntions()) {
+        for (IntrinsicFunction intrinsicFunction : schemaRules.getIntrinsicFunctions()) {
             templateWordRule.addWord(intrinsicFunction.getName(), INTRINSIC_FUNCTION_TOKEN);
         }
 
