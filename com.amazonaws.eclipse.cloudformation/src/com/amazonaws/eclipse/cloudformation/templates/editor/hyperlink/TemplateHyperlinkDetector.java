@@ -1,5 +1,10 @@
 package com.amazonaws.eclipse.cloudformation.templates.editor.hyperlink;
 
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Collections;
+import java.util.Set;
+
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
@@ -17,6 +22,13 @@ import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.Temp
 public class TemplateHyperlinkDetector implements IHyperlinkDetector {
 
     TemplateEditor editor = null;
+	private static final Set<String> hyperlinkCandidateKeys;
+	
+	static {
+		Set<String> tempSet = new HashSet<>();
+		Collections.addAll(tempSet, "Ref", "DependsOn");
+		hyperlinkCandidateKeys = Collections.unmodifiableSet(tempSet);
+	}
 
     public TemplateHyperlinkDetector(TemplateEditor editor) {
         this.editor = editor;
@@ -44,28 +56,41 @@ public class TemplateHyperlinkDetector implements IHyperlinkDetector {
                 return null;
             }
 
-            char previousChar = DocumentUtils.readToPreviousChar(document, quoteStart);
-            if (':' != previousChar) {
-                return null;
-            }
-
             // Make sure the previous node is a "Ref"
-            TemplateNode prevNode = document.findNode(quoteStart - 1);
-            if (!(prevNode instanceof TemplateObjectNode) || null == TemplateObjectNode.class.cast(prevNode).get("Ref")) {
-                return null;
+            if (isHyperlinkCandidate(document, quoteStart)) {
+	            // Adjust the region end points to omit the quotes around the value
+	            quoteStart++;
+	            quoteEnd--;
+	
+	            Region linkRegion = new Region(quoteStart, quoteEnd - quoteStart + 1);
+	            String linkText = ((TemplateValueNode) node).getText();
+	            TemplateHyperlink link = new TemplateHyperlink(linkRegion, document, linkText, editor);
+	
+	            return new IHyperlink[] { link };
             }
         } catch (BadLocationException e) {
             System.err.println("Error: Exception while processing possible hyperlink value: " + e.getMessage());
         }
 
-        // Adjust the region end points to omit the quotes around the value
-        quoteStart++;
-        quoteEnd--;
-
-        Region linkRegion = new Region(quoteStart, quoteEnd - quoteStart + 1);
-        String linkText = ((TemplateValueNode) node).getText();
-        TemplateHyperlink link = new TemplateHyperlink(linkRegion, document, linkText, editor);
-
-        return new IHyperlink[] { link };
+        return null;
     }
+
+	private boolean isHyperlinkCandidate(TemplateDocument document, int quoteStart) {
+        char previousChar = DocumentUtils.readToPreviousChar(document, quoteStart);
+        if (':' == previousChar) {
+	        TemplateNode prevNode = document.findNode(quoteStart - 1);
+	        if (prevNode.isObject()) {
+	        	TemplateObjectNode objectNode = TemplateObjectNode.class.cast(prevNode);
+	        	Set<Entry<String,TemplateNode>> fields = objectNode.getFields();
+	        	if (fields.size() == 1) {
+	        		String key = fields.iterator().next().getKey();
+	        		if (hyperlinkCandidateKeys.contains(key)) {
+	        			return true;
+	        		}
+	        	}
+	        	return true;
+	        }
+        }
+        return false;
+	}
 }
