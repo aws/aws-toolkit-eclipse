@@ -32,7 +32,6 @@ import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
-import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.reconciler.IReconciler;
@@ -189,12 +188,6 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
     public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
         // TODO: Should this be creating a new instance every time?
         return new IHyperlinkDetector[] {new TemplateHyperlinkDetector(editor)};
-    }
-
-    @Override
-    public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
-        // TODO Auto-generated method stub
-        return super.getHyperlinkPresenter(sourceViewer);
     }
 
 }
