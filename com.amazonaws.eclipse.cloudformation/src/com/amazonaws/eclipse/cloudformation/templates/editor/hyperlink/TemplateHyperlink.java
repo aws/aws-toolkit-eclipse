@@ -1,7 +1,6 @@
 package com.amazonaws.eclipse.cloudformation.templates.editor.hyperlink;
 
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 
 import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
@@ -41,7 +40,6 @@ public class TemplateHyperlink implements IHyperlink {
     @Override
 	public void open() {
 	    TemplateNode node = document.findNamedNode(hyperlinkText);
-	    Region region = DocumentUtils.getNamedNodeNameRegion(document, node);
-	    editor.selectAndReveal(region.getOffset() + 1, region.getLength() - 1);
+    	DocumentUtils.highlightNode(node);
 	}
 }

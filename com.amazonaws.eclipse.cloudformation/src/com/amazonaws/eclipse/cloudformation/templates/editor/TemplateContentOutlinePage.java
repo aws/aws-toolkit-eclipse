@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.codehaus.jackson.JsonLocation;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IOpenListener;
@@ -32,8 +31,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 import com.amazonaws.eclipse.cloudformation.templates.TemplateArrayNode;
@@ -69,17 +66,7 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
         viewer.addOpenListener(new IOpenListener() {
             public void open(OpenEvent event) {
                 TemplateOutlineNode selectedNode = (TemplateOutlineNode)((StructuredSelection)event.getSelection()).getFirstElement();
-
-                JsonLocation startLocation = selectedNode.getNode().getStartLocation();
-                JsonLocation endLocation   = selectedNode.getNode().getEndLocation();
-
-                IEditorPart activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-                if (activeEditor != null) {
-                    TemplateEditor templateEditor = (TemplateEditor)activeEditor;
-                    templateEditor.setHighlightRange(
-                        (int)startLocation.getCharOffset(),
-                        (int)endLocation.getCharOffset() - (int)startLocation.getCharOffset(), true);
-                }
+                DocumentUtils.highlightNode(selectedNode.getNode());
             }
         });
 

@@ -16,8 +16,11 @@ package com.amazonaws.eclipse.cloudformation.templates.editor;
 
 import java.util.Stack;
 
+import org.codehaus.jackson.JsonLocation;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Region;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
 import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocument;
@@ -165,4 +168,18 @@ public class DocumentUtils {
         }
         return null;
     }
+
+	public static void highlightNode(TemplateNode templateNode) {
+		JsonLocation startLocation = templateNode.getStartLocation();
+        JsonLocation endLocation   = templateNode.getEndLocation();
+
+        IEditorPart activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+        if (activeEditor != null) {
+            TemplateEditor templateEditor = (TemplateEditor)activeEditor;
+            templateEditor.setHighlightRange(
+                (int)startLocation.getCharOffset(),
+                (int)endLocation.getCharOffset() - (int)startLocation.getCharOffset(), true);
+        }
+	}
+
 }
