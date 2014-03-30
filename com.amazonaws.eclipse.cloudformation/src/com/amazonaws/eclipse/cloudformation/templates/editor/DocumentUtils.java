@@ -18,7 +18,6 @@ import java.util.Stack;
 
 import org.codehaus.jackson.JsonLocation;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.Region;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
@@ -149,7 +148,7 @@ public class DocumentUtils {
         }
     }
 
-	public static void highlightNode(TemplateNode templateNode) {
+    public static void highlightNode(TemplateNode templateNode) {
 		JsonLocation startLocation = templateNode.getStartLocation();
         JsonLocation endLocation   = templateNode.getEndLocation();
 
@@ -160,6 +159,6 @@ public class DocumentUtils {
                 (int)startLocation.getCharOffset(),
                 (int)endLocation.getCharOffset() - (int)startLocation.getCharOffset(), true);
         }
-	}
+    }
 
 }

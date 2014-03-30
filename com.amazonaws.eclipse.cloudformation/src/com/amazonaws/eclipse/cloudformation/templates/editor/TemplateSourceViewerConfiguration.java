@@ -186,15 +186,15 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
     }
 
     @Override
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-    	// TODO: Should this be creating a new instance every time?
-		return new IHyperlinkDetector[] {new TemplateHyperlinkDetector(editor)};
-	}
+    public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+        // TODO: Should this be creating a new instance every time?
+        return new IHyperlinkDetector[] {new TemplateHyperlinkDetector(editor)};
+    }
 
-	@Override
-	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
-		// TODO Auto-generated method stub
-		return super.getHyperlinkPresenter(sourceViewer);
-	}
+    @Override
+    public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
+        // TODO Auto-generated method stub
+        return super.getHyperlinkPresenter(sourceViewer);
+    }
 
 }

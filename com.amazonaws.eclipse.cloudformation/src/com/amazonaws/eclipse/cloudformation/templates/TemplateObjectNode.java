@@ -37,11 +37,9 @@ public class TemplateObjectNode extends TemplateNode {
         return true;
     }
 
-    public void put(String field, JsonLocation startLocation, JsonLocation endLocation, TemplateNode value) {
+    public void put(String field, TemplateNode value) {
         TemplateFieldNode fieldNode = new TemplateFieldNode(field);
         fieldNode.setParent(this);
-        fieldNode.setStartLocation(startLocation);
-        fieldNode.setEndLocation(endLocation);
         value.setParent(fieldNode);
         
         map.put(field, value);

@@ -46,26 +46,26 @@ public class TemplateHyperlink implements IHyperlink {
     }
 
     @Override
-	public void open() {
-    	if (isPseudoParameter(hyperlinkText)) {
-    		// Use a Google feeling lucky search to open the AWS reference page for the AWS:: type
-    		// directly, meaning we don't need to hard-code the AWS documentation URLs for each
-    		// particular type, and can even handle new types we haven't seen before.
-    		IWebBrowser browser;
-			try {
-				browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser(AWS_CLOUD_FORMATION_DOCS_VIEWER_ID);
-	    		URL url = new URL(String.format(GOOGLE_FEELING_LUCKY_SEARCH_URL, hyperlinkText));
-	    		browser.openURL(url);
-			} catch (PartInitException | MalformedURLException e) {
-				e.printStackTrace();
-			}
-    	} else {
-		    TemplateNode node = document.findNamedNode(hyperlinkText);
-	    	DocumentUtils.highlightNode(node);
-    	}
-	}
+    public void open() {
+        if (isPseudoParameter(hyperlinkText)) {
+            // Use a Google feeling lucky search to open the AWS reference page for the AWS:: type
+            // directly, meaning we don't need to hard-code the AWS documentation URLs for each
+            // particular type, and can even handle new types we haven't seen before.
+            IWebBrowser browser;
+            try {
+                browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser(AWS_CLOUD_FORMATION_DOCS_VIEWER_ID);
+                URL url = new URL(String.format(GOOGLE_FEELING_LUCKY_SEARCH_URL, hyperlinkText));
+                browser.openURL(url);
+            } catch (PartInitException | MalformedURLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            TemplateNode node = document.findNamedNode(hyperlinkText);
+            DocumentUtils.highlightNode(node);
+        }
+    }
 
-	private boolean isPseudoParameter(String text) {
-		return text.contains("AWS::");
-	}
+    private boolean isPseudoParameter(String text) {
+        return text.contains("AWS::");
+    }
 }

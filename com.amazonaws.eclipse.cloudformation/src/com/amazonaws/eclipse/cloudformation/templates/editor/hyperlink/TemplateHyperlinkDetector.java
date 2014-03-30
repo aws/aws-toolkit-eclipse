@@ -2,7 +2,6 @@ package com.amazonaws.eclipse.cloudformation.templates.editor.hyperlink;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -58,15 +57,15 @@ public class TemplateHyperlinkDetector implements IHyperlinkDetector {
 
             // Make sure the previous node is a "Ref"
             if (isHyperlinkCandidate(document, quoteStart, node)) {
-	            // Adjust the region end points to omit the quotes around the value
-	            quoteStart++;
-	            quoteEnd--;
+                // Adjust the region end points to omit the quotes around the value
+                quoteStart++;
+                quoteEnd--;
 	
-	            Region linkRegion = new Region(quoteStart, quoteEnd - quoteStart + 1);
-	            String linkText = ((TemplateValueNode) node).getText();
-	            TemplateHyperlink link = new TemplateHyperlink(linkRegion, document, linkText, editor);
+                Region linkRegion = new Region(quoteStart, quoteEnd - quoteStart + 1);
+                String linkText = ((TemplateValueNode) node).getText();
+                TemplateHyperlink link = new TemplateHyperlink(linkRegion, document, linkText, editor);
 	
-	            return new IHyperlink[] { link };
+                return new IHyperlink[] { link };
             }
         } catch (BadLocationException e) {
             System.err.println("Error: Exception while processing possible hyperlink value: " + e.getMessage());
@@ -75,20 +74,20 @@ public class TemplateHyperlinkDetector implements IHyperlinkDetector {
         return null;
     }
 
-	private boolean isHyperlinkCandidate(TemplateDocument document, int quoteStart, TemplateNode node) {
-		if (node.isValue()) {
-			TemplateValueNode valueNode = TemplateValueNode.class.cast(node);
-	        char previousChar = DocumentUtils.readToPreviousChar(document, quoteStart);
-	        if (':' == previousChar) {
-		        TemplateNode parentNode = node.getParent();
-		        if (parentNode.isField()) {
-		        	TemplateFieldNode fieldNode = TemplateFieldNode.class.cast(parentNode);
-	        		if (hyperlinkCandidateKeys.contains(fieldNode.getText())) {
-	        			return true;
-	        		}
-		        }
-	        }
-		}
-		return false;
-	}
+    private boolean isHyperlinkCandidate(TemplateDocument document, int quoteStart, TemplateNode node) {
+        if (node.isValue()) {
+            TemplateValueNode valueNode = TemplateValueNode.class.cast(node);
+            char previousChar = DocumentUtils.readToPreviousChar(document, quoteStart);
+            if (':' == previousChar) {
+                TemplateNode parentNode = node.getParent();
+                if (parentNode.isField()) {
+                    TemplateFieldNode fieldNode = TemplateFieldNode.class.cast(parentNode);
+                    if (hyperlinkCandidateKeys.contains(fieldNode.getText())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }

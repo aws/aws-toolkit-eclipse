@@ -118,14 +118,14 @@ public class TemplateReconcilingStrategy implements IReconcilingStrategy, IRecon
             token = nextToken(parser);
             if (token == JsonToken.START_OBJECT) {
                 TemplateObjectNode parsedObject = parseObject(parser);
-                object.put(currentField, textStartLocation, textEndLocation, parsedObject);
+                object.put(currentField, parsedObject);
                 if (parsedObject instanceof TemplateNamedObjectNode) {
                     TemplateNamedObjectNode namedObject = TemplateNamedObjectNode.class.cast(parsedObject);
                     namedObject.setName(currentField);
                 }
             }
-            if (token == JsonToken.START_ARRAY)  object.put(currentField, textStartLocation, textEndLocation, parseArray(parser));
-            if (token == JsonToken.VALUE_STRING) object.put(currentField, textStartLocation, textEndLocation, parseValue(parser));
+            if (token == JsonToken.START_ARRAY)  object.put(currentField, parseArray(parser));
+            if (token == JsonToken.VALUE_STRING) object.put(currentField, parseValue(parser));
         } while (true);
 
         if (token != JsonToken.END_OBJECT) throw new RuntimeException("Current token not an object end token: " + token);

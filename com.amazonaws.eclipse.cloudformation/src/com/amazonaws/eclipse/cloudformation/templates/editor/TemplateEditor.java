@@ -190,5 +190,5 @@ public class TemplateEditor extends TextEditor {
         }
         return super.getAdapter(required);
     }
-    
+
 }
