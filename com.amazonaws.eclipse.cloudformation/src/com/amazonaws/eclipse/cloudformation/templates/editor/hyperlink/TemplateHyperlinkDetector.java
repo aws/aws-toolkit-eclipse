@@ -1,8 +1,8 @@
 package com.amazonaws.eclipse.cloudformation.templates.editor.hyperlink;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map.Entry;
-import java.util.Collections;
 import java.util.Set;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -12,8 +12,8 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 
+import com.amazonaws.eclipse.cloudformation.templates.TemplateFieldNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
-import com.amazonaws.eclipse.cloudformation.templates.TemplateObjectNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateValueNode;
 import com.amazonaws.eclipse.cloudformation.templates.editor.DocumentUtils;
 import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor;
@@ -57,7 +57,7 @@ public class TemplateHyperlinkDetector implements IHyperlinkDetector {
             }
 
             // Make sure the previous node is a "Ref"
-            if (isHyperlinkCandidate(document, quoteStart)) {
+            if (isHyperlinkCandidate(document, quoteStart, node)) {
 	            // Adjust the region end points to omit the quotes around the value
 	            quoteStart++;
 	            quoteEnd--;
@@ -75,22 +75,24 @@ public class TemplateHyperlinkDetector implements IHyperlinkDetector {
         return null;
     }
 
-	private boolean isHyperlinkCandidate(TemplateDocument document, int quoteStart) {
-        char previousChar = DocumentUtils.readToPreviousChar(document, quoteStart);
-        if (':' == previousChar) {
-	        TemplateNode prevNode = document.findNode(quoteStart - 1);
-	        if (prevNode.isObject()) {
-	        	TemplateObjectNode objectNode = TemplateObjectNode.class.cast(prevNode);
-	        	Set<Entry<String,TemplateNode>> fields = objectNode.getFields();
-	        	if (fields.size() == 1) {
-	        		String key = fields.iterator().next().getKey();
-	        		if (hyperlinkCandidateKeys.contains(key)) {
+	private boolean isHyperlinkCandidate(TemplateDocument document, int quoteStart, TemplateNode node) {
+		if (node.isValue()) {
+			TemplateValueNode valueNode = TemplateValueNode.class.cast(node);
+	        char previousChar = DocumentUtils.readToPreviousChar(document, quoteStart);
+	        if (':' == previousChar) {
+		        TemplateNode parentNode = node.getParent();
+		        if (parentNode.isField()) {
+		        	TemplateFieldNode fieldNode = TemplateFieldNode.class.cast(parentNode);
+	        		if (!isPseudoParameter(valueNode.getText()) && hyperlinkCandidateKeys.contains(fieldNode.getText())) {
 	        			return true;
 	        		}
-	        	}
-	        	return true;
+		        }
 	        }
-        }
-        return false;
+		}
+		return false;
+	}
+
+	private boolean isPseudoParameter(String text) {
+		return text.contains("AWS::");
 	}
 }
