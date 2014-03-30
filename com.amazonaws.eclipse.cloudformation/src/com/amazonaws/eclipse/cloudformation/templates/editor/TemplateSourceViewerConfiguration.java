@@ -75,7 +75,7 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
         return reconciler;
     }
 
-	@Override
+    @Override
     public IReconciler getReconciler(ISourceViewer sourceViewer) {
         TemplateReconcilingStrategy reconcilingStrategy = new TemplateReconcilingStrategy(sourceViewer);
         MonoReconciler reconciler = new MonoReconciler(reconcilingStrategy, false);
