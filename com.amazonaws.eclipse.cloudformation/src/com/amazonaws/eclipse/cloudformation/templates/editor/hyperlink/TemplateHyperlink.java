@@ -1,7 +1,13 @@
 package com.amazonaws.eclipse.cloudformation.templates.editor.hyperlink;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.browser.IWebBrowser;
 
 import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
 import com.amazonaws.eclipse.cloudformation.templates.editor.DocumentUtils;
@@ -39,7 +45,25 @@ public class TemplateHyperlink implements IHyperlink {
 
     @Override
 	public void open() {
-	    TemplateNode node = document.findNamedNode(hyperlinkText);
-    	DocumentUtils.highlightNode(node);
+    	if (isPseudoParameter(hyperlinkText)) {
+    		// Use a Google feeling lucky search to open the AWS reference page for the AWS:: type
+    		// directly, meaning we don't need to hard-code the AWS documentation URLs for each
+    		// particular type, and can even handle new types we haven't seen before.
+    		IWebBrowser browser;
+			try {
+				browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser("AWSCloudFormationDocsViewer");
+	    		URL url = new URL(String.format("http://www.google.com/search?q=%s&btnI", hyperlinkText));
+	    		browser.openURL(url);
+			} catch (PartInitException | MalformedURLException e) {
+				e.printStackTrace();
+			}
+    	} else {
+		    TemplateNode node = document.findNamedNode(hyperlinkText);
+	    	DocumentUtils.highlightNode(node);
+    	}
+	}
+
+	private boolean isPseudoParameter(String text) {
+		return text.contains("AWS::");
 	}
 }

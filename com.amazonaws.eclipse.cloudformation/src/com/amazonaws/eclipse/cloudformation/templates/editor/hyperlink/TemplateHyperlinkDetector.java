@@ -26,7 +26,7 @@ public class TemplateHyperlinkDetector implements IHyperlinkDetector {
 	
 	static {
 		Set<String> tempSet = new HashSet<>();
-		Collections.addAll(tempSet, "Ref", "DependsOn");
+		Collections.addAll(tempSet, "Ref", "DependsOn", "Type");
 		hyperlinkCandidateKeys = Collections.unmodifiableSet(tempSet);
 	}
 
@@ -83,16 +83,12 @@ public class TemplateHyperlinkDetector implements IHyperlinkDetector {
 		        TemplateNode parentNode = node.getParent();
 		        if (parentNode.isField()) {
 		        	TemplateFieldNode fieldNode = TemplateFieldNode.class.cast(parentNode);
-	        		if (!isPseudoParameter(valueNode.getText()) && hyperlinkCandidateKeys.contains(fieldNode.getText())) {
+	        		if (hyperlinkCandidateKeys.contains(fieldNode.getText())) {
 	        			return true;
 	        		}
 		        }
 	        }
 		}
 		return false;
-	}
-
-	private boolean isPseudoParameter(String text) {
-		return text.contains("AWS::");
 	}
 }
