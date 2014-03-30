@@ -149,26 +149,6 @@ public class DocumentUtils {
         }
     }
 
-    public static Region getNamedNodeNameRegion(TemplateDocument document, TemplateNode node) {
-        if (node != null && node.getParent() != null) {
-            TemplateNode parentNode = node.getParent();
-            int startLocation = (int) parentNode.getStartLocation().getCharOffset();
-            int endLocation = (int) parentNode.getEndLocation().getCharOffset();
-
-            try {
-                while (true) {
-                    if ('"' == document.getChar(++startLocation)) break;
-                }
-                while (true) {
-                    if ('"' == document.getChar(--endLocation)) break;
-                }
-                return new Region(startLocation, endLocation - startLocation);
-            } catch (BadLocationException e) {
-            }
-        }
-        return null;
-    }
-
 	public static void highlightNode(TemplateNode templateNode) {
 		JsonLocation startLocation = templateNode.getStartLocation();
         JsonLocation endLocation   = templateNode.getEndLocation();
