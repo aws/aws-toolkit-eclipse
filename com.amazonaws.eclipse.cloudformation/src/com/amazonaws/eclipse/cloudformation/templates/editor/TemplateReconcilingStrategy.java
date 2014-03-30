@@ -97,23 +97,18 @@ public class TemplateReconcilingStrategy implements IReconcilingStrategy, IRecon
         if (token != JsonToken.START_OBJECT) throw new IllegalArgumentException("Current token not an object start token when attempting to parse an object: " + token);
 
         // TODO: find a better way of identifying the root level node of parameters, mappings, resources, etc.
-        JsonStreamContext parent = parser.getParsingContext().getParent();
-        JsonStreamContext grandParent = (parent == null ? null : parent.getParent());
-        JsonStreamContext greatGrandParent = (grandParent == null ? null : grandParent.getParent());
-        boolean createNamedObject = (greatGrandParent != null && greatGrandParent.inRoot());
+        boolean createNamedObject = isParsingNamedObject(parser);
 
         JsonLocation startLocation = getParserCurrentLocation(parser);
         TemplateObjectNode object = (createNamedObject ? new TemplateNamedObjectNode(startLocation)
                 : new TemplateObjectNode(startLocation));
 
         do {
-            JsonLocation textStartLocation = parser.getCurrentLocation();
             token = nextToken(parser);
             if (token == JsonToken.END_OBJECT) break;
             
             if (token != JsonToken.FIELD_NAME) throw new RuntimeException("Unexpected token: " + token);
             String currentField = parser.getText();
-            JsonLocation textEndLocation = parser.getCurrentLocation();
 
             token = nextToken(parser);
             if (token == JsonToken.START_OBJECT) {
@@ -132,6 +127,25 @@ public class TemplateReconcilingStrategy implements IReconcilingStrategy, IRecon
         object.setEndLocation(getParserCurrentLocation(parser));
 
         return object;
+    }
+
+    /*
+     * Hack to check the depth from the root
+     */
+    private boolean isParsingNamedObject(JsonParser parser) {
+        JsonStreamContext greatGrandParent = greatGrandParent(parser);
+        return greatGrandParent != null && greatGrandParent.inRoot();
+    }
+
+    private JsonStreamContext greatGrandParent(JsonParser parser) {
+        JsonStreamContext parent = parser.getParsingContext().getParent();
+        JsonStreamContext grandParent = parentIfNotNull(parent);
+        JsonStreamContext greatGrandParent = parentIfNotNull(grandParent);
+        return greatGrandParent;
+    }
+
+    private JsonStreamContext parentIfNotNull(JsonStreamContext parent) {
+        return parent == null ? null : parent.getParent();
     }
 
     private TemplateValueNode parseValue(JsonParser parser) throws IOException, JsonParseException {
