@@ -16,7 +16,9 @@ import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.Temp
 
 public class TemplateHyperlink implements IHyperlink {
 
-    IRegion region = null;
+    private static final String AWS_CLOUD_FORMATION_DOCS_VIEWER_ID = "AWSCloudFormationDocsViewer";
+	private static final String GOOGLE_FEELING_LUCKY_SEARCH_URL = "http://www.google.com/search?q=%s&btnI";
+	IRegion region = null;
     TemplateDocument document = null;
     TemplateEditor editor = null;
     String hyperlinkText = null;
@@ -51,8 +53,8 @@ public class TemplateHyperlink implements IHyperlink {
     		// particular type, and can even handle new types we haven't seen before.
     		IWebBrowser browser;
 			try {
-				browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser("AWSCloudFormationDocsViewer");
-	    		URL url = new URL(String.format("http://www.google.com/search?q=%s&btnI", hyperlinkText));
+				browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser(AWS_CLOUD_FORMATION_DOCS_VIEWER_ID);
+	    		URL url = new URL(String.format(GOOGLE_FEELING_LUCKY_SEARCH_URL, hyperlinkText));
 	    		browser.openURL(url);
 			} catch (PartInitException | MalformedURLException e) {
 				e.printStackTrace();
