@@ -43,7 +43,7 @@ import org.eclipse.ui.services.IDisposable;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
-import com.amazonaws.eclipse.core.regions.DefaultRegionChangeRefreshListener;
+import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
@@ -88,7 +88,7 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
     private final class RegionSelectionMenuAction extends Action implements IRefreshable, IDisposable {
         private Menu menu;
-        private DefaultRegionChangeRefreshListener regionChangeRefreshListener;
+        private PreferencePropertyChangeListener regionChangeListener;
 
         private RegionSelectionMenuAction() {
             super(null, Action.AS_DROP_DOWN_MENU);
@@ -96,8 +96,13 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
             setId("aws-region-selection");
 
-            regionChangeRefreshListener = new DefaultRegionChangeRefreshListener(this);
-        }
+            regionChangeListener = new PreferencePropertyChangeListener() {
+
+                public void watchedPropertyChanged() {
+                    RegionSelectionMenuAction.this.refreshData();
+                }
+            };
+            AwsToolkitCore.getDefault().addDefaultRegionChangeListener(regionChangeListener);        }
 
         @Override
         public IMenuCreator getMenuCreator() {
@@ -112,8 +117,8 @@ public class ConfigurationActionProvider extends CommonActionProvider {
                 }
 
                 public void dispose() {
-                    if (regionChangeRefreshListener != null) {
-                        regionChangeRefreshListener.stopListening();
+                    if (regionChangeListener != null) {
+                        AwsToolkitCore.getDefault().removeDefaultRegionChangeListener(regionChangeListener);
                     }
                     if (menu != null) {
                         menu.dispose();
@@ -127,7 +132,7 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
             Region currentRegion = RegionUtils.getCurrentRegion();
             for (final Region region : RegionUtils.getRegions()) {
-                MenuItem menuItem = new MenuItem(menu, SWT.CHECK);
+                MenuItem menuItem = new MenuItem(menu, SWT.RADIO);
                 menuItem.setText(region.getName());
                 menuItem.setData(region);
                 menuItem.setSelection(region.equals(currentRegion));
@@ -171,7 +176,9 @@ public class ConfigurationActionProvider extends CommonActionProvider {
         }
 
         public void dispose() {
-            if (regionChangeRefreshListener != null) regionChangeRefreshListener.stopListening();
+            if (regionChangeListener != null) {
+                AwsToolkitCore.getDefault().removeDefaultRegionChangeListener(regionChangeListener);
+            }
         }
     }
 
@@ -221,9 +228,12 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
             public void menuAboutToShow(IMenuManager manager) {
                 String currentAccountId = AwsToolkitCore.getDefault().getCurrentAccountId();
-                Map<String, String> accounts = AwsToolkitCore.getDefault().getAccounts();
+                Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
                 for ( Entry<String, String> entry : accounts.entrySet() ) {
-                    manager.add(new SwitchAccountAction(entry.getKey(), entry.getValue(), currentAccountId.equals(entry.getKey())));
+                    manager.add(
+                            new SwitchAccountAction(entry.getKey(),
+                                                    entry.getValue(),
+                                                    currentAccountId.equals(entry.getKey())));
                 }
                 manager.add(new Separator());
                 manager.add(new AccountPreferencesAction());
@@ -245,9 +255,10 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
         @Override
         public void run() {
-            AwsToolkitCore.getDefault().setCurrentAccountId(accountId);
+            AwsToolkitCore.getDefault().getAccountManager().setDefaultAccountId(
+                    RegionUtils.getCurrentRegion(),
+                    accountId);
         }
-
     };
 
 }

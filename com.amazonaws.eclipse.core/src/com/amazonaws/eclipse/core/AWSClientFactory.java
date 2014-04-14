@@ -33,6 +33,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.Service;
@@ -100,8 +101,9 @@ public class AWSClientFactory {
                 }
             });
 
-            plugin.addAccountInfoChangeListener(new AccountInfoChangeListener() {
-                public void currentAccountChanged() {
+            plugin.getAccountManager().addAccountInfoChangeListener(new PreferencePropertyChangeListener() {
+
+                public void watchedPropertyChanged() {
                     cachedClients.invalidateClients();
                 }
             });
@@ -198,6 +200,10 @@ public class AWSClientFactory {
         return getCloudFormationClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CLOUD_FORMATION));
     }
 
+    public AmazonEC2 getEC2Client() {
+        return getEC2ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.EC2));
+    }
+
     /*
      * Endpoint-specific getters return clients that use the endpoint given.
      */
@@ -277,6 +283,9 @@ public class AWSClientFactory {
             Constructor<T> constructor = clientClass.getConstructor(AWSCredentials.class, ClientConfiguration.class);
             ClientConfiguration config = createClientConfiguration(endpoint);
 
+            Service service = RegionUtils.getServiceByEndpoint(endpoint);
+            config.setSignerOverride(service.getSignerOverride());
+
             AWSCredentials credentials = new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey());
 
             T client = constructor.newInstance(credentials, config);
@@ -288,7 +297,7 @@ public class AWSClientFactory {
              * in case it can't be parsed from the endpoint URL by the default
              * setEndpoint method.
              */
-            Service service = RegionUtils.getServiceByEndpoint(endpoint);
+
             Method sigv4SetEndpointMethod = lookupSigV4SetEndpointMethod(clientClass);
             if (service.getServiceId() != null && sigv4SetEndpointMethod != null) {
                 Region region = RegionUtils.getRegionByEndpoint(endpoint);
@@ -364,7 +373,9 @@ public class AWSClientFactory {
 
         @SuppressWarnings("unchecked")
         public <T> T getClient(String endpoint, Class<T> clientClass) {
-            if (cachedClientsByEndpoint.get(clientClass) == null) return null;
+            if (cachedClientsByEndpoint.get(clientClass) == null) {
+                return null;
+            }
             return (T)cachedClientsByEndpoint.get(clientClass).get(endpoint);
         }
 
@@ -381,5 +392,4 @@ public class AWSClientFactory {
             cachedClientsByEndpoint.clear();
         }
     }
-
 }

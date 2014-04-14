@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 Amazon Technologies, Inc.
+ * Copyright 2008-2014 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,55 +12,44 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.amazonaws.eclipse.core.ui.preferences;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import org.eclipse.jface.preference.FileFieldEditor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.forms.events.ExpansionEvent;
-import org.eclipse.ui.forms.events.IExpansionListener;
-import org.eclipse.ui.forms.widgets.ExpandableComposite;
-import org.eclipse.ui.forms.widgets.Section;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.PreferenceLinkListener;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.util.StringUtils;
@@ -72,33 +61,8 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
     public static final String ID = "com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage";
 
-    // State variables to simplify bookkeeping
-    private String currentAccountId;
-    private final Map<String, String> accountNamesByIdentifier = new HashMap<String, String>();
-
-    // Page controls
-    private Combo accountSelector;
-    private AccountStringFieldEditor accountNameFieldEditor;
-    private AccountStringFieldEditor userIdFieldEditor;
-    private AccountStringFieldEditor accessKeyFieldEditor;
-    private AccountStringFieldEditor secretKeyFieldEditor;
-    private AccountFileFieldEditor certificateFieldEditor;
-    private AccountFileFieldEditor certificatePrivateKeyFieldEditor;
-
-    /*
-     * The set of field editors that need to know when the account or its name
-     * changes.
-     */
-    private final Collection<AccountFieldEditor> accountFieldEditors = new LinkedList<AccountFieldEditor>();
-
-    /** The checkbox controlling how we display the secret key */
-    private Button hideSecretKeyCheckbox;
-
-    /** The Text control in the secret key field editor */
-    private Text secretKeyText;
-
-    private Font italicFont;
-
+    private TabFolder accountsTabFolder;
+    
     /**
      * Creates the preference page and connects it to the plugin's preference
      * store.
@@ -108,6 +72,144 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
         setPreferenceStore(AwsToolkitCore.getDefault().getPreferenceStore());
         setDescription("AWS Toolkit Preferences");
+    }
+
+    /*
+     * Public static methods for retrieving/updating account configurations
+     * from/to the preference store
+     */
+
+    /**
+     * Returns whether the given region is configured with region-specific
+     * default accounts and that the configuration is not disabled.
+     */
+    public static boolean isRegionDefaultAccountEnabled(IPreferenceStore preferenceStore, Region region) {
+        boolean configured = getRegionsWithDefaultAccounts(preferenceStore).contains(region.getId());
+        // getBoolean(...) method returns false when the property is not specified.
+        // We use isDefault(...) instead so that only an explicit "false" indicates the region accounts are disabled.
+        boolean enabled = preferenceStore.isDefault(PreferenceConstants.P_REGION_DEFAULT_ACCOUNT_ENABLED(region));
+        return configured && enabled;
+    }
+
+    /**
+     * Returns the default account id associated with the given region. If the
+     * region is not configured with default accounts, then this method returns
+     * the global account id.
+     */
+    public static String getDefaultAccountByRegion(IPreferenceStore preferenceStore, Region region) {
+        if (isRegionDefaultAccountEnabled(preferenceStore, region)) {
+            return preferenceStore.getString(PreferenceConstants.P_REGION_CURRENT_DEFAULT_ACCOUNT(region));
+        } else {
+            return preferenceStore.getString(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT);
+        }
+    }
+
+    /** 
+     * For debug purpose only.
+     * Print out the property values of all the region-related preferences.
+     */
+    @SuppressWarnings("serial")
+    public static void printPrefs(final IPreferenceStore preferenceStore) {
+        List<String> prefKeys = new LinkedList<String>() {{
+            add(PreferenceConstants.P_REGIONS_WITH_DEFAULT_ACCOUNTS);
+            for (Region region : RegionUtils.getRegions()) {
+                addAll(getAllRelatedPreferenceKeys(preferenceStore, region));
+            }
+        }};
+        for (String key : prefKeys) {
+            System.out.println(key + " = " + preferenceStore.getString(key));
+        }
+    }
+
+    /**
+     * Returns list of region ids that are configured with region-specific
+     * default accounts, no matter enabled or not.
+     */
+    public static List<String> getRegionsWithDefaultAccounts(IPreferenceStore preferenceStore) {
+        String regionIdsString = preferenceStore.getString(PreferenceConstants.P_REGIONS_WITH_DEFAULT_ACCOUNTS);
+        if (regionIdsString == null || regionIdsString.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String[] regionIds = regionIdsString.split(PreferenceConstants.REGION_ID_SEPARATOR_REGEX);
+        return Arrays.asList(regionIds);
+    }
+
+    /**
+     * Returns all the registered global default accounts. Returns an empty map
+     * if none is registered yet.
+     */
+    public static Map<String, String> getGlobalAccounts(IPreferenceStore preferenceStore) {
+        return getRegionalAccounts(preferenceStore, null, false);
+    }
+
+    /**
+     * Returns all account names registered to the given region. If none are
+     * registered yet, it will optionally bootstrap the default setting..
+     * 
+     * @param preferenceStore
+     *            The preference store to use when looking up the account names.
+     * @param region
+     *            Null indicates the global account
+     * @param bootstrap
+     *            If true, this method will bootstrap the default configuration
+     *            if no accounts are registered.
+     * @return A map of account identifier to customer-assigned names. The
+     *         identifiers are the primary, immutable key used to access the
+     *         account.
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> getRegionalAccounts(IPreferenceStore preferenceStore, Region region, boolean bootstrap) {
+        String p_regionalAccountIds = PreferenceConstants.P_ACCOUNT_IDS(region);
+        String p_regionalCurrentAccount = PreferenceConstants.P_REGION_CURRENT_DEFAULT_ACCOUNT(region);
+        String regionalDefaultAccoutNameB64 = PreferenceConstants.DEFAULT_ACCOUNT_NAME_BASE_64(region);
+        
+        String accountIdsString = preferenceStore.getString(p_regionalAccountIds);
+
+        // bootstrapping
+        if ( accountIdsString == null || accountIdsString.length() == 0 ) {
+            if ( !bootstrap ) {
+                return Collections.EMPTY_MAP;
+            }
+            String id = UUID.randomUUID().toString();
+            preferenceStore.putValue(p_regionalCurrentAccount, id);
+            preferenceStore.putValue(p_regionalAccountIds, id);
+            preferenceStore.putValue(id + ":" + PreferenceConstants.P_ACCOUNT_NAME, regionalDefaultAccoutNameB64);
+        }
+
+        String[] accountIds = preferenceStore.getString(p_regionalAccountIds)
+                .split(PreferenceConstants.ACCOUNT_ID_SEPARATOR_REGEX);
+        Map<String, String> names = new HashMap<String, String>();
+        for ( String id : accountIds ) {
+            if (id.length() > 0) {
+                String preferenceName = id + ":" + PreferenceConstants.P_ACCOUNT_NAME;
+                names.put(id, ObfuscatingStringFieldEditor.decodeString(preferenceStore.getString(preferenceName)));
+            }
+        }
+
+        return names;
+    }
+
+    /**
+     * Returns all the preference keys related to the given region.
+     */
+    @SuppressWarnings("serial")
+    public static Set<String> getAllRelatedPreferenceKeys(final IPreferenceStore preferenceStore, final Region region) {
+        Set<String> allPrefKeys = new HashSet<String>() {{
+            add(PreferenceConstants.P_ACCOUNT_IDS(region));
+            add(PreferenceConstants.P_REGION_CURRENT_DEFAULT_ACCOUNT(region));
+            add(PreferenceConstants.P_REGION_DEFAULT_ACCOUNT_ENABLED(region));
+            
+            // Information of each account for the region
+            for (String accountId : getRegionalAccounts(preferenceStore, region, false).keySet()) {
+                add(accountId + ":" + PreferenceConstants.P_ACCOUNT_NAME);
+                add(accountId + ":" + PreferenceConstants.P_ACCESS_KEY);
+                add(accountId + ":" + PreferenceConstants.P_SECRET_KEY);
+                add(accountId + ":" + PreferenceConstants.P_USER_ID);
+                add(accountId + ":" + PreferenceConstants.P_CERTIFICATE_FILE);
+                add(accountId + ":" + PreferenceConstants.P_PRIVATE_KEY_FILE);
+            }
+        }};
+        return Collections.unmodifiableSet(allPrefKeys);
     }
 
     /*
@@ -131,23 +233,16 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      */
     @Override
     protected Control createContents(Composite parent) {
-        currentAccountId = getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
-
-        accountFieldEditors.clear();
-        accountNamesByIdentifier.clear();
-        accountNamesByIdentifier.putAll(getAccounts(getPreferenceStore()));
-
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout());
         GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         composite.setLayoutData(gridData);
 
+        // Accounts section
+        createAccountsSectionGroup(composite);
+
+        // The weblinks at the bottom part of the page
         WebLinkListener webLinkListener = new WebLinkListener();
-
-        Group accountsGroup = createAccountSelector(composite);
-        Group awsGroup = createAwsAccountSection(accountsGroup, webLinkListener);
-        createOptionalSection(awsGroup, webLinkListener);
-
         Link networkConnectionLink = new Link(composite, SWT.NULL);
         networkConnectionLink
                 .setText("See <a href=\"org.eclipse.ui.net.NetPreferences\">Network connections</a> to configure how the AWS Toolkit connects to the internet.");
@@ -156,9 +251,37 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
         String javaForumLinkText = "Get help or provide feedback on the " + "<a href=\""
                 + AwsUrls.JAVA_DEVELOPMENT_FORUM_URL + "\">AWS Java Development forum</a>. ";
-        newLink(webLinkListener, javaForumLinkText, composite);
-
+        AwsToolkitPreferencePage.newLink(webLinkListener, javaForumLinkText, composite);
+        
+        parent.pack();
         return composite;
+    }
+
+    /**
+     * This method persists the value of P_REGIONS_WITH_DEFAULT_ACCOUNTS property,
+     * according to the current configuration of this preference page.
+     */
+    private void markRegionsWithDefaultAccount(IPreferenceStore preferenceStore, List<String> regionIds) {
+        String regionIdsString = StringUtils.join(PreferenceConstants.REGION_ID_SEPARATOR,
+                regionIds.toArray(new String[regionIds.size()]));
+        preferenceStore.setValue(PreferenceConstants.P_REGIONS_WITH_DEFAULT_ACCOUNTS,
+                                 regionIdsString);
+    }
+
+    /**
+     * Returns the ids of all the regions that are configured with an account tab
+     */
+    private List<String> getConfiguredRegions() {
+        List<String> regionIds = new LinkedList<String>();
+        for (TabItem tab : accountsTabFolder.getItems()) {
+            if (tab instanceof AwsAccountPreferencePageTab) {
+                AwsAccountPreferencePageTab accountTab = (AwsAccountPreferencePageTab) tab;
+                if ( !accountTab.isGlobalAccoutTab() ) {
+                    regionIds.add(accountTab.getRegion().getId());
+                }
+            }
+        }
+        return Collections.unmodifiableList(regionIds);
     }
 
     /*
@@ -168,13 +291,13 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      */
     @Override
     protected void performDefaults() {
-        userIdFieldEditor.loadDefault();
-        accessKeyFieldEditor.loadDefault();
-        secretKeyFieldEditor.loadDefault();
-
-        certificateFieldEditor.loadDefault();
-        certificatePrivateKeyFieldEditor.loadDefault();
-
+        // Load default preference values for the current account tab.
+        if (accountsTabFolder != null && accountsTabFolder.getSelectionIndex() != -1) {
+            TabItem tab = accountsTabFolder.getItem(accountsTabFolder.getSelectionIndex());
+            if (tab instanceof AwsAccountPreferencePageTab) {
+                ((AwsAccountPreferencePageTab) tab).loadDefault();
+            }
+        }
         super.performDefaults();
     }
 
@@ -189,673 +312,192 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         // field editors, there is some flickering here if we don't lock the
         // display before this update.
         this.getControl().setRedraw(false);
+
+        List<String> configuredRegions = getConfiguredRegions();
+        // Update P_REGIONS_WITH_DEFAULT_ACCOUNTS preference property
+        markRegionsWithDefaultAccount(getPreferenceStore(), configuredRegions);
         
-        // Clean up the AWS User ID and store it
-        String userId = userIdFieldEditor.getStringValue();
-        userId = userId.replace("-", "");
-        userId = userId.replace(" ", "");
-        userIdFieldEditor.setStringValue(userId);
-        userIdFieldEditor.store();
+        // Clear all related preference properties of un-configured regions
+        for (Region region : RegionUtils.getRegions()) {
+            if ( !configuredRegions.contains(region.getId()) ) {
+                for (String prefKey : getAllRelatedPreferenceKeys(getPreferenceStore(), region)) {
+                    getPreferenceStore().setToDefault(prefKey);
+                }
+            }
+        }
 
-        // Clean up the account name and store it
-        String accountName = accountNameFieldEditor.getStringValue();
-        accountName = accountName.trim();
-        accountNameFieldEditor.setStringValue(accountName);
-        accountNameFieldEditor.store();
-
-        // Clean up the AWS Access Key and store it
-        String accessKey = accessKeyFieldEditor.getStringValue();
-        accessKey = accessKey.trim();
-        accessKeyFieldEditor.setStringValue(accessKey);
-        accessKeyFieldEditor.store();
-
-        // Clean up the AWS Secret Key and store it
-        String secretKey = secretKeyFieldEditor.getStringValue();
-        secretKey = secretKey.trim();
-        secretKeyFieldEditor.setStringValue(secretKey);
-        secretKeyFieldEditor.store();
-
-        // Save the certificate and private key
-        certificateFieldEditor.store();
-        certificatePrivateKeyFieldEditor.store();
-
-        // Finally update the list of account identifiers and the current
-        // account
-        String accountIds = StringUtils.join(PreferenceConstants.ACCOUNT_ID_SEPARATOR,
-                accountNamesByIdentifier.keySet().toArray(new String[accountNamesByIdentifier.size()]));
-        getPreferenceStore().setValue(PreferenceConstants.P_ACCOUNT_IDS, accountIds);
-        getPreferenceStore().setValue(PreferenceConstants.P_CURRENT_ACCOUNT, currentAccountId);
+        // Call doStore on each tab.
+        if (accountsTabFolder != null) {
+            for (TabItem tab : accountsTabFolder.getItems()) {
+                if (tab instanceof AwsAccountPreferencePageTab) {
+                    ((AwsAccountPreferencePageTab) tab).doStore();
+                }
+            }
+        }
 
         this.getControl().setRedraw(true);
-        
+
         return super.performOk();
+    }
+
+    /**
+     * Check for duplicate account names accross all region account tabs.
+     */
+    public void checkDuplicateAccountName() {
+        Set<String> accountNames = new HashSet<String>();
+
+        for (TabItem tab : accountsTabFolder.getItems()) {
+            if (tab instanceof AwsAccountPreferencePageTab) {
+                String[] names = ((AwsAccountPreferencePageTab) tab).getAccountNames();
+                for ( String accountName : names ) {
+                    if ( !accountNames.add(accountName) ) {
+                        setValid(false);
+                        setErrorMessage("Duplicate account name defined");
+                        return;
+                    }
+                }
+            }
+        }
+        setValid(true);
+        setErrorMessage(null);
     }
 
     /*
      * Private Interface
      */
 
-    /**
-     * Creates the account selection section.
-     */
-    private Group createAccountSelector(final Composite parent) {
-        Group accountSelectionGroup = new Group(parent, SWT.NONE);
-        accountSelectionGroup.setText("AWS Accounts:");
-        accountSelectionGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        accountSelectionGroup.setLayout(new GridLayout(4, false));
-        
+    @SuppressWarnings({ "unused" })
+    private Group createAccountsSectionGroup(final Composite parent) {
+        Group accountsSectionGroup = new Group(parent, SWT.NONE);
+        accountsSectionGroup.setText("AWS Accounts:");
+        accountsSectionGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        accountsSectionGroup.setLayout(new GridLayout());
 
-        new Label(accountSelectionGroup, SWT.READ_ONLY).setText("Default Account: ");
-        accountSelector = new Combo(accountSelectionGroup, SWT.DROP_DOWN | SWT.READ_ONLY);
-        accountSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        // A TabFolder containing the following tabs:
+        // Global Account | region-1 | region-2 | ... | + Configure Regional Account
+        final TabFolder tabFolder = new TabFolder(accountsSectionGroup, SWT.BORDER);
+        tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        tabFolder.pack();
 
-        IPreferenceStore preferenceStore = getPreferenceStore();
-        Map<String, String> accounts = getAccounts(preferenceStore);
+        int tabIndex = 0;
 
-        List<String> nameList = new ArrayList<String>();
-        nameList.addAll(accounts.values());
-        Collections.sort(nameList);
+        // Global default accounts
+        final AwsAccountPreferencePageTab globalAccountTab = new AwsAccountPreferencePageTab(
+                tabFolder, tabIndex, this, null);
 
-        int selectedIndex = 0;
-        for ( int i = 0; i < nameList.size(); i++ ) {
-            if ( nameList.get(i).equals(accountNamesByIdentifier.get(currentAccountId)) ) {
-                selectedIndex = i;
-                break;
+        // Region default accounts
+        for (String regionId : getRegionsWithDefaultAccounts(getPreferenceStore())) {
+            Region configuredRegion = RegionUtils.getRegion(regionId);
+            if (configuredRegion != null) {
+                new AwsAccountPreferencePageTab(
+                        tabFolder, ++tabIndex, this, configuredRegion);
             }
         }
 
-        accountSelector.setItems(nameList.toArray(new String[nameList.size()]));
-        accountSelector.select(selectedIndex);
+        // The fake tab for "Add default accounts for a region"
+        final TabItem newRegionalAccountConfigTab = new TabItem(tabFolder, SWT.NONE);
+        newRegionalAccountConfigTab.setToolTipText("Configure Regional Account");
+        newRegionalAccountConfigTab.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
 
-        accountSelector.addSelectionListener(new SelectionAdapter() {
-
-            @Override
+        tabFolder.addSelectionListener(new SelectionAdapter() {
+            int lastSelection = 0;
             public void widgetSelected(SelectionEvent e) {
-                String accountName = accountSelector.getItem(accountSelector.getSelectionIndex());
-                String id = reverseAccountLookup(accountName);
-                accountChanged(id);
-            }
-        });
+                if (e.item == newRegionalAccountConfigTab) {
+                    // Suppress selection on the fake tab
+                    tabFolder.setSelection(lastSelection);
 
-        final Button addNewAccount = new Button(accountSelectionGroup, SWT.PUSH);
-        addNewAccount.setText("Add account");
-        final Button deleteAccount = new Button(accountSelectionGroup, SWT.PUSH);
-        deleteAccount.setText("Remove account");
-        deleteAccount.setEnabled(accounts.size() > 1);
-        
+                    // Prompt up the region selection dialog
+                    RegionSelectionDialog dialog = new RegionSelectionDialog();
+                    int regionSelected = dialog.open();
+                    if (regionSelected == 1) {
+                        Region selectedRegion = dialog.getSelectedRegion();
 
-        Label defaultAccountExplainationLabel = new Label(accountSelectionGroup, SWT.WRAP);
-        defaultAccountExplainationLabel.setText("This account will be used by default for all features in the AWS Toolkit for Eclipse, unless they specifically allow you to select an account.");
-        FontData[] fontData = defaultAccountExplainationLabel.getFont().getFontData();
-        for (FontData fd : fontData) {
-            fd.setStyle(SWT.ITALIC);
-        }
-        italicFont = new Font(Display.getDefault(), fontData);
-        defaultAccountExplainationLabel.setFont(italicFont);
-        
-        GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        layoutData.horizontalSpan = 4;
-        layoutData.widthHint = 200;
-        defaultAccountExplainationLabel.setLayoutData(layoutData);
-        
-        
-        addNewAccount.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                String[] currentAccountNames = accountSelector.getItems();
-                String[] newAccountNames = new String[currentAccountNames.length + 1];
-                System.arraycopy(currentAccountNames, 0, newAccountNames, 0, currentAccountNames.length);
-                String newAccountName = "New Account";
-                newAccountNames[currentAccountNames.length] = newAccountName;
-                accountSelector.setItems(newAccountNames);
-                accountSelector.select(currentAccountNames.length);
-                accountSelector.getParent().getParent().layout();
+                        // Search for the selectedRegion from the existing tabs
+                        for (int ind = 0; ind < tabFolder.getItemCount(); ind++) {
+                            TabItem tab = tabFolder.getItem(ind);
+                            if (tab instanceof AwsAccountPreferencePageTab) {
+                                Region tabRegion = ((AwsAccountPreferencePageTab) tab).getRegion();
+                                if (tabRegion != null && tabRegion.getId().equals(selectedRegion.getId())) {
+                                    tabFolder.setSelection(ind);
+                                    return;
+                                }
+                            }
+                        }
 
-                String newAccountId = UUID.randomUUID().toString();
-                accountNamesByIdentifier.put(newAccountId, newAccountName);
-
-                accountChanged(newAccountId);
-                accountNameFieldEditor.setStringValue(newAccountName);
-
-                deleteAccount.setEnabled(true);
-            }
-        });
-
-        deleteAccount.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                String[] currentAccountNames = accountSelector.getItems();
-                String[] newAccountNames = new String[currentAccountNames.length - 1];
-                int i = 0;
-                int j = 0;
-                for ( String accountName : currentAccountNames ) {
-                    if ( i++ != accountSelector.getSelectionIndex() ) {
-                        newAccountNames[j++] = accountName;
+                        // Create a new tab for the selected region if it's not found
+                        AwsAccountPreferencePageTab newRegionAccountTab = new AwsAccountPreferencePageTab(
+                                                                                tabFolder,
+                                                                                tabFolder.getItemCount() - 1, // before the "new regional account" tab
+                                                                                AwsAccountPreferencePage.this,
+                                                                                selectedRegion);
+                        tabFolder.setSelection(tabFolder.getItemCount() - 2); // Select the newly created tab
                     }
-                }
-                if ( newAccountNames.length == 0 )
-                    newAccountNames = new String[] { PreferenceConstants.DEFAULT_ACCOUNT_NAME };
-
-                accountSelector.setItems(newAccountNames);
-                accountSelector.select(0);
-                accountNamesByIdentifier.remove(currentAccountId);
-
-                accountChanged(reverseAccountLookup(newAccountNames[0]));
-
-                deleteAccount.setEnabled(newAccountNames.length > 1);
-            }
-        });
-        
-        return accountSelectionGroup;
-    }
-
-    @Override
-    public void dispose() {
-        if (italicFont != null) italicFont.dispose();
-        super.dispose();
-    }
-
-    /**
-     * Looks up an account Id by its name.
-     */
-    protected String reverseAccountLookup(String accountName) {
-        String id = null;
-        for ( Entry<String, String> entry : accountNamesByIdentifier.entrySet() ) {
-            if ( entry.getValue().equals(accountName) ) {
-                id = entry.getKey();
-            }
-        }
-        return id;
-    }
-
-    /**
-     * Returns the list of account names registered. If none are registered yet,
-     * returns the default one.
-     *
-     * @param preferenceStore
-     *            The preference store to use when looking up the account names.
-     * @return A map of account identifier to customer-assigned names. The
-     *         identifiers are the primary, immutable key used to access the
-     *         account.
-     */
-    public static Map<String, String> getAccounts(IPreferenceStore preferenceStore) {
-        String accountNamesString = preferenceStore.getString(PreferenceConstants.P_ACCOUNT_IDS);
-
-        // bootstrapping
-        if ( accountNamesString == null || accountNamesString.length() == 0 ) {
-            String id = UUID.randomUUID().toString();
-            preferenceStore.putValue(PreferenceConstants.P_CURRENT_ACCOUNT, id);
-            preferenceStore.putValue(PreferenceConstants.P_ACCOUNT_IDS, id);
-            preferenceStore.putValue(id + ":" + PreferenceConstants.P_ACCOUNT_NAME, PreferenceConstants.DEFAULT_ACCOUNT_NAME_BASE_64);
-        }
-
-        String[] accountIds = accountNamesString.split(PreferenceConstants.ACCOUNT_ID_SEPARATOR_REGEX);
-        Map<String, String> names = new HashMap<String, String>();
-        for ( String id : accountIds ) {
-            String preferenceName = id + ":" + PreferenceConstants.P_ACCOUNT_NAME;
-            names.put(id, ObfuscatingStringFieldEditor.decodeString(preferenceStore.getString(preferenceName)));
-        }
-
-        return names;
-    }
-
-    /**
-     * Creates the widgets for the AWS account information section on this
-     * preference page.
-     *
-     * @param parent
-     *            The parent preference page composite.
-     * @param webLinkListener
-     *            The listener to attach to links.
-     */
-    private Group createAwsAccountSection(final Composite parent,
-                                         WebLinkListener webLinkListener) {
-
-        final Group awsAccountGroup = new Group(parent, SWT.NONE);
-        GridData gridData1 = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gridData1.horizontalSpan = 4;
-        gridData1.verticalIndent = 10;
-        awsAccountGroup.setLayoutData(gridData1);
-        awsAccountGroup.setText("Account Details:");
-        
-        String linkText = "<a href=\"" + AwsUrls.SIGN_UP_URL + "\">Sign up for a new AWS account</a> or "
-                + "<a href=\"" + AwsUrls.SECURITY_CREDENTIALS_URL
-                + "\">find your existing AWS security credentials</a>.";
-        newLink(webLinkListener, linkText, awsAccountGroup);
-        createSpacer(awsAccountGroup);
-
-        accountNameFieldEditor = newStringFieldEditor(currentAccountId, PreferenceConstants.P_ACCOUNT_NAME,
-                "Account &Name:", awsAccountGroup);
-
-        accountNameFieldEditor.getTextControl(awsAccountGroup).addModifyListener(new ModifyListener() {
-
-            public void modifyText(ModifyEvent e) {
-                String newAccountName = accountNameFieldEditor.getStringValue();
-                // On linux, we have to select an index after setting the current item
-                int selectionIndex = accountSelector.getSelectionIndex();
-				accountSelector.setItem(selectionIndex, newAccountName);
-                accountSelector.getParent().getParent().layout();
-                accountSelector.select(selectionIndex);
-                accountNamesByIdentifier.put(currentAccountId, newAccountName);
-                updatePageValidation();
-            }
-        });
-
-        accessKeyFieldEditor = newStringFieldEditor(currentAccountId, PreferenceConstants.P_ACCESS_KEY,
-                "&Access Key ID:", awsAccountGroup);
-        secretKeyFieldEditor = newStringFieldEditor(currentAccountId, PreferenceConstants.P_SECRET_KEY,
-                "&Secret Access Key:", awsAccountGroup);
-
-        // create an empty label in the first column so that the hide secret key
-        // checkbox lines up with the other text controls
-        new Label(awsAccountGroup, SWT.NONE);
-
-        hideSecretKeyCheckbox = new Button(awsAccountGroup, SWT.CHECK);
-        hideSecretKeyCheckbox.setText("Show secret access key");
-        hideSecretKeyCheckbox.setSelection(false);
-        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 2;
-        gridData.verticalIndent = -6;
-        gridData.horizontalIndent = 3;
-        hideSecretKeyCheckbox.setLayoutData(gridData);
-        hideSecretKeyCheckbox.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                updateSecretKeyText();
-            }
-        });
-
-        secretKeyText = secretKeyFieldEditor.getTextControl(awsAccountGroup);
-
-        updateSecretKeyText();
-        tweakLayout((GridLayout) awsAccountGroup.getLayout());
-
-        accountFieldEditors.add(accountNameFieldEditor);
-        accountFieldEditors.add(accessKeyFieldEditor);
-        accountFieldEditors.add(secretKeyFieldEditor);
-
-        return awsAccountGroup;
-    }
-
-    /**
-     * Invoked whenever the selected account information changes.
-     */
-    private void accountChanged(String accountIdentifier) {
-        currentAccountId = accountIdentifier;
-        for ( AccountFieldEditor editor : accountFieldEditors ) {
-            editor.accountChanged(accountIdentifier);
-        }
-    }
-
-    /**
-     * Update or clear the error message and validity of the page.
-     */
-    private void updatePageValidation() {
-        String errorString = validate();
-        if ( errorString != null ) {
-            setValid(false);
-            setErrorMessage(errorString);
-            return;
-        }
-
-        setValid(true);
-        setErrorMessage(null);
-    }
-
-    /**
-     * Returns an error message if there's a problem with the page's fields, or
-     * null if there are no errors.
-     */
-    private String validate() {
-        Set<String> accountNames = new HashSet<String>();
-
-        if ( accountSelector != null ) {
-            for ( String accountName : accountSelector.getItems() ) {
-                if ( !accountNames.add(accountName) ) {
-                    return "Duplicate account name defined";
+                } else {
+                    // Keep track of the latest selected tab
+                    lastSelection = tabFolder.getSelectionIndex();
                 }
             }
-        }
-
-        if ( accountNameFieldEditor != null ) {
-            if ( accountNameFieldEditor.getStringValue().trim().length() == 0 ) {
-                return "Account name must not be blank";
-            }
-
-            for ( Entry<String, String> entry : accountNameFieldEditor.valuesByAccountIdentifier.entrySet() ) {
-                if ( !entry.getKey().equals(currentAccountId) )
-                    if ( entry.getValue().length() == 0 )
-                        return "Account name must not be blank";
-            }
-        }
-
-        if ( certificateFieldEditor != null ) {
-            if ( invalidFile(certificateFieldEditor.getStringValue()) ) {
-                return "Certificate file does not exist";
-            }
-
-            for ( Entry<String, String> entry : certificateFieldEditor.valuesByAccountIdentifier.entrySet() ) {
-                if ( !entry.getKey().equals(currentAccountId) )
-                    if ( invalidFile(entry.getValue()) )
-                        return "Certificate file does not exist";
-            }
-        }
-
-        if ( certificatePrivateKeyFieldEditor != null ) {
-            String certFile = certificatePrivateKeyFieldEditor.getStringValue();
-            if ( invalidFile(certFile) ) {
-                return "Private key file does not exist";
-            }
-
-            for ( Entry<String, String> entry : certificatePrivateKeyFieldEditor.valuesByAccountIdentifier.entrySet() ) {
-                if ( !entry.getKey().equals(currentAccountId) )
-                    if ( invalidFile(entry.getValue()) )
-                        return "Private key file does not exist";
-            }
-        }
-
-        return null;
-    }
-
-    protected boolean invalidFile(String certFile) {
-        return certFile.trim().length() > 0
-                && !new File(certFile).exists();
-    }
-
-    /**
-     * Creates a new label to serve as an example for a field, using the
-     * specified text. The label will be displayed with a subtle font. This
-     * method assumes that the grid layout for the specified composite contains
-     * three columns.
-     *
-     * @param composite
-     *            The parent component for this new widget.
-     * @param text
-     *            The example text to display in the new label.
-     */
-    private void createFieldExampleLabel(Composite composite, String text) {
-        Label label = new Label(composite, SWT.NONE);
-        Font font = label.getFont();
-
-        label = new Label(composite, SWT.NONE);
-        label.setText(text);
-
-        FontData[] fontData = font.getFontData();
-        if ( fontData.length > 0 ) {
-            FontData fd = fontData[0];
-            fd.setHeight(10);
-            fd.setStyle(SWT.ITALIC);
-
-            label.setFont(new Font(Display.getCurrent(), fd));
-        }
-
-        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 2;
-        gridData.verticalAlignment = SWT.TOP;
-        gridData.horizontalIndent = 3;
-        gridData.verticalIndent = -4;
-        label.setLayoutData(gridData);
-    }
-
-    /**
-     * Updates the secret key text according to whether or not the
-     * "display secret key in plain text" checkbox is selected or not.
-     */
-    private void updateSecretKeyText() {
-        if ( hideSecretKeyCheckbox == null )
-            return;
-        if ( secretKeyText == null )
-            return;
-
-        if ( hideSecretKeyCheckbox.getSelection() ) {
-            secretKeyText.setEchoChar('\0');
-        } else {
-            secretKeyText.setEchoChar('*');
-        }
-    }
-
-    /**
-     * Creates the widgets for the optional configuration section on this
-     * preference page.
-     *
-     * @param parent
-     *            The parent preference page composite.
-     * @param webLinkListener
-     *            The listener to attach to links.
-     */
-    private void createOptionalSection(final Composite parent, WebLinkListener webLinkListener) {
-
-        Section expoandableComposite = new Section(parent, ExpandableComposite.TWISTIE);
-        GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gd.horizontalSpan = LAYOUT_COLUMN_WIDTH;
-        expoandableComposite.setLayoutData(gd);
-
-        Composite optionalConfigGroup = new Composite(expoandableComposite, SWT.NONE);
-        optionalConfigGroup.setLayout(new GridLayout());
-        optionalConfigGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-
-        expoandableComposite.setClient(optionalConfigGroup);
-        expoandableComposite.setText("Optional configuration:");
-        expoandableComposite.setExpanded(false);
-
-        expoandableComposite.addExpansionListener(new IExpansionListener() {
-
-            public void expansionStateChanging(ExpansionEvent e) {
-            }
-
-            public void expansionStateChanged(ExpansionEvent e) {
-                parent.getParent().layout();
-            }
         });
 
-        String linkText = "Your AWS account number and X.509 certificate are only needed if you want to bundle EC2 instances from Eclipse.  "
-                + "<a href=\"" + AwsUrls.SECURITY_CREDENTIALS_URL + "\">Manage your AWS X.509 certificate</a>.";
-        newLink(webLinkListener, linkText, optionalConfigGroup);
+        this.accountsTabFolder = tabFolder;
 
-        createSpacer(optionalConfigGroup);
-
-        userIdFieldEditor = newStringFieldEditor(currentAccountId, PreferenceConstants.P_USER_ID, "Account &Number:",
-                optionalConfigGroup);
-        createFieldExampleLabel(optionalConfigGroup, "ex: 1111-2222-3333");
-
-        certificateFieldEditor = newFileFieldEditor(currentAccountId, PreferenceConstants.P_CERTIFICATE_FILE,
-                "&Certificate File:", optionalConfigGroup);
-        certificatePrivateKeyFieldEditor = newFileFieldEditor(currentAccountId, PreferenceConstants.P_PRIVATE_KEY_FILE,
-                "&Private Key File:", optionalConfigGroup);
-
-        tweakLayout((GridLayout) optionalConfigGroup.getLayout());
-
-        accountFieldEditors.add(userIdFieldEditor);
-        accountFieldEditors.add(certificateFieldEditor);
-        accountFieldEditors.add(certificatePrivateKeyFieldEditor);
+        return accountsSectionGroup;
     }
 
-    protected AccountStringFieldEditor newStringFieldEditor(String currentAccount,
-                                                            String preferenceKey,
-                                                            String label,
-                                                            Composite parent) {
-        AccountStringFieldEditor fieldEditor = new AccountStringFieldEditor(currentAccount, preferenceKey, label,
-                parent);
-        setUpFieldEditor(currentAccount, preferenceKey, parent, fieldEditor);
-        return fieldEditor;
-    }
+    private static class RegionSelectionDialog extends MessageDialog {
 
-    protected AccountFileFieldEditor newFileFieldEditor(String currentAccount,
-                                                        String preferenceKey,
-                                                        String label,
-                                                        Composite parent) {
-        AccountFileFieldEditor fieldEditor = new AccountFileFieldEditor(currentAccount, preferenceKey, label, parent);
-        setUpFieldEditor(currentAccount, preferenceKey, parent, fieldEditor);
-        return fieldEditor;
-    }
+        private Region selectedRegion;
+        private Font italicFont;
 
-    protected void setUpFieldEditor(String currentAccount,
-                                    String preferenceKey,
-                                    Composite parent,
-                                    StringFieldEditor fieldEditor) {
-        fieldEditor.setPage(this);
-        fieldEditor.setPreferenceStore(this.getPreferenceStore());
-        fieldEditor.load();
-
-        // For backwards compatibility with single-account storage
-        if ( accountNamesByIdentifier.get(currentAccount) != null
-                && accountNamesByIdentifier.get(currentAccount).equals(PreferenceConstants.DEFAULT_ACCOUNT_NAME)
-                && (fieldEditor.getStringValue() == null || fieldEditor.getStringValue().length() == 0) ) {
-            String currentPrefValue = getPreferenceStore().getString(preferenceKey);
-            if ( ObfuscatingStringFieldEditor.isBase64(currentPrefValue) ) {
-                currentPrefValue = ObfuscatingStringFieldEditor.decodeString(currentPrefValue);
-            }
-            fieldEditor.setStringValue(currentPrefValue);
-        }
-
-        fieldEditor.fillIntoGrid(parent, LAYOUT_COLUMN_WIDTH);
-        fieldEditor.getTextControl(parent).addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-                updatePageValidation();
-            }
-        });
-    }
-
-    private interface AccountFieldEditor {
-
-        /**
-         * Invoked when the current account changes.
-         */
-        public void accountChanged(String accountIdentifier);
-    }
-
-    /*
-     * The next two classes are duplicates, but since their hierarchies diverge
-     * there isn't much we can do about that.
-     */
-
-    /**
-     * Preference editor with a dynamic key name
-     */
-    private class AccountStringFieldEditor extends ObfuscatingStringFieldEditor implements AccountFieldEditor {
-
-        private String accountIdentifier;
-
-        private final Map<String, String> valuesByAccountIdentifier = new HashMap<String, String>();
-
-        public AccountStringFieldEditor(String accountIdentifier, String preferenceKey, String labelText,
-                Composite parent) {
-            super(preferenceKey, labelText, parent);
-            this.accountIdentifier = accountIdentifier;
+        protected RegionSelectionDialog() {
+            super(Display.getDefault().getActiveShell(), "Select a region", AwsToolkitCore.getDefault()
+                    .getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON),
+                    "Configure the default AWS account for a specific region:" , MessageDialog.NONE, new String[] { "Cancel", "OK" }, 1);
         }
 
         @Override
-        public String getPreferenceName() {
-            return accountIdentifier + ":" + super.getPreferenceName();
-        }
-
-        /**
-         * Store the current value of the field before replacing the contents
-         * with either the last user-entered value or else the persisted
-         * preference's value.
-         */
-        public void accountChanged(String accountIdentifier) {
-            valuesByAccountIdentifier.put(this.accountIdentifier, getStringValue());
-            this.accountIdentifier = accountIdentifier;
-            if ( valuesByAccountIdentifier.containsKey(accountIdentifier) ) {
-                this.setStringValue(valuesByAccountIdentifier.get(accountIdentifier));
-            } else {
-                this.load();
-            }
-        }
-
-        /**
-         * Stores all the values that have been edited, not just the current one.
-         */
-        @Override
-        protected void doStore() {
-            valuesByAccountIdentifier.put(accountIdentifier, getStringValue());
-            String originalAccountIdentifier = this.accountIdentifier;
-
-            for ( Entry<String, String> entry : valuesByAccountIdentifier.entrySet() ) {
-                this.accountIdentifier = entry.getKey();
-                getTextControl().setText(entry.getValue());
-                super.doStore();
+        protected Control createCustomArea(final Composite parent) {
+            final Combo regionSelector = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
+            regionSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            for (Region region : RegionUtils.getRegions()) {
+                regionSelector.add(region.getName());
+                regionSelector.setData(region.getName(), region);
             }
 
-            this.accountIdentifier = originalAccountIdentifier;
-            getTextControl().setText(valuesByAccountIdentifier.get(accountIdentifier));
-        }
-
-        @Override
-        protected boolean checkState() {
-            String errorMessage = validate();
-            setErrorMessage(errorMessage);
-            return errorMessage == null;
-        }
-
-        @Override
-        protected void clearErrorMessage() {
-        }
-    }
-
-    /**
-     * Preference editor with a dynamic key name
-     */
-    private final class AccountFileFieldEditor extends FileFieldEditor implements AccountFieldEditor {
-
-        private String accountIdentifier;
-
-        private final Map<String, String> valuesByAccountIdentifier = new HashMap<String, String>();
-
-        public AccountFileFieldEditor(String accountIdentifier, String preferenceKey, String labelText,
-                Composite parent) {
-            super(preferenceKey, labelText, parent);
-            this.accountIdentifier = accountIdentifier;
-        }
-
-        @Override
-        public String getPreferenceName() {
-            return accountIdentifier + ":" + super.getPreferenceName();
-        }
-
-        /**
-         * Store the current value of the field before replacing the contents
-         * with either the last user-entered value or else the persisted
-         * preference's value.
-         */
-        public void accountChanged(String accountIdentifier) {
-            valuesByAccountIdentifier.put(this.accountIdentifier, getStringValue());
-            this.accountIdentifier = accountIdentifier;
-            if ( valuesByAccountIdentifier.containsKey(accountIdentifier) ) {
-                this.setStringValue(valuesByAccountIdentifier.get(accountIdentifier));
-            } else {
-                this.load();
+            final Label regionAccountExplanationLabel = new Label(parent, SWT.WRAP);
+            FontData[] fontData = regionAccountExplanationLabel.getFont().getFontData();
+            for (FontData fd : fontData) {
+                fd.setStyle(SWT.ITALIC);
             }
+            italicFont = new Font(Display.getDefault(), fontData);
+            regionAccountExplanationLabel.setFont(italicFont);
+
+            regionSelector.addSelectionListener(new SelectionAdapter() {
+
+                public void widgetSelected(SelectionEvent e) {
+                    updateSelectedRegion(regionSelector);
+                }
+            });
+
+            regionSelector.select(0);
+            updateSelectedRegion(regionSelector);
+
+            return regionSelector;
         }
 
-        /**
-         * Stores all the values that have been edited, not just the current one.
-         */
-        @Override
-        protected void doStore() {
-            valuesByAccountIdentifier.put(accountIdentifier, getStringValue());
-            String originalAccountIdentifier = this.accountIdentifier;
-
-            for ( Entry<String, String> entry : valuesByAccountIdentifier.entrySet() ) {
-                this.accountIdentifier = entry.getKey();
-                getTextControl().setText(entry.getValue());
-                super.doStore();
-            }
-
-            this.accountIdentifier = originalAccountIdentifier;
-            getTextControl().setText(valuesByAccountIdentifier.get(accountIdentifier));
-        }
-
-        @Override
-        protected boolean checkState() {
-            String errorMessage = validate();
-            setErrorMessage(errorMessage);
-            return errorMessage == null;
+        private void updateSelectedRegion(final Combo regionSelector) {
+            String regionName = regionSelector.getItem(regionSelector.getSelectionIndex());
+            selectedRegion = (Region) regionSelector.getData(regionName);
         }
 
         @Override
-        protected void clearErrorMessage() {
+        public boolean close() {
+            if (italicFont != null) italicFont.dispose();
+            return super.close();
+        }
+
+        public Region getSelectedRegion() {
+            return selectedRegion;
         }
     }
 }

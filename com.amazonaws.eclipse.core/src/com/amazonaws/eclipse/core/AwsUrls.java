@@ -21,7 +21,7 @@ public class AwsUrls {
     public static final String TRACKING_PARAMS = "utm_source=eclipse&utm_medium=ide&utm_campaign=awstoolkitforeclipse";
 
     public static final String SIGN_UP_URL = "http://aws.amazon.com/register" + "?" + TRACKING_PARAMS;
-    public static final String SECURITY_CREDENTIALS_URL = "http://aws.amazon.com/security-credentials" + "?" + TRACKING_PARAMS;
+    public static final String SECURITY_CREDENTIALS_URL = "https://console.aws.amazon.com/iam/home?#security_credential" + "?" + TRACKING_PARAMS;
 
     public static final String JAVA_DEVELOPMENT_FORUM_URL = "http://developer.amazonwebservices.com/connect/forum.jspa?forumID=70" + "&" + TRACKING_PARAMS;
 

@@ -112,7 +112,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
      * @return the access key set by the user in the wizard page.
      */
     public String getAccessKey() {
-        return AwsToolkitCore.getDefault().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getAccessKey();
+        return AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getAccessKey();
     }
 
     /**
@@ -120,7 +120,7 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
      * @return the secret key set by the user in the wizard page.
      */
     public String getSecretKey() {
-        return AwsToolkitCore.getDefault().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getSecretKey();
+        return AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getSecretKey();
     }
 
     private ScrolledComposite scrolledComp;

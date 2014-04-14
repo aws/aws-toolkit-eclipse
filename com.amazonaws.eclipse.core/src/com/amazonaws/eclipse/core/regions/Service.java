@@ -27,10 +27,16 @@ public class Service {
     /** The URL at which this service can be reached. */
     private final String endpoint;
 
-    public Service(String serviceName, String serviceId, String endpoint) {
+    private final String signerOverride;
+
+    public Service(String serviceName,
+                   String serviceId,
+                   String endpoint,
+                   String signerOverride) {
         this.serviceName = serviceName;
         this.serviceId = serviceId;
         this.endpoint = endpoint;
+        this.signerOverride = signerOverride;
     }
 
     public String getServiceName() {
@@ -43,5 +49,9 @@ public class Service {
 
     public String getEndpoint() {
         return endpoint;
+    }
+
+    public String getSignerOverride() {
+        return signerOverride;
     }
 }

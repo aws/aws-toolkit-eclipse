@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
  * in each region.
  */
 public class RegionMetadataParser {
+
     private static final String FLAG_ICON_TAG           = "flag-icon";
     private static final String REGION_DISPLAY_NAME_TAG = "displayname";
     private static final String REGION_SYSTEM_ID_TAG    = "systemname";
@@ -39,6 +40,7 @@ public class RegionMetadataParser {
     private static final String SERVICE_TAG             = "service";
     private static final String SERVICE_ID_ATTRIBUTE    = "serviceId";
     private static final String SERVICE_NAME_ATTRIBUTE  = "name";
+    private static final String SIGNER_ATTRIBUTE        = "signer";
 
     /**
      * Parses the specified input stream and returns a list of the regions
@@ -90,10 +92,12 @@ public class RegionMetadataParser {
                 Element element = (Element)node;
                 String serviceName = getAttributeValue(element, SERVICE_NAME_ATTRIBUTE);
                 String serviceId = getAttributeValue(element, SERVICE_ID_ATTRIBUTE);
+                String signer = getAttributeValue(element, SIGNER_ATTRIBUTE);
                 String endpoint = element.getTextContent();
 
                 region.getServiceEndpoints().put(serviceName, endpoint);
-                region.getServicesByName().put(serviceName, new Service(serviceName, serviceId, endpoint));
+                region.getServicesByName().put(serviceName,
+                    new Service(serviceName, serviceId, endpoint, signer));
             }
         }
 
@@ -101,7 +105,9 @@ public class RegionMetadataParser {
     }
 
     private static String getAttributeValue(Element element, String attribute) {
-        if (!element.hasAttribute(attribute)) return null;
+        if (!element.hasAttribute(attribute)) {
+            return null;
+        }
 
         return element.getAttribute(attribute);
     }

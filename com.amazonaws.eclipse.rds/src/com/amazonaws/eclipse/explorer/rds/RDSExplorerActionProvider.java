@@ -20,6 +20,8 @@ import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.connectivity.ProfileManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
@@ -31,7 +33,10 @@ import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.rds.ImportWizard;
 import com.amazonaws.eclipse.rds.RDSDriverDefinitionConstants;
 import com.amazonaws.eclipse.rds.RDSPlugin;
+import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.DBInstance;
+import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
+import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 
 public class RDSExplorerActionProvider extends CommonActionProvider {
 
@@ -56,20 +61,12 @@ public class RDSExplorerActionProvider extends CommonActionProvider {
     }
 
     public static class ConfigureConnectionProfileAction extends Action {
-        private final DBInstance dbInstance;
+        private DBInstance dbInstance;
 
         public ConfigureConnectionProfileAction(DBInstance dbInstance) {
             this.dbInstance = dbInstance;
             this.setText("Connect...");
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_GEAR));
-
-            String engine = dbInstance.getEngine();
-            if (engine.equals("mysql") || engine.startsWith("oracle-")) {
-                this.setEnabled(true);
-            } else {
-                // Don't enable this action if we don't understand the database type
-                this.setEnabled(false);
-            }
         }
 
         @Override
@@ -89,9 +86,32 @@ public class RDSExplorerActionProvider extends CommonActionProvider {
                 }
             }
 
+            AmazonRDS rds = AwsToolkitCore.getClientFactory().getRDSClient();
+            DescribeDBInstancesResult result = rds.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(dbInstance.getDBInstanceIdentifier()));
+            if (result.getDBInstances().isEmpty()) {
+                String title = "DB Instance Not Available";
+                String message = "The DB Instance you selected is no longer available.";
+                openErrorDialog(title, message);
+                return;
+            }
+
+            dbInstance = result.getDBInstances().get(0);
+            if (dbInstance.getPubliclyAccessible() == false) {
+                String title = "DB Instance Not Publicly Accessible";
+                String message = "The DB Instance you selected is not publically accessible.  "
+                        + "For more information about making your DB Instance publically accessible, see the Amazon RDS Developer Guide.";
+                openErrorDialog(title, message);
+                return;
+            }
+
             ImportWizard importWizard = new ImportWizard(dbInstance);
             WizardDialog wizardDialog = new WizardDialog(Display.getDefault().getActiveShell(), importWizard);
             wizardDialog.open();
         }
+    }
+
+    private static void openErrorDialog(String title, String message) {
+        new MessageDialog(Display.getDefault().getActiveShell(),
+                title, null, message, MessageDialog.ERROR, new String[] { "OK" }, 0).open();
     }
 }

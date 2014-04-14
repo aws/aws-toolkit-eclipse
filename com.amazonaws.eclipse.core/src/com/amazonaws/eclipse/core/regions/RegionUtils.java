@@ -101,7 +101,8 @@ public class RegionUtils {
 
         Service service = new Service(serviceName,
                                       serviceId,
-                                      "http://localhost:" + port);
+                                      "http://localhost:" + port,
+                                      null);
 
         local.getServicesByName().put(serviceName, service);
         local.getServiceEndpoints().put(serviceName, service.getEndpoint());

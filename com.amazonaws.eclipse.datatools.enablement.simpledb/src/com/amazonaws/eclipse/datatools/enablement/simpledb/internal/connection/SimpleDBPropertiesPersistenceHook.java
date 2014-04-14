@@ -43,7 +43,7 @@ public class SimpleDBPropertiesPersistenceHook extends JDBCPasswordPropertyPersi
         if ( uid == null || uid.length() == 0 || pwd == null || pwd.length() == 0 ) {
             AccountInfo accountInfo = null;
             if ( accountId != null ) {
-                accountInfo = AwsToolkitCore.getDefault().getAccountInfo(accountId);
+                accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountId);
             } else {
                 accountInfo = AwsToolkitCore.getDefault().getAccountInfo();
             }

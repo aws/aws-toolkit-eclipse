@@ -273,18 +273,12 @@ public class AddLSIDialog extends TitleAreaDialog {
     public LocalSecondaryIndex getLocalSecondaryIndex() {
         return localSecondaryIndex;
     }
-    
-    /** Returns null if the index range key is the same as the primary range key.
-     * In this case, the main table attribute definition 
-     * @return
+
+    /**
+     * Get the AttributeDefinition of the index range key as specified in this dialog.
      */
     public AttributeDefinition getIndexRangeKeyAttributeDefinition() {
-        if (indexRangeKeyAttributeDefinition.getAttributeName().equals(primaryRangeKeyName)) {
-            return null;
-        } else {
-            return indexRangeKeyAttributeDefinition;
-        }
-        
+        return indexRangeKeyAttributeDefinition;
     }
 
     private class AddNewAttributeDialog extends AbstractAddNewAttributeDialog {

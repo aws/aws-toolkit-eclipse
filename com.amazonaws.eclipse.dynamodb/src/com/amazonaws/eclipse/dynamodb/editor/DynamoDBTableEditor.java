@@ -252,7 +252,7 @@ public class DynamoDBTableEditor extends EditorPart {
              */
             if ( !deletedItems.isEmpty() ) {
                 for ( Iterator<Map<String, AttributeValue>> iter = deletedItems.iterator(); iter.hasNext(); ) {
-                	Map<String, AttributeValue> deletedItem = iter.next();
+                    Map<String, AttributeValue> deletedItem = iter.next();
                     try {
                         dynamoDBClient.deleteItem(new DeleteItemRequest()
                                 .withTableName(tableEditorInput.getTableName()).withKey(deletedItem));
@@ -939,15 +939,23 @@ public class DynamoDBTableEditor extends EditorPart {
             super("Create new item",
                   "Enter the key for the new item",
                   true,
-                  Arrays.asList(tableKey.getHashKeyAttributeName(), tableKey.getRangeKeyAttributeName()),
+                  new ArrayList<String>()
+                  {{
+                      add(tableKey.getHashKeyAttributeName());
+                      if (tableKey.getRangeKeyAttributeName() != null) {
+                          add(tableKey.getRangeKeyAttributeName());
+                      }
+                  }},
                   new HashMap<String, Integer>()
                   {{
-                       put(tableKey.getHashKeyAttributeName(), getDataType(tableKey.getHashKeyAttributeType()));
-                       put(tableKey.getRangeKeyAttributeName(), getDataType(tableKey.getRangeKeyAttributeType()));
+                      put(tableKey.getHashKeyAttributeName(), getDataType(tableKey.getHashKeyAttributeType()));
+                       if (tableKey.getRangeKeyAttributeName() != null) {
+                           put(tableKey.getRangeKeyAttributeName(), getDataType(tableKey.getRangeKeyAttributeType()));
+                       }
                   }},
                   null);
         }
-        
+
         Map<String, AttributeValue> getNewItem() {
             String hashKey = attributeValues.get(tableKey.getHashKeyAttributeName());
             String rangeKey = attributeValues.get(tableKey.getRangeKeyAttributeName());
@@ -955,7 +963,7 @@ public class DynamoDBTableEditor extends EditorPart {
             AttributeValue hashKeyAttribute = new AttributeValue();
             setAttribute(hashKeyAttribute, Arrays.asList(hashKey), tableKey.getHashKeyAttributeType());
             item.put(tableKey.getHashKeyAttributeName(), hashKeyAttribute);
-            if ( rangeKey.length() > 0 ) {
+            if ( rangeKey != null && rangeKey.length() > 0 ) {
                 AttributeValue rangeKeyAttribute = new AttributeValue();
                 setAttribute(rangeKeyAttribute, Arrays.asList(rangeKey), tableKey.getRangeKeyAttributeType());
                 item.put(tableKey.getRangeKeyAttributeName(), rangeKeyAttribute);
@@ -1141,7 +1149,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     markModified(item, text, rowNum, column, Arrays.asList(text.getText()), dataType);
                 }
             });
-            
+
             /*
              * We validate the user input of the scalar value when the text
              * editor is being disposed. (For set type, the validation happens in MultiValueAttributeEditorDialog.)
@@ -1248,7 +1256,7 @@ public class DynamoDBTableEditor extends EditorPart {
             if ( returnValue == 0 ) {
                 int dataType = editorComposite.getSelectedDataType(true);
                 markModified(item, editorComposite.editorText, row, column, multiValueEditorDialog.getValues(), dataType);
-            } 
+            }
             /* Save single value */
             else if ( returnValue == 1 ) {
                 int dataType = editorComposite.getSelectedDataType(false);
@@ -1332,23 +1340,23 @@ public class DynamoDBTableEditor extends EditorPart {
      */
     private Map<String, AttributeValue> getKey(final TableItem item) {
         @SuppressWarnings("unchecked")
-        Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData(); 
-        
+        Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData();
+
         Map<String, AttributeValue> keyAttributes = new HashMap<String, AttributeValue>();
-  
+
         String hashKeyAttributeName = tableKey.getHashKeyAttributeName();
         keyAttributes.put(hashKeyAttributeName, dynamoDbItem.get(hashKeyAttributeName));
-        
+
         if ( tableKey.hasRangeKey() ) {
-        	String rangeKeyAttributeName = tableKey.getRangeKeyAttributeName();
-        	keyAttributes.put(rangeKeyAttributeName, dynamoDbItem.get(rangeKeyAttributeName));
+            String rangeKeyAttributeName = tableKey.getRangeKeyAttributeName();
+            keyAttributes.put(rangeKeyAttributeName, dynamoDbItem.get(rangeKeyAttributeName));
         }
 
         return keyAttributes;
     }
-    
+
     /**
-     * Use DynamoDB V2 to get the attribtue names and types of both hash and range keys 
+     * Use DynamoDB V2 to get the attribtue names and types of both hash and range keys
      * of the table, and then save them in a KeySchemaWithAttributeType object.
      */
     private static KeySchemaWithAttributeType convertToKeySchemaWithAttributeType(
@@ -1378,7 +1386,7 @@ public class DynamoDBTableEditor extends EditorPart {
 
         return keySchema;
     }
-    
+
     /**
      * DynamoDB v2 no longer returns AttributeType as part of KeySchemaElement,
      * so we use this class to record the attribute names and types of both

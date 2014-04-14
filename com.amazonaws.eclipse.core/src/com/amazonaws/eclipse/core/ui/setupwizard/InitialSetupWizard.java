@@ -29,6 +29,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 
 public class InitialSetupWizard extends Wizard {
 
@@ -60,8 +61,9 @@ public class InitialSetupWizard extends Wizard {
         preferenceStore.setValue(internalAccountId + ":accountName", encodeString(DEFAULT_ACCOUNT_NAME));
         preferenceStore.setValue(internalAccountId + ":accessKey",   encodeString(dataModel.getAccessKeyId()));
         preferenceStore.setValue(internalAccountId + ":secretKey",   encodeString(dataModel.getSecretAccessKey()));
-        preferenceStore.setValue("currentAccount", internalAccountId);
-        preferenceStore.setValue("accountIds", internalAccountId);
+        preferenceStore.setValue(PreferenceConstants.P_CURRENT_ACCOUNT, internalAccountId);
+        preferenceStore.setValue(PreferenceConstants.P_ACCOUNT_IDS, internalAccountId);
+        preferenceStore.setValue(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT, internalAccountId);
 
         if (preferenceStore instanceof IPersistentPreferenceStore) {
             IPersistentPreferenceStore persistentPreferenceStore = (IPersistentPreferenceStore)preferenceStore;

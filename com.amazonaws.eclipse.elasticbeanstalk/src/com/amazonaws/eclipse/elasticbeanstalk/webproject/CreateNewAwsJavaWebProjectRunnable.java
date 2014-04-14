@@ -198,7 +198,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             addTemplateFiles(project);
             monitor.worked(10);
             CredentialsUtils credentialsUtils = new CredentialsUtils();
-            AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(dataModel.getAccountId());
+            AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(dataModel.getAccountId());
             credentialsUtils.addAwsCredentialsFileToProject(project, accountInfo.getAccessKey(), accountInfo.getSecretKey());
             monitor.worked(10);
 
@@ -312,7 +312,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         File localContextXml = project.getLocation()
             .append(".ebextensions")
             .append("context.xml").toFile();
-        AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(dataModel.getAccountId());
+        AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(dataModel.getAccountId());
         String contextContents = FileUtils.readFileToString(localContextXml);
         contextContents = contextContents.replace("{ACCESS_KEY}", accountInfo.getAccessKey());
         contextContents = contextContents.replace("{SECRET_KEY}", accountInfo.getSecretKey());

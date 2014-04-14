@@ -56,7 +56,7 @@ public abstract class AwsToolkitPreferencePage extends PreferencePage {
 	 *
 	 * @return The new Group widget.
 	 */
-	protected Group newGroup(String groupText, Composite parent) {
+	protected static Group newGroup(String groupText, Composite parent) {
 		Group group = new Group(parent, SWT.NONE);
 		group.setLayout(new GridLayout());
 		group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -75,7 +75,7 @@ public abstract class AwsToolkitPreferencePage extends PreferencePage {
 	 *
 	 * @return The new Label.
 	 */
-	protected Label newLabel(String labelText, Composite composite) {
+	protected static Label newLabel(String labelText, Composite composite) {
 		Label label = new Label(composite, SWT.WRAP);
 		label.setText(labelText);
 		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false);
@@ -96,7 +96,7 @@ public abstract class AwsToolkitPreferencePage extends PreferencePage {
 	 * @param composite
 	 *            The parent for the new Link.
 	 */
-	protected Link newLink(Listener linkListener, String linkText, Composite composite) {
+	protected static Link newLink(Listener linkListener, String linkText, Composite composite) {
 		Link link = new Link(composite, SWT.WRAP);
 		link.setText(linkText);
 		link.addListener(SWT.Selection, linkListener);
@@ -114,7 +114,7 @@ public abstract class AwsToolkitPreferencePage extends PreferencePage {
 	 * @param parent
 	 *            The composite this spacer is being added to.
 	 */
-	protected void createSpacer(Composite parent) {
+	protected static void createSpacer(Composite parent) {
 		Composite spacer = new Composite(parent, SWT.NONE);
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
 		data.heightHint = 5;
@@ -130,7 +130,7 @@ public abstract class AwsToolkitPreferencePage extends PreferencePage {
 	 * @param layout
 	 *            The layout to tweak.
 	 */
-	protected void tweakLayout(GridLayout layout) {
+	protected static void tweakLayout(GridLayout layout) {
 		layout.numColumns = LAYOUT_COLUMN_WIDTH;
 		layout.marginWidth = 10;
 		layout.marginHeight = 8;

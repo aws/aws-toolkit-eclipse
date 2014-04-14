@@ -19,7 +19,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collection;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AbstractFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPage;
@@ -32,6 +39,9 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
 
 /**
  * A DynamoDB Local Test Tool process.
@@ -91,9 +101,8 @@ public class TestToolProcess {
 
         builder.directory(installDirectory);
         builder.command(
-            // TODO: Will this work on Windows or do we need to do some haxx?
             jre.getInstallLocation().getAbsolutePath().concat("/bin/java"),
-            "-Djava.library.path=".concat(installDirectory.getAbsolutePath()),
+            "-Djava.library.path=".concat(findLibraryDirectory().getAbsolutePath()),
             "-jar",
             "DynamoDBLocal.jar",
             "--port",
@@ -113,6 +122,38 @@ public class TestToolProcess {
         // and dump it to an IConsole.
         new ConsoleOutputLogger(process.getInputStream(), onExitAction)
             .start();
+    }
+
+    /**
+     * Searches within the install directory for the native libraries required
+     * by DyanmoDB Local (i.e. SQLite) and returns the directory containing the
+     * native libraries.
+     *
+     * @return The directory within the install directory where native libraries
+     *         were found; otherwise, if no native libraries are found, the
+     *         install directory is returned.
+     */
+    private File findLibraryDirectory() {
+        // Mac and Linux libraries start with "libsqlite4java-" so
+        // use that pattern to identify the library directory
+        IOFileFilter fileFilter = new AbstractFileFilter() {
+            public boolean accept(File dir, String name) {
+                return name.startsWith("libsqlite4java-");
+            }
+        };
+
+        Collection<File> files = FileUtils.listFiles(installDirectory, fileFilter, TrueFileFilter.INSTANCE);
+
+        // Log a warning if we can't identify the library directory,
+        // and then just try to use the install directory
+        if (files == null || files.isEmpty()) {
+            Status status = new Status(IStatus.WARNING, DynamoDBPlugin.PLUGIN_ID,
+                    "Unable to find DynamoDB Local native libraries in " + installDirectory);
+            AwsToolkitCore.getDefault().getLog().log(status);
+            return installDirectory;
+        }
+
+        return files.iterator().next().getParentFile();
     }
 
     /**

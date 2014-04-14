@@ -78,7 +78,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
 
     protected boolean accountValid() {
         String accountId = this.accountSelection.getSelectedAccountId();
-        return AwsToolkitCore.getDefault().getAccountInfo(accountId).isValid();
+        return AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountId).isValid();
     }
 
     /**
@@ -167,7 +167,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
         removeListeners();
 
         String accountId = this.properties.getProperty(ISimpleDBConnectionProfileConstants.ACCOUNT_ID);
-        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccounts();
+        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
         String accountName = accounts.get(accountId);
         this.accountSelection.selectAccountName(accountName);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 Amazon Technologies, Inc.
+ * Copyright 2011-2014 Amazon Technologies, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,20 @@ import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.connectivity.ProfileManager;
 import org.eclipse.datatools.connectivity.drivers.DriverInstance;
 import org.eclipse.datatools.connectivity.drivers.DriverManager;
+import org.eclipse.datatools.connectivity.drivers.IDriverMgmtConstants;
 import org.eclipse.datatools.connectivity.drivers.IPropertySet;
 import org.eclipse.datatools.connectivity.drivers.PropertySetImpl;
+import org.eclipse.datatools.connectivity.drivers.jdbc.IJDBCConnectionProfileConstants;
 import org.eclipse.datatools.connectivity.drivers.jdbc.IJDBCDriverDefinitionConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.rds.connectionfactories.DatabaseConnectionFactory;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
+import com.amazonaws.services.ec2.model.IpPermission;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.AuthorizationAlreadyExistsException;
 import com.amazonaws.services.rds.model.AuthorizeDBSecurityGroupIngressRequest;
@@ -42,6 +49,7 @@ import com.amazonaws.services.rds.model.DBSecurityGroupMembership;
 import com.amazonaws.services.rds.model.DBSecurityGroupNotFoundException;
 import com.amazonaws.services.rds.model.DescribeDBSecurityGroupsRequest;
 import com.amazonaws.services.rds.model.ModifyDBInstanceRequest;
+import com.amazonaws.services.rds.model.VpcSecurityGroupMembership;
 
 class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
 
@@ -56,28 +64,17 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
     public ConfigureRDSDBConnectionRunnable(ImportDBInstanceDataModel wizardDataModel) {
         this.wizardDataModel = wizardDataModel;
         this.rds = AwsToolkitCore.getClientFactory().getRDSClient();
-
-        if (wizardDataModel.getDbInstance().getEngine().startsWith("oracle")) {
-            this.connectionFactory = new OracleConnectionFactory(wizardDataModel);
-        } else if (wizardDataModel.getDbInstance().getEngine().startsWith("mysql")) {
-            this.connectionFactory = new MySqlConnectionFactory(wizardDataModel);
-        } else {
-            throw new RuntimeException("Unsupported database engine: " + wizardDataModel.getDbInstance().getEngine());
-        }
+        this.connectionFactory = DatabaseConnectionFactory.createConnectionFactory(wizardDataModel);
     }
 
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         monitor.beginTask("Configuring database connection", 10);
 
-        openSecurityGroupIngress(new SubProgressMonitor(monitor, 5));
-
         try {
+            configureSecurityGroupPermissions(monitor);
             DriverInstance driverInstance = getDriver();
 
             /*
-             * TODO: We should test the connection profile to make sure the password was correct and
-             *      that we can actually connect to the host.
-             *
              * If we aren't able to connect, we should warn users, and let them know some of the possible
              * reasons, such as an incorrect password, or if they're connected through a firewall (like our VPN),
              * and how to run their DB instance on other ports so corporate firewalls don't cause problems.
@@ -96,11 +93,81 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
         }
     }
 
+    /**
+     * Opens a CIDR IP range ingress for the selected DB instance if the user
+     * has selected to have permissions configured automatically.
+     *
+     * @param monitor
+     *            ProgressMonitor for this runnable's progress.
+     */
+    private void configureSecurityGroupPermissions(IProgressMonitor monitor) {
+        if (wizardDataModel.getConfigurePermissions() == false) {
+            monitor.worked(5);
+            return;
+        }
+
+        if (isVpcDbInstance()) {
+            /*
+             * DB Instances created with the most recent versions of the RDS
+             * API will always use VPC security groups, which are owned in
+             * the user's EC2 account.
+             */
+            openVPCSecurityGroupIngress(new SubProgressMonitor(monitor, 5));
+        } else {
+            /*
+             * For older/legacy DB Instances, we need to modify the RDS
+             * security groups instead of working with EC2 directly.
+             */
+            openLegacySecurityGroupIngress(new SubProgressMonitor(monitor, 5));
+        }
+    }
+
+    /**
+     * Returns true if the selected RDS DB Instance is an RDS VPC DB Instance.
+     */
+    private boolean isVpcDbInstance() {
+        return wizardDataModel.getDbInstance().getVpcSecurityGroups().isEmpty() == false;
+    }
+
     public boolean didCompleteSuccessfully() {
         return completedSuccessfully;
     }
 
-    private void openSecurityGroupIngress(IProgressMonitor monitor) {
+    private void openVPCSecurityGroupIngress(IProgressMonitor monitor) {
+        monitor.beginTask("Configuring database security group", 3);
+
+        List<VpcSecurityGroupMembership> vpcSecurityGroups = wizardDataModel.getDbInstance().getVpcSecurityGroups();
+        if (vpcSecurityGroups == null || vpcSecurityGroups.isEmpty()) {
+            throw new RuntimeException("Expected a DB instance with VPC security groups!");
+        }
+
+        String vpcSecurityGroupId = vpcSecurityGroups.get(0).getVpcSecurityGroupId();
+
+        try {
+            AmazonEC2 ec2 = AwsToolkitCore.getClientFactory().getEC2Client();
+            ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest()
+                .withGroupId(vpcSecurityGroupId)
+                .withIpPermissions(new IpPermission()
+                    .withFromPort(wizardDataModel.getDbInstance().getEndpoint().getPort())
+                    .withToPort(wizardDataModel.getDbInstance().getEndpoint().getPort())
+                    .withIpProtocol("tcp")
+                    .withIpRanges(wizardDataModel.getCidrIpRange())));
+        } catch (AmazonServiceException ase) {
+            // We can safely ignore InvalidPermission.Duplicate errors,
+            // but will rethrow all other errors.
+            if (!ase.getErrorCode().equals("InvalidPermission.Duplicate")) {
+                throw ase;
+            }
+        }
+    }
+
+    /**
+     * This method opens security group permissions for legacy RDS DB Instances.
+     * Legacy DB Instances do not operate in VPC and connection permissions are
+     * managed through RDS security groups (not directly through EC2 security
+     * groups).
+     */
+    private void openLegacySecurityGroupIngress(IProgressMonitor monitor) {
         monitor.beginTask("Configuring database security group", 3);
 
         // First make sure our security group exists...
@@ -111,7 +178,6 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
             rds.createDBSecurityGroup(new CreateDBSecurityGroupRequest()
                     .withDBSecurityGroupName(DEFAULT_SECURITY_GROUP_NAME)
                     .withDBSecurityGroupDescription(DEFAULT_SECURITY_GROUP_DESCRIPTION));
-            // TODO: And probably wait for it to sync?
         }
         monitor.worked(1);
 
@@ -126,15 +192,13 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
             rds.modifyDBInstance(new ModifyDBInstanceRequest()
                 .withDBInstanceIdentifier(wizardDataModel.getDbInstance().getDBInstanceIdentifier())
                 .withDBSecurityGroups(existingSecurityGroupNames));
-            // TODO: Then we probably need to wait for the group membership status to become available?
         }
         monitor.worked(1);
 
         try {
             rds.authorizeDBSecurityGroupIngress(new AuthorizeDBSecurityGroupIngressRequest()
-                    .withCIDRIP("0.0.0.0/0")
+                    .withCIDRIP(wizardDataModel.getCidrIpRange())
                     .withDBSecurityGroupName(DEFAULT_SECURITY_GROUP_NAME));
-            // TODO: Do we need to wait for this rule to be authorized?
         } catch (AuthorizationAlreadyExistsException e) {}
         monitor.worked(1);
     }
@@ -150,12 +214,30 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
      * @return A driver for connecting to the user's database.
      */
     private DriverInstance getDriver() {
+        if (wizardDataModel.isUseExistingDriverDefinition()) {
+            return wizardDataModel.getDriverDefinition();
+        }
+
         String targetId = "DriverDefn." + connectionFactory.getDriverTemplate() + "." + connectionFactory.createDriverName();
         for (DriverInstance driverInstance : DriverManager.getInstance().getAllDriverInstances()) {
             if (driverInstance.getId().equals(targetId)) return driverInstance;
         }
 
-        Properties driverProperties = connectionFactory.createDriverProperties();
+        Properties driverProperties = new Properties();
+        if (wizardDataModel.getJdbcDriver() != null) {
+            // The MySQL driver is currently shipped with the plugins, so in this one case,
+            // the wizard data model won't have the driver file specified.
+            driverProperties.setProperty(IDriverMgmtConstants.PROP_DEFN_JARLIST, wizardDataModel.getJdbcDriver().getAbsolutePath());
+        }
+        driverProperties.setProperty(IJDBCConnectionProfileConstants.DRIVER_CLASS_PROP_ID, connectionFactory.getDriverClass());
+        driverProperties.setProperty(IJDBCConnectionProfileConstants.DATABASE_VENDOR_PROP_ID, connectionFactory.getDatabaseVendor());
+        driverProperties.setProperty(IJDBCConnectionProfileConstants.DATABASE_VERSION_PROP_ID, connectionFactory.getDatabaseVersion());
+        driverProperties.setProperty(IJDBCConnectionProfileConstants.SAVE_PASSWORD_PROP_ID, String.valueOf(true));
+        driverProperties.setProperty(IDriverMgmtConstants.PROP_DEFN_TYPE, connectionFactory.getDriverTemplate());
+
+        if (connectionFactory.getAdditionalDriverProperties() != null) {
+            driverProperties.putAll(connectionFactory.getAdditionalDriverProperties());
+        }
 
         IPropertySet propertySet = new PropertySetImpl(connectionFactory.createDriverName(), targetId);
         propertySet.setBaseProperties(driverProperties);
@@ -178,7 +260,11 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
         profileProperties.setProperty(IJDBCDriverDefinitionConstants.URL_PROP_ID, connectionFactory.createJdbcUrl());
         profileProperties.setProperty(IJDBCDriverDefinitionConstants.PASSWORD_PROP_ID, wizardDataModel.getDbPassword());
         profileProperties.setProperty(IJDBCDriverDefinitionConstants.USERNAME_PROP_ID, dbInstance.getMasterUsername());
-        profileProperties.setProperty(IJDBCDriverDefinitionConstants.DATABASE_NAME_PROP_ID, dbInstance.getDBName());
+
+        if (dbInstance.getDBName() != null) {
+            profileProperties.setProperty(IJDBCDriverDefinitionConstants.DATABASE_NAME_PROP_ID, dbInstance.getDBName());
+        }
+
         profileProperties.setProperty("org.eclipse.datatools.connectivity.driverDefinitionID", driverInstance.getId());
 
         /*

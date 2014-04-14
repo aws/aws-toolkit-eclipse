@@ -151,7 +151,7 @@ public class UpdateEnvironmentJob extends Job {
                 boolean doesEnvironmentExist = utils.doesEnvironmentExist(client, environment.getEnvironmentName());
 
                 if (environment.getIncrementalDeployment()) {
-                    AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountInfo(environment.getAccountId());
+                    AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(environment.getAccountId());
                     AWSGitPushCommand pushCommand = new AWSGitPushCommand(
                             getPrivateGitRepoLocation(environment), exportedWar.toFile(), environment,
                             new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey()));

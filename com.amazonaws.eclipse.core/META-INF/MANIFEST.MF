@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AWS Toolkit Core
 Bundle-SymbolicName: com.amazonaws.eclipse.core;singleton:=true
-Bundle-Version: 2.0.1.qualifier
+Bundle-Version: 2.0.2.qualifier
 Bundle-Vendor: Amazon Web Services
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Package: com.amazonaws,
@@ -14,6 +14,7 @@ Export-Package: com.amazonaws,
  com.amazonaws.auth.policy.resources,
  com.amazonaws.eclipse.core,
  com.amazonaws.eclipse.core.preferences,
+ com.amazonaws.eclipse.core.preferences.accounts,
  com.amazonaws.eclipse.core.regions,
  com.amazonaws.eclipse.core.ui,
  com.amazonaws.eclipse.core.ui.menu,
@@ -87,6 +88,7 @@ Export-Package: com.amazonaws,
  com.amazonaws.util.json,
  org.apache.commons.codec.binary,
  org.apache.commons.io,
+ org.apache.commons.io.filefilter,
  org.apache.http,
  org.apache.http.client,
  org.apache.http.client.methods,
@@ -132,7 +134,7 @@ Require-Bundle: org.eclipse.swt,
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: com.amazonaws.eclipse.core.AwsToolkitCore
 Bundle-ClassPath: .,
- lib/aws-java-sdk-1.6.11-core-no-flow.jar,
+ lib/aws-java-sdk-1.6.12-core-no-flow.jar,
  lib/jackson-core-2.1.1.jar,
  lib/jackson-databind-2.1.1.jar,
  lib/jackson-annotations-2.1.1.jar,

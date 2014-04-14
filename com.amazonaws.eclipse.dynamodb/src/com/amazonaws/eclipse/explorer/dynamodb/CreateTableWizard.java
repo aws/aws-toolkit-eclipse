@@ -29,6 +29,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.LocalSecondaryIndex;
@@ -88,6 +89,20 @@ class CreateTableWizard extends Wizard {
         return dataModel;
     }
 
+    /** Clear and then collect all the AttributeDefinitions defined in the primary table and each index */
+    public void collectAllAttribtueDefinitions() {
+        dataModel.getAttributeDefinitions().clear();
+
+        // Primary keys
+        dataModel.getAttributeDefinitions().add(new AttributeDefinition().withAttributeName(dataModel.getHashKeyName()).withAttributeType(dataModel.getHashKeyType()));
+        if (dataModel.getEnableRangeKey()) {
+            dataModel.getAttributeDefinitions().add(new AttributeDefinition().withAttributeName(dataModel.getRangeKeyName()).withAttributeType(dataModel.getRangeKeyType()));
+        }
+
+        // Index keys defined in the second page
+        dataModel.getAttributeDefinitions().addAll(secondPage.getAllIndexKeyAttributeDefinitions());
+    }
+
     private CreateTableRequest generateCreateTableRequest() {
         preProcessDataModel();
         CreateTableRequest createTableRequest = new CreateTableRequest();
@@ -110,27 +125,40 @@ class CreateTableWizard extends Wizard {
 
         createTableRequest.setKeySchema(keySchema);
         createTableRequest.setAttributeDefinitions(dataModel.getAttributeDefinitions());
-        if ( dataModel.getLocalSecondaryIndices() != null
-                && ( !dataModel.getLocalSecondaryIndices().isEmpty() ) ) {
-            createTableRequest.setLocalSecondaryIndexes(dataModel.getLocalSecondaryIndices());
+        if ( dataModel.getLocalSecondaryIndexes() != null
+                && ( !dataModel.getLocalSecondaryIndexes().isEmpty() ) ) {
+            createTableRequest.setLocalSecondaryIndexes(dataModel.getLocalSecondaryIndexes());
         }
+        if ( dataModel.getGlobalSecondaryIndexes() != null
+                && ( !dataModel.getGlobalSecondaryIndexes().isEmpty() ) ) {
+            createTableRequest.setGlobalSecondaryIndexes(dataModel.getGlobalSecondaryIndexes());
+        }
+        System.out.println(createTableRequest);
         return createTableRequest;
-
     }
 
-    // Add hash key and range key to the attribute definition list, also convert the string value shown in UI to the that for the creating table request.
+    /**
+     * Collect all the attribute definitions from primary table and secondary
+     * index, then convert the string value shown in UI to the that for the
+     * creating table request.
+     */
     private void preProcessDataModel() {
-        dataModel.getAttributeDefinitions().add(new AttributeDefinition().withAttributeName(dataModel.getHashKeyName()).withAttributeType(dataModel.getHashKeyType()));
-        if (dataModel.getEnableRangeKey()) {
-            dataModel.getAttributeDefinitions().add(new AttributeDefinition().withAttributeName(dataModel.getRangeKeyName()).withAttributeType(dataModel.getRangeKeyType()));
-        }
+        collectAllAttribtueDefinitions();
 
         for (AttributeDefinition attribute : dataModel.getAttributeDefinitions()) {
             attribute.setAttributeType(UINameToValueMap.get(attribute.getAttributeType()));
         }
 
-        for (LocalSecondaryIndex index : dataModel.getLocalSecondaryIndices()) {
-            index.getProjection().setProjectionType(UINameToValueMap.get(index.getProjection().getProjectionType()));
+        if (null != dataModel.getLocalSecondaryIndexes()) {
+            for (LocalSecondaryIndex index : dataModel.getLocalSecondaryIndexes()) {
+                index.getProjection().setProjectionType(UINameToValueMap.get(index.getProjection().getProjectionType()));
+            }
+        }
+        
+        if (null != dataModel.getGlobalSecondaryIndexes()) {
+            for (GlobalSecondaryIndex index : dataModel.getGlobalSecondaryIndexes()) {
+                index.getProjection().setProjectionType(UINameToValueMap.get(index.getProjection().getProjectionType()));
+            }
         }
     }
 

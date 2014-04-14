@@ -29,8 +29,12 @@ import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
+import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
+import com.amazonaws.eclipse.core.preferences.accounts.PluginPreferenceStoreAccountInfo;
+import com.amazonaws.eclipse.core.preferences.accounts.PluginPreferenceStoreAccountManager;
+import com.amazonaws.eclipse.core.preferences.regions.DefaultRegionMonitor;
+import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 import com.amazonaws.eclipse.core.ui.setupwizard.InitialSetupUtils;
 
 /**
@@ -113,8 +117,11 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     /** OSGI ServiceTracker object for querying details of proxy configuration */
     private ServiceTracker proxyServiceTracker;
 
-    /** Monitors for changes to AWS account information, and notifies listeners */
-    private AccountInfoMonitor accountInfoMonitor;
+    /** Monitors for changes of default region */
+    private DefaultRegionMonitor defaultRegionMonitor;
+
+    /** The AccountManager which persists account-related preference properties */
+    private PluginPreferenceStoreAccountManager accountManager;
 
 
     /**
@@ -165,6 +172,13 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         return clientsFactoryByAccountId.get(accountId);
     }
 
+    /**
+     * Returns the account manager associated with this plugin.
+     */
+    public PluginPreferenceStoreAccountManager getAccountManager() {
+        return accountManager;
+    }
+
     /* (non-Javadoc)
      * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
      */
@@ -176,23 +190,41 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         proxyServiceTracker = new ServiceTracker(context, IProxyService.class.getName(), null);
         proxyServiceTracker.open();
 
-        // Start listening for account changes...
-        accountInfoMonitor = new AccountInfoMonitor();
+        // Create AccountManager and start monitoring account preference changes
+        accountManager = new PluginPreferenceStoreAccountManager(getPreferenceStore());
+        accountManager.startAccountMonitors();
+
+        // Start listening for region preference changes...
+        defaultRegionMonitor = new DefaultRegionMonitor();
+        getPreferenceStore().addPropertyChangeListener(defaultRegionMonitor);
+
         bootstrapAccountPreferences();
 
         RegionUtils.init();
-        getPreferenceStore().addPropertyChangeListener(accountInfoMonitor);
+
+        // Start listening to changes on default region and region default account preference,
+        // and correspondingly update current account
+        PreferencePropertyChangeListener resetAccountListenr = new PreferencePropertyChangeListener() {
+
+            public void watchedPropertyChanged() {
+                Region newRegion = RegionUtils.getCurrentRegion();
+                accountManager.updateCurrentAccount(newRegion);
+            }
+        };
+        accountManager.addDefaultAccountChangeListener(resetAccountListenr);
+        addDefaultRegionChangeListener(resetAccountListenr);
 
         InitialSetupUtils.runInitialSetupWizard();
     }
 
     /**
      * Bootstraps the current account preferences for new customers or customers
-     * migrating from the legacy single-account preference
+     * migrating from the legacy single-account or global-accounts-only preference
      */
     private void bootstrapAccountPreferences() {
+        /* Bootstrap customers from legacy single-account preference */
         String currentAccount = getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
-
+        
         // Bootstrap new customers
         if ( currentAccount == null || currentAccount.length() == 0 ) {
             String accountId = UUID.randomUUID().toString();
@@ -207,6 +239,13 @@ public class AwsToolkitCore extends AbstractUIPlugin {
                 convertExistingPreference(accountId, prefName);
             }
         }
+
+        /* Bootstrap customers from the global-accounts-only preference */
+        String globalDefaultAccount = getPreferenceStore().getString(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT);
+        if (globalDefaultAccount == null || globalDefaultAccount.length() == 0) {
+            getPreferenceStore().putValue(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT,
+                    getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT));
+        }
     }
 
     protected void convertExistingPreference(String accountId, String preferenceName) {
@@ -220,7 +259,8 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     @Override
     public void stop(BundleContext context) throws Exception {
         plugin = null;
-        getPreferenceStore().removePropertyChangeListener(accountInfoMonitor);
+        accountManager.stopAccountMonitors();
+        getPreferenceStore().removePropertyChangeListener(defaultRegionMonitor);
         proxyServiceTracker.close();
         super.stop(context);
     }
@@ -231,70 +271,36 @@ public class AwsToolkitCore extends AbstractUIPlugin {
      * @return The user's AWS account info.
      */
     public AccountInfo getAccountInfo() {
-        return getAccountInfo(null);
-    }
-
-    /**
-     * Gets account info for the given account name. No error checking is
-     * performed on the account name, so clients must be careful to ensure its
-     * validity.
-     *
-     * @param accountId
-     *            The id of the account for which to get info, or null for the
-     *            currently selected account.
-     */
-    public AccountInfo getAccountInfo(String accountId) {
-        if (accountId == null)
-            accountId = getCurrentAccountId();
-        return new PluginPreferenceStoreAccountInfo(getPreferenceStore(), accountId);
+        return accountManager.getAccountInfo();
     }
 
     /**
      * Returns the current account Id
      */
     public String getCurrentAccountId() {
-        return getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
+        return accountManager.getCurrentAccountId();
     }
 
     /**
-     * Sets the current account id. No error checking is performed, so ensure
-     * the given account Id is valid.
-     */
-    public void setCurrentAccountId(String accountId) {
-        getPreferenceStore().setValue(PreferenceConstants.P_CURRENT_ACCOUNT, accountId);
-    }
-
-    /**
-     * Returns a map of all currently registered account names keyed by their
-     * ID, which can then be fetched with
-     * {@link AwsToolkitCore#getAccountInfo(String)}
-     *
-     * @see AwsAccountPreferencePage#getAccounts(org.eclipse.jface.preference.IPreferenceStore)
-     */
-    public Map<String, String> getAccounts() {
-        return AwsAccountPreferencePage.getAccounts(getPreferenceStore());
-    }
-
-    /**
-     * Registers a listener to receive notifications when account info is
-     * changed.
+     * Registers a listener to receive notifications when the default
+     * region is changed.
      *
      * @param listener
      *            The listener to add.
      */
-    public void addAccountInfoChangeListener(AccountInfoChangeListener listener) {
-        accountInfoMonitor.addAccountInfoChangeListener(listener);
+    public void addDefaultRegionChangeListener(PreferencePropertyChangeListener listener) {
+        defaultRegionMonitor.addChangeListener(listener);
     }
 
     /**
-     * Stops a listener from receiving notifications when account info is
-     * changed.
+     * Stops a listener from receiving notifications when the default
+     * region is changed.
      *
      * @param listener
      *            The listener to remove.
      */
-    public void removeAccountInfoChangeListener(AccountInfoChangeListener listener) {
-        accountInfoMonitor.removeAccountInfoChangeListener(listener);
+    public void removeDefaultRegionChangeListener(PreferencePropertyChangeListener listener) {
+        defaultRegionMonitor.removeChangeListener(listener);
     }
 
     /* (non-Javadoc)
@@ -363,5 +369,12 @@ public class AwsToolkitCore extends AbstractUIPlugin {
      */
     public void logException(String errorMessage, Throwable e) {
         getLog().log(new Status(Status.ERROR, PLUGIN_ID, errorMessage, e));
+    }
+
+    /**
+     * Convenience method for logging a debug message at INFO level.
+     */
+    public void logInfo(String debugMessage) {
+        getLog().log(new Status(Status.INFO, PLUGIN_ID, debugMessage, null));
     }
 }

@@ -24,11 +24,13 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
-import com.amazonaws.eclipse.core.preferences.AccountPreferenceChangeRefreshListener;
-import com.amazonaws.eclipse.core.preferences.PreferenceChangeRefreshListener;
-import com.amazonaws.eclipse.core.regions.DefaultRegionChangeRefreshListener;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.eclipse.ec2.ui.StatusBar;
 
@@ -40,19 +42,15 @@ public class SecurityGroupView extends ViewPart implements IRefreshable {
 	private SecurityGroupSelectionComposite securityGroupSelectionComposite;
 	private PermissionsComposite permissionsComposite;
 
-	/**
-	 * Listener for AWS account preference changes (such as access key or secret
-	 * access key) that require this view to be refreshed.
-	 */
-	private final PreferenceChangeRefreshListener accountPreferenceChangeRefreshListener
-			= new AccountPreferenceChangeRefreshListener(this);
-
-	/**
-	 * Listener for EC2 preference changes (such as current region) that require
-	 * this view to be refreshed.
-	 */
-	private final PreferenceChangeRefreshListener ec2PreferenceChangeRefreshListener 
-			= new DefaultRegionChangeRefreshListener(this);
+    /**
+     * Listener for AWS account and region preference changes that require this
+     * view to be refreshed.
+     */
+    PreferencePropertyChangeListener accountAndRegionChangeListener = new PreferencePropertyChangeListener() {
+        public void watchedPropertyChanged() {
+            SecurityGroupView.this.refreshData();
+        }
+    };
 
 
 	/* (non-Javadoc)
@@ -99,18 +97,22 @@ public class SecurityGroupView extends ViewPart implements IRefreshable {
 		contributeToActionBars();
 	}
 
+    @Override
+    public void init(IViewSite aSite, IMemento aMemento) throws PartInitException {
+        super.init(aSite, aMemento);
+         AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(accountAndRegionChangeListener);
+         AwsToolkitCore.getDefault().getAccountManager().addDefaultAccountChangeListener(accountAndRegionChangeListener);
+         AwsToolkitCore.getDefault().addDefaultRegionChangeListener(accountAndRegionChangeListener);
+    }
+
 	/*
 	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
 	 */
 	@Override
 	public void dispose() {
-		if (accountPreferenceChangeRefreshListener != null) {
-			accountPreferenceChangeRefreshListener.stopListening();
-		}
-		
-		if (ec2PreferenceChangeRefreshListener != null) {
-			ec2PreferenceChangeRefreshListener.stopListening();
-		}
+        AwsToolkitCore.getDefault().getAccountManager().removeAccountInfoChangeListener(accountAndRegionChangeListener);
+        AwsToolkitCore.getDefault().getAccountManager().removeDefaultAccountChangeListener(accountAndRegionChangeListener);
+        AwsToolkitCore.getDefault().removeDefaultRegionChangeListener(accountAndRegionChangeListener);
 		
 		super.dispose();
 	}

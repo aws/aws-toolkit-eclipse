@@ -130,7 +130,7 @@ public class SimpleDBConnection extends JDBCConnection {
         if ( uid == null || uid.length() == 0 || pwd == null || pwd.length() == 0 ) {
             AccountInfo accountInfo = null;
             if ( accountId != null ) {
-                accountInfo = AwsToolkitCore.getDefault().getAccountInfo(accountId);
+                accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountId);
             } else {
                 // Equivalent to useGlobal legacy property
                 accountInfo = AwsToolkitCore.getDefault().getAccountInfo();

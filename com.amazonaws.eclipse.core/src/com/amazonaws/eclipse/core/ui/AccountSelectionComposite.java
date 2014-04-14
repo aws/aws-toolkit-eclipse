@@ -139,7 +139,7 @@ public class AccountSelectionComposite extends Composite {
      * Returns whether there are valid aws accounts configured
      */
     private boolean validAccountsConfigured() {
-        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccounts();
+        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
         return !(accounts.size() == 1
                 && accounts.values().iterator().next().equals(PreferenceConstants.DEFAULT_ACCOUNT_NAME) 
                 && !AwsToolkitCore.getDefault().getAccountInfo().isValid());        
@@ -156,7 +156,7 @@ public class AccountSelectionComposite extends Composite {
 
         String currentAccount = this.accountSelection.getText();
 
-        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccounts();
+        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
         List<String> accountNames = new ArrayList<String>();
         accountNames.addAll(accounts.values());
         Collections.sort(accountNames);
@@ -241,7 +241,7 @@ public class AccountSelectionComposite extends Composite {
      * Returns whether a correctly configured account is selected.
      */
     public boolean isValidAccountSelected() {
-        AccountInfo info = AwsToolkitCore.getDefault().getAccountInfo(getSelectedAccountId());
+        AccountInfo info = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(getSelectedAccountId());
         return (info != null && info.isValid());
     }
 }

@@ -27,9 +27,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import com.amazonaws.eclipse.core.preferences.AccountPreferenceChangeRefreshListener;
-import com.amazonaws.eclipse.core.preferences.PreferenceChangeRefreshListener;
-import com.amazonaws.eclipse.core.regions.DefaultRegionChangeRefreshListener;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.eclipse.ec2.ui.StatusBar;
 import com.amazonaws.services.ec2.model.Image;
@@ -52,18 +51,14 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
     private StatusBar statusBar;
 
     /**
-     * Listener for AWS account preference changes (such as access key or secret
-     * access key) that require this view to be refreshed.
+     * Listener for AWS account and region preference changes that require this
+     * view to be refreshed.
      */
-    private final PreferenceChangeRefreshListener accountPreferenceRefreshListener
-            = new AccountPreferenceChangeRefreshListener(this);
-
-    /**
-     * Listens for EC2 preference changes that require this control to
-     * refresh itself.
-     */
-    private final PreferenceChangeRefreshListener regionPreferenceRefreshListener
-            = new DefaultRegionChangeRefreshListener(this);
+    private final PreferencePropertyChangeListener accountAndRegionChangeListener = new PreferencePropertyChangeListener() {
+        public void watchedPropertyChanged() {
+            FilteredAmiSelectionTable.this.refreshData();
+        }
+    };
 
     /**
      * Constructs a new filtered AMI selection table in the specified parent.
@@ -86,6 +81,11 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
      */
     public FilteredAmiSelectionTable(Composite parent, ToolBarManager toolbar, int numButtons) {
         super(parent, SWT.BORDER);
+
+        // Start listening to preference changes
+        AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(accountAndRegionChangeListener);
+        AwsToolkitCore.getDefault().getAccountManager().addDefaultAccountChangeListener(accountAndRegionChangeListener);
+        AwsToolkitCore.getDefault().addDefaultRegionChangeListener(accountAndRegionChangeListener);
 
         GridLayout gridLayout = new GridLayout(2 + numButtons, false);
         gridLayout.marginTop = 4;
@@ -134,11 +134,9 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
      */
     @Override
     public void dispose() {
-        if (accountPreferenceRefreshListener != null)
-            accountPreferenceRefreshListener.stopListening();
-
-        if (regionPreferenceRefreshListener != null)
-            regionPreferenceRefreshListener.stopListening();
+        AwsToolkitCore.getDefault().getAccountManager().removeAccountInfoChangeListener(accountAndRegionChangeListener);
+        AwsToolkitCore.getDefault().getAccountManager().removeDefaultAccountChangeListener(accountAndRegionChangeListener);
+        AwsToolkitCore.getDefault().removeDefaultRegionChangeListener(accountAndRegionChangeListener);
 
         if (statusBar != null) statusBar.dispose();
         if (amiSelectionTable != null) amiSelectionTable.dispose();

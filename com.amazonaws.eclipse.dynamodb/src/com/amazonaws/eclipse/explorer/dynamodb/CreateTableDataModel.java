@@ -14,12 +14,20 @@
  */
 package com.amazonaws.eclipse.explorer.dynamodb;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.LocalSecondaryIndex;
 
+/** 
+ * A POJO model containing all the data for a CreateTable request.
+ * This class is used as the model side of a data-binding.
+ */
 public class CreateTableDataModel {
 
     private String tableName;
@@ -31,9 +39,13 @@ public class CreateTableDataModel {
     private String rangeKeyType;
     private Long readCapacity;
     private Long writeCapacity;
-    private List<LocalSecondaryIndex> localSecondaryIndices;
-    // It is a must in create table request
-    private List<AttributeDefinition> attributeDefinitions = new LinkedList<AttributeDefinition>();
+    
+    private List<LocalSecondaryIndex> localSecondaryIndexes;
+    private List<GlobalSecondaryIndex> globalSecondaryIndexes;
+    
+    // We use a set instead of a list to store all the attribute definitions,
+    // in order to avoid duplicate from multiple secondary indexes.
+    private Set<AttributeDefinition> attributeDefinitions = new HashSet<AttributeDefinition>();
 
     public void setTableName(String tableName) {
         this.tableName = tableName;
@@ -99,20 +111,35 @@ public class CreateTableDataModel {
         return rangeKeyType;
     }
 
-    public List<LocalSecondaryIndex> getLocalSecondaryIndices() {
-        return localSecondaryIndices;
+    public List<LocalSecondaryIndex> getLocalSecondaryIndexes() {
+        return localSecondaryIndexes;
     }
 
-    public void setLocalSecondaryIndices(List<LocalSecondaryIndex> localSecondaryIndices) {
-        this.localSecondaryIndices = localSecondaryIndices;
+    public void setLocalSecondaryIndexes(List<LocalSecondaryIndex> localSecondaryIndexes) {
+        this.localSecondaryIndexes = localSecondaryIndexes;
     }
 
-    public List<AttributeDefinition> getAttributeDefinitions() {
+    public List<GlobalSecondaryIndex> getGlobalSecondaryIndexes() {
+        return globalSecondaryIndexes;
+    }
+
+    public void setGlobalSecondaryIndexes(
+            List<GlobalSecondaryIndex> globalSecondaryIndexes) {
+        this.globalSecondaryIndexes = globalSecondaryIndexes;
+    }
+
+    public Set<AttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
     }
 
-    public void setAttributeDefinitions(List<AttributeDefinition> attributeDefinitions) {
+    public void setAttributeDefinitions(Set<AttributeDefinition> attributeDefinitions) {
         this.attributeDefinitions = attributeDefinitions;
+    }
+    
+    public List<AttributeDefinition> getAttributeDefinitionsAsUnmodifiableList() {
+        List<AttributeDefinition> defList = Collections.unmodifiableList(new LinkedList<AttributeDefinition>());
+        defList.addAll(attributeDefinitions);
+        return defList;
     }
 
 }

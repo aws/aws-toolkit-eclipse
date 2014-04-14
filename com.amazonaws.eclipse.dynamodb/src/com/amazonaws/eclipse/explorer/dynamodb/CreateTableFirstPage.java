@@ -32,15 +32,12 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -71,6 +68,7 @@ public class CreateTableFirstPage extends WizardPage {
         super.dispose();
     }
 
+    private static final long CAPACITY_UNIT_MINIMUM = 1;
     private static final String[] DATA_TYPE_STRINGS = new String[] { "String", "Number", "Binary" };
 
     CreateTableFirstPage(CreateTableWizard wizard) {
@@ -96,15 +94,15 @@ public class CreateTableFirstPage extends WizardPage {
         // Table name
         Label tableNameLabel = new Label(comp, SWT.READ_ONLY);
         tableNameLabel.setText("Table Name:");
-        final Text tableNameText = newTextField(comp);
+        final Text tableNameText = CreateTablePageUtil.newTextField(comp);
         bindingContext.bindValue(SWTObservables.observeText(tableNameText, SWT.Modify), tableName);
         ChainValidator<String> tableNameValidationStatusProvider = new ChainValidator<String>(tableName, new NotEmptyValidator("Please provide a table name"));
         bindingContext.addValidationStatusProvider(tableNameValidationStatusProvider);
 
         // Hash key
-        Group hashKeyGroup = newGroup(comp, "Hash Key", 2);
+        Group hashKeyGroup = CreateTablePageUtil.newGroup(comp, "Hash Key", 2);
         new Label(hashKeyGroup, SWT.READ_ONLY).setText("Hash Key Name:");
-        final Text hashKeyText = newTextField(hashKeyGroup);
+        final Text hashKeyText = CreateTablePageUtil.newTextField(hashKeyGroup);
         bindingContext.bindValue(SWTObservables.observeText(hashKeyText, SWT.Modify), hashKeyName);
         ChainValidator<String> hashKeyNameValidationStatusProvider = new ChainValidator<String>(hashKeyName, new NotEmptyValidator("Please provide an attribute name for the hash key"));
         bindingContext.addValidationStatusProvider(hashKeyNameValidationStatusProvider);
@@ -116,14 +114,14 @@ public class CreateTableFirstPage extends WizardPage {
         hashKeyTypeCombo.select(0);
 
         // Range key
-        Group rangeKeyGroup = newGroup(comp, "Range Key", 2);
+        Group rangeKeyGroup = CreateTablePageUtil.newGroup(comp, "Range Key", 2);
         final Button enableRangeKeyButton = new Button(rangeKeyGroup, SWT.CHECK);
         enableRangeKeyButton.setText("Enable Range Key");
         GridDataFactory.fillDefaults().span(2, 1).applyTo(enableRangeKeyButton);
         bindingContext.bindValue(SWTObservables.observeSelection(enableRangeKeyButton), enableRangeKey);
         final Label rangeKeyAttributeLabel = new Label(rangeKeyGroup, SWT.READ_ONLY);
         rangeKeyAttributeLabel.setText("Range Key Name:");
-        final Text rangeKeyText = newTextField(rangeKeyGroup);
+        final Text rangeKeyText = CreateTablePageUtil.newTextField(rangeKeyGroup);
         bindingContext.bindValue(SWTObservables.observeText(rangeKeyText, SWT.Modify), rangeKeyName);
         ChainValidator<String> rangeKeyNameValidationStatusProvider = new ChainValidator<String>(rangeKeyName, enableRangeKey, new NotEmptyValidator(
                 "Please provide an attribute name for the range key"));
@@ -158,26 +156,32 @@ public class CreateTableFirstPage extends WizardPage {
         italicFont = new Font(Display.getDefault(), fontData);
 
         // Table throughput
-        Group throughputGroup = newGroup(comp, "Table Throughput", 3);
+        Group throughputGroup = CreateTablePageUtil.newGroup(comp, "Table Throughput", 3);
         new Label(throughputGroup, SWT.READ_ONLY).setText("Read Capacity Units:");
-        final Text readCapacityText = newTextField(throughputGroup);
-        readCapacityText.setText("5");
+        final Text readCapacityText = CreateTablePageUtil.newTextField(throughputGroup);
+        readCapacityText.setText("" + CAPACITY_UNIT_MINIMUM);
         bindingContext.bindValue(SWTObservables.observeText(readCapacityText, SWT.Modify), readCapacity);
-        ChainValidator<Long> readCapacityValidationStatusProvider = new ChainValidator<Long>(readCapacity, new RangeValidator("Please enter a read capacity of 5 or more.", 5, Long.MAX_VALUE));
+        ChainValidator<Long> readCapacityValidationStatusProvider = new ChainValidator<Long>(
+                readCapacity, new RangeValidator(
+                        "Please enter a read capacity of " + CAPACITY_UNIT_MINIMUM + " or more.", CAPACITY_UNIT_MINIMUM,
+                        Long.MAX_VALUE));
         bindingContext.addValidationStatusProvider(readCapacityValidationStatusProvider);
 
         Label minimumReadCapacityLabel = new Label(throughputGroup, SWT.READ_ONLY);
-        minimumReadCapacityLabel.setText("(Minimum capacity 5)");
+        minimumReadCapacityLabel.setText("(Minimum capacity " + CAPACITY_UNIT_MINIMUM + ")");
         minimumReadCapacityLabel.setFont(italicFont);
 
         new Label(throughputGroup, SWT.READ_ONLY).setText("Write Capacity Units:");
-        final Text writeCapacityText = newTextField(throughputGroup);
-        writeCapacityText.setText("5");
+        final Text writeCapacityText = CreateTablePageUtil.newTextField(throughputGroup);
+        writeCapacityText.setText("" + CAPACITY_UNIT_MINIMUM);
         Label minimumWriteCapacityLabel = new Label(throughputGroup, SWT.READ_ONLY);
-        minimumWriteCapacityLabel.setText("(Minimum capacity 5)");
+        minimumWriteCapacityLabel.setText("(Minimum capacity " + CAPACITY_UNIT_MINIMUM + ")");
         minimumWriteCapacityLabel.setFont(italicFont);
         bindingContext.bindValue(SWTObservables.observeText(writeCapacityText, SWT.Modify), writeCapacity);
-        ChainValidator<Long> writeCapacityValidationStatusProvider = new ChainValidator<Long>(writeCapacity, new RangeValidator("Please enter a write capacity of 5 or more.", 5, Long.MAX_VALUE));
+        ChainValidator<Long> writeCapacityValidationStatusProvider = new ChainValidator<Long>(
+                writeCapacity, new RangeValidator(
+                        "Please enter a write capacity of " + CAPACITY_UNIT_MINIMUM + " or more.", CAPACITY_UNIT_MINIMUM,
+                        Long.MAX_VALUE));
         bindingContext.addValidationStatusProvider(writeCapacityValidationStatusProvider);
 
         final Label throughputCapacityLabel = new Label(throughputGroup, SWT.WRAP);
@@ -191,7 +195,7 @@ public class CreateTableFirstPage extends WizardPage {
 
         // Help info
         String pricingLinkText = "<a href=\"" + "http://aws.amazon.com/dynamodb/#pricing" + "\">" + "More information on Amazon DynamoDB pricing</a>. ";
-        newLink(new WebLinkListener(), pricingLinkText, throughputGroup);
+        CreateTablePageUtil.newLink(new WebLinkListener(), pricingLinkText, throughputGroup);
 
         // Finally provide aggregate status reporting for the entire wizard page
         final AggregateValidationStatus aggregateValidationStatus = new AggregateValidationStatus(bindingContext, AggregateValidationStatus.MAX_SEVERITY);
@@ -218,32 +222,6 @@ public class CreateTableFirstPage extends WizardPage {
         });
         setPageComplete(false);
         setControl(comp);
-    }
-
-    private Text newTextField(Composite comp) {
-        Text text = new Text(comp, SWT.BORDER);
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(text);
-        return text;
-    }
-
-    protected Link newLink(Listener linkListener, String linkText, Composite composite) {
-        Link link = new Link(composite, SWT.WRAP);
-        link.setText(linkText);
-        link.addListener(SWT.Selection, linkListener);
-        GridData data = new GridData(SWT.FILL, SWT.TOP, false, false);
-        data.horizontalSpan = 3;
-        link.setLayoutData(data);
-        return link;
-    }
-
-    private Group newGroup(Composite composite, String text, int columns) {
-        Group group = new Group(composite, SWT.NONE);
-        group.setText(text + ":");
-        group.setLayout(new GridLayout(columns, false));
-        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gridData.horizontalSpan = 2;
-        group.setLayoutData(gridData);
-        return group;
     }
 
 }

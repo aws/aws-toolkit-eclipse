@@ -54,7 +54,7 @@ public class ScalingTriggerConfigEditorSection extends HumanReadableConfigEditor
 
     @Override
     protected Section getSection(Composite parent) {
-        Section section = toolkit.createSection(parent, SWT.NONE);        
+        Section section = toolkit.createSection(parent, SWT.NONE);
         return section;
     }
 
