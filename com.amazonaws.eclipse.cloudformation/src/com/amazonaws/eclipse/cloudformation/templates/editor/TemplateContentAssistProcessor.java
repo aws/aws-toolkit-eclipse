@@ -16,10 +16,8 @@ package com.amazonaws.eclipse.cloudformation.templates.editor;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -27,7 +25,6 @@ import java.util.StringTokenizer;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContextInformation;
@@ -50,43 +47,200 @@ import com.amazonaws.eclipse.cloudformation.templates.schema.TemplateSchemaRules
 
 public class TemplateContentAssistProcessor implements IContentAssistProcessor {
 
-    private static final String[] INDENTATION = new String[] {"  ", "    ", "      ", "        ", "          ", "            ", "              "};
+    /** The parsed schema rules for the Amazon CloudFormation template. */
+    private static final TemplateSchemaRules schemaRules = TemplateSchemaRules
+            .getInstance();
+
+    /** The path from the root to where the Resource JSON objects are present. */
+    private static final String resourcesPath = "ROOT/Resources/";
+
+    /**
+     * The name of the field specifying the type of the Resource in the JSON
+     * object.
+     */
+    private static final String RESOURCE_TYPE = "Type";
+
+    /** The name of the Json Object specifying the list of resources. */
     private static final String RESOURCES = "Resources";
-    private ITextViewer viewer;
 
-    private TemplateNode lookupNodeByPath(IDocument document, String path) {
-        TemplateNode node = ((TemplateDocument)document).getModel();
+    /** The root object of the Json document. */
+    private static final String ROOT = "ROOT/";
 
-        if (path.startsWith("ROOT")) path = path.substring("ROOT".length());
-        else throw new RuntimeException("Unexpected path encountered");
+    private static final String EMPTY_STRING = "";
+
+    /**
+     * Identifies the node in the document for the given path and returns it.
+     *
+     * @param document
+     *            The document associated with the editor.
+     * @param path
+     *            The path from the Root to the node.
+     */
+    private TemplateNode lookupNodeByPath(TemplateDocument document, String path) {
+        TemplateNode node = ((TemplateDocument) document).getModel();
+
+        if (path.startsWith("ROOT"))
+            path = path.substring("ROOT".length());
+        else
+            throw new RuntimeException("Unexpected path encountered");
 
         StringTokenizer tokenizer = new StringTokenizer(path, "/");
 
         while (tokenizer.hasMoreTokens()) {
             String token = tokenizer.nextToken();
 
-            if (node.isObject()) {
-                TemplateObjectNode object = (TemplateObjectNode)node;
+            if (node != null && node.isObject()) {
+                TemplateObjectNode object = (TemplateObjectNode) node;
                 node = object.get(token);
             } else {
                 throw new RuntimeException("Unexpected node structure");
             }
         }
-
         return node;
     }
 
-    private void addFieldCompletionProposals(IDocument document, String path, int offset, List<ICompletionProposal> proposals) {
+    /**
+     * Generates a proposal for the given field.
+     *
+     * @param templateDocument
+     *            The document associated with the editor.
+     * @param offset
+     *            The current cursor position.
+     * @param fieldName
+     *            The name of the field.
+     * @param schemaProperty
+     *            The schema property associated with the field.
+     */
+    private ICompletionProposal newFieldCompletionProposal(
+            TemplateDocument templateDocument, int offset, String fieldName,
+            SchemaProperty schemaProperty, String stringToReplace) {
+        char previousChar = ' ';
+        try {
+            previousChar = templateDocument.getChar(offset - 1);
+        } catch (BadLocationException e) {
+        }
+        boolean needsQuotes = previousChar != '"';
+
+        String insertionText = fieldName;
+
+        if (needsQuotes){
+            insertionText = "\"" + fieldName;
+            stringToReplace = "\"" + stringToReplace;
+        }
+
+        insertionText += "\" : ";
+
+        int finalCursorPosition = -1;
+
+        if (schemaProperty.getType().equalsIgnoreCase("string")) {
+            insertionText += "\"\"";
+            finalCursorPosition = insertionText.length() - 1;
+        } else if (schemaProperty.getType().equalsIgnoreCase("array")) {
+            insertionText += "[]";
+            finalCursorPosition = insertionText.length() - 1;
+        } else if (schemaProperty.getType().equalsIgnoreCase("named-array")) {
+            insertionText += "{}";
+            finalCursorPosition = insertionText.length() - 1;
+        } else if (schemaProperty.getType().equalsIgnoreCase("number")) {
+            insertionText += "\"\"";
+            finalCursorPosition = insertionText.length() - 1;
+        } else if (schemaProperty.getType().equalsIgnoreCase("object")) {
+            insertionText += "{}";
+            finalCursorPosition = insertionText.length() - 1;
+        } else if (schemaProperty.getType().equalsIgnoreCase("resource")) {
+            insertionText += "{}";
+            finalCursorPosition = insertionText.length() - 1;
+        } else if (schemaProperty.getType().equalsIgnoreCase("json")) {
+            insertionText += "{}";
+            finalCursorPosition = insertionText.length() - 1;
+        } else {
+            IStatus status = new Status(IStatus.INFO,
+                    CloudFormationPlugin.PLUGIN_ID, "Unhandled property type: "
+                            + schemaProperty.getType());
+            StatusManager.getManager().handle(status, StatusManager.LOG);
+        }
+
+        char nextChar = DocumentUtils.readToNextChar(templateDocument, offset);
+        if (nextChar != '}' && nextChar != ',' && nextChar != ']')
+            insertionText += ", ";
+
+        if (finalCursorPosition == -1)
+            finalCursorPosition = insertionText.length();
+
+        CFCompletionProposal proposal = newCompletionProposal(offset,
+                fieldName, insertionText, finalCursorPosition,
+                schemaProperty.getDescription(),stringToReplace);
+
+        // if previousChar is a type of END_TOKEN
+        previousChar = DocumentUtils.readToPreviousChar(templateDocument,
+                offset - 1);
+        if (previousChar == '"' || previousChar == '}' || previousChar == ']') {
+            proposal.setAdditionalCommaPosition(DocumentUtils
+                    .findPreviousCharPosition(templateDocument, offset,
+                            previousChar) + 1);
+        }
+        return proposal;
+    }
+
+    /**
+     * Creates a new completion proposal with the given parameters.
+     *
+     * @param offset
+     *            The current cursor position.
+     * @param label
+     *            The label to displayed in the the proposal.
+     * @param insertionText
+     *            The text to be inserted when a proposal is selected.
+     * @param finalCursorPosition
+     *            The final cursor position after inserting the proposal.
+     * @param description
+     *            The description for the proposal to be displayed in the tool
+     *            tip.
+     * @param stringToReplace The string to be replaced when a proposal is selected.
+     */
+    private CFCompletionProposal newCompletionProposal(int offset,
+            String label, String insertionText, int finalCursorPosition,
+            String description,String stringToReplace) {
+        IContextInformation contextInfo = new ContextInformation(label, label);
+        return new CFCompletionProposal(insertionText, offset-stringToReplace.length(), stringToReplace.length(),
+                finalCursorPosition, null, label, contextInfo, description);
+    }
+
+    /**
+     * Provides the auto completions for all the root level objects.
+     *
+     * @param offset
+     *            The current cursor position
+     * @param document
+     *            The document associated with the editor.
+     * @param path
+     *            Path from the root of the JSON object to the current cursor
+     *            position.
+     * @param proposals
+     *            List containing the proposals.
+     */
+    private void provideRootLevelAutoCompletions(int offset,
+            TemplateDocument document, String path,
+            List<ICompletionProposal> proposals) {
+        if (!(path.startsWith(ROOT))) {
+            throw new RuntimeException("Unexpected path encountered");
+        }
+
         TemplateSchemaRules schemaRules = TemplateSchemaRules.getInstance();
 
         String currentPath = "ROOT";
 
-        if (path.startsWith("ROOT")) path = path.substring("ROOT".length());
-        else throw new RuntimeException("Unexpected path encountered");
+        if (path.startsWith("ROOT"))
+            path = path.substring("ROOT".length());
+        else
+            throw new RuntimeException("Unexpected path encountered");
 
-        // TODO: This is all code just to find the schema for the current position
+        // TODO: This is all code just to find the schema for the current
+        // position
 
         StringTokenizer tokenizer = new StringTokenizer(path, "/");
+
+        String stringToReplace = DocumentUtils.readToPreviousQuote(document, offset);
 
         Schema schema = schemaRules.getTopLevelSchema();
         SchemaProperty lastSchemaProperty = null;
@@ -102,22 +256,24 @@ public class TemplateContentAssistProcessor implements IContentAssistProcessor {
                 schemaProperty = schema.getProperty(token);
             }
 
-            if (schemaProperty == null && isDefaultChildSchema == false && isSchemaLookupProperty == false) {
+            if (schemaProperty == null && isDefaultChildSchema == false
+                    && isSchemaLookupProperty == false) {
                 // We don't know anything about this node
                 return;
             }
 
             if (isSchemaLookupProperty) {
-                String schemaLookupProperty = lastSchemaProperty.getSchemaLookupProperty();
+                String schemaLookupProperty = lastSchemaProperty
+                        .getSchemaLookupProperty();
 
                 TemplateNode node = lookupNodeByPath(document, currentPath);
                 if (node.isObject()) {
                     String lookupValue = null;
 
-                    TemplateObjectNode object = (TemplateObjectNode)node;
+                    TemplateObjectNode object = (TemplateObjectNode) node;
                     TemplateNode fieldValue = object.get(schemaLookupProperty);
                     if (fieldValue.isValue()) {
-                        TemplateValueNode value = (TemplateValueNode)fieldValue;
+                        TemplateValueNode value = (TemplateValueNode) fieldValue;
                         lookupValue = value.getText();
 
                         schema = lastSchemaProperty.getChildSchema(lookupValue);
@@ -143,124 +299,69 @@ public class TemplateContentAssistProcessor implements IContentAssistProcessor {
         }
 
         if (schema != null) {
-            ArrayList<String> properties = new ArrayList<String>(schema.getProperties());
+            ArrayList<String> properties = new ArrayList<String>(
+                    schema.getProperties());
             Collections.sort(properties);
 
             Set<String> existingFields = new HashSet<String>();
             TemplateNode node = lookupNodeByPath(document, "ROOT" + path);
             if (node.isObject()) {
-                TemplateObjectNode objectNode = (TemplateObjectNode)node;
+                TemplateObjectNode objectNode = (TemplateObjectNode) node;
                 for (Entry<String, TemplateNode> entry : objectNode.getFields()) {
                     existingFields.add(entry.getKey());
                 }
             }
 
             for (String field : properties) {
-                // Don't show completions for fields already present in the document
-                if (existingFields.contains(field)) continue;
+                // Don't show completions for fields already present in the
+                // document
+                if (existingFields.contains(field))
+                    continue;
 
-                proposals.add(newFieldCompletionProposal(offset, field, schema.getProperty(field)));
+                proposals.add(newFieldCompletionProposal(document, offset,
+                        field, schema.getProperty(field),stringToReplace));
             }
         }
+
     }
 
-    private ICompletionProposal newFieldCompletionProposal(int offset, String fieldName, SchemaProperty schemaProperty) {
-        TemplateDocument templateDocument = (TemplateDocument)viewer.getDocument();
-        char previousChar = ' ';
-        try {
-            previousChar = templateDocument.getChar(offset - 1);
-        } catch (BadLocationException e) {}
-        boolean needsQuotes = previousChar != '"';
-
-        String insertionText = fieldName;
-
-        if (needsQuotes) insertionText = "\"" + fieldName;
-
-        insertionText += "\" : ";
-
-        int finalCursorPosition = -1;
-
-        if (schemaProperty.getType().equalsIgnoreCase("string")) {
-            insertionText += "\"\"";
-            finalCursorPosition = insertionText.length() - 1;
-        } else if (schemaProperty.getType().equalsIgnoreCase("array")) {
-            insertionText += "[]";
-            finalCursorPosition = insertionText.length() - 1;
-        } else if (schemaProperty.getType().equalsIgnoreCase("named-array")) {
-            insertionText += "{}";
-            finalCursorPosition = insertionText.length() - 1;
-        } else if (schemaProperty.getType().equalsIgnoreCase("number")) {
-                insertionText += "\"\"";
-                finalCursorPosition = insertionText.length() - 1;
-        } else if (schemaProperty.getType().equalsIgnoreCase("object")) {
-            insertionText += "{}";
-            finalCursorPosition = insertionText.length() - 1;
-        } else if (schemaProperty.getType().equalsIgnoreCase("resource")) {
-            insertionText += "{}";
-            finalCursorPosition = insertionText.length() - 1;
-        } else if (schemaProperty.getType().equalsIgnoreCase("json")) {
-            insertionText += "{}";
-            finalCursorPosition = insertionText.length() - 1;
-        } else {
-            IStatus status = new Status(IStatus.INFO, CloudFormationPlugin.PLUGIN_ID, "Unhandled property type: " + schemaProperty.getType());
-            StatusManager.getManager().handle(status, StatusManager.LOG);
-        }
-
-        char nextChar = DocumentUtils.readToNextChar(templateDocument, offset);
-        if (nextChar != '}' && nextChar != ',' && nextChar != ']') insertionText += ", ";
-
-        if (finalCursorPosition == -1) finalCursorPosition = insertionText.length();
-
-        CFCompletionProposal proposal = newCompletionProposal(offset, fieldName, insertionText, finalCursorPosition, schemaProperty.getDescription());
-
-        // if previousChar is a type of END_TOKEN
-        previousChar = DocumentUtils.readToPreviousChar(templateDocument, offset - 1);
-        if (previousChar == '"' || previousChar == '}' || previousChar == ']') {
-            proposal.setAdditionalCommaPosition(DocumentUtils.findPreviousCharPosition(templateDocument, offset, previousChar) + 1);
-        }
-        return proposal;
-    }
-
-    private CFCompletionProposal newCompletionProposal(int offset, String text, String description) {
-        return newCompletionProposal(offset, text, text, description);
-    }
-
-    private CFCompletionProposal newCompletionProposal(int offset, String label, String insertionText, String description) {
-        return newCompletionProposal(offset, label, insertionText, insertionText.length(), description);
-    }
-
-    private CFCompletionProposal newCompletionProposal(int offset, String label, String insertionText, int finalCursorPosition, String description) {
-        IContextInformation contextInfo = new ContextInformation(label, label);
-        return new CFCompletionProposal(insertionText, offset, 0, finalCursorPosition, null, label, contextInfo, description);
-    }
-
-    private TemplateSchemaRules getTemplateSchema() {
-        return TemplateSchemaRules.getInstance();
-    }
-
-    public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-        if (this.viewer == null) this.viewer = viewer;
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#
+     * computeCompletionProposals(org.eclipse.jface.text.ITextViewer, int)
+     */
+    public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer,
+            int offset) {
 
         List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-        TemplateDocument document = (TemplateDocument)viewer.getDocument();
+        TemplateDocument document = (TemplateDocument) viewer.getDocument();
 
-
-        char previousChar = DocumentUtils.readToPreviousChar(document, offset - 1);
-        char unmatchedOpenBrace = DocumentUtils.readToPreviousUnmatchedOpenBrace(document, offset - 1);
-
-        if ( unmatchedOpenBrace == '{' ) {
-            TemplateNode node = document.findNode(offset);
-            if ( node.isObject() ) {
-                TemplateObjectNode object = (TemplateObjectNode) node;
-                if ( object.getPath().equals("ROOT/Resources/") ) {
-                    addResourceTypeCompletionProposals(document, offset, proposals);
-                } else {
-                    addFieldCompletionProposals(document, node.getPath(), offset, proposals);
-                }
-            } else {
-                addFieldCompletionProposals(document, node.getPath(), offset, proposals);
+        StringBuilder path = new StringBuilder();
+        List<String> subPaths = document.getPath();
+        if (subPaths != null && !subPaths.isEmpty()) {
+            for (String subPath : subPaths) {
+                path.append(subPath + "/");
             }
-        } else if ( unmatchedOpenBrace == '[' || previousChar == ':' ) {
+        } else {
+            TemplateNode node = document.findNode(offset);
+            path.append(node.getPath());
+        }
+
+        char previousChar = DocumentUtils.readToPreviousChar(document,
+                offset - 1);
+        char unmatchedOpenBrace = DocumentUtils
+                .readToPreviousUnmatchedOpenBrace(document, offset - 1);
+
+        if (unmatchedOpenBrace == '{') {
+            if (path.toString().startsWith(resourcesPath)) {
+                provideResourceTypes(offset, document, path.toString(),
+                        proposals);
+            } else if (path.toString().startsWith(ROOT)) {
+                provideRootLevelAutoCompletions(offset, document,
+                        path.toString(), proposals);
+            }
+        } else if (unmatchedOpenBrace == '[' || previousChar == ':') {
             // TODO: Completions for known values for a field
 
             // TODO: Intrinsic Functions should include "{}"
@@ -271,103 +372,171 @@ public class TemplateContentAssistProcessor implements IContentAssistProcessor {
         return proposals.toArray(new ICompletionProposal[proposals.size()]);
     }
 
-    private void generateResourceStub(String resourceType, Schema schema, StringBuilder s, int indentationLevel, boolean needsTrailingComa) {
-        // don't indent the very first line
-        if (s.length() > 0) s.append(INDENTATION[indentationLevel]);
+    /**
+     * Creates a new auto completion proposal for the given field.
+     *
+     * @param offset
+     *            The current position of the cursor.
+     * @param autoCompleteField
+     *            The value that is to be shown in the auto complete drop box.
+     * @param insertionText
+     *            The actual value to be inserted when an option is selected.
+     * @param fieldDescription
+     *            The description for the auto complete option to be shown in
+     *            tool tip.
+     * @param stringToReplace
+     *            The string to replace in the editor.
+     * @return A completion proposal with all the options added.
+     */
+    private ICompletionProposal createCompletionProposal(int offset,
+            String autoCompleteField, String insertionText,
+            String fieldDescription, String stringToReplace) {
 
-        String field = resourceType.replaceAll(":", "");
-        s.append("\"").append(field).append("\"").append(" : {\n");
+        return new CFCompletionProposal(insertionText, offset
+                - stringToReplace.length(), stringToReplace.length(),
+                insertionText.length(), null, autoCompleteField,
+                new ContextInformation(autoCompleteField, fieldDescription),
+                fieldDescription);
+    }
 
-        Map<String, SchemaProperty> requiredProperties = new HashMap<String, SchemaProperty>();
-        for (String propertyName : schema.getProperties()) {
-            SchemaProperty property = schema.getProperty(propertyName);
-            if (property.isRequired()) requiredProperties.put(propertyName, property);
+    /**
+     * Identifies the set of resources to be shown for auto completion.
+     *
+     * @param offset
+     *            The current cursor position.
+     * @param document
+     *            The document associated with the editor.
+     * @param path
+     *            Path from the root of the JSON object to the current cursor
+     *            position.
+     * @param proposals
+     *            List of auto completion proposals.
+     */
+    private void provideResourceTypes(int offset, TemplateDocument document,
+            String path, List<ICompletionProposal> proposals) {
+
+        if (!(path.startsWith(resourcesPath))) {
+            throw new RuntimeException("Unexpected path encountered");
         }
 
-        int count = 0;
-        for (Entry<String, SchemaProperty> entry : requiredProperties.entrySet()) {
-            count++;
-            String propertyName = entry.getKey();
-            SchemaProperty property = entry.getValue();
+        String stringToReplace = DocumentUtils.readToPreviousQuote(document,
+                offset);
+        char nextChar = DocumentUtils.readToNextChar(document, offset);
 
-            if (property.getSchema() != null) {
-                generateResourceStub(propertyName, property.getSchema(), s, indentationLevel + 1, (count < requiredProperties.size()));
-            } else {
-                s.append(INDENTATION[indentationLevel + 1]).append("\"").append(propertyName).append("\" : ");
+        boolean needsQuotes = nextChar != '"';
 
-                if (propertyName.equals("Type")) {
-                    s.append("\"" + resourceType + "\"");
-                } else if (property.getType().equalsIgnoreCase("Array")) {
-                    s.append("[]");
-                } else {
-                    s.append("\"\"");
-                }
+        path = path.substring(resourcesPath.length());
 
-                // everytime but the last...
-                if (count < requiredProperties.size()) s.append(", ");
-                s.append(" \n");
+        Set<String> resourceTypes = schemaRules.getResourceTypeNames();
+
+        StringTokenizer tokenizer = new StringTokenizer(path, "/");
+
+        String nextToken;
+        if (tokenizer.countTokens() == 2) {
+            // Skipping the resource name
+            tokenizer.nextToken();
+            // Fetching the next Token.
+            nextToken = tokenizer.nextToken();
+
+            if (nextToken.equals(RESOURCE_TYPE)) {
+                addListToProposals(offset,
+                        new ArrayList<String>(resourceTypes), proposals,
+                        stringToReplace, needsQuotes, null);
             }
         }
-        s.append(INDENTATION[indentationLevel]).append("}");
-        if (needsTrailingComa) {
-            s.append(", ");
-        }
-        s.append("\n");
     }
 
-    private void addResourceTypeCompletionProposals(TemplateDocument document, int offset, List<ICompletionProposal> proposals) {
-        ArrayList<String> resourceTypeNames = new ArrayList<String>(getTemplateSchema().getResourceTypeNames());
-        Collections.sort(resourceTypeNames);
-
-        for (String resourceType : resourceTypeNames) {
-            SchemaProperty schemaProperty = getTemplateSchema().getTopLevelSchema().getProperty(RESOURCES);
-            Schema schema = schemaProperty.getChildSchema(resourceType);
-
-            boolean needsTrailingComa = true;
-            char c = DocumentUtils.readToNextChar(document, offset);
-            if (c == '}' || c == ',') needsTrailingComa = false;
-
-            StringBuilder s = new StringBuilder();
-            generateResourceStub(resourceType, schema, s, 1, needsTrailingComa);
-
-            IContextInformation contextInfo = new ContextInformation(resourceType, resourceType);
-            String insertionText = s.toString();
-            int secondQuotePosition = insertionText.indexOf('"', insertionText.indexOf('"') + 1);
-
-            proposals.add(new CompletionProposal(insertionText, offset, 0, secondQuotePosition, null, resourceType, contextInfo, schema.getDescription()));
+    /**
+     * Creates a completion proposal for the given set and adds it to the list.
+     *
+     * @param offset
+     *            The current cursor position.
+     * @param values
+     *            The values for which proposals are to be created.
+     * @param proposals
+     *            The list that contains the proposals.
+     * @param stringToReplace
+     *            The string to be replaced when a proposal is selected.
+     * @param needsQuotes
+     *            A boolean value indicating if a double quote needs to be added
+     *            while insertion.
+     */
+    private void addListToProposals(int offset, List<String> values,
+            List<ICompletionProposal> proposals, String stringToReplace,
+            boolean needsQuotes, List<String> existingFields) {
+        Collections.sort(values);
+        SchemaProperty schemaProperty = schemaRules.getTopLevelSchema()
+                .getProperty(RESOURCES);
+        Schema childSchema;
+        String insertionText;
+        for (String value : values) {
+            if (value.startsWith(stringToReplace)) {
+                insertionText = value;
+                childSchema = schemaProperty.getChildSchema(value);
+                if (needsQuotes)
+                    insertionText = value + "\"";
+                if (existingFields != null && existingFields.contains(value))
+                    continue;
+                proposals.add(createCompletionProposal(offset, value,
+                        insertionText, childSchema.getDescription(),
+                        stringToReplace));
+            }
         }
     }
 
-    private void addPseudoParameterCompletions(int offset, List<ICompletionProposal> proposals) {
-        TemplateSchemaRules schemaRules = getTemplateSchema();
-
+    /**
+     * Adds the pseudo parameters from the cloud formation schema to the list of
+     * proposals.
+     *
+     * @param offset
+     *            The current cursor position.
+     * @param proposals
+     *            List containing the proposals.
+     */
+    private void addPseudoParameterCompletions(int offset,
+            List<ICompletionProposal> proposals) {
         for (PseudoParameter parameter : schemaRules.getPseudoParameters()) {
-            proposals.add(newCompletionProposal(offset, parameter.getName(), parameter.getDescription()));
+            proposals.add(createCompletionProposal(offset, parameter.getName(),
+                    parameter.getName(), parameter.getDescription(),
+                    EMPTY_STRING));
         }
     }
 
-    private void addIntrinsicFunctionCompletions(int offset, List<ICompletionProposal> proposals) {
-        TemplateSchemaRules schemaRules = getTemplateSchema();
-
+    /**
+     * Adds the intrinsic functions from the cloud formation schema to the list
+     * of proposals.
+     *
+     * @param offset
+     *            The current cursor position.
+     * @param proposals
+     *            List containing the proposals.
+     */
+    private void addIntrinsicFunctionCompletions(int offset,
+            List<ICompletionProposal> proposals) {
         for (IntrinsicFunction function : schemaRules.getIntrinsicFuntions()) {
             if (function.getName().equals("Ref")) {
-                // text, offset, 0, text.length(), null, text, contextInfo, description)
+                // text, offset, 0, text.length(), null, text, contextInfo,
+                // description)
                 String refLiteral = "{ \"Ref\" : \"\" }";
                 String additionalProposalInfo = "Reference to a resource";
-                IContextInformation contextInfo = new ContextInformation("Ref", additionalProposalInfo);
-                proposals.add(new CompletionProposal(refLiteral, offset, 0, 11, null, "Ref",
-                        contextInfo, additionalProposalInfo));
+                IContextInformation contextInfo = new ContextInformation("Ref",
+                        additionalProposalInfo);
+                proposals.add(new CompletionProposal(refLiteral, offset, 0, 11,
+                        null, "Ref", contextInfo, additionalProposalInfo));
             } else {
-                proposals.add(newCompletionProposal(offset, function.getName(), function.getDescription()));
+                proposals.add(createCompletionProposal(offset,
+                        function.getName(), function.getName(),
+                        function.getDescription(), EMPTY_STRING));
             }
         }
     }
 
     public char[] getCompletionProposalAutoActivationCharacters() {
-        return new char[] {'"'};
+        return new char[] { '"' };
     }
 
-    public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
+    public IContextInformation[] computeContextInformation(ITextViewer viewer,
+            int offset) {
         // TODO Auto-generated method stub
         return null;
     }

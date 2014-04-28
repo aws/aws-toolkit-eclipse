@@ -54,6 +54,8 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
         importEc2AccountPreferences();
         store.setDefault(PreferenceConstants.P_DEFAULT_REGION, "us-west-2");
+        store.setDefault(PreferenceConstants.P_CONNECTION_TIMEOUT, 5 * 1000);
+        store.setDefault(PreferenceConstants.P_SOCKET_TIMEOUT, 5 * 1000);
     }
 
     /**

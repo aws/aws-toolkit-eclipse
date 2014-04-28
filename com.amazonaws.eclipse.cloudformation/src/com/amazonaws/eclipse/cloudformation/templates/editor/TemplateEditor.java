@@ -15,6 +15,7 @@
 package com.amazonaws.eclipse.cloudformation.templates.editor;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.CoreException;
@@ -46,6 +47,8 @@ public class TemplateEditor extends TextEditor {
     public class TemplateDocument extends Document {
         private ArrayList<TemplateDocumentListener> listeners = new ArrayList<TemplateDocumentListener>();
         private TemplateNode model;
+        /** The path from the root to the current position in the Json Document.*/
+        private List<String> path;
 
         public void addTemplateDocumentListener(TemplateDocumentListener listener) {
             listeners.add(listener);
@@ -98,6 +101,14 @@ public class TemplateEditor extends TextEditor {
             }
             return node;
         }
+
+        public List<String> getPath() {
+            return path;
+        }
+
+        public void setPath(List<String> path) {
+            this.path = path;
+        }
     }
 
     private boolean match(int offset, TemplateNode node) {
@@ -149,9 +160,7 @@ public class TemplateEditor extends TextEditor {
         if (IContentOutlinePage.class.equals(required)) {
            if (myOutlinePage == null) {
                TemplateDocument document = (TemplateDocument)this.getDocumentProvider().getDocument(getEditorInput());
-               if (document == null) {
-                   System.out.println("document is null");
-               } else {
+               if (document != null) {
                    myOutlinePage = new TemplateContentOutlinePage(document);
                }
            }

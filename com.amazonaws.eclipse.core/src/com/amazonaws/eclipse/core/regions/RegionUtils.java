@@ -32,10 +32,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
@@ -43,8 +39,8 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.core.AwsClientUtils;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.HttpClientFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -440,12 +436,9 @@ public class RegionUtils {
     private static void fetchFile(String url, File destinationFile)
             throws IOException, ClientProtocolException, FileNotFoundException {
 
-        HttpParams httpClientParams = new BasicHttpParams();
-        HttpProtocolParams.setUserAgent(httpClientParams,
-                new AwsClientUtils()
-                    .formUserAgentString("AWS-Toolkit-For-Eclipse",
-                                         AwsToolkitCore.getDefault()));
-        HttpClient httpclient = new DefaultHttpClient(httpClientParams);
+        HttpClient httpclient = HttpClientFactory.create(
+                AwsToolkitCore.getDefault(), url);
+
         HttpGet httpget = new HttpGet(url);
         HttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
@@ -464,5 +457,7 @@ public class RegionUtils {
             }
         }
     }
+
+
 
 }

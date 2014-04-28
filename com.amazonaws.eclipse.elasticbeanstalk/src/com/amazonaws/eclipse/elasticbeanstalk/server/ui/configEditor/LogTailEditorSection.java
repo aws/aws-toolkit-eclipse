@@ -41,6 +41,8 @@ import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.HttpClientFactory;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentInfoDescription;
@@ -108,8 +110,11 @@ public class LogTailEditorSection extends ServerEditorSection {
                 elasticBeanstalk.requestEnvironmentInfo(new RequestEnvironmentInfoRequest().withEnvironmentName(
                         environment.getEnvironmentName()).withInfoType("tail"));
             } catch (AmazonServiceException ase) {
-                if (ase.getErrorCode().equals("InvalidParameterValue")) return Status.OK_STATUS;
-                else throw ase;
+                if (ase.getErrorCode().equals("InvalidParameterValue")) {
+                    return Status.OK_STATUS;
+                } else {
+                    throw ase;
+                }
             }
 
             RetrieveEnvironmentInfoResult infoResult;
@@ -120,10 +125,14 @@ public class LogTailEditorSection extends ServerEditorSection {
                             .withEnvironmentName(environment.getEnvironmentName()));
 
                 // Break once we find environment info
-                if (infoResult.getEnvironmentInfo().size() > 0) break;
+                if (infoResult.getEnvironmentInfo().size() > 0) {
+                    break;
+                }
 
                 // Or if we don't see any env info after waiting a while
-                if (System.currentTimeMillis() - pollingStartTime > 1000*60*5) break;
+                if (System.currentTimeMillis() - pollingStartTime > 1000*60*5) {
+                    break;
+                }
 
                 // Otherwise, keep polling
                 try {Thread.sleep(1000 * 5);}
@@ -131,7 +140,10 @@ public class LogTailEditorSection extends ServerEditorSection {
             }
             final List<EnvironmentInfoDescription> envInfos = infoResult.getEnvironmentInfo();
 
-            DefaultHttpClient client = new DefaultHttpClient();
+            DefaultHttpClient client = HttpClientFactory.create(
+                    ElasticBeanstalkPlugin.getDefault(),
+                    "https://s3.amazonaws.com");
+
             DefaultHttpRequestRetryHandler retryhandler = new DefaultHttpRequestRetryHandler(3, true);
             client.setHttpRequestRetryHandler(retryhandler);
 

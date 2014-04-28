@@ -25,7 +25,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
 public class TemplateSchemaRules {
-    
+
     // JSON Keys
     private static final String ALLOWED_VALUES = "allowed-values";
     private static final String CHILD_SCHEMAS = "child-schemas";
@@ -40,10 +40,10 @@ public class TemplateSchemaRules {
     private static final String ROOT_SCHEMA_OBJECT = "root-schema-object";
     private static final String SCHEMA_LOOKUP_PROPERTY = "schema-lookup-property";
     private static final String TYPE = "type";
-    
+
     // Template URL
     private static final String TEMPLATE_SCHEMA_LOCATION = "http://vstoolkit.amazonwebservices.com/CloudFormationSchema/CloudFormationV1.schema";
-    
+
     private JsonNode rootNode;
     private static TemplateSchemaRules instance;
 
@@ -58,48 +58,48 @@ public class TemplateSchemaRules {
 
     public Schema getTopLevelSchema() {
         Schema schema = parseSchema(this.rootNode.get(ROOT_SCHEMA_OBJECT));
-        
+
         return schema;
     }
-    
+
     public List<PseudoParameter> getPseudoParameters() {
         // TODO: Caching
-        
+
         ArrayList<PseudoParameter> pseudoParameters = new ArrayList<PseudoParameter>();
 
         Iterator<Entry<String, JsonNode>> iterator = rootNode.get(PSEUDO_PARAMETERS).getFields();
         while (iterator.hasNext()) {
             Entry<String, JsonNode> entry = iterator.next();
 
-            pseudoParameters.add(new PseudoParameter(entry.getKey(), 
-                entry.getValue().get(TYPE).getValueAsText(), 
+            pseudoParameters.add(new PseudoParameter(entry.getKey(),
+                entry.getValue().get(TYPE).getValueAsText(),
                 entry.getValue().get(DESCRIPTION).getValueAsText()));
         }
-        
+
         return pseudoParameters;
     }
-    
+
     public List<IntrinsicFunction> getIntrinsicFuntions() {
         // TODO: Caching
 
         ArrayList<IntrinsicFunction> intrinsicFunctions = new ArrayList<IntrinsicFunction>();
-        
+
         Iterator<Entry<String, JsonNode>> iterator = rootNode.get(INTRINSIC_FUNCTIONS).getFields();
         while (iterator.hasNext()) {
             Entry<String, JsonNode> entry = iterator.next();
 
-            intrinsicFunctions.add(new IntrinsicFunction(entry.getKey(), 
-                entry.getValue().get(PARAMETER).getValueAsText(), 
+            intrinsicFunctions.add(new IntrinsicFunction(entry.getKey(),
+                entry.getValue().get(PARAMETER).getValueAsText(),
                 entry.getValue().get(DESCRIPTION).getValueAsText()));
         }
-        
+
         return intrinsicFunctions;
     }
-    
-    
+
+
     public Schema parseSchema(JsonNode schemaNode) {
         Schema schema = new Schema();
-        
+
         if (schemaNode.has(DESCRIPTION)) {
             schema.setDescription(schemaNode.get(DESCRIPTION).getTextValue());
         }
@@ -108,26 +108,26 @@ public class TemplateSchemaRules {
             Iterator<Entry<String, JsonNode>> fields = schemaNode.get(PROPERTIES).getFields();
             while (fields.hasNext()) {
                 Entry<String, JsonNode> entry = fields.next();
-                
+
                 SchemaProperty schemaProperty = new SchemaProperty(entry.getValue().get(TYPE).getValueAsText());
-                
+
                 if (entry.getValue().has(DESCRIPTION)) {
                     schemaProperty.setDescription(entry.getValue().get(DESCRIPTION).getValueAsText());
                 }
-                
+
                 if (entry.getValue().has(REQUIRED)) {
                     schemaProperty.setRequired(entry.getValue().get(REQUIRED).getValueAsBoolean());
                 }
-                
+
                 if (entry.getValue().has(ALLOWED_VALUES)) {
                     List<String> allowedValues = new ArrayList<String>();
                     Iterator<JsonNode> iterator = entry.getValue().get(ALLOWED_VALUES).getElements();
                     while (iterator.hasNext()) allowedValues.add(iterator.next().getValueAsText());
                     schemaProperty.setAllowedValues(allowedValues);
                 }
-                
+
                 schema.addProperty(entry.getKey(), schemaProperty);
-                
+
                 JsonNode node = entry.getValue();
                 if (node.has(DEFAULT_CHILD_SCHEMA)) {
                     Schema defaultSchema = parseSchema(node.get(DEFAULT_CHILD_SCHEMA));
@@ -136,19 +136,19 @@ public class TemplateSchemaRules {
                     Schema defaultSchema = parseSchema(node);
                     schemaProperty.setSchema(defaultSchema);
                 }
-                
+
                 if (node.has(SCHEMA_LOOKUP_PROPERTY)) {
                     schemaProperty.setSchemaLookupProperty(node.get(SCHEMA_LOOKUP_PROPERTY).getValueAsText());
                 }
-                
+
                 if (node.has(CHILD_SCHEMAS)) {
                     Iterator<Entry<String, JsonNode>> fields2 = node.get(CHILD_SCHEMAS).getFields();
                     while (fields2.hasNext()) {
                         Entry<String, JsonNode> entry2 = fields2.next();
-                        
+
                         String schemaName = entry2.getKey();
                         Schema schema2 = parseSchema(entry2.getValue());
-                        
+
                         schemaProperty.addChildSchema(schemaName, schema2);
                     }
                 }
@@ -156,14 +156,8 @@ public class TemplateSchemaRules {
         } else {
             // JSON freeform text?
         }
-        
+
         return schema;
-    }
-    
-    public static void main(String[] args) throws Exception {
-        TemplateSchemaRules schema = new TemplateSchemaRules();
-        schema.parse();
-        schema.getTopLevelSchema();
     }
 
     public static TemplateSchemaRules getInstance() {
@@ -175,7 +169,7 @@ public class TemplateSchemaRules {
                 throw new RuntimeException("", e);
             }
         }
-        
+
         return instance;
     }
 }

@@ -126,8 +126,7 @@ public class JdbcDriver implements Driver {
         try {
             AWSCredentials credentials = new BasicAWSCredentials(access, secret);
 
-            AwsClientUtils clientUtils = new AwsClientUtils();
-            String userAgent = clientUtils.formUserAgentString("SimpleDBEclipsePlugin", Activator.getDefault()); //$NON-NLS-1$
+            String userAgent = AwsClientUtils.formatUserAgentString("SimpleDBEclipsePlugin", Activator.getDefault()); //$NON-NLS-1$
 
             ClientConfiguration config = new ClientConfiguration();
             config.setUserAgent(userAgent);

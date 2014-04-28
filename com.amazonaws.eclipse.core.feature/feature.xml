@@ -2,7 +2,7 @@
 <feature
       id="com.amazonaws.eclipse.core.feature"
       label="AWS Toolkit for Eclipse Core"
-      version="2.0.1.qualifier"
+      version="2.1.0.qualifier"
       provider-name="Amazon Web Services">
 
    <description url="http://aws.amazon.com/eclipse">

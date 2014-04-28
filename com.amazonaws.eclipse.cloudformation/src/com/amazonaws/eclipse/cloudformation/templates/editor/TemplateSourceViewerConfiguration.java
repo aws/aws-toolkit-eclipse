@@ -91,10 +91,7 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
                             return annotation.getText();
                         }
                     }
-                } catch (BadLocationException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                } catch (BadLocationException e) { }
 
                 return null;
             }
@@ -133,7 +130,7 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
             }
         };
     }
-    
+
     @Override
     public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
         final ContentAssistant assistant = new ContentAssistant();
@@ -149,17 +146,16 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
         assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
         assistant.setProposalPopupOrientation(IContentAssistant.PROPOSAL_OVERLAY);
 
-        
         assistant.addCompletionListener(new ICompletionListener() {
             public void assistSessionStarted(ContentAssistEvent event) {
                 assistant.showContextInformation();
             }
-            
+
             public void assistSessionEnded(ContentAssistEvent event) {}
-            
+
             public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
         });
-        
+
         assistant.setProposalSelectorBackground(
             Display.getDefault().
             getSystemColor(SWT.COLOR_WHITE));
@@ -174,7 +170,7 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
     public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
         return new IAutoEditStrategy[] { new TemplateAutoEditStrategy() };
     }
-    
-    
+
+
 
 }

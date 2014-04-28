@@ -70,12 +70,10 @@ public class DocumentUtils {
     public static char readToPreviousUnmatchedOpenBrace(TemplateDocument document, int position) {
         try {
             Stack<Character> stack = new Stack<Character>();
-
-            System.out.print("Reading Previous Chars: ");
             position--;
             while (true) {
                 char c = document.getChar(position--);
-                System.out.print(c);
+
                 if (Character.isWhitespace(c)) continue;
 
                 if (c == '}' || c == ']') {
@@ -142,5 +140,35 @@ public class DocumentUtils {
         } catch (BadLocationException e) {
             throw new RuntimeException("Error reading ahead to next char", e);
         }
+    }
+
+    /**
+     * Reads a string backwards from the current offset position to first
+     * occurrence of a double quote.
+     *
+     * @param document
+     *            The document to search in.
+     * @param position
+     *            The offset in the document to start searching at.
+     * @return The string from the specified position to the first occurrence of
+     *         double quote.
+     * @throws RuntimeException if the character cannot be read from the document.
+     */
+    public static String readToPreviousQuote(TemplateDocument document,
+            int position) {
+        StringBuilder typedString = new StringBuilder();
+        char c;
+        try {
+            position--;
+            while (true) {
+                c = document.getChar(position--);
+                if (c == '"')
+                    break;
+                typedString.append(c);
+            }
+        } catch (BadLocationException e) {
+            throw new RuntimeException("Error reading ahead to next char", e);
+        }
+        return typedString.reverse().toString();
     }
 }

@@ -128,9 +128,7 @@ final class TemplateAutoEditStrategy implements IAutoEditStrategy {
             }
 
             return true;
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-        }
+        } catch (BadLocationException e) { }
         return false;
     }
 

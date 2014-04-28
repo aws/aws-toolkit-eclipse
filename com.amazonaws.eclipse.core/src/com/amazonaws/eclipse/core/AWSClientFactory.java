@@ -27,12 +27,14 @@ import org.eclipse.core.net.proxy.IProxyChangeListener;
 import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
@@ -335,9 +337,19 @@ public class AWSClientFactory {
 
     private static ClientConfiguration createClientConfiguration(String secureEndpoint) {
         ClientConfiguration config = new ClientConfiguration();
-        AwsClientUtils clientUtils = new AwsClientUtils();
 
-        config.setUserAgent(clientUtils.formUserAgentString("AWS-Toolkit-For-Eclipse", AwsToolkitCore.getDefault()));
+        IPreferenceStore preferences =
+            AwsToolkitCore.getDefault().getPreferenceStore();
+
+        int connectionTimeout =
+            preferences.getInt(PreferenceConstants.P_CONNECTION_TIMEOUT);
+        int socketTimeout =
+            preferences.getInt(PreferenceConstants.P_SOCKET_TIMEOUT);
+
+        config.setConnectionTimeout(connectionTimeout);
+        config.setSocketTimeout(socketTimeout);
+
+        config.setUserAgent(AwsClientUtils.formatUserAgentString("AWS-Toolkit-For-Eclipse", AwsToolkitCore.getDefault()));
 
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
         if ( plugin != null ) {

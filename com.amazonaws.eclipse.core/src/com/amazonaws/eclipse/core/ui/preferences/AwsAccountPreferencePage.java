@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -62,7 +63,10 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
     public static final String ID = "com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage";
 
     private TabFolder accountsTabFolder;
-    
+
+    private IntegerFieldEditor connectionTimeout;
+    private IntegerFieldEditor socketTimeout;
+
     /**
      * Creates the preference page and connects it to the plugin's preference
      * store.
@@ -104,7 +108,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         }
     }
 
-    /** 
+    /**
      * For debug purpose only.
      * Print out the property values of all the region-related preferences.
      */
@@ -145,7 +149,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
     /**
      * Returns all account names registered to the given region. If none are
      * registered yet, it will optionally bootstrap the default setting..
-     * 
+     *
      * @param preferenceStore
      *            The preference store to use when looking up the account names.
      * @param region
@@ -162,7 +166,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         String p_regionalAccountIds = PreferenceConstants.P_ACCOUNT_IDS(region);
         String p_regionalCurrentAccount = PreferenceConstants.P_REGION_CURRENT_DEFAULT_ACCOUNT(region);
         String regionalDefaultAccoutNameB64 = PreferenceConstants.DEFAULT_ACCOUNT_NAME_BASE_64(region);
-        
+
         String accountIdsString = preferenceStore.getString(p_regionalAccountIds);
 
         // bootstrapping
@@ -198,7 +202,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
             add(PreferenceConstants.P_ACCOUNT_IDS(region));
             add(PreferenceConstants.P_REGION_CURRENT_DEFAULT_ACCOUNT(region));
             add(PreferenceConstants.P_REGION_DEFAULT_ACCOUNT_ENABLED(region));
-            
+
             // Information of each account for the region
             for (String accountId : getRegionalAccounts(preferenceStore, region, false).keySet()) {
                 add(accountId + ":" + PreferenceConstants.P_ACCOUNT_NAME);
@@ -241,18 +245,15 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         // Accounts section
         createAccountsSectionGroup(composite);
 
+        // Timeouts section
+        createTimeoutSectionGroup(composite);
+
         // The weblinks at the bottom part of the page
         WebLinkListener webLinkListener = new WebLinkListener();
-        Link networkConnectionLink = new Link(composite, SWT.NULL);
-        networkConnectionLink
-                .setText("See <a href=\"org.eclipse.ui.net.NetPreferences\">Network connections</a> to configure how the AWS Toolkit connects to the internet.");
-        PreferenceLinkListener preferenceLinkListener = new PreferenceLinkListener();
-        networkConnectionLink.addListener(SWT.Selection, preferenceLinkListener);
-
         String javaForumLinkText = "Get help or provide feedback on the " + "<a href=\""
                 + AwsUrls.JAVA_DEVELOPMENT_FORUM_URL + "\">AWS Java Development forum</a>. ";
         AwsToolkitPreferencePage.newLink(webLinkListener, javaForumLinkText, composite);
-        
+
         parent.pack();
         return composite;
     }
@@ -298,6 +299,14 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
                 ((AwsAccountPreferencePageTab) tab).loadDefault();
             }
         }
+
+        if (connectionTimeout != null) {
+            connectionTimeout.loadDefault();
+        }
+        if (socketTimeout != null) {
+            socketTimeout.loadDefault();
+        }
+
         super.performDefaults();
     }
 
@@ -316,7 +325,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         List<String> configuredRegions = getConfiguredRegions();
         // Update P_REGIONS_WITH_DEFAULT_ACCOUNTS preference property
         markRegionsWithDefaultAccount(getPreferenceStore(), configuredRegions);
-        
+
         // Clear all related preference properties of un-configured regions
         for (Region region : RegionUtils.getRegions()) {
             if ( !configuredRegions.contains(region.getId()) ) {
@@ -333,6 +342,13 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
                     ((AwsAccountPreferencePageTab) tab).doStore();
                 }
             }
+        }
+
+        if (connectionTimeout != null) {
+            connectionTimeout.store();
+        }
+        if (socketTimeout != null) {
+            socketTimeout.store();
         }
 
         this.getControl().setRedraw(true);
@@ -366,7 +382,6 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      * Private Interface
      */
 
-    @SuppressWarnings({ "unused" })
     private Group createAccountsSectionGroup(final Composite parent) {
         Group accountsSectionGroup = new Group(parent, SWT.NONE);
         accountsSectionGroup.setText("AWS Accounts:");
@@ -401,6 +416,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
         tabFolder.addSelectionListener(new SelectionAdapter() {
             int lastSelection = 0;
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (e.item == newRegionalAccountConfigTab) {
                     // Suppress selection on the fake tab
@@ -444,6 +460,49 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         return accountsSectionGroup;
     }
 
+    private Group createTimeoutSectionGroup(final Composite parent) {
+        Group group = new Group(parent, SWT.NONE);
+        group.setText("Timeouts:");
+        group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+        group.setLayout(new GridLayout(2, false));
+
+        Composite composite = new Composite(group, SWT.NONE);
+
+        GridData data = new GridData(SWT.FILL, SWT.TOP, false, false);
+        composite.setLayoutData(data);
+
+        connectionTimeout = new IntegerFieldEditor(
+                PreferenceConstants.P_CONNECTION_TIMEOUT,
+                "Connection Timeout (ms)",
+                composite);
+
+        connectionTimeout.setPage(this);
+        connectionTimeout.setPreferenceStore(getPreferenceStore());
+        connectionTimeout.load();
+        connectionTimeout.fillIntoGrid(composite, 3);
+
+        socketTimeout = new IntegerFieldEditor(
+                PreferenceConstants.P_SOCKET_TIMEOUT,
+                "Socket Timeout (ms)",
+                composite);
+
+        socketTimeout.setPage(this);
+        socketTimeout.setPreferenceStore(getPreferenceStore());
+        socketTimeout.load();
+        socketTimeout.fillIntoGrid(composite, 3);
+
+        Link networkConnectionLink = new Link(composite, SWT.NULL);
+        networkConnectionLink.setText(
+                "See <a href=\"org.eclipse.ui.net.NetPreferences\">Network "
+                + "connections</a> for more ways to configure how the AWS "
+                + "Toolkit connects to the Internet.");
+
+        PreferenceLinkListener preferenceLinkListener = new PreferenceLinkListener();
+        networkConnectionLink.addListener(SWT.Selection, preferenceLinkListener);
+
+        return group;
+    }
+
     private static class RegionSelectionDialog extends MessageDialog {
 
         private Region selectedRegion;
@@ -474,6 +533,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
             regionSelector.addSelectionListener(new SelectionAdapter() {
 
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     updateSelectedRegion(regionSelector);
                 }
@@ -492,7 +552,9 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
         @Override
         public boolean close() {
-            if (italicFont != null) italicFont.dispose();
+            if (italicFont != null) {
+                italicFont.dispose();
+            }
             return super.close();
         }
 
