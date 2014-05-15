@@ -1,1 +1,3 @@
 com.amazonaws.eclipse.*/bin/
+.metadata/
+eclipse-bin/

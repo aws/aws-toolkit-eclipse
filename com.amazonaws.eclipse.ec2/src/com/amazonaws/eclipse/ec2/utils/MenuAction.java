@@ -37,6 +37,9 @@ public class MenuAction extends Action implements IMenuCreator {
 	/** Menu that gets displayed */
 	protected Menu menu;
 
+	/** Action style of the menu item (affects how/if checkmark is shown) **/
+	private int actionStyle = AS_RADIO_BUTTON;
+
 	/**
 	 * Constructor
 	 * 
@@ -56,6 +59,10 @@ public class MenuAction extends Action implements IMenuCreator {
 		setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor(imageDescriptor));
 		this.menuHandler = menuHandler;
 		setMenuCreator(this);
+	}
+	
+	public void setActionStyle(int actionStyle) {
+		this.actionStyle = actionStyle;
 	}
 	
 	/**
@@ -90,12 +97,13 @@ public class MenuAction extends Action implements IMenuCreator {
         	if (menuItem.equals(MenuItem.SEPARATOR)) {
         		new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);        		
         	} else {
-	        	IAction action = new Action(menuItem.getMenuText(), AS_RADIO_BUTTON) {
+	        	IAction action = new Action(menuItem.getMenuText(), actionStyle) {
 	        		@Override
 	        		public void run() {
-	        			if (isChecked()) {
+	        			if (actionStyle == AS_RADIO_BUTTON && isChecked()) {
 	        				menuHandler.setCurrentSelection(menuItem);
 	        			}
+	        			else menuHandler.setCurrentSelection(menuItem);
 	        		}        		
 	        	};
 	        	
@@ -103,7 +111,8 @@ public class MenuAction extends Action implements IMenuCreator {
 	        	
 				// Every Time new object is created, so getMenuId is used for
 				// determining the current selection
-	        	action.setChecked(menuHandler.getCurrentSelection().getMenuId().equals(menuItem.getMenuId()));
+	        	if (menuHandler.getCurrentSelection() != null)
+	        		action.setChecked(menuHandler.getCurrentSelection().getMenuId().equals(menuItem.getMenuId()));
         	}
         }
         
