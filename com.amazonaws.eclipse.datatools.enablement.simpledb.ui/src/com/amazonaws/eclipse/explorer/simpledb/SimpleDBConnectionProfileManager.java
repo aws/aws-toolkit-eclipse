@@ -64,7 +64,7 @@ public class SimpleDBConnectionProfileManager {
 
     private String createUniqueConnectionProfileName(final String endpoint) {
         String currentAccountId = AwsToolkitCore.getDefault().getCurrentAccountId();
-        String currentAccountName = AwsToolkitCore.getDefault().getAccountManager().getAccounts().get(currentAccountId);
+        String currentAccountName = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames().get(currentAccountId);
 
         String name;
         int suffix = 0;

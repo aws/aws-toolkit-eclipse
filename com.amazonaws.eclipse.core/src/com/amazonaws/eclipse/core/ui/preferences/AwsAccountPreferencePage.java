@@ -14,20 +14,22 @@
  */
 package com.amazonaws.eclipse.core.ui.preferences;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
@@ -46,13 +48,17 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
+import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
+import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.PreferenceLinkListener;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
+import com.amazonaws.eclipse.core.ui.preferences.accounts.LegacyPreferenceStoreAccountMerger;
 import com.amazonaws.util.StringUtils;
 
 /**
@@ -64,8 +70,30 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
     private TabFolder accountsTabFolder;
 
+    /**
+     * Map of all the account info, keyed by account identifier. This map
+     * instance is shared by all the tabs, so that they have the synchronized
+     * views over the configured accounts. This map is updated in-memory
+     * whenever any account is added/removed/modified, and it will only be saved
+     * in the external source when {@link #performOk()} is called. Note that the
+     * accounts deleted in the preference page will only be removed from this
+     * map; the actual deletion in the external source is handled separately.
+     */
+    private final LinkedHashMap<String, AccountInfo> accountInfoByIdentifier = new LinkedHashMap<String, AccountInfo>();
+
+    /**
+     * All the accounts that are to be deleted.
+     */
+    private final Set<AccountInfo> accountInfoToBeDeleted = new HashSet<AccountInfo>();
+
+    private FileFieldEditor credentailsFileLocation;
+
+    private boolean credentailsFileLocationChanged = false;
+
     private IntegerFieldEditor connectionTimeout;
     private IntegerFieldEditor socketTimeout;
+
+    private Font italicFont;
 
     /**
      * Creates the preference page and connects it to the plugin's preference
@@ -88,10 +116,13 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      * default accounts and that the configuration is not disabled.
      */
     public static boolean isRegionDefaultAccountEnabled(IPreferenceStore preferenceStore, Region region) {
-        boolean configured = getRegionsWithDefaultAccounts(preferenceStore).contains(region.getId());
+        boolean configured = getRegionsWithDefaultAccounts(preferenceStore)
+                .contains(region.getId());
         // getBoolean(...) method returns false when the property is not specified.
-        // We use isDefault(...) instead so that only an explicit "false" indicates the region accounts are disabled.
-        boolean enabled = preferenceStore.isDefault(PreferenceConstants.P_REGION_DEFAULT_ACCOUNT_ENABLED(region));
+        // We use isDefault(...) instead so that only an explicit "false"
+        // indicates the region accounts are disabled.
+        boolean enabled = preferenceStore.isDefault(
+                PreferenceConstants.P_REGION_DEFAULT_ACCOUNT_ENABLED(region));
         return configured && enabled;
     }
 
@@ -109,23 +140,6 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
     }
 
     /**
-     * For debug purpose only.
-     * Print out the property values of all the region-related preferences.
-     */
-    @SuppressWarnings("serial")
-    public static void printPrefs(final IPreferenceStore preferenceStore) {
-        List<String> prefKeys = new LinkedList<String>() {{
-            add(PreferenceConstants.P_REGIONS_WITH_DEFAULT_ACCOUNTS);
-            for (Region region : RegionUtils.getRegions()) {
-                addAll(getAllRelatedPreferenceKeys(preferenceStore, region));
-            }
-        }};
-        for (String key : prefKeys) {
-            System.out.println(key + " = " + preferenceStore.getString(key));
-        }
-    }
-
-    /**
      * Returns list of region ids that are configured with region-specific
      * default accounts, no matter enabled or not.
      */
@@ -139,81 +153,19 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
     }
 
     /**
-     * Returns all the registered global default accounts. Returns an empty map
-     * if none is registered yet.
+     * Utility function that recursively enable/disable all the children
+     * controls contained in the given Composite.
      */
-    public static Map<String, String> getGlobalAccounts(IPreferenceStore preferenceStore) {
-        return getRegionalAccounts(preferenceStore, null, false);
-    }
+    static void setEnabledOnAllChildern(Composite composite,
+            boolean enabled) {
+        if (composite == null) return;
 
-    /**
-     * Returns all account names registered to the given region. If none are
-     * registered yet, it will optionally bootstrap the default setting..
-     *
-     * @param preferenceStore
-     *            The preference store to use when looking up the account names.
-     * @param region
-     *            Null indicates the global account
-     * @param bootstrap
-     *            If true, this method will bootstrap the default configuration
-     *            if no accounts are registered.
-     * @return A map of account identifier to customer-assigned names. The
-     *         identifiers are the primary, immutable key used to access the
-     *         account.
-     */
-    @SuppressWarnings("unchecked")
-    public static Map<String, String> getRegionalAccounts(IPreferenceStore preferenceStore, Region region, boolean bootstrap) {
-        String p_regionalAccountIds = PreferenceConstants.P_ACCOUNT_IDS(region);
-        String p_regionalCurrentAccount = PreferenceConstants.P_REGION_CURRENT_DEFAULT_ACCOUNT(region);
-        String regionalDefaultAccoutNameB64 = PreferenceConstants.DEFAULT_ACCOUNT_NAME_BASE_64(region);
-
-        String accountIdsString = preferenceStore.getString(p_regionalAccountIds);
-
-        // bootstrapping
-        if ( accountIdsString == null || accountIdsString.length() == 0 ) {
-            if ( !bootstrap ) {
-                return Collections.EMPTY_MAP;
+        for (Control child : composite.getChildren()) {
+            if (child instanceof Composite) {
+                setEnabledOnAllChildern((Composite) child, enabled);
             }
-            String id = UUID.randomUUID().toString();
-            preferenceStore.putValue(p_regionalCurrentAccount, id);
-            preferenceStore.putValue(p_regionalAccountIds, id);
-            preferenceStore.putValue(id + ":" + PreferenceConstants.P_ACCOUNT_NAME, regionalDefaultAccoutNameB64);
+            child.setEnabled(enabled);
         }
-
-        String[] accountIds = preferenceStore.getString(p_regionalAccountIds)
-                .split(PreferenceConstants.ACCOUNT_ID_SEPARATOR_REGEX);
-        Map<String, String> names = new HashMap<String, String>();
-        for ( String id : accountIds ) {
-            if (id.length() > 0) {
-                String preferenceName = id + ":" + PreferenceConstants.P_ACCOUNT_NAME;
-                names.put(id, ObfuscatingStringFieldEditor.decodeString(preferenceStore.getString(preferenceName)));
-            }
-        }
-
-        return names;
-    }
-
-    /**
-     * Returns all the preference keys related to the given region.
-     */
-    @SuppressWarnings("serial")
-    public static Set<String> getAllRelatedPreferenceKeys(final IPreferenceStore preferenceStore, final Region region) {
-        Set<String> allPrefKeys = new HashSet<String>() {{
-            add(PreferenceConstants.P_ACCOUNT_IDS(region));
-            add(PreferenceConstants.P_REGION_CURRENT_DEFAULT_ACCOUNT(region));
-            add(PreferenceConstants.P_REGION_DEFAULT_ACCOUNT_ENABLED(region));
-
-            // Information of each account for the region
-            for (String accountId : getRegionalAccounts(preferenceStore, region, false).keySet()) {
-                add(accountId + ":" + PreferenceConstants.P_ACCOUNT_NAME);
-                add(accountId + ":" + PreferenceConstants.P_ACCESS_KEY);
-                add(accountId + ":" + PreferenceConstants.P_SECRET_KEY);
-                add(accountId + ":" + PreferenceConstants.P_USER_ID);
-                add(accountId + ":" + PreferenceConstants.P_CERTIFICATE_FILE);
-                add(accountId + ":" + PreferenceConstants.P_PRIVATE_KEY_FILE);
-            }
-        }};
-        return Collections.unmodifiableSet(allPrefKeys);
     }
 
     /*
@@ -245,13 +197,16 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         // Accounts section
         createAccountsSectionGroup(composite);
 
+        // Credentials file location section
+        createCredentialsFileLocationGroup(composite);
+
         // Timeouts section
         createTimeoutSectionGroup(composite);
 
         // The weblinks at the bottom part of the page
         WebLinkListener webLinkListener = new WebLinkListener();
         String javaForumLinkText = "Get help or provide feedback on the " + "<a href=\""
-                + AwsUrls.JAVA_DEVELOPMENT_FORUM_URL + "\">AWS Java Development forum</a>. ";
+                + AwsUrls.JAVA_DEVELOPMENT_FORUM_URL + "\">AWS Java Development Forum</a>. ";
         AwsToolkitPreferencePage.newLink(webLinkListener, javaForumLinkText, composite);
 
         parent.pack();
@@ -300,6 +255,10 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
             }
         }
 
+        if (credentailsFileLocation != null) {
+            credentailsFileLocation.loadDefault();
+        }
+
         if (connectionTimeout != null) {
             connectionTimeout.loadDefault();
         }
@@ -317,32 +276,38 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      */
     @Override
     public boolean performOk() {
-        // Because of the somewhat "unorthodox" way we have implemented the
-        // field editors, there is some flickering here if we don't lock the
-        // display before this update.
-        this.getControl().setRedraw(false);
+        // Don't support changing credentials file location and editing the
+        // account infomration at the same time.
+        if ( !credentailsFileLocationChanged && accountsTabFolder != null ) {
+            /* Save the AccountInfo instances to the external source */
+            saveAccounts();
 
-        List<String> configuredRegions = getConfiguredRegions();
-        // Update P_REGIONS_WITH_DEFAULT_ACCOUNTS preference property
-        markRegionsWithDefaultAccount(getPreferenceStore(), configuredRegions);
 
-        // Clear all related preference properties of un-configured regions
-        for (Region region : RegionUtils.getRegions()) {
-            if ( !configuredRegions.contains(region.getId()) ) {
-                for (String prefKey : getAllRelatedPreferenceKeys(getPreferenceStore(), region)) {
-                    getPreferenceStore().setToDefault(prefKey);
-                }
-            }
-        }
+            /* Persist the metadata in the preference store */
 
-        // Call doStore on each tab.
-        if (accountsTabFolder != null) {
+            // credentialProfileAccountIds=accoutId1|accountId2
+            AccountInfoProvider.getInstance()
+                    .updateProfileAccountMetadataInPreferenceStore(
+                            accountInfoByIdentifier.values());
+
+            // regionsWithDefaultAccounts=region1|region2
+            List<String> configuredRegions = getConfiguredRegions();
+            markRegionsWithDefaultAccount(getPreferenceStore(), configuredRegions);
+
+
+            /* Call doStore on each tab. */
             for (TabItem tab : accountsTabFolder.getItems()) {
                 if (tab instanceof AwsAccountPreferencePageTab) {
                     ((AwsAccountPreferencePageTab) tab).doStore();
                 }
             }
         }
+
+        if (credentailsFileLocation != null) {
+            credentailsFileLocation.store();
+        }
+
+        AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
 
         if (connectionTimeout != null) {
             connectionTimeout.store();
@@ -351,26 +316,20 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
             socketTimeout.store();
         }
 
-        this.getControl().setRedraw(true);
-
         return super.performOk();
     }
 
     /**
-     * Check for duplicate account names accross all region account tabs.
+     * Check for duplicate account names.
      */
-    public void checkDuplicateAccountName() {
-        Set<String> accountNames = new HashSet<String>();
-
+    public void updatePageValidationOfAllTabs() {
         for (TabItem tab : accountsTabFolder.getItems()) {
             if (tab instanceof AwsAccountPreferencePageTab) {
-                String[] names = ((AwsAccountPreferencePageTab) tab).getAccountNames();
-                for ( String accountName : names ) {
-                    if ( !accountNames.add(accountName) ) {
-                        setValid(false);
-                        setErrorMessage("Duplicate account name defined");
-                        return;
-                    }
+                AwsAccountPreferencePageTab accountTab = (AwsAccountPreferencePageTab)tab;
+
+                // Early termination if any of the tab is invalid
+                if (accountTab.updatePageValidation()) {
+                    return;
                 }
             }
         }
@@ -378,25 +337,97 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         setErrorMessage(null);
     }
 
+    @Override
+    public void dispose() {
+        if (italicFont != null)
+            italicFont.dispose();
+        super.dispose();
+    }
+
+    List<AwsAccountPreferencePageTab> getAllAccountPreferencePageTabs() {
+        List<AwsAccountPreferencePageTab> tabs = new LinkedList<AwsAccountPreferencePageTab>();
+        for (TabItem tab : accountsTabFolder.getItems()) {
+            if (tab instanceof AwsAccountPreferencePageTab) {
+                tabs.add((AwsAccountPreferencePageTab)tab);
+            }
+        }
+        return tabs;
+    }
+
+    /**
+     * Package-private method that returns the map of all the configured
+     * accounts.
+     */
+    LinkedHashMap<String, AccountInfo> getAccountInfoByIdentifier() {
+        return accountInfoByIdentifier;
+    }
+
+    /**
+     * Package-private method that returns the set of all the accounts that are
+     * to be deleted.
+     */
+    Set<AccountInfo> getAccountInfoToBeDeleted() {
+        return accountInfoToBeDeleted;
+    }
+
+    void setItalicFont(Control control) {
+        FontData[] fontData = control.getFont()
+                .getFontData();
+        for (FontData fd : fontData) {
+            fd.setStyle(SWT.ITALIC);
+        }
+        italicFont = new Font(Display.getDefault(), fontData);
+        control.setFont(italicFont);
+    }
+
     /*
      * Private Interface
      */
 
-    private Group createAccountsSectionGroup(final Composite parent) {
-        Group accountsSectionGroup = new Group(parent, SWT.NONE);
-        accountsSectionGroup.setText("AWS Accounts:");
-        accountsSectionGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        accountsSectionGroup.setLayout(new GridLayout());
+    /**
+     * Load all the configured accounts and clear accountInfoToBeDeleted.
+     */
+    private void initAccountInfo() {
+        AwsPluginAccountManager accountManager = AwsToolkitCore.getDefault().getAccountManager();
+
+        LegacyPreferenceStoreAccountMerger.mergeLegacyAccountsIntoCredentialsFile();
+
+        accountManager.reloadAccountInfo();
+
+        accountInfoByIdentifier.clear();
+        accountInfoByIdentifier.putAll(accountManager.getAllAccountInfo());
+
+        accountInfoToBeDeleted.clear();
+    }
+
+    private void createAccountsSectionGroup(final Composite parent) {
+        final Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        composite.setLayout(new GridLayout());
+
+        initAccountInfo();
+
+        // If empty, simply add an error label
+        if (accountInfoByIdentifier.isEmpty()) {
+            new Label(composite, SWT.READ_ONLY)
+            .setText(String
+                    .format("Failed to load credential profiles from (%s).%n"
+                            + "Please check that your credentials file is in the correct format.",
+                            getPreferenceStore()
+                                    .getString(PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION)));
+            return;
+        }
 
         // A TabFolder containing the following tabs:
         // Global Account | region-1 | region-2 | ... | + Configure Regional Account
-        final TabFolder tabFolder = new TabFolder(accountsSectionGroup, SWT.BORDER);
+        final TabFolder tabFolder = new TabFolder(composite, SWT.BORDER);
         tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         tabFolder.pack();
 
         int tabIndex = 0;
 
         // Global default accounts
+        @SuppressWarnings("unused")
         final AwsAccountPreferencePageTab globalAccountTab = new AwsAccountPreferencePageTab(
                 tabFolder, tabIndex, this, null);
 
@@ -441,6 +472,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
                         }
 
                         // Create a new tab for the selected region if it's not found
+                        @SuppressWarnings("unused")
                         AwsAccountPreferencePageTab newRegionAccountTab = new AwsAccountPreferencePageTab(
                                                                                 tabFolder,
                                                                                 tabFolder.getItemCount() - 1, // before the "new regional account" tab
@@ -456,8 +488,91 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         });
 
         this.accountsTabFolder = tabFolder;
+    }
 
-        return accountsSectionGroup;
+    /**
+     * We currently don't support changing the credentials file location and
+     * editing the account information at the same time.
+     */
+    private Group createCredentialsFileLocationGroup(final Composite parent) {
+        Group group = new Group(parent, SWT.NONE);
+        group.setText("Credentials file location:");
+        group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+        GridLayout groupLayout = new GridLayout();
+        groupLayout.marginWidth = 20;
+        group.setLayout(groupLayout);
+
+        final Label credentialsFileLocationLabel = new Label(group, SWT.WRAP);
+        credentialsFileLocationLabel
+                .setText("The location of the credentials file where " +
+                        "all your configured profiles will be persisted.");
+        setItalicFont(credentialsFileLocationLabel);
+
+        final Composite composite = new Composite(group, SWT.NONE);
+
+        GridData data = new GridData(SWT.FILL, SWT.TOP, true, false);
+        composite.setLayoutData(data);
+
+        credentailsFileLocation = new FileFieldEditor(
+                PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION,
+                "Credentials file:",
+                true,
+                composite);
+        credentailsFileLocation.setPage(this);
+        credentailsFileLocation.setPreferenceStore(getPreferenceStore());
+        credentailsFileLocation.load();
+
+        if (accountsTabFolder != null) {
+
+            credentailsFileLocation.getTextControl(composite).addModifyListener(new ModifyListener() {
+
+                public void modifyText(ModifyEvent e) {
+                    String modifiedLocation = credentailsFileLocation
+                            .getTextControl(composite).getText();
+
+                    // We only allow account info editing if the
+                    // credentials file location is unchanged.
+                    if (modifiedLocation.equals(
+                            getPreferenceStore().getString(
+                                    PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION))) {
+                        setEnabledOnAllChildern(accountsTabFolder, true);
+                        updatePageValidationOfAllTabs();
+                    } else {
+                        credentailsFileLocationChanged = true;
+                        setEnabledOnAllChildern(accountsTabFolder, false);
+
+                        File newCredFile = new File(modifiedLocation);
+                        if ( !newCredFile.exists() ) {
+                            setValid(false);
+                            setErrorMessage("Credentials file does not exist at the specified location.");
+                        }
+                    }
+
+                }
+            });
+
+            for (TabItem tab : accountsTabFolder.getItems()) {
+                if (tab instanceof AwsAccountPreferencePageTab) {
+                    AwsAccountPreferencePageTab accountTab = (AwsAccountPreferencePageTab)tab;
+                    accountTab.addAccountInfoFieldEditorModifyListener(new ModifyListener() {
+
+                        public void modifyText(ModifyEvent arg0) {
+                            for (AccountInfo account : accountInfoByIdentifier.values()) {
+                                if (account.isDirty()) {
+                                    // Disable the credential file location
+                                    // editor when the account info section
+                                    // is modified.
+                                    setEnabledOnAllChildern(composite, false);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+        }
+
+        return group;
     }
 
     private Group createTimeoutSectionGroup(final Composite parent) {
@@ -501,6 +616,25 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         networkConnectionLink.addListener(SWT.Selection, preferenceLinkListener);
 
         return group;
+    }
+
+    /**
+     * Save all the AccountInfo objects, and delete those that are to be
+     * deleted.
+     */
+    private void saveAccounts() {
+        // Save all the AccountInfo objects
+        // Because of data-binding, all the edits are already reflected inside
+        // these AccountInfo objects
+        for (AccountInfo account : accountInfoByIdentifier.values()) {
+            account.save(); // Save the in-memory changes to the external source
+        }
+
+        // Remove the deleted accounts
+        for (AccountInfo deletedAccount : accountInfoToBeDeleted) {
+            deletedAccount.delete();
+        }
+        accountInfoToBeDeleted.clear();
     }
 
     private static class RegionSelectionDialog extends MessageDialog {

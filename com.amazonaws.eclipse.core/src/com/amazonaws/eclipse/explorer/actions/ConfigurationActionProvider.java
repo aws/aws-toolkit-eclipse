@@ -27,7 +27,6 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -82,6 +81,8 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
         @Override
         public void run() {
+            AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
+
             ContentProviderRegistry.refreshAllContentProviders();
         }
     }
@@ -102,7 +103,8 @@ public class ConfigurationActionProvider extends CommonActionProvider {
                     RegionSelectionMenuAction.this.refreshData();
                 }
             };
-            AwsToolkitCore.getDefault().addDefaultRegionChangeListener(regionChangeListener);        }
+            AwsToolkitCore.getDefault().addDefaultRegionChangeListener(regionChangeListener);
+        }
 
         @Override
         public IMenuCreator getMenuCreator() {
@@ -228,7 +230,7 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
             public void menuAboutToShow(IMenuManager manager) {
                 String currentAccountId = AwsToolkitCore.getDefault().getCurrentAccountId();
-                Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
+                Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames();
                 for ( Entry<String, String> entry : accounts.entrySet() ) {
                     manager.add(
                             new SwitchAccountAction(entry.getKey(),

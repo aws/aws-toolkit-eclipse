@@ -37,7 +37,6 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 
 /**
@@ -50,7 +49,7 @@ public class AccountSelectionComposite extends Composite {
      * Combo control for users to select an account
      */
     private Combo accountSelection;
-    
+
     private Label noAccounts;
 
     private List<SelectionListener> listeners = new LinkedList<SelectionListener>();
@@ -123,7 +122,7 @@ public class AccountSelectionComposite extends Composite {
         selectAccount.setText("Select Account:"); //$NON-NLS-1$
 
         this.accountSelection = new Combo(this, SWT.DROP_DOWN | SWT.READ_ONLY);
-        
+
         accountSelection.addSelectionListener(new SelectionAdapter() {
 
             @Override
@@ -139,10 +138,9 @@ public class AccountSelectionComposite extends Composite {
      * Returns whether there are valid aws accounts configured
      */
     private boolean validAccountsConfigured() {
-        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
-        return !(accounts.size() == 1
-                && accounts.values().iterator().next().equals(PreferenceConstants.DEFAULT_ACCOUNT_NAME) 
-                && !AwsToolkitCore.getDefault().getAccountInfo().isValid());        
+        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames();
+        return  AwsToolkitCore.getDefault().getAccountInfo().isValid()
+                || accounts.size() > 1;
     }
 
     /**
@@ -156,7 +154,7 @@ public class AccountSelectionComposite extends Composite {
 
         String currentAccount = this.accountSelection.getText();
 
-        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
+        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames();
         List<String> accountNames = new ArrayList<String>();
         accountNames.addAll(accounts.values());
         Collections.sort(accountNames);
@@ -190,7 +188,7 @@ public class AccountSelectionComposite extends Composite {
     public void selectAccountName(final String accountName) {
         if ( accountSelection == null )
             return;
-        
+
         int selectedIndex = -1;
         if ( accountName != null ) {
             for ( int i = 0; i < this.accountSelection.getItemCount(); i++ ) {
@@ -211,7 +209,7 @@ public class AccountSelectionComposite extends Composite {
     public void selectAccountId(final String accountId) {
         if ( accountSelection == null )
             return;
-        
+
         int selectedIndex = -1;
         if ( accountId != null ) {
             for ( int i = 0; i < this.accountSelection.getItemCount(); i++ ) {

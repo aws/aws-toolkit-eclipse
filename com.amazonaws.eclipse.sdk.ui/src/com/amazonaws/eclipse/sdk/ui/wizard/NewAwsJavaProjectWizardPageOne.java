@@ -47,6 +47,7 @@ import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 
+import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
@@ -108,19 +109,12 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
     }
 
     /**
-     * Returns the access key set by the user in the wizard page.
-     * @return the access key set by the user in the wizard page.
+     * Returns the account selected by the user in the wizard page.
+     *
+     * @return the account selected by the user in the wizard page.
      */
-    public String getAccessKey() {
-        return AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getAccessKey();
-    }
-
-    /**
-     * Returns the secret key set by the user in the wizard page.
-     * @return the secret key set by the user in the wizard page.
-     */
-    public String getSecretKey() {
-        return AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountSelectionComposite.getSelectedAccountId()).getSecretKey();
+    public AccountInfo getSelectedAccount() {
+        return AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountSelectionComposite.getSelectedAccountId());
     }
 
     private ScrolledComposite scrolledComp;

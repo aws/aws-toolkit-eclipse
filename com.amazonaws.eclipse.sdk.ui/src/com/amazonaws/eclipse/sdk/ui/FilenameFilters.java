@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  * Java.
  */
 public class FilenameFilters {
-    
+
     private static final Pattern AWS_JAVA_SDK_PATTERN = Pattern.compile("aws-java-sdk-(\\d+|\\.)+\\.jar");
     private static final Pattern AWS_JAVA_SDK_SOURCE_PATTERN = Pattern.compile("aws-java-sdk-(\\d+|\\.)+\\-sources\\.jar");
 
@@ -56,7 +56,7 @@ public class FilenameFilters {
             return AWS_JAVA_SDK_SOURCE_PATTERN.matcher(name).matches();
         }
     }
-    
+
     /**
      * Filename filter accepting only .java source files.
      */
@@ -64,6 +64,16 @@ public class FilenameFilters {
 
         public boolean accept(File dir, String name) {
             return name.toLowerCase().endsWith(".java");
+        }
+    }
+
+    /**
+     * Filename filter accepting only the credentials file.
+     */
+    public static class CredentialsFilenameFilter implements FilenameFilter {
+
+        public boolean accept(File dir, String name) {
+            return name.equals("credentials");
         }
     }
 

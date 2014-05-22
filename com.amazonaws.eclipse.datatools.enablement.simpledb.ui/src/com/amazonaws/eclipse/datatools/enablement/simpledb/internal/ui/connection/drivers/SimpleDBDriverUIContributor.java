@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -167,7 +167,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
         removeListeners();
 
         String accountId = this.properties.getProperty(ISimpleDBConnectionProfileConstants.ACCOUNT_ID);
-        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAccounts();
+        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames();
         String accountName = accounts.get(accountId);
         this.accountSelection.selectAccountName(accountName);
 

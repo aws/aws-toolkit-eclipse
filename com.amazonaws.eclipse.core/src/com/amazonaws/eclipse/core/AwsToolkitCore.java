@@ -28,10 +28,10 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
+import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
+import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
-import com.amazonaws.eclipse.core.preferences.accounts.PluginPreferenceStoreAccountInfo;
-import com.amazonaws.eclipse.core.preferences.accounts.PluginPreferenceStoreAccountManager;
 import com.amazonaws.eclipse.core.preferences.regions.DefaultRegionMonitor;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
@@ -121,7 +121,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     private DefaultRegionMonitor defaultRegionMonitor;
 
     /** The AccountManager which persists account-related preference properties */
-    private PluginPreferenceStoreAccountManager accountManager;
+    private AwsPluginAccountManager accountManager;
 
 
     /**
@@ -166,8 +166,10 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         if ( accountId == null )
             accountId = getDefault().getCurrentAccountId();
         if ( !clientsFactoryByAccountId.containsKey(accountId) ) {
-            clientsFactoryByAccountId.put(accountId, new AWSClientFactory(new PluginPreferenceStoreAccountInfo(getDefault()
-                    .getPreferenceStore(), accountId)));
+            clientsFactoryByAccountId.put(
+                    accountId,
+                    // AWSClientFactory uses the accountId to retrieve the credentials
+                    new AWSClientFactory(accountId));
         }
         return clientsFactoryByAccountId.get(accountId);
     }
@@ -175,7 +177,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     /**
      * Returns the account manager associated with this plugin.
      */
-    public PluginPreferenceStoreAccountManager getAccountManager() {
+    public AwsPluginAccountManager getAccountManager() {
         return accountManager;
     }
 
@@ -190,15 +192,19 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         proxyServiceTracker = new ServiceTracker(context, IProxyService.class.getName(), null);
         proxyServiceTracker.open();
 
+        bootstrapAccountPreferences();
+
         // Create AccountManager and start monitoring account preference changes
-        accountManager = new PluginPreferenceStoreAccountManager(getPreferenceStore());
+        AccountInfoProvider accountInfoProvider = AccountInfoProvider.getInstance();
+        // Do not bootstrap credentials file if it still doesn't exist, and do not
+        // show warning if it fails to load
+        accountInfoProvider.refreshProfileAccountInfo(false, false);
+        accountManager = new AwsPluginAccountManager(getPreferenceStore(), accountInfoProvider);
         accountManager.startAccountMonitors();
 
         // Start listening for region preference changes...
         defaultRegionMonitor = new DefaultRegionMonitor();
         getPreferenceStore().addPropertyChangeListener(defaultRegionMonitor);
-
-        bootstrapAccountPreferences();
 
         RegionUtils.init();
 
@@ -221,10 +227,11 @@ public class AwsToolkitCore extends AbstractUIPlugin {
      * Bootstraps the current account preferences for new customers or customers
      * migrating from the legacy single-account or global-accounts-only preference
      */
+    @SuppressWarnings("deprecation")
     private void bootstrapAccountPreferences() {
         /* Bootstrap customers from legacy single-account preference */
         String currentAccount = getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
-        
+
         // Bootstrap new customers
         if ( currentAccount == null || currentAccount.length() == 0 ) {
             String accountId = UUID.randomUUID().toString();

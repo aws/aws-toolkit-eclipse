@@ -28,8 +28,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.navigator.CommonViewer;
 
+import com.amazonaws.eclipse.core.AccountAndRegionChangeListener;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 
 public class ResourcesView extends CommonNavigator {
 
@@ -66,24 +66,26 @@ public class ResourcesView extends CommonNavigator {
     @Override
     public void init(IViewSite aSite, IMemento aMemento) throws PartInitException {
         super.init(aSite, aMemento);
-         accountAndRegionChangeListener = new AccountAndRegionChangeListener();
+
+         accountAndRegionChangeListener = new AccountAndRegionChangeListener() {
+
+            @Override
+            public void onAccountOrRegionChange() {
+                ContentProviderRegistry.clearAllCachedResponses();
+
+                Display.getDefault().asyncExec(new Runnable() {
+                    public void run() {
+                        viewer.refresh();
+                        viewer.collapseAll();
+                    }
+                });
+            }
+
+         };
+
          AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(accountAndRegionChangeListener);
          AwsToolkitCore.getDefault().getAccountManager().addDefaultAccountChangeListener(accountAndRegionChangeListener);
          AwsToolkitCore.getDefault().addDefaultRegionChangeListener(accountAndRegionChangeListener);
-    }
-
-    private class AccountAndRegionChangeListener implements PreferencePropertyChangeListener {
-
-        public void watchedPropertyChanged() {
-            ContentProviderRegistry.clearAllCachedResponses();
-
-            Display.getDefault().asyncExec(new Runnable() {
-                public void run() {
-                    viewer.refresh();
-                    viewer.collapseAll();
-                }
-            });
-        }
     }
 
     private static final class ExplorerNodeOpenListener implements IOpenListener {

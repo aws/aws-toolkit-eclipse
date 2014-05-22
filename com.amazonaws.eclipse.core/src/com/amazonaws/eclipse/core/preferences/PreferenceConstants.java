@@ -29,13 +29,20 @@ public class PreferenceConstants {
 
     /**
      * Preference key for the user-visible name for an account; just a memento.
+     *
+     * @deprecated Only legacy accounts will use this preference key. Accounts
+     *             loaded from the credential profiles use
+     *             P_CREDENTIAL_PROFILE_NAME instead.
      */
+    @Deprecated
     public static final String P_ACCOUNT_NAME = "accountName";
 
     /** Preference key for a user's AWS secret key. */
+    @Deprecated
     public static final String P_SECRET_KEY = "secretKey";
 
     /** Preference key for a user's AWS access key. */
+    @Deprecated
     public static final String P_ACCESS_KEY = "accessKey";
 
     /** Preference key for a user's EC2 private key file. */
@@ -43,6 +50,9 @@ public class PreferenceConstants {
 
     /** Preference key for a user's EC2 certificate file. */
     public static final String P_CERTIFICATE_FILE = "certificateFile";
+
+    /** Preference key for the profile name of an account that is loaded from credential prfiles file. */
+    public static final String P_CREDENTIAL_PROFILE_NAME = "credentialProfileName";
 
     /* "Real" preference keys */
 
@@ -67,13 +77,19 @@ public class PreferenceConstants {
     /**
      * Preference key for the set of all account ids configured as *global*
      * default accounts.
+     *
+     * @deprecated Only the ids of the legacy accounts are included in this
+     *             preference value. Profile-based accountIds are added to
+     *             P_CREDENTIAL_PROFILE_ACCOUNT_IDS instead.
      */
+    @Deprecated
     public static final String P_ACCOUNT_IDS = "accountIds";
 
     /**
      * Returns the preference key for the set of all account ids configured as
      * default accounts for the given region.
      */
+    @Deprecated
     public static String P_ACCOUNT_IDS(Region region) {
         return region == null ?
                 P_ACCOUNT_IDS
@@ -95,8 +111,21 @@ public class PreferenceConstants {
      */
     public static final String P_GLOBAL_CURRENT_DEFAULT_ACCOUNT = "currentDefaultAccount";
 
+    /**
+     * Preference key for the set of ids of all the accounts loaded from
+     * credential profile file.
+     */
+    public static final String P_CREDENTIAL_PROFILE_ACCOUNT_IDS = "credentialProfileAccountIds";
+
+    /**
+     * Preference key for the location of the credentials file, from which the
+     * credential profiles are loaded.
+     */
+    public static final String P_CREDENTIAL_PROFILE_FILE_LOCATION = "credentialProfileFileLocation";
+
     public static final String P_CONNECTION_TIMEOUT = "connectionTimeout";
     public static final String P_SOCKET_TIMEOUT = "socketTimeout";
+
 
     /**
      * Returns the preference key for the selected default account for the given

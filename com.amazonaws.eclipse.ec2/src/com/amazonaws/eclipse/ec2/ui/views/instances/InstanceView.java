@@ -1,16 +1,16 @@
 /*
- * Copyright 2008-2012 Amazon Technologies, Inc. 
+ * Copyright 2008-2012 Amazon Technologies, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
- * OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and 
- * limitations under the License. 
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.amazonaws.eclipse.ec2.ui.views.instances;
@@ -24,66 +24,67 @@ import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
+import com.amazonaws.eclipse.core.AccountAndRegionChangeListener;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
-import com.amazonaws.eclipse.ec2.ui.StatusBar;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener;
+import com.amazonaws.eclipse.ec2.ui.StatusBar;
 
 /**
  * View for working with EC2 instances.
  */
 public class InstanceView extends ViewPart implements IRefreshable, SelectionTableListener {
-	
-	/** Shared factory for creating EC2 clients */
-	private StatusBar statusBar;
-	
-	/** Table of running instances */
-	private InstanceSelectionTable selectionTable;
+
+    /** Shared factory for creating EC2 clients */
+    private StatusBar statusBar;
+
+    /** Table of running instances */
+    private InstanceSelectionTable selectionTable;
 
     /**
      * Listener for AWS account and region preference changes that require this
      * view to be refreshed.
      */
-    PreferencePropertyChangeListener accountAndRegionChangeListener = new PreferencePropertyChangeListener() {
-        public void watchedPropertyChanged() {
+    AccountAndRegionChangeListener accountAndRegionChangeListener = new AccountAndRegionChangeListener() {
+        @Override
+        public void onAccountOrRegionChange() {
             InstanceView.this.refreshData();
         }
     };
 
 
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
-	 */
-	public void refreshData() {
-	    if (selectionTable != null) {
-	        selectionTable.refreshInstances();
-	    }
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
-	 */
-	@Override
-	public void createPartControl(Composite parent) {
-		GridLayout layout = new GridLayout(1, false);
-		layout.marginWidth = 0;
-		layout.marginHeight = 0;
-		layout.verticalSpacing = 2;
-		parent.setLayout(layout);
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
+     */
+    public void refreshData() {
+        if (selectionTable != null) {
+            selectionTable.refreshInstances();
+        }
+    }
 
-		statusBar = new StatusBar(parent);
-		statusBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		statusBar.setRecordLabel("Displayed Instances: ");
-		
-		selectionTable = new InstanceSelectionTable(parent);
-		selectionTable.setLayoutData(new GridData(GridData.FILL_BOTH));
-		selectionTable.setListener(this);
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
+     */
+    @Override
+    public void createPartControl(Composite parent) {
+        GridLayout layout = new GridLayout(1, false);
+        layout.marginWidth = 0;
+        layout.marginHeight = 0;
+        layout.verticalSpacing = 2;
+        parent.setLayout(layout);
 
-		refreshData();
-		
-		contributeToActionBars();
-	}
+        statusBar = new StatusBar(parent);
+        statusBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        statusBar.setRecordLabel("Displayed Instances: ");
+
+        selectionTable = new InstanceSelectionTable(parent);
+        selectionTable.setLayoutData(new GridData(GridData.FILL_BOTH));
+        selectionTable.setListener(this);
+
+        refreshData();
+
+        contributeToActionBars();
+    }
 
     @Override
     public void init(IViewSite aSite, IMemento aMemento) throws PartInitException {
@@ -93,57 +94,57 @@ public class InstanceView extends ViewPart implements IRefreshable, SelectionTab
          AwsToolkitCore.getDefault().addDefaultRegionChangeListener(accountAndRegionChangeListener);
     }
 
-	/*
-	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
-	 */
-	@Override
-	public void dispose() {
+    /*
+     * @see org.eclipse.ui.part.WorkbenchPart#dispose()
+     */
+    @Override
+    public void dispose() {
         AwsToolkitCore.getDefault().getAccountManager().removeAccountInfoChangeListener(accountAndRegionChangeListener);
         AwsToolkitCore.getDefault().getAccountManager().removeDefaultAccountChangeListener(accountAndRegionChangeListener);
         AwsToolkitCore.getDefault().removeDefaultRegionChangeListener(accountAndRegionChangeListener);
-		
-		if (statusBar != null) statusBar.dispose();
-		
-		if (selectionTable != null) selectionTable.dispose();
-		
-		super.dispose();
-	}
-	
-	private void contributeToActionBars() {
-		IActionBars bars = getViewSite().getActionBars();
-		bars.getToolBarManager().add(selectionTable.getRefreshAction());
-		
-		/** Adds Dropdown filter action for Instance States */
-		bars.getToolBarManager().add(selectionTable.getInstanceStateFilterDropDownAction());
-		
-		/** Adds Dropdown filter action for Security Filter Groups */
-		bars.getToolBarManager().add(selectionTable.getSecurityGroupFilterAction());
-	}
-	
-	/**
-	 * Passing the focus request to the viewer's control.
-	 */
-	public void setFocus() {
-		selectionTable.setFocus();
-	}
 
-	
-	/*
-	 * SelectionTableListener Interface
-	 */
-	
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener#finishedLoadingData()
-	 */
-	public void finishedLoadingData(int noOfInstances) {
-		statusBar.finishedLoadingData(noOfInstances);
-	}
+        if (statusBar != null) statusBar.dispose();
 
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener#loadingData()
-	 */
-	public void loadingData() {
-		statusBar.loadingData();
-	}
-	
+        if (selectionTable != null) selectionTable.dispose();
+
+        super.dispose();
+    }
+
+    private void contributeToActionBars() {
+        IActionBars bars = getViewSite().getActionBars();
+        bars.getToolBarManager().add(selectionTable.getRefreshAction());
+
+        /** Adds Dropdown filter action for Instance States */
+        bars.getToolBarManager().add(selectionTable.getInstanceStateFilterDropDownAction());
+
+        /** Adds Dropdown filter action for Security Filter Groups */
+        bars.getToolBarManager().add(selectionTable.getSecurityGroupFilterAction());
+    }
+
+    /**
+     * Passing the focus request to the viewer's control.
+     */
+    public void setFocus() {
+        selectionTable.setFocus();
+    }
+
+
+    /*
+     * SelectionTableListener Interface
+     */
+
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener#finishedLoadingData()
+     */
+    public void finishedLoadingData(int noOfInstances) {
+        statusBar.finishedLoadingData(noOfInstances);
+    }
+
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener#loadingData()
+     */
+    public void loadingData() {
+        statusBar.loadingData();
+    }
+
 }

@@ -34,8 +34,8 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.eclipse.core.accounts.AccountInfoChangeListener;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
-import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.Service;
@@ -72,6 +72,7 @@ import com.amazonaws.services.sqs.AmazonSQSClient;
 /**
  * Factory for creating AWS clients.
  */
+@SuppressWarnings("deprecation")
 public class AWSClientFactory {
 
     /**
@@ -84,16 +85,22 @@ public class AWSClientFactory {
     private CachedClients cachedClients = new CachedClients();
 
     /**
-     * A shared account info object for accessing the user's credentials.
+     * The identifier of the shared account info for accessing the user's
+     * credentials.
+     * <p>
+     * NOTE: we used to pass an AccountInfo object into this class. That used to
+     * work because the preference-store implementation of AccountInfo always
+     * read the value from the external source; the only data enclosed in the
+     * AccountInfo object is the accountId.
      */
-    private final AccountInfo accountInfo;
+    private final String accountId;
 
     /**
-     * Constructs a client factory that uses the given AWS account
-     * for its credentials.
+     * Constructs a client factory that uses the given account identifier to
+     * retrieve its credentials.
      */
-    public AWSClientFactory(AccountInfo accountInfo) {
-        this.accountInfo = accountInfo;
+    public AWSClientFactory(String accountId) {
+        this.accountId = accountId;
 
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
         if ( plugin != null ) {
@@ -103,11 +110,12 @@ public class AWSClientFactory {
                 }
             });
 
-            plugin.getAccountManager().addAccountInfoChangeListener(new PreferencePropertyChangeListener() {
+            plugin.getAccountManager().addAccountInfoChangeListener(new AccountInfoChangeListener() {
 
-                public void watchedPropertyChanged() {
+                public void onAccountInfoChange() {
                     cachedClients.invalidateClients();
                 }
+
             });
         }
     }
@@ -288,6 +296,8 @@ public class AWSClientFactory {
             Service service = RegionUtils.getServiceByEndpoint(endpoint);
             config.setSignerOverride(service.getSignerOverride());
 
+            final AccountInfo accountInfo = AwsToolkitCore.getDefault()
+                    .getAccountManager().getAccountInfo(accountId);
             AWSCredentials credentials = new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey());
 
             T client = constructor.newInstance(credentials, config);

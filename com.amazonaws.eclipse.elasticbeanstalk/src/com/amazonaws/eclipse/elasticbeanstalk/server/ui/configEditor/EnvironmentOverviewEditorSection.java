@@ -145,7 +145,7 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         dateUpdatedLabel = createRow(composite, "Last Updated: ", "");
 
         String accountId = environment.getAccountId();
-        String accountName = AwsToolkitCore.getDefault().getAccountManager().getAccounts().get(accountId);
+        String accountName = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames().get(accountId);
         if ( accountName != null ) {
             createLabel(toolkit, composite, "AWS Account: ");
             String href = "preference:" + AwsAccountPreferencePage.ID;

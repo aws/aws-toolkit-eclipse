@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/aws-java-sdk-1.6.12-core-no-flow.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/aws-java-sdk-1.7.9-core-no-flow.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/httpclient-4.2.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/httpcore-4.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-core-asl-1.8.7.jar"/>

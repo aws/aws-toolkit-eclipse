@@ -16,7 +16,7 @@ package com.amazonaws.eclipse.elasticbeanstalk;
 
 public class SolutionStacks {
     private static final String TOMCAT_6_64BIT_AMAZON_LINUX = "64bit Amazon Linux running Tomcat 6";
-    private static final String TOMCAT_7_64BIT_AMAZON_LINUX = "64bit Amazon Linux 2013.09 v1.0.1 running Tomcat 7 Java 7";
+    private static final String TOMCAT_7_64BIT_AMAZON_LINUX = "64bit Amazon Linux 2014.03 v1.0.2 running Tomcat 7 Java 7";
     public static final String DEFAULT_SOLUTION_STACK = TOMCAT_7_64BIT_AMAZON_LINUX;
 
     public static String lookupSolutionStackByServerTypeId(String serverTypeId) {

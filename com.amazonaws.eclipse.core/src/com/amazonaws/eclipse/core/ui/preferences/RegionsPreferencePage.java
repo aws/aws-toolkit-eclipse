@@ -96,7 +96,7 @@ public class RegionsPreferencePage
         String regionsHelpLinkText = "AWS regions allow you to position your AWS resources in different geographical areas, " +
                                  "enabling you to keep your application's data close to your customers, and add redundancy to your system, since " +
                                  "each region is isolated from each other.\n";
-        this.newLink(webLinkListener, regionsHelpLinkText, regionGroup);
+        newLink(webLinkListener, regionsHelpLinkText, regionGroup);
 
         Label label = new Label(regionGroup, SWT.NONE);
         label.setText("Default Region:");

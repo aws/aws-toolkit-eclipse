@@ -12,96 +12,134 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.amazonaws.eclipse.core;
 
-import java.io.File;
-
 /**
- * Abstract class describing the interface for accessing configured AWS account
- * preferences and provides hooks for notification of change events.
+ * Interface for accessing and saving configured AWS account information.
  */
-public abstract class AccountInfo {
+public interface AccountInfo {
 
     /**
-     * Returns the currently configured AWS user account ID.
+     * Returns the account identifier used internally by the plugin.
      *
-     * @return The currently configured AWS user account ID.
-	 */
-	public abstract String getUserId();
+     * @return The account identifier used internally by the plugin.
+     */
+    public String getInternalAccountId();
 
-	/**
-	 * Returns the currently configured AWS user access key.
-	 *
-	 * @return The currently configured AWS user access key.
-	 */
-	public abstract String getAccessKey();
+    /**
+     * Returns the UI-friendly name for this account.
+     *
+     * @return The UI-friendly name for this account.
+     */
+    public String getAccountName();
 
-	/**
-	 * Sets the AWS Access Key ID for this account info object.
-	 *
-	 * @param accessKey The AWS Access Key ID.
-	 */
-	public abstract void setAccessKey(String accessKey);
+    /**
+     * Sets the UI-friendly name for this account.
+     *
+     * @param accountName
+     *            The UI-friendly name for this account.
+     */
+    public void setAccountName(String accountName);
 
-	/**
-	 * Returns the currently configured AWS secret key.
-	 *
-	 * @return The currently configured AWS secret key.
-	 */
-	public abstract String getSecretKey();
+    /**
+     * Returns the currently configured AWS user access key.
+     *
+     * @return The currently configured AWS user access key.
+     */
+    public String getAccessKey();
+
+    /**
+     * Sets the AWS Access Key ID for this account info object.
+     *
+     * @param accessKey The AWS Access Key ID.
+     */
+    public void setAccessKey(String accessKey);
+
+    /**
+     * Returns the currently configured AWS secret key.
+     *
+     * @return The currently configured AWS secret key.
+     */
+    public String getSecretKey();
 
     /**
      * Sets the AWS Secret Access Key for this account info object.
      *
      * @param secretKey The AWS Secret Access Key.
      */
-    public abstract void setSecretKey(String secretKey);
+    public void setSecretKey(String secretKey);
 
     /**
-	 * Returns the currently configured EC2 private key file.
-	 *
-	 * @return The currently configured EC2 private key file.
-	 */
-	public abstract String getEc2PrivateKeyFile();
+     * Returns the currently configured AWS user account ID.
+     *
+     * @return The currently configured AWS user account ID.
+     */
+    public String getUserId();
 
-	/**
-	 * Returns the currently configured EC2 certificate file.
-	 *
-	 * @return The currently configured EC2 certificate file.
-	 */
-	public abstract String getEc2CertificateFile();
+    /**
+     * Sets the currently configured AWS user account ID.
+     */
+    public void setUserId(String userId);
 
-	/**
-	 * Returns true if the configured account information appears to be valid by
-	 * verifying that none of the values are missing.
-	 *
-	 * @return True if the configured account information appears to be valid,
-	 *         otherwise false.
-	 */
-	public boolean isValid() {
-		if (getAccessKey() == null || getAccessKey().length() == 0) return false;
-		if (getSecretKey() == null || getSecretKey().length() == 0) return false;
-		return true;
-	}
+    /**
+     * Returns the currently configured EC2 private key file.
+     *
+     * @return The currently configured EC2 private key file.
+     */
+    public String getEc2PrivateKeyFile();
 
-	/**
-	 * Returns true if and only if the configured certificate and corresponding
-	 * private key are valid. Currently that distinction is made by verifying
-	 * that the referenced files exist.
-	 *
-	 * @return True if and only if the configured certificate and corresponding
-	 *         private key are valid.
-	 */
-	public boolean isCertificateValid() {
-		String certificateFile = getEc2CertificateFile();
-		String privateKeyFile = getEc2PrivateKeyFile();
+    /**
+     * Sets the currently configured EC2 private key file.
+     */
+    public void setEc2PrivateKeyFile(String ec2PrivateKeyFile);
 
-		if (certificateFile == null || certificateFile.length() == 0) return false;
-		if (privateKeyFile == null || privateKeyFile.length() == 0) return false;
+    /**
+     * Returns the currently configured EC2 certificate file.
+     *
+     * @return The currently configured EC2 certificate file.
+     */
+    public String getEc2CertificateFile();
 
-		return (new File(certificateFile).isFile() &&
-				new File(privateKeyFile).isFile());
-	}
+    /**
+     * Sets the currently configured EC2 certificate file.
+     */
+    public void setEc2CertificateFile(String ec2CertificateFile);
+
+    /**
+     * Persist this account information in the source where it was loaded, e.g.
+     * save the related preference store properties, or save output the
+     * information to an external file.
+     */
+    public void save();
+
+    /**
+     * Delete this account information in the source where it was loaded.
+     */
+    public void delete();
+
+    /**
+     * Returns true if this account information contains in-memory changes that
+     * are not saved in the source yet.
+     */
+    public boolean isDirty();
+
+    /**
+     * Returns true if the configured account information appears to be valid by
+     * verifying that none of the values are missing.
+     *
+     * @return True if the configured account information appears to be valid,
+     *         otherwise false.
+     */
+    public boolean isValid();
+
+    /**
+     * Returns true if and only if the configured certificate and corresponding
+     * private key are valid. Currently that distinction is made by verifying
+     * that the referenced files exist.
+     *
+     * @return True if and only if the configured certificate and corresponding
+     *         private key are valid.
+     */
+    public boolean isCertificateValid();
 
 }

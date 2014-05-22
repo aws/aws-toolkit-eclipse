@@ -15,7 +15,6 @@
 package com.amazonaws.eclipse.explorer;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,9 +51,9 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
 
     /** Cache for previously loaded data */
     protected Map<Object, Object[]> cachedResponses = new ConcurrentHashMap<Object, Object[]>();
-    
+
     protected BackgroundContentUpdateJobFactory backgroundJobFactory;
-    
+
     /**
      * Creates a new AbstractContentProvider and registers it with the registry
      * of AWS Explorer ContentProviders.
@@ -198,7 +197,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
             if ( null != backgroundJobFactory ) {
                 backgroundJobFactory.startBackgroundContentUpdateJob(parentElement);
             }
-            
+
             return cachedResponses.get(parentElement);
         }
 
@@ -271,11 +270,11 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
                   loadImage(AwsToolkitCore.IMAGE_AWS_ICON));
         }
     }
-    
+
     protected abstract class BackgroundContentUpdateJobFactory {
 
         private Map<Object, Job> backgroundJobs = new ConcurrentHashMap<Object, Job>();
-        
+
         /**
          * Defines the behavior of the background job. Returned boolean values
          * indicates whether the background should keep running.
@@ -291,7 +290,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         private Job getBackgroundJobByParentElement(Object parentElement) {
             return backgroundJobs.get(parentElement);
         }
-        
+
         public synchronized void startBackgroundContentUpdateJob(final Object parentElement) {
             Job currentJob = getBackgroundJobByParentElement(parentElement);
             if ( currentJob == null ) {
@@ -300,7 +299,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
                  * content. (e.g. updating TableNode status)
                  */
                 final Job newJob = new Job("Updating contents") {
-                    
+
                     private Object updatedParentElement = parentElement;
 
                     @Override

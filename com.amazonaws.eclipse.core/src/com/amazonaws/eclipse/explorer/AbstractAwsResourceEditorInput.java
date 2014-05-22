@@ -26,15 +26,15 @@ public abstract class AbstractAwsResourceEditorInput implements IEditorInput {
         this.regionEndpoint = regionEndpoint;
         this.accountId = accountId;
     }
-    
+
     public String getRegionEndpoint() {
         return regionEndpoint;
     }
-    
+
     public String getAccountId() {
         return accountId;
     }
-    
+
     public Object getAdapter(Class adapter) {
         return null;
     }

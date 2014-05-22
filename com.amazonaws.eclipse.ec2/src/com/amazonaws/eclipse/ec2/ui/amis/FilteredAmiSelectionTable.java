@@ -27,8 +27,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
+import com.amazonaws.eclipse.core.AccountAndRegionChangeListener;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.eclipse.ec2.ui.StatusBar;
 import com.amazonaws.services.ec2.model.Image;
@@ -54,8 +54,9 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
      * Listener for AWS account and region preference changes that require this
      * view to be refreshed.
      */
-    private final PreferencePropertyChangeListener accountAndRegionChangeListener = new PreferencePropertyChangeListener() {
-        public void watchedPropertyChanged() {
+    private final AccountAndRegionChangeListener accountAndRegionChangeListener = new AccountAndRegionChangeListener() {
+        @Override
+        public void onAccountOrRegionChange() {
             FilteredAmiSelectionTable.this.refreshData();
         }
     };
@@ -73,10 +74,10 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
 
     /**
      * Constructs a new table with an in-lined tool bar
-     * 
+     *
      * @param numButtons
      *            The number of widgets in the toolbar, for layout purposes.
-     *            
+     *
      * @see FilteredAmiSelectionTable#FilteredAmiSelectionTable(Composite)
      */
     public FilteredAmiSelectionTable(Composite parent, ToolBarManager toolbar, int numButtons) {
@@ -96,12 +97,12 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
 
         statusBar = new StatusBar(this);
         statusBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		statusBar.setRecordLabel("Displayed AMIs: ");
+        statusBar.setRecordLabel("Displayed AMIs: ");
 
         if ( toolbar != null ) {
             toolbar.createControl(this);
         }
-		
+
         final Text text = new Text(this, SWT.SEARCH | SWT.CANCEL);
         GridData gridData = new GridData();
         gridData.widthHint = 150;
