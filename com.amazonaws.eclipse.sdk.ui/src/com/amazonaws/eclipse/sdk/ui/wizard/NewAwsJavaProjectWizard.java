@@ -202,6 +202,9 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
     }
 
     private static String updateSampleContentWithConfiguredProfile(String sampleContent, final AccountInfo selectedAccount) {
+        final String credFileLocation = AwsToolkitCore.getDefault().getPreferenceStore().getString(
+                PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION);
+
         String paramString;
         if (AwsToolkitCore.getDefault().getPreferenceStore().isDefault(
                 PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION)) {
@@ -210,17 +213,14 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
 
         } else {
             paramString = String.format("\"%s\", \"%s\"",
-                    AwsToolkitCore.getDefault().getPreferenceStore().getString(
-                            PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION),
-                    selectedAccount.getAccountName())
-                        .replace("\\", "\\\\"); // escape backslashes
+                    credFileLocation, selectedAccount.getAccountName());
         }
 
         // Change the parameter of the ProfileCredentialsProvider
         sampleContent = sampleContent.replace(
                 "new ProfileCredentialsProvider().getCredentials();",
                 String.format("new ProfileCredentialsProvider(%s).getCredentials();",
-                        paramString));
+                              escapeBackSlashes(paramString)));
 
         // Remove the block of comment between "Before running the code" and "WARNING"
         String COMMNET_TO_REMOVE_REGEX = "(Before running the code:.*?)?Fill in your AWS access credentials.*?(?=WANRNING:)";
@@ -235,8 +235,7 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
         // (~/.aws/credentials) ==> (user-specified preference store value)
         sampleContent = sampleContent.replace(
                 "(~/.aws/credentials)",
-                String.format("(%s)", AwsToolkitCore.getDefault().getPreferenceStore().getString(
-                        PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION)));
+                String.format("(%s)", escapeBackSlashes(credFileLocation)));
 
         return sampleContent;
     }
@@ -260,5 +259,9 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
 
     private void logError(String errMsg, Throwable t) {
         AwsToolkitCore.getDefault().logException(errMsg, t);
+    }
+
+    private static String escapeBackSlashes(String str) {
+        return str.replace("\\", "\\\\");
     }
 }

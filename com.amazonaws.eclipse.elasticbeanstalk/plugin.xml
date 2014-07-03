@@ -243,13 +243,14 @@
            <visibleWhen checkEnabled="false">
               <with variable="selection">
                   <iterate ifEmpty="false">
-                      <instanceof value="org.eclipse.core.resources.IResource"/>
-                      <test forcePluginActivation="true"
-                            property="org.eclipse.wst.common.project.facet.core.projectFacet"
-                            value="jst.java"/>
-                      <test forcePluginActivation="true"
-                            property="org.eclipse.wst.common.project.facet.core.projectFacet"
-                            value="jst.web"/>
+                      <adapt type="org.eclipse.core.resources.IProject">
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                                value="jst.java"/>
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                                value="jst.web"/>
+                      </adapt>
                   </iterate>
                </with>
             </visibleWhen>
