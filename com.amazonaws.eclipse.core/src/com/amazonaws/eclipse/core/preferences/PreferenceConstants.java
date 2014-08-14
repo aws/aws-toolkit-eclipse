@@ -126,6 +126,10 @@ public class PreferenceConstants {
     public static final String P_CONNECTION_TIMEOUT = "connectionTimeout";
     public static final String P_SOCKET_TIMEOUT = "socketTimeout";
 
+    /**
+     * Preference key for the default user email to show in the error report form.
+     */
+    public static final String P_ERROR_REPORT_DEFAULT_USER_EMAIL = "errorReportDefaultUserEmail";
 
     /**
      * Returns the preference key for the selected default account for the given

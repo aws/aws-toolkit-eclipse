@@ -53,12 +53,14 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
+import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.ui.EmailLinkListener;
 import com.amazonaws.eclipse.core.ui.PreferenceLinkListener;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
-import com.amazonaws.eclipse.core.ui.preferences.accounts.LegacyPreferenceStoreAccountMerger;
+import com.amazonaws.eclipse.core.ui.overview.Toolkit;
 import com.amazonaws.util.StringUtils;
 
 /**
@@ -204,10 +206,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         createTimeoutSectionGroup(composite);
 
         // The weblinks at the bottom part of the page
-        WebLinkListener webLinkListener = new WebLinkListener();
-        String javaForumLinkText = "Get help or provide feedback on the " + "<a href=\""
-                + AwsUrls.JAVA_DEVELOPMENT_FORUM_URL + "\">AWS Java Development Forum</a>. ";
-        AwsToolkitPreferencePage.newLink(webLinkListener, javaForumLinkText, composite);
+        createFeedbackSection(composite);
 
         parent.pack();
         return composite;
@@ -389,10 +388,6 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      */
     private void initAccountInfo() {
         AwsPluginAccountManager accountManager = AwsToolkitCore.getDefault().getAccountManager();
-
-        LegacyPreferenceStoreAccountMerger.mergeLegacyAccountsIntoCredentialsFile();
-
-        accountManager.reloadAccountInfo();
 
         accountInfoByIdentifier.clear();
         accountInfoByIdentifier.putAll(accountManager.getAllAccountInfo());
@@ -616,6 +611,24 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         networkConnectionLink.addListener(SWT.Selection, preferenceLinkListener);
 
         return group;
+    }
+
+    /**
+     * Insert links to the Java dev forum and aws-eclipse-feedback@amazon.com
+     */
+    private void createFeedbackSection(final Composite composite) {
+        WebLinkListener webLinkListener = new WebLinkListener();
+        String javaForumLinkText = "Get help or provide feedback on the "
+                + Toolkit.createAnchor("AWS Java Development Forum",
+                                       AwsUrls.JAVA_DEVELOPMENT_FORUM_URL);
+        AwsToolkitPreferencePage.newLink(webLinkListener, javaForumLinkText, composite);
+
+        EmailLinkListener feedbackLinkListener
+            = new EmailLinkListener(EmailMessageLauncher.createEmptyFeedbackEmail());
+        String feedbackLinkText = "Or directly contact us via "
+                + Toolkit.createAnchor(EmailMessageLauncher.AWS_ECLIPSE_FEEDBACK_AT_AMZN,
+                                       EmailMessageLauncher.AWS_ECLIPSE_FEEDBACK_AT_AMZN);
+        AwsToolkitPreferencePage.newLink(feedbackLinkListener, feedbackLinkText, composite);
     }
 
     /**

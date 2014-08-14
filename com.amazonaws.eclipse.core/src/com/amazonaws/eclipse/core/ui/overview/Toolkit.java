@@ -70,7 +70,7 @@ public class Toolkit {
      *            The text to display in the label.
      * @return The new label.
      */
-    public Label newLabel(Composite parent, String text) {
+    public static Label newLabel(Composite parent, String text) {
         Label l = new Label(parent, SWT.NONE);
         l.setText(text);
         l.setBackground(parent.getBackground());
@@ -90,7 +90,7 @@ public class Toolkit {
      *            The action to execute when the Link is selected.
      * @return The new link.
      */
-    public Link newActionLink(Composite parent, String text, final IAction action) {
+    public static Link newActionLink(Composite parent, String text, final IAction action) {
         Link link = new Link(parent, SWT.NONE);
         link.setText(createAnchor(text, text));
         link.setBackground(parent.getBackground());
@@ -117,7 +117,7 @@ public class Toolkit {
      *            selected.
      * @return The new link.
      */
-    public Link newPreferenceLink(Composite parent, String text, String target) {
+    public static Link newPreferenceLink(Composite parent, String text, String target) {
         Link link = new Link(parent, SWT.NONE);
         link.setText(createAnchor(text, target));
         link.setBackground(parent.getBackground());
@@ -142,7 +142,7 @@ public class Toolkit {
      *            should be opened when selected.
      * @return The new link.
      */
-    public Link newWebLink(Composite parent, String text) {
+    public static Link newWebLink(Composite parent, String text) {
         Link link = new Link(parent, SWT.NONE);
         link.setText(text);
         link.setBackground(parent.getBackground());
@@ -166,7 +166,7 @@ public class Toolkit {
      *            is selected.
      * @return The new link.
      */
-    public Link newHelpLink(Composite parent, String text, String target) {
+    public static Link newHelpLink(Composite parent, String text, String target) {
        Link link = new Link(parent, SWT.NONE);
        link.setText(createAnchor(text, target));
        link.setBackground(parent.getBackground());
@@ -192,7 +192,7 @@ public class Toolkit {
      *            The HTTP URL to open when the link is selected.
      * @return The new link.
      */
-    public Link newWebLink(Composite parent, String text, String target) {
+    public static Link newWebLink(Composite parent, String text, String target) {
         return newWebLink(parent, createAnchor(text, target));
     }
 
@@ -208,7 +208,7 @@ public class Toolkit {
      *            The delegate object to run when the link is selected.
      * @return The new link.
      */
-    public Link newActionDelegateLink(Composite parent, String text,
+    public static Link newActionDelegateLink(Composite parent, String text,
             final IActionDelegate delegate) {
 
         final Action proxy = new Action("runAction") {
@@ -240,7 +240,7 @@ public class Toolkit {
      *            The URL to set in the href attribute of the anchor tag.
      * @return The specified text wrapped in an anchor tag.
      */
-    public String createAnchor(String text, String target) {
+    public static String createAnchor(String text, String target) {
         return "<a href=\"" + target + "\">" + text + "</a>";
     }
 
@@ -254,7 +254,7 @@ public class Toolkit {
      *            The ID of the image in AwsToolkitCore's ImageRegistry to
      *            display.
      */
-    public Label newImageLabel(Composite parent, String imageId) {
+    public static Label newImageLabel(Composite parent, String imageId) {
         Label label = new Label(parent, SWT.NONE);
         label.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(imageId));
         label.setBackground(parent.getBackground());

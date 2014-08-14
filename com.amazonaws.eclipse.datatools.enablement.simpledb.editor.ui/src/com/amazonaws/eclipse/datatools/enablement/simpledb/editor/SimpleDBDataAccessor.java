@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -34,7 +34,7 @@ public class SimpleDBDataAccessor extends DefaultColumnDataAccessor {
     /**
      * If val is String[] or Collection returns true, otherwise returns super.isSnippet(...) This is to disable in cell
      * editing for multiple attribute columns.
-     * 
+     *
      * @see org.eclipse.datatools.sqltools.data.internal.core.common.DefaultColumnDataAccessor#isSnippet(java.lang.Object,
      *      int)
      */
@@ -58,7 +58,7 @@ public class SimpleDBDataAccessor extends DefaultColumnDataAccessor {
 
     /**
      * Converts val to readable string if val is instance of String[] otherwise returns super.getLabel(...)
-     * 
+     *
      * @see org.eclipse.datatools.sqltools.data.internal.core.common.DefaultColumnDataAccessor#getLabel(java.lang.Object,
      *      int)
      */

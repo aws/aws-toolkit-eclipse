@@ -22,8 +22,8 @@ import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 public class BrowserUtils {
-    
-    private static final int BROWSER_STYLE = IWorkbenchBrowserSupport.LOCATION_BAR 
+
+    private static final int BROWSER_STYLE = IWorkbenchBrowserSupport.LOCATION_BAR
                                            | IWorkbenchBrowserSupport.AS_EXTERNAL
                                            | IWorkbenchBrowserSupport.STATUS
                                            | IWorkbenchBrowserSupport.NAVIGATION_BAR;
@@ -37,7 +37,7 @@ public class BrowserUtils {
             browserSupport.createBrowser(BROWSER_STYLE, null, null, null)
                 .openURL(new URL(url));
         } catch (Exception e) {
-            Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, 
+            Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
                     "Unable to open external web browser to '" + url + "': " + e.getMessage(), e);
             StatusManager.getManager().handle(status, StatusManager.SHOW);
         }

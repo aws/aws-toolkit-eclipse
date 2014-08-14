@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -19,7 +19,9 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
@@ -43,7 +45,7 @@ public class JdbcDriver implements Driver {
 
     /**
      * Creates a JDBC wrapper infrastructure around AmazonSDB client library.
-     * 
+     *
      * @param driverClass
      *          AmazonSDB client class
      */
@@ -104,7 +106,7 @@ public class JdbcDriver implements Driver {
     /**
      * Returns an Amazon SimpleDB client, configured with the specified access
      * key, secret key, and endpoint.
-     * 
+     *
      * @param access
      *            The AWS access key to use for authentication in the returned
      *            client.
@@ -114,10 +116,10 @@ public class JdbcDriver implements Driver {
      * @param endpoint
      *            The SimpleDB service endpoint that the returned client should
      *            communicate with.
-     * 
+     *
      * @return An Amazon SimpleDB client, configured with the specified access
      *         key, secret key, and endpoint.
-     * 
+     *
      * @throws SQLException
      *             If any problems are encountered creating the client to
      *             return.
@@ -176,4 +178,7 @@ public class JdbcDriver implements Driver {
         return false;
     }
 
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return null;
+    }
 }

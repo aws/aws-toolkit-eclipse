@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -1133,4 +1133,12 @@ public class JdbcResultSet implements ResultSet, ResultSetMetaData {
         return null;
     }
 
+    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+        return null;
+    }
+
+    public <T> T getObject(String columnLabel, Class<T> type)
+            throws SQLException {
+        return null;
+    }
 }

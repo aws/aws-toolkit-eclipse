@@ -124,6 +124,12 @@
             defaultHandler="com.amazonaws.eclipse.core.ui.menu.OpenWebConsoleHandler"
             categoryId="com.amazonaws.commands.category">
       </command>
+
+      <command id="com.amazonaws.eclipse.command.openGeneralFeedbackEmail"
+            name="Report Bug or Enhancement"
+            defaultHandler="com.amazonaws.eclipse.core.ui.menu.OpenGeneralFeedbackEmailHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
    </extension>
 
 
@@ -188,6 +194,13 @@
 
          <separator name="separator6" visible="true"/>
 
+         <command commandId="com.amazonaws.eclipse.command.openGeneralFeedbackEmail"
+                  id="com.amazonaws.eclipse.toolbar.openGeneralFeedbackEmail"
+                  label="Report Bug or Enhancement">
+         </command>
+
+         <separator name="separator7" visible="true"/>
+
          <command commandId="com.amazonaws.eclipse.command.openPreferences"
                   id="com.amazonaws.toolbar.openPreferences"
                   label="Preferences...">
@@ -248,7 +261,7 @@
           viewerId="com.amazonaws.eclipse.explorer.view">
     </dragAssistant>
   </extension>
-  
+
   <!--
     A content provider for the AWS Explorer view that notifies the user when they haven't
     configured account credentials for the toolkit to use.
@@ -261,7 +274,7 @@
         labelProvider="com.amazonaws.eclipse.explorer.ExplorerNodeLabelProvider"
         name="AWS Account not Configured"
         priority="normal">
-        
+
       <triggerPoints>
         <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
       </triggerPoints>
@@ -446,12 +459,12 @@
           <instanceof value="com.amazonaws.eclipse.explorer.cloudfront.CloudFrontRootElement" />
         </or>
       </possibleChildren>
-      
+
       <!-- TODO: Need an action provider here... -->
     </navigatorContent>
 
   </extension>
-  
+
   <extension point="org.eclipse.ui.decorators">
      <decorator
            class="com.amazonaws.eclipse.explorer.cloudfront.DistributionDecorator"
@@ -467,6 +480,5 @@
         </enablement>
      </decorator>
   </extension>
-  
 
 </plugin>

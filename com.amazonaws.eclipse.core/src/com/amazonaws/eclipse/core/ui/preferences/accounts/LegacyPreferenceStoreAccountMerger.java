@@ -58,15 +58,32 @@ public class LegacyPreferenceStoreAccountMerger {
 
     private static final IPreferenceStore prefStore = AwsToolkitCore.getDefault().getPreferenceStore();
 
+    private static boolean isEmpty(String s) {
+        return (s == null || s.trim().length() == 0);
+    }
+
+    /**
+     * NOTE: This method is safe to be invoked in non-UI thread.
+     */
     public static void mergeLegacyAccountsIntoCredentialsFile() {
         final AccountInfoProvider provider = AccountInfoProvider.getInstance();
-        Map<String, AccountInfo> legacyAccounts = provider.getAllLegacyPreferenceStoreAccontInfo();
+        final Map<String, AccountInfo> legacyAccounts = provider.getAllLegacyPreferenceStoreAccontInfo();
 
+        // If there are no user created legacy accounts, then exit
+        // early since there's nothing to merge.
         if (legacyAccounts.isEmpty()) {
             return;
+        } else if (legacyAccounts.size() == 1) {
+            AccountInfo accountInfo = legacyAccounts.values().iterator().next();
+
+            if (accountInfo.getAccountName().equals("default") &&
+                isEmpty(accountInfo.getAccessKey()) &&
+                isEmpty(accountInfo.getSecretKey())) {
+                return;
+            }
         }
 
-        File credentialsFile = new File(
+        final File credentialsFile = new File(
                 prefStore
                         .getString(PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION));
 
@@ -84,7 +101,7 @@ public class LegacyPreferenceStoreAccountMerger {
                     legacyAccounts.size(), credentialsFile.getAbsolutePath()));
         } else {
             provider.refreshProfileAccountInfo(false, false);
-            Map<String, AccountInfo> profileAccounts = provider.getAllProfileAccountInfo();
+            final Map<String, AccountInfo> profileAccounts = provider.getAllProfileAccountInfo();
 
             if (profileAccounts.isEmpty()) {
                 /*
@@ -92,48 +109,61 @@ public class LegacyPreferenceStoreAccountMerger {
                  *      Ask the user whether he/she wants to override the existing
                  *      file and dump the legacy accounts into it.
                  */
-                String MESSAGE = "The following legacy account configurations are detected in the system. " +
-                        "The AWS Toolkit now uses the credentials file to persist the credential configurations. " +
-                        "We cannot automatically merge the following accounts into your credentials file, " +
-                        "since the file already exists and is in invalid format. " +
-                        "Do you want to recreate the file using these account configurations?";
-                MergeLegacyAccountsConfirmationDialog dialog = new MergeLegacyAccountsConfirmationDialog(
-                        null, MESSAGE, new String[] { "Yes", "No" }, 0,
-                        legacyAccounts.values(), null, null);
-                int result = dialog.open();
+                Display.getDefault().asyncExec(new Runnable() {
 
-                if (result == 0) {
-                    AwsToolkitCore.getDefault().logInfo("Deleting the credentials file before dumping the legacy accounts.");
-                    credentialsFile.delete();
-                    saveAccountsIntoCredentialsFile(credentialsFile, legacyAccounts.values(), null);
-                    clearAllLegacyAccountsInPreferenceStore();
-                }
+                    public void run() {
+                        String MESSAGE = "The following legacy account configurations are detected in the system. " +
+                                "The AWS Toolkit now uses the credentials file to persist the credential configurations. " +
+                                "We cannot automatically merge the following accounts into your credentials file, " +
+                                "since the file already exists and is in invalid format. " +
+                                "Do you want to recreate the file using these account configurations?";
+                        MergeLegacyAccountsConfirmationDialog dialog = new MergeLegacyAccountsConfirmationDialog(
+                                null, MESSAGE, new String[] { "Yes", "No" }, 0,
+                                legacyAccounts.values(), null, null);
+                        int result = dialog.open();
+
+                        if (result == 0) {
+                            AwsToolkitCore.getDefault().logInfo("Deleting the credentials file before dumping the legacy accounts.");
+                            credentialsFile.delete();
+                            saveAccountsIntoCredentialsFile(credentialsFile, legacyAccounts.values(), null);
+                            clearAllLegacyAccountsInPreferenceStore();
+                        }
+                    }
+
+                });
+
             } else {
                 /*
                  *  (3) Profile accounts successfully loaded.
                  *      Ask the user whether he/she wants to merge the legacy
                  *      accounts into the credentials file
                  */
-                String MESSAGE = "The following legacy account configurations are detected in the system. " +
-                        "The AWS Toolkit now uses the credentials file to persist the credential configurations. " +
-                        "Do you want to merge these accounts into your existing credentials file?";
+                Display.getDefault().asyncExec(new Runnable() {
 
-                Map<String, String> profileNameOverrides = checkDuplicateProfileName(
-                        legacyAccounts.values(), profileAccounts.values());
+                    public void run() {
+                        String MESSAGE = "The following legacy account configurations are detected in the system. " +
+                                "The AWS Toolkit now uses the credentials file to persist the credential configurations. " +
+                                "Do you want to merge these accounts into your existing credentials file?";
 
-                MergeLegacyAccountsConfirmationDialog dialog = new MergeLegacyAccountsConfirmationDialog(
-                        null, MESSAGE, new String[] { "Remove legacy accounts", "Yes", "No" }, 1,
-                        legacyAccounts.values(), profileAccounts.values(), profileNameOverrides);
-                int result = dialog.open();
+                        Map<String, String> profileNameOverrides = checkDuplicateProfileName(
+                                legacyAccounts.values(), profileAccounts.values());
 
-                if (result == 1) {
-                    AwsToolkitCore.getDefault().logInfo("Coverting legacy accounts and merging them into the credentials file.");
-                    saveAccountsIntoCredentialsFile(credentialsFile, legacyAccounts.values(), profileNameOverrides);
-                    clearAllLegacyAccountsInPreferenceStore();
-                } else if (result == 0) {
-                    AwsToolkitCore.getDefault().logInfo("Removing legacy accounts");
-                    clearAllLegacyAccountsInPreferenceStore();
-                }
+                        MergeLegacyAccountsConfirmationDialog dialog = new MergeLegacyAccountsConfirmationDialog(
+                                null, MESSAGE, new String[] { "Remove legacy accounts", "Yes", "No" }, 1,
+                                legacyAccounts.values(), profileAccounts.values(), profileNameOverrides);
+                        int result = dialog.open();
+
+                        if (result == 1) {
+                            AwsToolkitCore.getDefault().logInfo("Coverting legacy accounts and merging them into the credentials file.");
+                            saveAccountsIntoCredentialsFile(credentialsFile, legacyAccounts.values(), profileNameOverrides);
+                            clearAllLegacyAccountsInPreferenceStore();
+                        } else if (result == 0) {
+                            AwsToolkitCore.getDefault().logInfo("Removing legacy accounts");
+                            clearAllLegacyAccountsInPreferenceStore();
+                        }
+                    }
+
+                });
             }
         }
     }

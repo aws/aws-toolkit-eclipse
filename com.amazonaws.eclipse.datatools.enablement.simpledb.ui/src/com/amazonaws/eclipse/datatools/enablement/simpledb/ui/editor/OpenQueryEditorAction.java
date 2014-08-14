@@ -46,7 +46,4 @@ public class OpenQueryEditorAction extends Action {
             AwsToolkitCore.getDefault().logException(e.getMessage(), e);
         }
     }
-
-
-
 }

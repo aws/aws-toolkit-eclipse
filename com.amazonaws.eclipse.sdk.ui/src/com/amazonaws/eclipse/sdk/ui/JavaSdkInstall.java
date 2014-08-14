@@ -89,24 +89,16 @@ public class JavaSdkInstall extends AbstractSdkInstall {
     }
 
     /**
-     * Returns the URL of the public JavaDoc API Reference for this version of the AWS SDK for Java.
+     * Returns the URL of the local JavaDoc API Reference for this version of the AWS SDK for Java.
      *
-     * @return the URL of the public JavaDoc API Reference for this version of the AWS SDK for Java.
+     * @return the URL of the local JavaDoc API Reference for this version of the AWS SDK for Java.
      */
     public String getJavadocURL() {
-        try {
-            JarFile jarFile = new JarFile(getSdkJar());
-            ZipEntry zipEntry = jarFile.getEntry(VERSION_INFO_PROPERTIES_PATH);
+        File documentationDir = new File(getRootDirectory(), "documentation");
+        File javadocDir = new File(documentationDir, "javadoc");
+        if (!javadocDir.exists()) return null;
 
-            Properties properties = new Properties();
-            properties.load(jarFile.getInputStream(zipEntry));
-
-            if (properties.containsKey("javadoc_url")) {
-                return properties.getProperty("javadoc_url");
-            }
-        } catch (IOException e) { }
-
-        return null;
+        return javadocDir.toURI().toString();
     }
 
     /**

@@ -42,6 +42,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
+import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
 import com.amazonaws.eclipse.core.rss.Feed;
 import com.amazonaws.eclipse.core.rss.FeedMessage;
 import com.amazonaws.eclipse.core.rss.RSSFeedParser;
@@ -144,7 +145,7 @@ class FormsOverviewComposite extends Composite {
 
         composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
 
-        overviewToolkit.newLabel(composite, "Loading...");
+        Toolkit.newLabel(composite, "Loading...");
 
         new LoadJavaDeveloperBlogJob(composite, overviewToolkit).schedule();
 
@@ -220,6 +221,9 @@ class FormsOverviewComposite extends Composite {
         overviewToolkit.newListItem(composite,
                 "AWS Management Console",
                 AwsUrls.AWS_MANAGEMENT_CONSOLE_URL, null);
+        overviewToolkit.newListItem(composite,
+                "Send Feedback to " + EmailMessageLauncher.AWS_ECLIPSE_FEEDBACK_AT_AMZN,
+                "mailto:" + EmailMessageLauncher.AWS_ECLIPSE_FEEDBACK_AT_AMZN, null);
 
         return composite;
     }

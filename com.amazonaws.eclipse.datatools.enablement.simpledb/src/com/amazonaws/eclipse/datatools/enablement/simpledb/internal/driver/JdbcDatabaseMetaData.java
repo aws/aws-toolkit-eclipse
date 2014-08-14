@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -1006,4 +1006,13 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         return null;
     }
 
+    public ResultSet getPseudoColumns(String catalog, String schemaPattern,
+            String tableNamePattern, String columnNamePattern)
+            throws SQLException {
+        return null;
+    }
+
+    public boolean generatedKeyAlwaysReturned() throws SQLException {
+        return false;
+    }
 }

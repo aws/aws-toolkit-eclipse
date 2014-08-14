@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -55,7 +55,7 @@ public abstract class AbstractEditorClosingAction extends AbstractAction {
 
     /**
      * Get the editor that corresponds to the table and return the reference to the editor.
-     * 
+     *
      * @param table
      * @return
      */

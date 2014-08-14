@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -28,7 +28,7 @@ import com.amazonaws.eclipse.datatools.enablement.simpledb.Activator;
  * Utility functions for SimpleDB connections, such as listing the available
  * SimpleDB service endpoints, the default endpoint, and for filling in missing
  * required properties in connection profile properties.
- * 
+ *
  * @author Jason Fulghum <fulghum@amazon.com>
  */
 public class SimpleDBConnectionUtils {
@@ -48,7 +48,7 @@ public class SimpleDBConnectionUtils {
 
     /**
      * Returns the default endpoint to use for SimpleDB connections.
-     * 
+     *
      * @return The default endpoint to use for SimpleDB connections.
      */
     public String getDefaultEndpoint() {
@@ -63,7 +63,7 @@ public class SimpleDBConnectionUtils {
     /**
      * Returns a map of available SimpleDB service endpoints, keyed by the
      * associated region name.
-     * 
+     *
      * @return A map of available SimpleDB service endpoints, keyed by the
      *         associated region name.
      */
@@ -95,7 +95,7 @@ public class SimpleDBConnectionUtils {
     /**
      * Initializes any required SimpleDB connection profile properties to safe
      * defaults if they are missing.
-     * 
+     *
      * <p>
      * For example, if the user has a connection profile, created with an older
      * version of the tools, that is missing a new required parameter, this
@@ -130,10 +130,10 @@ public class SimpleDBConnectionUtils {
      * returns the (trimmed) value. If there is no value specified, or the value
      * specified is a blank string, or if the connection properties file can't
      * be read, then null is returned.
-     * 
+     *
      * @param propertyName
      *            The name of the property to look up.
-     * 
+     *
      * @return The value of the specified property, otherwise null if the
      *         property wasn't found, the properties file couldn't be read, or
      *         the property was an empty string.

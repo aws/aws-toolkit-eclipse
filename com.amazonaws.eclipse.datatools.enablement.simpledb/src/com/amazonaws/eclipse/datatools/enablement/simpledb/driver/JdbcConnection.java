@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at:
- * 
+ *
  *    http://aws.amazon.com/apache2.0
  *
  * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executor;
 
 import com.amazonaws.eclipse.datatools.enablement.simpledb.internal.driver.JdbcDatabaseMetaData;
 import com.amazonaws.eclipse.datatools.enablement.simpledb.internal.driver.JdbcPreparedStatement;
@@ -64,7 +65,7 @@ public class JdbcConnection implements Connection {
      * Creates a new JDBC connection to Amazon SimpleDB, using the specified
      * driver to connect to the specified endpoint, and the access key and
      * secret key to authenticate.
-     * 
+     *
      * @param driver
      *            The SimpleDB JDBC Driver object to use to communicate to
      *            SimpleDB.
@@ -289,7 +290,7 @@ public class JdbcConnection implements Connection {
 
     /**
      * Temporarily holds an attribute which can't be added directly to SDB without a value.
-     * 
+     *
      * @param table
      *          domain name
      * @param column
@@ -308,7 +309,7 @@ public class JdbcConnection implements Connection {
 
     /**
      * Removes temporary attribute when it's no longer needed.
-     * 
+     *
      * @param table
      * @param column
      * @return <code>true</code> if pending columns list contained the specified column
@@ -327,7 +328,7 @@ public class JdbcConnection implements Connection {
 
     /**
      * A list of temporary attributes to be returned by JDBC driver, but not existing in SDB yet since there is no values.
-     * 
+     *
      * @param table
      *          domain name
      * @return list of attribute names
@@ -405,4 +406,21 @@ public class JdbcConnection implements Connection {
         return null;
     }
 
+    public void setSchema(String schema) throws SQLException {
+    }
+
+    public String getSchema() throws SQLException {
+        return null;
+    }
+
+    public void abort(Executor executor) throws SQLException {
+    }
+
+    public void setNetworkTimeout(Executor executor, int milliseconds)
+            throws SQLException {
+    }
+
+    public int getNetworkTimeout() throws SQLException {
+        return 0;
+    }
 }

@@ -21,20 +21,26 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.core.net.proxy.IProxyService;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorSupportProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.util.Policy;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.ui.statushandlers.StatusManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
+import com.amazonaws.eclipse.core.diagnostic.ui.AwsToolkitErrorSupportProvider;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.preferences.regions.DefaultRegionMonitor;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.ui.preferences.accounts.LegacyPreferenceStoreAccountMerger;
 import com.amazonaws.eclipse.core.ui.setupwizard.InitialSetupUtils;
 
 /**
@@ -189,38 +195,64 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         super.start(context);
         plugin = this;
 
-        proxyServiceTracker = new ServiceTracker(context, IProxyService.class.getName(), null);
-        proxyServiceTracker.open();
+        try {
+            registerCustomErrorSupport();
 
-        bootstrapAccountPreferences();
+            proxyServiceTracker = new ServiceTracker(context, IProxyService.class.getName(), null);
+            proxyServiceTracker.open();
 
-        // Create AccountManager and start monitoring account preference changes
-        AccountInfoProvider accountInfoProvider = AccountInfoProvider.getInstance();
-        // Do not bootstrap credentials file if it still doesn't exist, and do not
-        // show warning if it fails to load
-        accountInfoProvider.refreshProfileAccountInfo(false, false);
-        accountManager = new AwsPluginAccountManager(getPreferenceStore(), accountInfoProvider);
-        accountManager.startAccountMonitors();
+            bootstrapAccountPreferences();
+            LegacyPreferenceStoreAccountMerger.mergeLegacyAccountsIntoCredentialsFile();
 
-        // Start listening for region preference changes...
-        defaultRegionMonitor = new DefaultRegionMonitor();
-        getPreferenceStore().addPropertyChangeListener(defaultRegionMonitor);
+            // Create AccountManager and start monitoring account preference changes
+            AccountInfoProvider accountInfoProvider = AccountInfoProvider.getInstance();
+            // Do not bootstrap credentials file if it still doesn't exist, and do not
+            // show warning if it fails to load
+            accountInfoProvider.refreshProfileAccountInfo(false, false);
+            accountManager = new AwsPluginAccountManager(getPreferenceStore(), accountInfoProvider);
+            accountManager.startAccountMonitors();
 
-        RegionUtils.init();
+            // Start listening for region preference changes...
+            defaultRegionMonitor = new DefaultRegionMonitor();
+            getPreferenceStore().addPropertyChangeListener(defaultRegionMonitor);
 
-        // Start listening to changes on default region and region default account preference,
-        // and correspondingly update current account
-        PreferencePropertyChangeListener resetAccountListenr = new PreferencePropertyChangeListener() {
+            RegionUtils.init();
 
-            public void watchedPropertyChanged() {
-                Region newRegion = RegionUtils.getCurrentRegion();
-                accountManager.updateCurrentAccount(newRegion);
-            }
-        };
-        accountManager.addDefaultAccountChangeListener(resetAccountListenr);
-        addDefaultRegionChangeListener(resetAccountListenr);
+            // Start listening to changes on default region and region default account preference,
+            // and correspondingly update current account
+            PreferencePropertyChangeListener resetAccountListenr = new PreferencePropertyChangeListener() {
 
-        InitialSetupUtils.runInitialSetupWizard();
+                public void watchedPropertyChanged() {
+                    Region newRegion = RegionUtils.getCurrentRegion();
+                    accountManager.updateCurrentAccount(newRegion);
+                }
+            };
+            accountManager.addDefaultAccountChangeListener(resetAccountListenr);
+            addDefaultRegionChangeListener(resetAccountListenr);
+
+            InitialSetupUtils.runInitialSetupWizard();
+
+        } catch (Exception e) {
+            StatusManager.getManager().handle(
+                    new Status(IStatus.ERROR, "AwsToolkitCore.PLUGIN_ID",
+                            "Internal error when starting the AWS Toolkit plugin.", e),
+                            StatusManager.SHOW);
+        }
+
+    }
+
+    /**
+     * Register the custom error-support provider, which provides additional UIs
+     * for users to directly report errors to "aws-eclipse-errors@amazon.com".
+     */
+    private static void registerCustomErrorSupport() {
+        ErrorSupportProvider existingProvider = Policy.getErrorSupportProvider();
+
+        // Keep a reference to the previously configured provider
+        AwsToolkitErrorSupportProvider awsProvider = new AwsToolkitErrorSupportProvider(
+                existingProvider);
+
+        Policy.setErrorSupportProvider(awsProvider);
     }
 
     /**
