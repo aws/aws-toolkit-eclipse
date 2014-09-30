@@ -137,7 +137,7 @@ Require-Bundle: org.eclipse.swt,
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: com.amazonaws.eclipse.core.AwsToolkitCore
 Bundle-ClassPath: .,
- lib/aws-java-sdk-1.7.9-core-no-flow.jar,
+ lib/aws-java-sdk-1.8.7-core-no-flow-beanstalk-describesolutionstacks.jar,
  lib/jackson-core-2.1.1.jar,
  lib/jackson-databind-2.1.1.jar,
  lib/jackson-annotations-2.1.1.jar,

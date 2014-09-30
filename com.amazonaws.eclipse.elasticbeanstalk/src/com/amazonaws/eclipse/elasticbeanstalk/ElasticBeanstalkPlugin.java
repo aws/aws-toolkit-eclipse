@@ -45,6 +45,7 @@ import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.SyncEnvironmentsJob;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.ServerDefaultsUtils;
+import com.amazonaws.eclipse.elasticbeanstalk.solutionstacks.SolutionStacks;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;

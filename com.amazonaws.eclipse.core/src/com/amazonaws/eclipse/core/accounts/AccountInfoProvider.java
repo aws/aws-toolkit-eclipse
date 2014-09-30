@@ -42,13 +42,10 @@ import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 import com.amazonaws.util.StringUtils;
 
 /**
- * A singleton class that loads and returns all the configured AccountInfo. It's
+ * A class that loads and returns all the configured AccountInfo. It's
  * also responsible for hooking the AccountInfoChangeListener.
  */
 public class AccountInfoProvider {
-
-    private final static AccountInfoProvider instance = new AccountInfoProvider(
-            AwsToolkitCore.getDefault().getPreferenceStore());
 
     private final IPreferenceStore prefStore;
 
@@ -60,6 +57,13 @@ public class AccountInfoProvider {
 
     /** All the registered AccountInfoChangeListener */
     List<AccountInfoChangeListener> listeners = new LinkedList<AccountInfoChangeListener>();
+
+    /**
+     * Initialize the provider with the given preference store instance.
+     */
+    public AccountInfoProvider(IPreferenceStore prefStore) {
+        this.prefStore = prefStore;
+    }
 
     /**
      * Returns all the account info that are loaded from the credential profiles
@@ -187,16 +191,6 @@ public class AccountInfoProvider {
         synchronized(listeners) {
             listeners.remove(listener);
         }
-    }
-
-    public static AccountInfoProvider getInstance() {
-        return instance;
-    }
-
-    /* Private interfaces */
-
-    private AccountInfoProvider(IPreferenceStore prefStore) {
-        this.prefStore = prefStore;
     }
 
     /* Profile-based account info */

@@ -51,7 +51,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
-import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
@@ -285,7 +284,8 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
             /* Persist the metadata in the preference store */
 
             // credentialProfileAccountIds=accoutId1|accountId2
-            AccountInfoProvider.getInstance()
+            AwsToolkitCore.getDefault()
+                .getAccountManager().getAccountInfoProvider()
                     .updateProfileAccountMetadataInPreferenceStore(
                             accountInfoByIdentifier.values());
 

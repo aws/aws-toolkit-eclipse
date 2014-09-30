@@ -129,7 +129,10 @@ public class AWSClientFactory {
         return getCloudFrontClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CLOUDFRONT));
     }
 
-    public AmazonS3 getAnonymousS3Client() {
+    /**
+     * This is the only static API provided by this class.
+     */
+    public static AmazonS3 getAnonymousS3Client() {
         /*
          * We hardcode the S3 endpoint here, since this method is used to download the
          * initial regions.xml file, so we can't necessarily look up an endpoint yet.

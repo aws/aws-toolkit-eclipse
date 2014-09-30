@@ -103,6 +103,13 @@ public final class AwsPluginAccountManager {
     }
 
     /**
+     * Returns the AccountInfoProvider that is used by this class.
+     */
+    public AccountInfoProvider getAccountInfoProvider() {
+        return accountInfoProvider;
+    }
+
+    /**
      * Returns the currently selected account info. If the current account id is
      * not found in the loaded accounts (e.g. when the previously configured
      * account is removed externally in the credentials file), this method falls

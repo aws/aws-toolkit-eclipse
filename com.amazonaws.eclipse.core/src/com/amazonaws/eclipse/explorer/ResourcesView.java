@@ -83,9 +83,15 @@ public class ResourcesView extends CommonNavigator {
 
          };
 
-         AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(accountAndRegionChangeListener);
-         AwsToolkitCore.getDefault().getAccountManager().addDefaultAccountChangeListener(accountAndRegionChangeListener);
-         AwsToolkitCore.getDefault().addDefaultRegionChangeListener(accountAndRegionChangeListener);
+         Display.getDefault().asyncExec(new Runnable() {
+
+            public void run() {
+                AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(accountAndRegionChangeListener);
+                AwsToolkitCore.getDefault().getAccountManager().addDefaultAccountChangeListener(accountAndRegionChangeListener);
+                AwsToolkitCore.getDefault().addDefaultRegionChangeListener(accountAndRegionChangeListener);
+            }
+        });
+
     }
 
     private static final class ExplorerNodeOpenListener implements IOpenListener {

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Amazon Web Services SDK Plug-in
 Bundle-SymbolicName: com.amazonaws.eclipse.sdk.ui;singleton:=true
-Bundle-Version: 2.0.0.qualifier
+Bundle-Version: 2.1.0.qualifier
 Bundle-Activator: com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin
 Bundle-Vendor: Amazon Web Services
 Require-Bundle: org.eclipse.core.runtime,
@@ -10,12 +10,13 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.ui,
  org.eclipse.ui,
  org.eclipse.jdt.core,
- com.amazonaws.eclipse.core;bundle-version="2.0.0",
+ com.amazonaws.eclipse.core;bundle-version="2.1.0",
  org.eclipse.core.filesystem;bundle-version="1.2.0",
  org.eclipse.ui.forms
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: com.amazonaws.eclipse.sdk.ui,
+ com.amazonaws.eclipse.sdk.ui.classpath,
  com.amazonaws.eclipse.sdk.ui.preferences,
- com.amazonaws.eclipse.sdk.ui.classpath
+ com.amazonaws.eclipse.sdk.ui.wizard

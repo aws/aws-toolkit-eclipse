@@ -25,6 +25,8 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
+import com.amazonaws.eclipse.sdk.ui.wizard.AwsJavaSdkNotInstalledWizardPage;
 
 /**
  * Wizard for creating a new WTP Dynamic Web project, pre-configured for use
@@ -34,13 +36,25 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
 
     private NewAwsJavaWebProjectDataModel dataModel = new NewAwsJavaWebProjectDataModel();
 
-    public NewAwsJavaWebProjectWizard() {
-        this.addPage(new JavaWebProjectWizardPage(dataModel));
+    private boolean awsSdkInstalled = true;
 
-        setWindowTitle("New AWS Java Web Project");
-        setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(
-                AwsToolkitCore.IMAGE_AWS_LOGO));
-        setNeedsProgressMonitor(true);
+    public NewAwsJavaWebProjectWizard() {
+        // Check if the SDK is installed
+        JavaSdkManager sdk = JavaSdkManager.getInstance();
+        if (sdk.getDefaultSdkInstall() == null
+                && sdk.getInstallationJob() == null) {
+            awsSdkInstalled = false;
+            addPage(new AwsJavaSdkNotInstalledWizardPage());
+
+        } else {
+            this.addPage(new JavaWebProjectWizardPage(dataModel));
+
+            setWindowTitle("New AWS Java Web Project");
+            setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(
+                    AwsToolkitCore.IMAGE_AWS_LOGO));
+            setNeedsProgressMonitor(true);
+        }
+
     }
 
     /* (non-Javadoc)
@@ -48,6 +62,11 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
      */
     @Override
     public boolean performFinish() {
+        if ( !awsSdkInstalled ) {
+            JavaSdkManager.getInstance().initializeSDKInstalls();
+            return true;
+        }
+
         try {
             getContainer().run(true, false, new CreateNewAwsJavaWebProjectRunnable(dataModel));
             return true;

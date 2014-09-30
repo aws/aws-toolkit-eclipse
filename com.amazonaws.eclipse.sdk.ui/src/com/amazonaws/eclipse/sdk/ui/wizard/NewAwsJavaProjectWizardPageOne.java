@@ -19,9 +19,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
@@ -37,12 +35,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -54,6 +50,7 @@ import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
 import com.amazonaws.eclipse.sdk.ui.SdkChangeListener;
+import com.amazonaws.eclipse.sdk.ui.SdkDownloadProgressTrackingComposite;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
 import com.amazonaws.eclipse.sdk.ui.SdkVersionInfoComposite;
 import com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainer;
@@ -177,30 +174,19 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
                     return;
                 }
 
-                final Composite pleaseWait = new Composite(composite, SWT.None);
-                pleaseWait.setLayout(initGridLayout(new GridLayout(1, false), true));
-                pleaseWait.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-                Label label = new Label(pleaseWait, SWT.None);
-                label.setText("The AWS SDK for Java is currently downloading.  Please wait while it completes.");
-                label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-                ProgressBar progressBar = new ProgressBar(pleaseWait, SWT.INDETERMINATE);
-                progressBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-                installationJob.addJobChangeListener(new JobChangeAdapter() {
+                // destroyAfterCompletion=true
+                final Composite pleaseWait = new SdkDownloadProgressTrackingComposite(
+                        composite, true) {
                     @Override
-                    public void done(IJobChangeEvent event) {
-                        Display.getDefault().syncExec(new Runnable() {
-                            public void run() {
-                                pleaseWait.dispose();
-                                createSDKOptionsControls(composite);
-                                composite.getParent().layout();
-                                composite.getShell().pack(true);
-                                composite.getParent().redraw();
-                                setPageComplete(true);
-                            }
-                        });
+                    protected void onDownloadComplete() {
+                        createSDKOptionsControls(composite);
+                        composite.getParent().layout();
+                        composite.getShell().pack(true);
+                        composite.getParent().redraw();
+                        setPageComplete(canFlipToNextPage());
                     }
-                });
+                };
+                pleaseWait.setLayout(initGridLayout(new GridLayout(1, false), true));
 
             } else {
                 createSDKOptionsControls(composite);

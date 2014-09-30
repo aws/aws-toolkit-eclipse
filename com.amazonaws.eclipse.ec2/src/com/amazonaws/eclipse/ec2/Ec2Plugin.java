@@ -113,11 +113,18 @@ public class Ec2Plugin extends AbstractUIPlugin {
      * Bootstraps legacy customers to new data storage formats.
      */
     private void convertLegacyProperties() {
-        try {
-            KeyPairManager.convertLegacyPrivateKeyFiles();
-        } catch ( Exception ignored ) {
-            // best try
-        }
+        new Job("Converting legacy EC2 private key files") {
+            @Override
+            protected IStatus run(IProgressMonitor arg0) {
+                try {
+                    KeyPairManager.convertLegacyPrivateKeyFiles();
+                } catch ( Exception ignored ) {
+                    // best try
+                }
+
+                return Status.OK_STATUS;
+            }
+        }.schedule();
     }
 
 

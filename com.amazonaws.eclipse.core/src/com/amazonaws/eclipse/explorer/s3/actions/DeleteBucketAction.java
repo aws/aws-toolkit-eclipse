@@ -68,7 +68,9 @@ public class DeleteBucketAction extends Action {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3Client();
+                    // Always use the global endpoint for deletion
+                    AmazonS3 s3 = AwsToolkitCore.getClientFactory()
+                            .getS3ClientByEndpoint("https://s3.amazonaws.com/");
                     ObjectUtils objectUtils = new ObjectUtils(s3);
 
                     for ( Bucket bucket : buckets ) {

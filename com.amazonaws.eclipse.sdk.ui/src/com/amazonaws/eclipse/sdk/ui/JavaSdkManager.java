@@ -51,7 +51,7 @@ public class JavaSdkManager extends AbstractSdkManager<JavaSdkInstall> {
             return new JavaSdkInstall(sdkRootDirectory);
         }
     }
-    
+
     /**
      * Returns the directory where SDKs are installed, configured by a
      * preference.
@@ -60,17 +60,17 @@ public class JavaSdkManager extends AbstractSdkManager<JavaSdkInstall> {
         String path = JavaSdkPlugin.getDefault().getPreferenceStore().getString(PreferenceConstants.DOWNLOAD_DIRECTORY);
         return new File(path);
     }
-    
+
     @Override
-    protected Action getHyperlinkAction() {        
-        
+    protected Action getHyperlinkAction() {
+
         return new Action("Configure SDK Download Behavior") {
             public void run() {
                 PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
                         JavaSDKPreferencePage.ID, new String[] { JavaSDKPreferencePage.ID }, null).open();
-            }                        
+            }
         };
-        
+
     }
 
 }

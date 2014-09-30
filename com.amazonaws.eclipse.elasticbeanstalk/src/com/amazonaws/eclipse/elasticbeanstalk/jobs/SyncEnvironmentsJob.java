@@ -90,19 +90,19 @@ public class SyncEnvironmentsJob extends Job {
             schedule(LONG_DELAY);
 
             // Don't keep complaining about being unable to synchronize
-            if ( previousErrorMessage != null && 
+            if ( previousErrorMessage != null &&
                     previousErrorMessage.equals(syncingError.getMessage()) ) {
                 return Status.OK_STATUS;
             }
 
             previousErrorMessage = syncingError.getMessage();
             return new Status(Status.WARNING, ElasticBeanstalkPlugin.PLUGIN_ID,
-                    "Unable to synchronize an environment", syncingError);            
+                    "Unable to synchronize an environment", syncingError);
         }
-        
+
         if (transitioningEnvironment) schedule(SHORT_DELAY + RANDOM.nextInt(5 * 1000));
         else schedule(LONG_DELAY + RANDOM.nextInt(5 * 1000));
-        
+
         return Status.OK_STATUS;
     }
 
@@ -111,8 +111,7 @@ public class SyncEnvironmentsJob extends Job {
      * it should be considered in a "transitioning" state.
      */
     private boolean syncEnvironment(Environment environment, EnvironmentBehavior behavior) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(
-            environment.getRegionEndpoint());
+        AWSElasticBeanstalk client = environment.getClient();
 
         EnvironmentDescription environmentDescription = describeEnvironment(client, environment.getEnvironmentName());
         List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();

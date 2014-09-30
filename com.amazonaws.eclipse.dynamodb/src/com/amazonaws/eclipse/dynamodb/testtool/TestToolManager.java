@@ -46,6 +46,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
@@ -590,8 +591,7 @@ public class TestToolManager {
      */
     private synchronized TransferManager getTransferManager() {
         if (transferManager == null) {
-            AmazonS3 client =
-                AwsToolkitCore.getClientFactory().getAnonymousS3Client();
+            AmazonS3 client = AWSClientFactory.getAnonymousS3Client();
 
             transferManager = new TransferManager(client);
         }

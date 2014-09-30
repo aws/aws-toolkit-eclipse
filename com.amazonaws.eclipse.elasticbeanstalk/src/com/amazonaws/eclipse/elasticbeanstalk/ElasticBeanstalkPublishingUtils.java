@@ -40,6 +40,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.elasticbeanstalk.solutionstacks.SolutionStacks;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
@@ -244,7 +245,7 @@ public class ElasticBeanstalkPublishingUtils {
 
         String solutionStackName = environment.getSolutionStack();
         if (solutionStackName == null) {
-            solutionStackName = SolutionStacks.DEFAULT_SOLUTION_STACK;
+            solutionStackName = SolutionStacks.getDefaultSolutionStackName();
         }
 
         CreateEnvironmentRequest request = new CreateEnvironmentRequest()

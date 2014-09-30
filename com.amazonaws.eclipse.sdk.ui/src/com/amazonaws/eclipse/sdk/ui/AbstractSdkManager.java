@@ -39,6 +39,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.ui.progress.IProgressConstants;
 import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.Headers;
@@ -176,7 +177,7 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
     private String getLatestS3Version(IProgressMonitor monitor) {
         monitor.subTask("Checking latest version in S3");
 
-        AmazonS3 client = AwsToolkitCore.getClientFactory().getAnonymousS3Client();
+        AmazonS3 client = AWSClientFactory.getAnonymousS3Client();
         ObjectMetadata objectMetadata = client.getObjectMetadata(sdkBucketName, "latest/" + sdkFilenamePrefix + ".zip");
         String filename = (String) objectMetadata.getRawMetadata().get(Headers.CONTENT_DISPOSITION);
         Matcher matcher = sdkFilenameVersionPattern.matcher(filename);
@@ -269,10 +270,10 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
             }
             return new Status(IStatus.OK, JavaSdkPlugin.PLUGIN_ID, "Click to configure");
         }
-        
-        
+
+
     }
-    
+
     /**
      * Returns the action to associate with this job, which will be represented
      * by a clickable link.
@@ -286,7 +287,7 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
      */
     public File getDefaultSDKInstallDir() throws IllegalStateException {
         File userHome = new File(System.getProperty("user.home"));
-        return new File(userHome, sdkFilenamePrefix);        
+        return new File(userHome, sdkFilenamePrefix);
     }
 
     /**
@@ -298,7 +299,7 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
      * Downloads the latest copy of the SDK from s3 and caches it in the workspace metadata directory
      */
     private void downloadSDK(IProgressMonitor monitor) throws IOException {
-        AmazonS3 client = AwsToolkitCore.getClientFactory().getAnonymousS3Client();
+        AmazonS3 client = AWSClientFactory.getAnonymousS3Client();
         File tempFile = File.createTempFile(sdkFilenamePrefix, "");
         tempFile.delete();
         tempFile.mkdirs();
@@ -313,8 +314,8 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
         int unitWorkInBytes = (int) (download.getProgress().getTotalBytesToTransfer() / 30);
 
         while ( !download.isDone() ) {
-            if ( download.getProgress().getBytesTransfered() / unitWorkInBytes > worked ) {
-                int newWork = (int) (download.getProgress().getBytesTransfered() / unitWorkInBytes) - worked;
+            if ( download.getProgress().getBytesTransferred() / unitWorkInBytes > worked ) {
+                int newWork = (int) (download.getProgress().getBytesTransferred() / unitWorkInBytes) - worked;
                 monitor.worked(newWork);
                 worked += newWork;
             }

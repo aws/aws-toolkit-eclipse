@@ -39,6 +39,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.HttpClientFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
@@ -284,7 +285,7 @@ public class RegionUtils {
 
         try {
             AmazonS3 s3 =
-                AwsToolkitCore.getClientFactory().getAnonymousS3Client();
+                AWSClientFactory.getAnonymousS3Client();
             ObjectMetadata objectMetadata =
                 s3.getObjectMetadata("aws-vs-toolkit", "ServiceEndPoints.xml");
             if ( objectMetadata.getLastModified()

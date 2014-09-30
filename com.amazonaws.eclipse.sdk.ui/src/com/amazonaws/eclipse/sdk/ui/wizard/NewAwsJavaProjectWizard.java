@@ -44,6 +44,7 @@ import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.sdk.ui.FilenameFilters;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
 import com.amazonaws.eclipse.sdk.ui.classpath.AwsSdkClasspathUtils;
 
@@ -53,6 +54,8 @@ import com.amazonaws.eclipse.sdk.ui.classpath.AwsSdkClasspathUtils;
  */
 public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWizard {
 
+    private boolean awsSdkInstalled = true;
+
     private NewAwsJavaProjectWizardPageOne pageOne;
     private NewAwsJavaProjectWizardPageTwo pageTwo;
 
@@ -61,15 +64,25 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
      */
     @Override
     public void addPages() {
-        if (pageOne == null)
-            pageOne = new NewAwsJavaProjectWizardPageOne();
-        addPage(pageOne);
+        awsSdkInstalled = true;
 
-        if (pageTwo == null)
-            pageTwo = new NewAwsJavaProjectWizardPageTwo(pageOne);
-        addPage(pageTwo);
+        JavaSdkManager sdk = JavaSdkManager.getInstance();
+        if (sdk.getDefaultSdkInstall() == null
+                && sdk.getInstallationJob() == null) {
+            awsSdkInstalled = false;
+            addPage(new AwsJavaSdkNotInstalledWizardPage());
 
-        pageOne.init(getSelection(), getActivePart());
+        } else {
+            if (pageOne == null)
+                pageOne = new NewAwsJavaProjectWizardPageOne();
+            addPage(pageOne);
+
+            if (pageTwo == null)
+                pageTwo = new NewAwsJavaProjectWizardPageTwo(pageOne);
+            addPage(pageTwo);
+
+            pageOne.init(getSelection(), getActivePart());
+        }
     }
 
     public NewAwsJavaProjectWizard() {
@@ -89,6 +102,12 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
     @Override
     protected void finishPage(IProgressMonitor monitor)
             throws InterruptedException, CoreException {
+        // Click "OK" to download the SDK
+        if ( !awsSdkInstalled ) {
+            JavaSdkManager.getInstance().initializeSDKInstalls();
+            return;
+        }
+
         pageTwo.performFinish(monitor);
 
         monitor.setTaskName("Configuring AWS Java project");
@@ -253,6 +272,10 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
 
     @Override
     public boolean performCancel() {
+        if ( !awsSdkInstalled ) {
+            return true;
+        }
+
         pageTwo.performCancel();
         return super.performCancel();
     }

@@ -18,11 +18,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.net.proxy.IProxyService;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorSupportProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -35,7 +38,6 @@ import org.osgi.util.tracker.ServiceTracker;
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.diagnostic.ui.AwsToolkitErrorSupportProvider;
-import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.preferences.regions.DefaultRegionMonitor;
 import com.amazonaws.eclipse.core.regions.Region;
@@ -49,13 +51,32 @@ import com.amazonaws.eclipse.core.ui.setupwizard.InitialSetupUtils;
  */
 public class AwsToolkitCore extends AbstractUIPlugin {
 
-    /** The singleton instance of this plugin */
-    private static AwsToolkitCore plugin;
+    /**
+     * The singleton instance of this plugin.
+     * <p>
+     * This static field will remain null until doBasicInit() is completed.
+     *
+     * @see #doBasicInit(BundleContext)
+     * @see #getDefault()
+     */
+    private static AwsToolkitCore plugin = null;
 
     /**
-     * Client factories for each individual account in use by the customer.
+     * Used for blocking method calls of getDefault() before the plugin instance
+     * finishes basic initialization.
      */
-    private static final Map<String, AWSClientFactory> clientsFactoryByAccountId = new HashMap<String, AWSClientFactory>();
+    private static final CountDownLatch pluginBasicInitLatch = new CountDownLatch(1);
+
+    /**
+     * Used for blocking any method calls that requires the full initialization
+     * of the plugin. (e.g. getAccountManager() method requires loading the
+     * profile credentials from the file-system in advance).
+     */
+    private static final CountDownLatch pluginFullInitLatch = new CountDownLatch(1);
+
+    // In seconds
+    private static final int BASIC_INIT_MAX_WAIT_TIME = 60;
+    private static final int FULL_INIT_MAX_WAIT_TIME = 60;
 
     /** The ID of this plugin */
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.core";
@@ -120,204 +141,60 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     public static final String IMAGE_WIZARD_CONFIGURE_DATABASE = "configure-database-wizard";
 
 
+    /**
+     * Client factories for each individual account in use by the customer.
+     */
+    private final Map<String, AWSClientFactory> clientsFactoryByAccountId
+            = new HashMap<String, AWSClientFactory>();
+
     /** OSGI ServiceTracker object for querying details of proxy configuration */
+    @SuppressWarnings("rawtypes")
     private ServiceTracker proxyServiceTracker;
 
     /** Monitors for changes of default region */
     private DefaultRegionMonitor defaultRegionMonitor;
 
-    /** The AccountManager which persists account-related preference properties */
+    /**
+     * The AccountManager which persists account-related preference properties.
+     * This field is only available after the plugin is fully initialized.
+     */
     private AwsPluginAccountManager accountManager;
 
+    /*
+     * ======================================
+     * APIs that require basic initialization
+     * ======================================
+     */
 
     /**
      * Returns the singleton instance of this plugin.
+     * <p>
+     * This method will be blocked if the singleton instance has not finished
+     * the basic initialization.
      *
      * @return The singleton instance of this plugin.
      */
     public static AwsToolkitCore getDefault() {
-        return plugin;
-    }
-
-    /**
-     * Returns the IProxyService that allows callers to
-     * access information on how the proxy is currently
-     * configured.
-     *
-     * @return An IProxyService object that allows callers to
-     *         query proxy configuration information.
-     */
-    public IProxyService getProxyService() {
-        return (IProxyService)proxyServiceTracker.getService();
-    }
-
-    /**
-     * Returns the client factory.
-     */
-    public static synchronized AWSClientFactory getClientFactory() {
-        return getClientFactory(null);
-    }
-
-    /**
-     * Returns the client factory for the given account id. The client is
-     * responsible for ensuring that the given account Id is valid and properly
-     * configured.
-     *
-     * @param accountId
-     *            The account to use for credentials, or null for the currently
-     *            selected account.
-     * @see AwsToolkitCore#getAccountInfo(String)
-     */
-    public static synchronized AWSClientFactory getClientFactory(String accountId) {
-        if ( accountId == null )
-            accountId = getDefault().getCurrentAccountId();
-        if ( !clientsFactoryByAccountId.containsKey(accountId) ) {
-            clientsFactoryByAccountId.put(
-                    accountId,
-                    // AWSClientFactory uses the accountId to retrieve the credentials
-                    new AWSClientFactory(accountId));
-        }
-        return clientsFactoryByAccountId.get(accountId);
-    }
-
-    /**
-     * Returns the account manager associated with this plugin.
-     */
-    public AwsPluginAccountManager getAccountManager() {
-        return accountManager;
-    }
-
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
-     */
-    @Override
-    public void start(BundleContext context) throws Exception {
-        super.start(context);
-        plugin = this;
+        if (plugin != null)
+            return plugin;
 
         try {
-            registerCustomErrorSupport();
-
-            proxyServiceTracker = new ServiceTracker(context, IProxyService.class.getName(), null);
-            proxyServiceTracker.open();
-
-            bootstrapAccountPreferences();
-            LegacyPreferenceStoreAccountMerger.mergeLegacyAccountsIntoCredentialsFile();
-
-            // Create AccountManager and start monitoring account preference changes
-            AccountInfoProvider accountInfoProvider = AccountInfoProvider.getInstance();
-            // Do not bootstrap credentials file if it still doesn't exist, and do not
-            // show warning if it fails to load
-            accountInfoProvider.refreshProfileAccountInfo(false, false);
-            accountManager = new AwsPluginAccountManager(getPreferenceStore(), accountInfoProvider);
-            accountManager.startAccountMonitors();
-
-            // Start listening for region preference changes...
-            defaultRegionMonitor = new DefaultRegionMonitor();
-            getPreferenceStore().addPropertyChangeListener(defaultRegionMonitor);
-
-            RegionUtils.init();
-
-            // Start listening to changes on default region and region default account preference,
-            // and correspondingly update current account
-            PreferencePropertyChangeListener resetAccountListenr = new PreferencePropertyChangeListener() {
-
-                public void watchedPropertyChanged() {
-                    Region newRegion = RegionUtils.getCurrentRegion();
-                    accountManager.updateCurrentAccount(newRegion);
-                }
-            };
-            accountManager.addDefaultAccountChangeListener(resetAccountListenr);
-            addDefaultRegionChangeListener(resetAccountListenr);
-
-            InitialSetupUtils.runInitialSetupWizard();
-
-        } catch (Exception e) {
-            StatusManager.getManager().handle(
-                    new Status(IStatus.ERROR, "AwsToolkitCore.PLUGIN_ID",
-                            "Internal error when starting the AWS Toolkit plugin.", e),
-                            StatusManager.SHOW);
+            pluginBasicInitLatch.await(BASIC_INIT_MAX_WAIT_TIME, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(
+                    "Interrupted while waiting for the AWS toolkit core plugin to initialize",
+                    e);
         }
 
-    }
-
-    /**
-     * Register the custom error-support provider, which provides additional UIs
-     * for users to directly report errors to "aws-eclipse-errors@amazon.com".
-     */
-    private static void registerCustomErrorSupport() {
-        ErrorSupportProvider existingProvider = Policy.getErrorSupportProvider();
-
-        // Keep a reference to the previously configured provider
-        AwsToolkitErrorSupportProvider awsProvider = new AwsToolkitErrorSupportProvider(
-                existingProvider);
-
-        Policy.setErrorSupportProvider(awsProvider);
-    }
-
-    /**
-     * Bootstraps the current account preferences for new customers or customers
-     * migrating from the legacy single-account or global-accounts-only preference
-     */
-    @SuppressWarnings("deprecation")
-    private void bootstrapAccountPreferences() {
-        /* Bootstrap customers from legacy single-account preference */
-        String currentAccount = getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT);
-
-        // Bootstrap new customers
-        if ( currentAccount == null || currentAccount.length() == 0 ) {
-            String accountId = UUID.randomUUID().toString();
-            getPreferenceStore().putValue(PreferenceConstants.P_CURRENT_ACCOUNT, accountId);
-            getPreferenceStore().putValue(PreferenceConstants.P_ACCOUNT_IDS, accountId);
-            getPreferenceStore().putValue(accountId + ":" + PreferenceConstants.P_ACCOUNT_NAME,
-                    PreferenceConstants.DEFAULT_ACCOUNT_NAME_BASE_64);
-
-            for ( String prefName : new String[] { PreferenceConstants.P_ACCESS_KEY,
-                    PreferenceConstants.P_CERTIFICATE_FILE, PreferenceConstants.P_PRIVATE_KEY_FILE,
-                    PreferenceConstants.P_SECRET_KEY, PreferenceConstants.P_USER_ID, } ) {
-                convertExistingPreference(accountId, prefName);
+        synchronized (AwsToolkitCore.class) {
+            if (plugin == null) {
+                throw new IllegalStateException(
+                        "The core plugin is not initialized after waiting for " +
+                        BASIC_INIT_MAX_WAIT_TIME + " seconds.");
             }
+
+            return plugin;
         }
-
-        /* Bootstrap customers from the global-accounts-only preference */
-        String globalDefaultAccount = getPreferenceStore().getString(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT);
-        if (globalDefaultAccount == null || globalDefaultAccount.length() == 0) {
-            getPreferenceStore().putValue(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT,
-                    getPreferenceStore().getString(PreferenceConstants.P_CURRENT_ACCOUNT));
-        }
-    }
-
-    protected void convertExistingPreference(String accountId, String preferenceName) {
-        getPreferenceStore().putValue(accountId + ":" + preferenceName,
-                getPreferenceStore().getString(preferenceName));
-    }
-
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
-     */
-    @Override
-    public void stop(BundleContext context) throws Exception {
-        plugin = null;
-        accountManager.stopAccountMonitors();
-        getPreferenceStore().removePropertyChangeListener(defaultRegionMonitor);
-        proxyServiceTracker.close();
-        super.stop(context);
-    }
-
-    /**
-     * Returns the currently selected account info.
-     *
-     * @return The user's AWS account info.
-     */
-    public AccountInfo getAccountInfo() {
-        return accountManager.getAccountInfo();
-    }
-
-    /**
-     * Returns the current account Id
-     */
-    public String getCurrentAccountId() {
-        return accountManager.getCurrentAccountId();
     }
 
     /**
@@ -340,6 +217,304 @@ public class AwsToolkitCore extends AbstractUIPlugin {
      */
     public void removeDefaultRegionChangeListener(PreferencePropertyChangeListener listener) {
         defaultRegionMonitor.removeChangeListener(listener);
+    }
+
+    /**
+     * Returns the IProxyService that allows callers to
+     * access information on how the proxy is currently
+     * configured.
+     *
+     * @return An IProxyService object that allows callers to
+     *         query proxy configuration information.
+     */
+    public IProxyService getProxyService() {
+        return (IProxyService)proxyServiceTracker.getService();
+    }
+
+    /*
+     * ======================================
+     * APIs that require full initialization
+     * ======================================
+     */
+
+    /**
+     * Returns the client factory.
+     *
+     * This method will be blocked until the singleton instance of the plugin is
+     * fully initialized.
+     */
+    public static AWSClientFactory getClientFactory() {
+        return getClientFactory(null);
+    }
+
+    /**
+     * Returns the client factory for the given account id. The client is
+     * responsible for ensuring that the given account Id is valid and properly
+     * configured.
+     * This method will be blocked until the singleton instance of the plugin is
+     * fully initialized.
+     *
+     * @param accountId
+     *            The account to use for credentials, or null for the currently
+     *            selected account.
+     * @see AwsToolkitCore#getAccountInfo(String)
+     */
+    public static AWSClientFactory getClientFactory(String accountId) {
+        return getDefault().privateGetClientFactory(accountId);
+    }
+
+
+    private synchronized AWSClientFactory privateGetClientFactory(String accountId) {
+        waitTillFullInit();
+
+        if ( accountId == null )
+            accountId = getCurrentAccountId();
+        if ( !clientsFactoryByAccountId.containsKey(accountId) ) {
+            clientsFactoryByAccountId.put(
+                    accountId,
+                    // AWSClientFactory uses the accountId to retrieve the credentials
+                    new AWSClientFactory(accountId));
+        }
+        return clientsFactoryByAccountId.get(accountId);
+    }
+
+    /**
+     * Returns the account manager associated with this plugin.
+     *
+     * This method will be blocked until the plugin is fully initialized.
+     */
+    public AwsPluginAccountManager getAccountManager() {
+        waitTillFullInit();
+
+        return accountManager;
+    }
+
+    /**
+     * Returns the current account Id
+     * This method will be blocked until the plugin is fully initialized.
+     *
+     */
+    public String getCurrentAccountId() {
+        waitTillFullInit();
+
+        return accountManager.getCurrentAccountId();
+    }
+
+    /**
+     * Returns the currently selected account info.
+     * This method will be blocked until the plugin is fully initialized.
+     *
+     * @return The user's AWS account info.
+     */
+    public AccountInfo getAccountInfo() {
+        waitTillFullInit();
+
+        return accountManager.getAccountInfo();
+    }
+
+    /*
+     * ======================================
+     * Core plugin start-up workflow
+     * ======================================
+     */
+
+    /**
+     * We need to avoid any potentially blocking operations in this method, as
+     * the documentation has explicitly called out:
+     * <p>
+     * This method is intended to perform simple initialization of the plug-in
+     * environment. The platform may terminate initializers that do not complete
+     * in a timely fashion.
+     *
+     * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void start(final BundleContext context) throws Exception {
+        super.start(context);
+
+        long startTime = System.currentTimeMillis();
+        logInfo("Starting the AWS toolkit core plugin...");
+
+        // Publish the "global" plugin singleton immediately after the basic
+        // initialization is done.
+
+        doBasicInit(context);
+        synchronized (AwsToolkitCore.class) {
+            plugin = this;
+        }
+        pluginBasicInitLatch.countDown();
+
+        // Then do full initialization
+
+        doFullInit(context);
+        pluginFullInitLatch.countDown();
+
+        // All other expensive initialization tasks are executed
+        // asynchronously (after all the plugins are started)
+        new Job("Initaliazing AWS toolkit core plugin...") {
+
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+                afterFullInit(context, monitor);
+                return Status.OK_STATUS;
+            }
+
+        }.schedule();
+
+        logInfo(String.format(
+                "AWS toolkit core plugin initialized after %d milliseconds.",
+                System.currentTimeMillis() - startTime));
+    }
+
+    /**
+     * Any basic initialization workflow required prior to publishing the plugin
+     * instance via getDefault().
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private void doBasicInit(BundleContext context) {
+        try {
+
+            registerCustomErrorSupport();
+
+            // Initialize proxy tracker
+            proxyServiceTracker = new ServiceTracker(context, IProxyService.class.getName(), null);
+            proxyServiceTracker.open();
+
+        } catch (Exception e) {
+            StatusManager.getManager().handle(
+                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            "Internal error when starting the AWS Toolkit plugin.", e),
+                            StatusManager.SHOW);
+        }
+    }
+
+    /**
+     * The singleton plugin instance will be available via getDeault() BEFORE
+     * this method is executed, but methods that are protected by
+     * waitTillFullInit() will be blocked until this job is completed.
+     */
+    private void doFullInit(BundleContext context) {
+        try {
+
+            // Initialize region metadata
+            RegionUtils.init();
+
+            // Initialize AccountManager
+            AccountInfoProvider accountInfoProvider = new AccountInfoProvider(
+                    getPreferenceStore());
+            // Load profile credentials. Do not bootstrap credentials file
+            // if it still doesn't exist, and do not show warning if it fails to
+            // load
+            accountInfoProvider.refreshProfileAccountInfo(false, false);
+            accountManager = new AwsPluginAccountManager(
+                    getPreferenceStore(), accountInfoProvider);
+
+            // start monitoring account preference changes
+            accountManager.startAccountMonitors();
+
+            // Start listening for region preference changes...
+            defaultRegionMonitor = new DefaultRegionMonitor();
+            getPreferenceStore().addPropertyChangeListener(defaultRegionMonitor);
+
+            // Start listening to changes on default region and region default account preference,
+            // and correspondingly update current account
+            PreferencePropertyChangeListener resetAccountListenr = new PreferencePropertyChangeListener() {
+
+                public void watchedPropertyChanged() {
+                    Region newRegion = RegionUtils.getCurrentRegion();
+                    accountManager.updateCurrentAccount(newRegion);
+                }
+
+            };
+
+            accountManager.addDefaultAccountChangeListener(resetAccountListenr);
+            addDefaultRegionChangeListener(resetAccountListenr);
+
+        } catch (Exception e) {
+            StatusManager.getManager().handle(
+                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            "Internal error when starting the AWS Toolkit plugin.", e),
+                            StatusManager.SHOW);
+        }
+    }
+
+    /**
+     * Any tasks that don't necessarily need to be run before the plugin starts
+     * will be executed asynchronoulsy.
+     */
+    private void afterFullInit(BundleContext context, IProgressMonitor monitor) {
+
+        try {
+            LegacyPreferenceStoreAccountMerger
+                    .mergeLegacyAccountsIntoCredentialsFile();
+            accountManager.getAccountInfoProvider()
+                    .refreshProfileAccountInfo(false, false);
+        } catch (Exception e) {
+            StatusManager.getManager().handle(
+                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            "Internal error when scanning legacy AWS account configuration.", e),
+                            StatusManager.SHOW);
+        }
+
+        try {
+            InitialSetupUtils.runInitialSetupWizard();
+        } catch (Exception e) {
+            StatusManager.getManager().handle(
+                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            "Internal error when running intial setup wizard..", e),
+                            StatusManager.SHOW);
+        }
+
+    }
+
+    /**
+     * This method blocks any method invocation that requires the full
+     * initialization of this plugin instance.
+     */
+    private void waitTillFullInit() {
+        try {
+            boolean initComplete = pluginFullInitLatch
+                    .await(FULL_INIT_MAX_WAIT_TIME, TimeUnit.SECONDS);
+
+            if ( !initComplete ) {
+                throw new IllegalStateException(
+                        "The AWS toolkit core plugin didn't " +
+                        "finish initialization after " +
+                        FULL_INIT_MAX_WAIT_TIME + " seconds.");
+            }
+
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(
+                    "Interrupted while waiting for the AWS " +
+                    "toolkit core plugin to finish initialization.",
+                    e);
+        }
+    }
+
+    /**
+     * Register the custom error-support provider, which provides additional UIs
+     * for users to directly report errors to "aws-eclipse-errors@amazon.com".
+     */
+    private static void registerCustomErrorSupport() {
+        ErrorSupportProvider existingProvider = Policy.getErrorSupportProvider();
+
+        // Keep a reference to the previously configured provider
+        AwsToolkitErrorSupportProvider awsProvider = new AwsToolkitErrorSupportProvider(
+                existingProvider);
+
+        Policy.setErrorSupportProvider(awsProvider);
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        plugin = null;
+        accountManager.stopAccountMonitors();
+        getPreferenceStore().removePropertyChangeListener(defaultRegionMonitor);
+        proxyServiceTracker.close();
+        super.stop(context);
     }
 
     /* (non-Javadoc)

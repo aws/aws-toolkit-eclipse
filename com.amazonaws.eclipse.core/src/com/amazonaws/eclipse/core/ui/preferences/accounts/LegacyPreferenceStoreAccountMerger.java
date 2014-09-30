@@ -66,7 +66,8 @@ public class LegacyPreferenceStoreAccountMerger {
      * NOTE: This method is safe to be invoked in non-UI thread.
      */
     public static void mergeLegacyAccountsIntoCredentialsFile() {
-        final AccountInfoProvider provider = AccountInfoProvider.getInstance();
+        final AccountInfoProvider provider = AwsToolkitCore.getDefault()
+                .getAccountManager().getAccountInfoProvider();
         final Map<String, AccountInfo> legacyAccounts = provider.getAllLegacyPreferenceStoreAccontInfo();
 
         // If there are no user created legacy accounts, then exit

@@ -31,8 +31,8 @@ import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
-import com.amazonaws.eclipse.elasticbeanstalk.SolutionStacks;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
+import com.amazonaws.eclipse.elasticbeanstalk.solutionstacks.SolutionStacks;
 
 public class DeployWizard extends WizardFragment {
 

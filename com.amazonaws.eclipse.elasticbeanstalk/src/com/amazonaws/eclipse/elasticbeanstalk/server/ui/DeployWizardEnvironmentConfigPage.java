@@ -213,7 +213,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     }
 
     private void createCNAMEControls(Composite composite) {
-        usingCnameButton = newCheckbox(composite, "Assign CNAME to new server", 1);
+        usingCnameButton = newCheckbox(composite, "Assign CNAME prefix to new server", 1);
         cname = newText(composite);
 
         usingCnameButton.addSelectionListener(new SelectionAdapter() {

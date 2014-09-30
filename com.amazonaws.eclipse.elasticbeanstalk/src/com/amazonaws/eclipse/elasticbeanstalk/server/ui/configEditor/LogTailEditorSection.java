@@ -46,7 +46,6 @@ import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentInfoDescription;
-import com.amazonaws.services.elasticbeanstalk.model.EnvironmentInfoType;
 import com.amazonaws.services.elasticbeanstalk.model.RequestEnvironmentInfoRequest;
 import com.amazonaws.services.elasticbeanstalk.model.RetrieveEnvironmentInfoRequest;
 import com.amazonaws.services.elasticbeanstalk.model.RetrieveEnvironmentInfoResult;
@@ -102,7 +101,6 @@ public class LogTailEditorSection extends ServerEditorSection {
         }
 
         @Override
-        @SuppressWarnings("restriction")
         protected IStatus run(IProgressMonitor monitor) {
             AWSElasticBeanstalk elasticBeanstalk = AwsToolkitCore.getClientFactory(environment.getAccountId())
                     .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
@@ -121,7 +119,8 @@ public class LogTailEditorSection extends ServerEditorSection {
             long pollingStartTime = System.currentTimeMillis();
             while (true) {
                 infoResult = elasticBeanstalk.retrieveEnvironmentInfo(
-                        new RetrieveEnvironmentInfoRequest(EnvironmentInfoType.Tail)
+                        new RetrieveEnvironmentInfoRequest()
+                            .withInfoType("tail")
                             .withEnvironmentName(environment.getEnvironmentName()));
 
                 // Break once we find environment info

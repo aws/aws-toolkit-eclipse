@@ -33,6 +33,7 @@ import org.eclipse.wst.server.core.internal.ServerWorkingCopy;
 import org.eclipse.wst.server.core.internal.facets.FacetUtil;
 import org.eclipse.wst.server.core.model.ServerDelegate;
 
+import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
@@ -505,7 +506,17 @@ public class Environment extends ServerDelegate {
      * Returns a client for this environment.
      */
     public AWSElasticBeanstalk getClient() {
-        return AwsToolkitCore.getClientFactory(getAccountId())
+        AccountInfo account = AwsToolkitCore.getDefault()
+                .getAccountManager()
+                    .getAccountInfo(getAccountId());
+
+        //TODO: better way to handle this
+        if (account == null) {
+            // Fall back to the current account
+            account = AwsToolkitCore.getDefault().getAccountInfo();
+        }
+
+        return AwsToolkitCore.getClientFactory(account.getInternalAccountId())
                 .getElasticBeanstalkClientByEndpoint(getRegionEndpoint());
     }
 
