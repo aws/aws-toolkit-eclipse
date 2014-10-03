@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -47,6 +49,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -274,48 +277,61 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      */
     @Override
     public boolean performOk() {
-        // Don't support changing credentials file location and editing the
-        // account infomration at the same time.
-        if ( !credentailsFileLocationChanged && accountsTabFolder != null ) {
-            /* Save the AccountInfo instances to the external source */
-            saveAccounts();
+
+        try {
+            // Don't support changing credentials file location and editing the
+            // account infomration at the same time.
+            if ( !credentailsFileLocationChanged && accountsTabFolder != null ) {
+                /* Save the AccountInfo instances to the external source */
+                saveAccounts();
 
 
-            /* Persist the metadata in the preference store */
+                /* Persist the metadata in the preference store */
 
-            // credentialProfileAccountIds=accoutId1|accountId2
-            AwsToolkitCore.getDefault()
-                .getAccountManager().getAccountInfoProvider()
-                    .updateProfileAccountMetadataInPreferenceStore(
-                            accountInfoByIdentifier.values());
+                // credentialProfileAccountIds=accoutId1|accountId2
+                AwsToolkitCore.getDefault()
+                    .getAccountManager().getAccountInfoProvider()
+                        .updateProfileAccountMetadataInPreferenceStore(
+                                accountInfoByIdentifier.values());
 
-            // regionsWithDefaultAccounts=region1|region2
-            List<String> configuredRegions = getConfiguredRegions();
-            markRegionsWithDefaultAccount(getPreferenceStore(), configuredRegions);
+                // regionsWithDefaultAccounts=region1|region2
+                List<String> configuredRegions = getConfiguredRegions();
+                markRegionsWithDefaultAccount(getPreferenceStore(), configuredRegions);
 
 
-            /* Call doStore on each tab. */
-            for (TabItem tab : accountsTabFolder.getItems()) {
-                if (tab instanceof AwsAccountPreferencePageTab) {
-                    ((AwsAccountPreferencePageTab) tab).doStore();
+                /* Call doStore on each tab. */
+                for (TabItem tab : accountsTabFolder.getItems()) {
+                    if (tab instanceof AwsAccountPreferencePageTab) {
+                        ((AwsAccountPreferencePageTab) tab).doStore();
+                    }
                 }
             }
+
+            if (credentailsFileLocation != null) {
+                credentailsFileLocation.store();
+            }
+
+            AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
+
+            if (connectionTimeout != null) {
+                connectionTimeout.store();
+            }
+            if (socketTimeout != null) {
+                socketTimeout.store();
+            }
+
+            return super.performOk();
+
+        } catch (Exception e) {
+            StatusManager.getManager().handle(
+                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            "Internal error when saving account preference configurations.",
+                            e),
+                            StatusManager.SHOW);
+
+            return false;
         }
 
-        if (credentailsFileLocation != null) {
-            credentailsFileLocation.store();
-        }
-
-        AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
-
-        if (connectionTimeout != null) {
-            connectionTimeout.store();
-        }
-        if (socketTimeout != null) {
-            socketTimeout.store();
-        }
-
-        return super.performOk();
     }
 
     /**

@@ -14,15 +14,13 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.solutionstacks;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeSolutionStacksRequest;
-import com.amazonaws.services.elasticbeanstalk.model.SolutionStackComparisonOperator;
-import com.amazonaws.services.elasticbeanstalk.model.SolutionStackDetail;
-import com.amazonaws.services.elasticbeanstalk.model.SolutionStackFilter;
-import com.amazonaws.services.elasticbeanstalk.model.SolutionStackFilterName;
+import com.amazonaws.services.elasticbeanstalk.model.SolutionStackDescription;
 
 class Tomcat7SolutionStacks {
 
@@ -31,13 +29,10 @@ class Tomcat7SolutionStacks {
      * Tomcat 7, if we fail to retrieve the latest solution-stack name from the
      * DescribeSolutionStacks API.
      */
-    private static final String TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_6 = "64bit Amazon Linux 2014.03 v1.0.6 running Tomcat 7 Java 7";
+    private static final String TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_7 = "64bit Amazon Linux 2014.03 v1.0.7 running Tomcat 7 Java 7";
 
-    /**
-     * Used for sanity check on the tomcat 7 solution stack name returned by
-     * DescribeSolutionStacks
-     */
-    private static final String TOMCAT_7 = "Tomcat 7";
+    private static final String SIX_FOUR_BIT_PREFIX = "64bit Amazon Linux ";
+    private static final String TOMCAT_7_Java_7_SUFFIX = " running Tomcat 7 Java 7";
 
     /**
      * Look up the latest solution stack name for Tomcat 7, by using the
@@ -60,33 +55,27 @@ class Tomcat7SolutionStacks {
      */
     static String lookupLatestSolutionStackName(AWSElasticBeanstalk client) {
         try {
-            List<SolutionStackDetail> solutionStacks = client
-                    .describeSolutionStacks(new DescribeSolutionStacksRequest()
-                        .withFilters(
-                                new SolutionStackFilter()
-                                    .withName(SolutionStackFilterName.Architecture)
-                                    .withComparisonOperator(SolutionStackComparisonOperator.EQ)
-                                    .withValueList("64bit"),
-                                new SolutionStackFilter()
-                                    .withName(SolutionStackFilterName.ProgrammingLanguageName)
-                                    .withComparisonOperator(SolutionStackComparisonOperator.EQ)
-                                    .withValueList("Java"),
-                                new SolutionStackFilter()
-                                    .withName(SolutionStackFilterName.ProgrammingLanguageVersion)
-                                    .withComparisonOperator(SolutionStackComparisonOperator.EQ)
-                                    .withValueList("7.0")))
-                    .getSolutionStackDetails();
 
-            if ( solutionStacks != null ) {
-                for (SolutionStackDetail ss : solutionStacks) {
+            List<String> tomcat7Java764bitStacks = new ArrayList<String>();
 
-                    String ssName = ss.getSolutionStackName();
+            for (SolutionStackDescription ss : client.listAvailableSolutionStacks().getSolutionStackDetails()) {
+                String ssName = ss.getSolutionStackName();
 
-                    // Sanity check on the returned solution-stack name
-                    if (ssName != null && ssName.contains(TOMCAT_7)) {
-                        return ss.getSolutionStackName();
-                    }
+                if (ssName != null &&
+                    ssName.startsWith(SIX_FOUR_BIT_PREFIX) &&
+                    ssName.endsWith(TOMCAT_7_Java_7_SUFFIX)) {
+                    tomcat7Java764bitStacks.add(ssName);
                 }
+            }
+
+            if ( !tomcat7Java764bitStacks.isEmpty() ) {
+                Collections.sort(tomcat7Java764bitStacks);
+                // The last element in lexicographically ascending order
+                String latest = tomcat7Java764bitStacks.get(tomcat7Java764bitStacks.size() - 1);
+
+                AwsToolkitCore.getDefault().logInfo(
+                        "Found the latest solution stack name: " + latest);
+                return latest;
             }
 
             AwsToolkitCore.getDefault().logInfo(
@@ -99,7 +88,7 @@ class Tomcat7SolutionStacks {
         }
 
         // returns the hard-coded string constant as fall-back
-        return TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_6;
+        return TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_7;
     }
 
 }

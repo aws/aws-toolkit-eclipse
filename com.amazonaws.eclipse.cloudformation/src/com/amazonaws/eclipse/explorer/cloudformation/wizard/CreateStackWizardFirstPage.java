@@ -188,7 +188,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
     private void createStackNameControl(final Composite comp, int fieldDecorationWidth) {
         // Whether the user already set the stack name.
-    	boolean stackNameExists = false;
+        boolean stackNameExists = false;
         new Label(comp, SWT.READ_ONLY).setText("Stack Name: ");
         Control stackNameControl = null;
         if ( wizard.getDataModel().getMode() == Mode.Create ) {
@@ -200,8 +200,8 @@ class CreateStackWizardFirstPage extends WizardPage {
             Combo combo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
 
             if (stackName.getValue() != null) {
-            	combo.setItems(new String[] { (String)stackName.getValue() });
-            	stackNameExists = true;
+                combo.setItems(new String[] { (String)stackName.getValue() });
+                stackNameExists = true;
             } else {
             combo.setItems(new String[] { LOADING_STACKS });
             }
@@ -265,10 +265,10 @@ class CreateStackWizardFirstPage extends WizardPage {
                 public void run() {
                     try {
                         synchronized ( this ) {
-							if (!isCanceled()) {
-								combo.setItems(stackNames.toArray(new String[stackNames.size()]));
-								combo.select(0);
-								templateValidated.setValue(VALID);
+                            if (!isCanceled()) {
+                                combo.setItems(stackNames.toArray(new String[stackNames.size()]));
+                                combo.select(0);
+                                templateValidated.setValue(VALID);
                             }
                         }
                     } finally {
@@ -298,20 +298,20 @@ class CreateStackWizardFirstPage extends WizardPage {
         templateURLText.setEnabled(false);
         GridDataFactory.fillDefaults().grab(true, false).indent(fieldDecorationWidth, 0).applyTo(templateURLText);
         Link link = new Link(stackTemplateSourceGroup, SWT.None);
-        String sampleUrl = "http://aws.amazon.com/cloudformation/aws-cloudformation-templates/";
+        String sampleUrl = "http://docs.aws.amazon.com/cloudformation/aws-cloudformation-templates/";
 
         // TODO: this should really live in the regions file, not hardcoded here
         Region currentRegion = RegionUtils.getCurrentRegion();
         if ( currentRegion.getId().equals("us-east-1") ) {
-            sampleUrl = "http://aws.amazon.com/cloudformation/aws-cloudformation-templates/";
+            sampleUrl = "http://docs.aws.amazon.com/cloudformation/aws-cloudformation-templates/";
         } else {
-            sampleUrl = "http://aws.amazon.com/cloudformation/aws-cloudformation-templates/aws-cloudformation-templates-"
+            sampleUrl = "http://docs.aws.amazon.com/cloudformation/aws-cloudformation-templates/aws-cloudformation-templates-"
                     + currentRegion.getId() + "/";
         }
 
         link.setText("<a href=\"" +
-        		sampleUrl +
-        		"\">Browse for samples</a>");
+                sampleUrl +
+                "\">Browse for samples</a>");
         link.addListener(SWT.Selection, new WebLinkListener());
 
         bindingContext.bindValue(SWTObservables.observeText(templateURLText, SWT.Modify), templateUrl)

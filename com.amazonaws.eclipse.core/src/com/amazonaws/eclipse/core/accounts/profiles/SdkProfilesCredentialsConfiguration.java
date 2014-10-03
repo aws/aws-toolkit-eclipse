@@ -15,12 +15,17 @@
 package com.amazonaws.eclipse.core.accounts.profiles;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.profile.ProfilesConfigFileWriter;
 import com.amazonaws.auth.profile.internal.Profile;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.AccountCredentialsConfiguration;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 
@@ -135,6 +140,22 @@ public class SdkProfilesCredentialsConfiguration extends
             File credentialsFile = new File(
                     prefStore.getString(
                             PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION));
+
+            // Create the file if it doesn't exist yet
+            // TODO: ideally this should be handled by ProfilesConfigFileWriter
+            if ( !credentialsFile.exists() ) {
+                try {
+                    credentialsFile.getParentFile().mkdirs();
+                    credentialsFile.createNewFile();
+                } catch (IOException ioe) {
+                    StatusManager.getManager().handle(
+                            new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                                    "Failed to create credentials file at " +
+                                            credentialsFile.getAbsolutePath(),
+                                    ioe),
+                                    StatusManager.SHOW);
+                }
+            }
 
             String prevProfileName = profile.getProfileName();
             ProfilesConfigFileWriter.modifyOneProfile(credentialsFile,
