@@ -37,4 +37,6 @@ public interface ConfigurationOptionConstants {
     public static final String SINGLE_INSTANCE_ENV = "Single Instance Web Server Environment";
     public static final String LOAD_BALANCED_ENV = "Load Balanced Web Server Environment";
     public static final String WORKER_ENV = "Worker Environment";
+
+    public static final String COMMAND = "aws:elasticbeanstalk:command";
 }

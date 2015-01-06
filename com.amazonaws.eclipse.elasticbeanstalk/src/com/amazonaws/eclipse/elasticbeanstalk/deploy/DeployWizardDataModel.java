@@ -80,7 +80,9 @@ public class DeployWizardDataModel {
     private String snsEndpoint;
     private String healthCheckUrl;
     private String sslCertificateId;
-    private Role iamRole = new DefaultRole();
+    private Role iamRole;
+
+    private boolean skipIamRoleAndInstanceProfileCreation;
 
     private String workerQueueUrl;
 
@@ -283,6 +285,20 @@ public class DeployWizardDataModel {
      */
     public Role getIamRole() {
         return iamRole;
+    }
+
+    /**
+     * Returns true if the name of the IAM role/Instance Profile is directly
+     * provided via user input and that the plugin should not attempt
+     * to re-create them.
+     */
+    public boolean isSkipIamRoleAndInstanceProfileCreation() {
+        return skipIamRoleAndInstanceProfileCreation;
+    }
+
+    public void setSkipIamRoleAndInstanceProfileCreation(
+            boolean skipIamRoleAndInstanceProfileCreation) {
+        this.skipIamRoleAndInstanceProfileCreation = skipIamRoleAndInstanceProfileCreation;
     }
 
     public String getWorkerQueueUrl() {

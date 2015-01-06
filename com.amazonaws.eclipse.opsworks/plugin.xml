@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <!-- Resource navigator content -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.opsworks.explorer.OpsWorksContentProvider"
+         id="com.amazonaws.eclipse.explorer.OpsWorksContent"
+         labelProvider="com.amazonaws.eclipse.opsworks.explorer.OpsWorksLabelProvider"
+         name="AWS OpsWorks Resources"
+         priority="normal">
+      <commonSorter
+            class="com.amazonaws.eclipse.opsworks.explorer.ExplorerSorter"
+            id="com.amazonaws.eclipse.opsworks.ExplorerSorter">
+      </commonSorter>
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <possibleChildren>
+        <or>
+          <instanceof value="com.amazonaws.eclipse.opsworks.explorer.node.OpsWorksRootElement" />
+          <instanceof value="com.amazonaws.services.opsworks.model.Stack" />
+          <instanceof value="com.amazonaws.eclipse.opsworks.explorer.node.LayersRootNode" />
+          <instanceof value="com.amazonaws.eclipse.opsworks.explorer.node.LayerElementNode" />
+          <instanceof value="com.amazonaws.services.opsworks.model.Instance" />
+          <instanceof value="com.amazonaws.eclipse.opsworks.explorer.node.AppsRootNode" />
+          <instanceof value="com.amazonaws.services.opsworks.model.App" />
+        </or>
+      </possibleChildren>
+    </navigatorContent>
+
+  </extension>
+
+  <extension point="org.eclipse.ui.decorators">
+     <decorator
+           class="com.amazonaws.eclipse.opsworks.explorer.ExplorerNodeDecorator"
+           id="com.amazonaws.eclipse.opsworks.explorer.decorator"
+           label="OpsWorks Explore View Node Decorator"
+           lightweight="true"
+           state="true">
+         <enablement>
+            <or>
+                <objectClass name="com.amazonaws.services.opsworks.model.Stack"/>
+                <objectClass name="com.amazonaws.eclipse.opsworks.explorer.node.LayersRootNode"/>
+                <objectClass name="com.amazonaws.eclipse.opsworks.explorer.node.LayerElementNode"/>
+                <objectClass name="com.amazonaws.services.opsworks.model.Instance"/>
+                <objectClass name="com.amazonaws.eclipse.opsworks.explorer.node.AppsRootNode"/>
+                <objectClass name="com.amazonaws.services.opsworks.model.App"/>
+            </or>
+         </enablement>
+     </decorator>
+  </extension>
+  
+  <extension point="org.eclipse.ui.menus">
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+        <command
+              commandId="com.amazonaws.eclipse.opwsworks.deployToOpsworks"
+              id="com.amazonaws.eclipse.opwsworks.deployToOpsworksMenuItem"
+              label="Deploy to AWS OpsWorks..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <adapt type="org.eclipse.core.resources.IProject">
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                                value="jst.java"/>
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                                value="jst.web"/>
+                      </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
+   </extension>
+
+  <extension point="org.eclipse.ui.commands">
+     <command id="com.amazonaws.eclipse.opwsworks.deployToOpsworks"
+            name="Deploy to AWS OpsWorks"
+            defaultHandler="com.amazonaws.eclipse.opsworks.deploy.handler.DeployProjectToOpsworksHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+  </extension>
+
+</plugin>

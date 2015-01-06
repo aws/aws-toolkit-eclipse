@@ -62,8 +62,8 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         /* System defaults */
         store.setDefault(PreferenceConstants.P_DEFAULT_REGION, "us-west-2");
 
-        store.setDefault(PreferenceConstants.P_CONNECTION_TIMEOUT, 5 * 1000);
-        store.setDefault(PreferenceConstants.P_SOCKET_TIMEOUT, 5 * 1000);
+        store.setDefault(PreferenceConstants.P_CONNECTION_TIMEOUT, 20 * 1000);
+        store.setDefault(PreferenceConstants.P_SOCKET_TIMEOUT, 20 * 1000);
 
         String defaultCredentialsFile =
                 System.getProperty("user.home") + File.separator

@@ -139,7 +139,8 @@ public class ElasticBlockStorageView extends ViewPart implements IRefreshable {
      * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
      */
     public void refreshData() {
-        refreshAction.run();
+        if (refreshAction != null)
+            refreshAction.run();
     }
 
 }

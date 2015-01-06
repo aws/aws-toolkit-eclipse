@@ -35,6 +35,17 @@ import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
 public class WTPWarUtils {
 
     public static IPath exportProjectToWar(IProject project, IPath directory) {
+        File tempFile;
+        try {
+            tempFile = File.createTempFile("aws-eclipse-", ".war", directory.toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unable to create web application archive: " + e.getMessage(), e);
+        }
+        return exportProjectToWar(project, directory, tempFile.getName());
+    }
+
+    public static IPath exportProjectToWar(IProject project, IPath directory, String fileName) {
         IDataModel dataModel = DataModelFactory.createDataModel(new WebComponentExportDataModelProvider());
 
         if (directory.toFile().exists() == false) {
@@ -43,13 +54,7 @@ public class WTPWarUtils {
             }
         }
 
-        String filename;
-        try {
-            filename = File.createTempFile("aws-eclipse-", ".war", directory.toFile()).getAbsolutePath();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to create web application archive: " + e.getMessage(), e);
-        }
+        String filename = new File(directory.toFile(), fileName).getAbsolutePath();
 
         dataModel.setProperty(IJ2EEComponentExportDataModelProperties.ARCHIVE_DESTINATION, filename);
         dataModel.setProperty(IJ2EEComponentExportDataModelProperties.PROJECT_NAME, project.getName());

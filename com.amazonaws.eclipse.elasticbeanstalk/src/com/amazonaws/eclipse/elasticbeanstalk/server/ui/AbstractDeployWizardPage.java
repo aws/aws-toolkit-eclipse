@@ -39,6 +39,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 import org.eclipse.wst.server.ui.wizard.WizardFragment;
@@ -167,7 +169,7 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
      * Widget Helper Methods
      */
 
-    protected ControlDecoration newControlDecoration(Control control, String message) {
+    public static ControlDecoration newControlDecoration(Control control, String message) {
         ControlDecoration decoration = new ControlDecoration(control, SWT.LEFT | SWT.TOP);
         decoration.setDescriptionText(message);
         FieldDecoration fieldDecoration = FieldDecorationRegistry.getDefault()
@@ -176,11 +178,11 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         return decoration;
     }
 
-    protected Group newGroup(Composite parent, String text) {
+    public static Group newGroup(Composite parent, String text) {
         return newGroup(parent, text, 1);
     }
 
-    protected Group newGroup(Composite parent, String text, int colspan) {
+    public static Group newGroup(Composite parent, String text, int colspan) {
         Group group = new Group(parent, SWT.NONE);
         group.setText(text);
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -190,26 +192,26 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         return group;
     }
 
-    protected Text newText(Composite parent) {
+    public static Text newText(Composite parent) {
         return newText(parent, "");
     }
 
-    protected Text newText(Composite parent, String value) {
+    public static Text newText(Composite parent, String value) {
         Text text = new Text(parent, SWT.BORDER);
         text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         text.setText(value);
         return text;
     }
 
-    protected Label newLabel(Composite parent, String text) {
+    public static Label newLabel(Composite parent, String text) {
         return newLabel(parent, text, 1);
     }
 
-    protected Label newFillingLabel(Composite parent, String text) {
+    public static Label newFillingLabel(Composite parent, String text) {
         return newFillingLabel(parent, text, 1);
     }
 
-    protected Label newFillingLabel(Composite parent, String text, int colspan) {
+    public static Label newFillingLabel(Composite parent, String text, int colspan) {
         Label label = new Label(parent, SWT.WRAP);
         label.setText(text);
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -219,7 +221,7 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         return label;
     }
 
-    protected Label newLabel(Composite parent, String text, int colspan) {
+    public static Label newLabel(Composite parent, String text, int colspan) {
         Label label = new Label(parent, SWT.WRAP);
         label.setText(text);
         GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
@@ -228,17 +230,23 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         return label;
     }
 
-    protected Combo newCombo(Composite parent) {
+    public static Link newLink(Composite composite, Listener linkListener, String linkText, int colspan) {
+        Link link = new Link(composite, SWT.WRAP);
+        link.setText(linkText);
+        link.addListener(SWT.Selection, linkListener);
+        GridData data = new GridData(SWT.FILL, SWT.TOP, true, false);
+        data.horizontalSpan = colspan;
+        data.widthHint = 100;
+        link.setLayoutData(data);
+        return link;
+    }
+    public static Combo newCombo(Composite parent) {
         Combo combo = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
         combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         return combo;
     }
 
-    protected Button newRadioButton(Composite parent, String text, int colspan) {
-        return newRadioButton(parent, text, colspan, false);
-    }
-
-    protected Button newCheckbox(Composite parent, String text, int colspan) {
+    public static Button newCheckbox(Composite parent, String text, int colspan) {
         Button button = new Button(parent, SWT.CHECK);
         button.setText(text);
         GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
@@ -247,7 +255,22 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         return button;
     }
 
+    public static UpdateValueStrategy newUpdateValueStrategy(ControlDecoration decoration, Button button) {
+        UpdateValueStrategy strategy = new UpdateValueStrategy();
+        strategy.setAfterConvertValidator(new NotEmptyValidator(decoration, button));
+        return strategy;
+    }
+
+    protected Button newRadioButton(Composite parent, String text, int colspan) {
+        return newRadioButton(parent, text, colspan, false);
+    }
+
     protected Button newRadioButton(Composite parent, String text, int colspan, boolean selected) {
+        return newRadioButton(parent, text, colspan, selected, selectionListener);
+    }
+
+    public static Button newRadioButton(Composite parent, String text, int colspan,
+            boolean selected, SelectionListener selectionListener) {
         Button radioButton = new Button(parent, SWT.RADIO);
         radioButton.setText(text);
         GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
@@ -256,11 +279,5 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         radioButton.addSelectionListener(selectionListener);
         radioButton.setSelection(selected);
         return radioButton;
-    }
-
-    protected UpdateValueStrategy newUpdateValueStrategy(ControlDecoration decoration, Button button) {
-        UpdateValueStrategy strategy = new UpdateValueStrategy();
-        strategy.setAfterConvertValidator(new NotEmptyValidator(decoration, button));
-        return strategy;
     }
 }

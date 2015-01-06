@@ -286,10 +286,26 @@ public class ElasticBeanstalkPublishingUtils {
                 .withValue(ENV_TYPE_MAP.get(environment.getEnvironmentType())));
         }
         if ( environment.getIamRoleName() != null && environment.getIamRoleName().length() > 0 ) {
-            InstanceProfile instanceProfile = configureInstanceProfile();
-            if (instanceProfile != null) {
-                optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
-                        .withOptionName("IamInstanceProfile").withValue(instanceProfile.getArn()));
+            String iamInstanceProfileOpValue = null;
+
+            if (environment.isSkipIamRoleAndInstanceProfileCreation()) {
+                // Use name of the instance profile directly provided by the user
+                iamInstanceProfileOpValue = environment.getIamRoleName();
+
+            } else {
+                // Create the role/instance-profile if necessary
+                InstanceProfile instanceProfile = configureInstanceProfile();
+                if (instanceProfile != null) {
+                    iamInstanceProfileOpValue = instanceProfile.getArn();
+                }
+
+            }
+
+            if (iamInstanceProfileOpValue != null) {
+                optionSettings.add(new ConfigurationOptionSetting()
+                        .withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
+                        .withOptionName("IamInstanceProfile")
+                        .withValue(iamInstanceProfileOpValue));
             }
         }
         if ( environment.getWorkerQueueUrl() != null && environment.getWorkerQueueUrl().length() > 0 ) {

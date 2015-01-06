@@ -43,6 +43,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.rds.connectionfactories.MySqlConnectionFactory;
 
 /**
@@ -56,7 +57,7 @@ public class RDSPlugin extends AbstractUIPlugin {
     // The shared instance
     private static RDSPlugin plugin;
 
-    private static final String MYSQL_DRIVER_FILE_NAME = "mysql-connector-java-5.1.6-bin.jar";
+    private static final String MYSQL_DRIVER_FILE_NAME = "mysql-connector-java-5.1.33-bin.jar";
 
 
     /*
@@ -87,7 +88,16 @@ public class RDSPlugin extends AbstractUIPlugin {
         MySqlConnectionFactory connectionFactory = new MySqlConnectionFactory(null);
 
         String targetId = "DriverDefn." + connectionFactory.getDriverTemplate() + "." + connectionFactory.createDriverName();
-        if (DriverManager.getInstance().getDriverInstanceByID(targetId) != null) return;
+        DriverInstance existingDriver =  DriverManager.getInstance().getDriverInstanceByID(targetId);
+        if (existingDriver != null) {
+            if (existingDriver.getJarList().contains(MYSQL_DRIVER_FILE_NAME)) {
+                return;
+            } else {
+                AwsToolkitCore.getDefault().logInfo(
+                        "Removing RDS MySQL Driver instance configured with the legacy jdbc connector...");
+                DriverManager.getInstance().removeDriverInstance(targetId);
+            }
+        }
 
         Properties driverProperties = new Properties();
         driverProperties.setProperty(IJDBCConnectionProfileConstants.DRIVER_CLASS_PROP_ID, connectionFactory.getDriverClass());

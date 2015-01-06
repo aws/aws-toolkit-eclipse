@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.sdk.ui;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -39,6 +40,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.ui.progress.IProgressConstants;
 import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.services.s3.AmazonS3;
@@ -260,8 +262,10 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
                     downloadSDK(monitor);
                 }
             } catch ( Exception e ) {
-                JavaSdkPlugin.getDefault().getLog()
-                        .log(new Status(Status.ERROR, JavaSdkPlugin.PLUGIN_ID, "Couldn't download latest SDK", e));
+                StatusManager.getManager().handle(
+                        new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID,
+                                "Couldn't download latest SDK", e),
+                                StatusManager.SHOW);
             } finally {
                 monitor.done();
                 synchronized ( AbstractSdkManager.this ) {
@@ -306,61 +310,116 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
         File zipFile = new File(tempFile, "sdk.zip");
 
         TransferManager manager = new TransferManager(client);
-        Download download = manager.download(sdkBucketName, "latest/" + sdkFilenamePrefix + ".zip", zipFile);
 
-        // 30 units of work to download the zip
-        monitor.subTask("Downloading latest SDK");
-        int worked = 0;
-        int unitWorkInBytes = (int) (download.getProgress().getTotalBytesToTransfer() / 30);
+        try {
+            JavaSdkPlugin.getDefault().getLog()
+                .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
+                        "Downloading the SDK to temporary location " + zipFile.getAbsolutePath()));
 
-        while ( !download.isDone() ) {
-            if ( download.getProgress().getBytesTransferred() / unitWorkInBytes > worked ) {
-                int newWork = (int) (download.getProgress().getBytesTransferred() / unitWorkInBytes) - worked;
-                monitor.worked(newWork);
-                worked += newWork;
-            }
-        }
-        if ( worked < 30 )
-            monitor.worked(30 - worked);
+            Download download = manager.download(sdkBucketName, "latest/" + sdkFilenamePrefix + ".zip", zipFile);
 
-        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
+            // 30 units of work to download the zip
+            monitor.subTask("Downloading latest SDK");
+            int worked = 0;
+            int unitWorkInBytes = (int) (download.getProgress().getTotalBytesToTransfer() / 30);
 
-        // 50 units of work to unzip the sdk
-        monitor.subTask("Extracting SDK to workspace metadata directory");
-        File temp = new File(tempFile, "unzipped");
-        worked = 0;
-        long totalSize = zipFile.length();
-        long totalUnzipped = 0;
-        unitWorkInBytes = (int) (totalSize / 50);
-        ZipEntry zipEntry = null;
-        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-            IPath path = new Path(zipEntry.getName());
-
-            File destinationFile = new File(temp, path.toOSString());
-            if ( zipEntry.isDirectory() ) {
-                destinationFile.mkdirs();
-            } else {
-                long compressedSize = zipEntry.getCompressedSize();
-
-                FileOutputStream outputStream = new FileOutputStream(destinationFile);
-                IOUtils.copy(zipInputStream, outputStream);
-                outputStream.close();
-
-                totalUnzipped += compressedSize;
-                if (totalUnzipped / unitWorkInBytes > worked) {
-                    int newWork = (int) (totalUnzipped / unitWorkInBytes) - worked;
+            while ( !download.isDone() ) {
+                if ( download.getProgress().getBytesTransferred() / unitWorkInBytes > worked ) {
+                    int newWork = (int) (download.getProgress().getBytesTransferred() / unitWorkInBytes) - worked;
                     monitor.worked(newWork);
                     worked += newWork;
                 }
             }
+            if ( worked < 30 )
+                monitor.worked(30 - worked);
+
+            AmazonClientException ace;
+            try {
+                if ( (ace = download.waitForException()) != null) {
+                    throw ace;
+                }
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(
+                        "The SDK download should have already been completed " +
+                        "when waitForException was called, and the method should always " +
+                        "directly return.",
+                        e);
+            }
+
+            if ( !zipFile.exists() ) {
+                throw new IllegalStateException(
+                        zipFile.getAbsolutePath() + " does not exist " +
+                        "after the SDK download completes.");
+            }
+
+            JavaSdkPlugin.getDefault().getLog()
+                .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
+                    "SDK download completes. Location: " + zipFile.getAbsolutePath() + ", " +
+                    "File-length: " + zipFile.length()));
+
+
+            // Unzip the sdk.zip file
+            ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
+
+            // 50 units of work to unzip the sdk
+            monitor.subTask("Extracting SDK to workspace metadata directory");
+            File temp = new File(tempFile, "unzipped");
+            worked = 0;
+            long totalSize = zipFile.length();
+            long totalUnzipped = 0;
+            unitWorkInBytes = (int) (totalSize / 50);
+            ZipEntry zipEntry = null;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                IPath path = new Path(zipEntry.getName());
+
+                File destinationFile = new File(temp, path.toOSString());
+                if ( zipEntry.isDirectory() ) {
+                    destinationFile.mkdirs();
+                } else {
+                    long compressedSize = zipEntry.getCompressedSize();
+
+                    FileOutputStream outputStream = new FileOutputStream(destinationFile);
+                    try {
+                        IOUtils.copy(zipInputStream, outputStream);
+                    } catch (EOFException eof) {
+                        /*
+                         * There is a bug in ZipInputStream, where it might
+                         * incorrectly throw EOFException if the read exceeds
+                         * the current zip-entry size.
+                         *
+                         * http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6519463
+                         */
+                        JavaSdkPlugin.getDefault().getLog()
+                            .log(new Status(
+                                    Status.WARNING, JavaSdkPlugin.PLUGIN_ID,
+                                    "Ignore EOFException when unpacking zip-entry " +
+                                            zipEntry.getName(),
+                                    eof));
+                    }
+                    outputStream.close();
+
+                    totalUnzipped += compressedSize;
+                    if (totalUnzipped / unitWorkInBytes > worked) {
+                        int newWork = (int) (totalUnzipped / unitWorkInBytes) - worked;
+                        monitor.worked(newWork);
+                        worked += newWork;
+                    }
+                }
+            }
+
+            zipInputStream.close();
+
+            File sdkDir = temp.listFiles()[0];
+            AbstractSdkInstall latest = sdkInstallFactory.createSdkInstallFromDisk(sdkDir);
+
+            copySdk(latest, monitor);
+
+        } finally {
+
+            // Leave the shared anonymous s3 client open
+            manager.shutdownNow(false);
         }
 
-        zipInputStream.close();
-
-        File sdkDir = temp.listFiles()[0];
-        AbstractSdkInstall latest = sdkInstallFactory.createSdkInstallFromDisk(sdkDir);
-
-        copySdk(latest, monitor);
     }
 
 }

@@ -1041,6 +1041,22 @@ public class DynamoDBTableEditor extends EditorPart {
                             return;
                         }
 
+                        // Don't support editing new data types
+                        if ( attributeValue != null &&
+                                (attributeValue.getBOOL() != null ||
+                                 attributeValue.getNULL() != null ||
+                                 attributeValue.getM() != null ||
+                                 attributeValue.getL() != null) ) {
+                            Dialog dialog = new MessageDialog(
+                                    Display.getDefault().getActiveShell(),
+                                    "Attribute edit not supported",
+                                    AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON),
+                                    "Editing BOOL/NULL/Map/List attributes is currently not supported.",
+                                    MessageDialog.NONE, new String[] { "OK" }, 0);
+                            dialog.open();
+                            return;
+                        }
+
                         configureCellEditor(item, column, rowNum, attributeName, attributeValue);
 
                         // If this is a multi-value item, don't allow textual editing

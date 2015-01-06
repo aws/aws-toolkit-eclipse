@@ -18,7 +18,21 @@ import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPublishingUtils;
 import com.amazonaws.services.identitymanagement.model.Role;
 
 public class DefaultRole extends Role {
-    public DefaultRole() {
+
+    private static final long serialVersionUID = 1L;
+
+    private final boolean isToBeCreated;
+
+    public DefaultRole(boolean isToBeCreated) {
+        this.isToBeCreated = isToBeCreated;
         setRoleName(ElasticBeanstalkPublishingUtils.DEFAULT_ROLE_NAME);
+    }
+
+    /**
+     * True if this default role doesn't actually exist and must be created
+     * before configured as the instance role
+     */
+    public boolean isToBeCreated() {
+        return isToBeCreated;
     }
 }

@@ -21,6 +21,7 @@ package com.amazonaws.eclipse.elasticbeanstalk.solutionstacks;
 enum TomcatVersion {
 
     TOMCAT_6,
-    TOMCAT_7
+    TOMCAT_7,
+    TOMCAT_8
 
 }

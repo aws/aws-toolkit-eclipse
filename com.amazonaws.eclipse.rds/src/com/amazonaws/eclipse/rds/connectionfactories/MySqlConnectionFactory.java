@@ -34,7 +34,7 @@ public class MySqlConnectionFactory extends DatabaseConnectionFactory {
 
     @Override
     public String getDatabaseVendor() {
-        return "MySQL";
+        return "MySql";
     }
 
     @Override

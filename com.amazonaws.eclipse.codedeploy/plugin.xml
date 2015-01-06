@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <!-- Resource navigator content -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.codedeploy.explorer.CodeDeployContentProvider"
+         id="com.amazonaws.eclipse.explorer.CodeDeployContent"
+         labelProvider="com.amazonaws.eclipse.codedeploy.explorer.CodeDeployLabelProvider"
+         name="AWS CodeDeploy Resources"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <possibleChildren>
+        <or>
+          <instanceof value="com.amazonaws.eclipse.codedeploy.explorer.CodeDeployRootElement" />
+          <instanceof value="com.amazonaws.services.codedeploy.model.ApplicationDescription" />
+          <instanceof value="com.amazonaws.eclipse.codedeploy.explorer.DeploymentGroupNode" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.codedeploy.explorer.CodeDeployActionProvider">
+         <enablement>
+            <or>
+              <instanceof value="com.amazonaws.eclipse.codedeploy.explorer.CodeDeployRootElement" />
+              <instanceof value="com.amazonaws.services.codedeploy.model.ApplicationInfo" />
+              <instanceof value="com.amazonaws.eclipse.codedeploy.explorer.DeploymentGroupNode" />
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+
+  </extension>
+
+  <extension point="org.eclipse.ui.menus">
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+        <command
+              commandId="com.amazonaws.eclipse.codedeploy.deployToCodeDeploy"
+              id="com.amazonaws.eclipse.codedeploy.deployToCodeDeployMenuItem"
+              label="Deploy to AWS CodeDeploy..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <adapt type="org.eclipse.core.resources.IProject">
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                                value="jst.java"/>
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.wst.common.project.facet.core.projectFacet"
+                                value="jst.web"/>
+                      </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
+   </extension>
+
+  <extension point="org.eclipse.ui.commands">
+     <command id="com.amazonaws.eclipse.codedeploy.deployToCodeDeploy"
+            name="Deploy to AWS CodeDeploy"
+            defaultHandler="com.amazonaws.eclipse.codedeploy.deploy.handler.DeployProjectToCodeDeployHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+  </extension>
+
+  <extension point="org.eclipse.ui.editors">
+     <editor
+             class="com.amazonaws.eclipse.codedeploy.explorer.editor.DeploymentGroupEditor"
+             default="false"
+             icon="icons/deployment-group.png"
+             id="com.amazonaws.eclipse.codedeploy.explorer.editor.deploymentGroupEditor"
+             name="Amazon CodeDeploy Deployment Group">
+     </editor>
+  </extension>
+
+  <extension point="org.eclipse.ui.decorators">
+     <decorator
+           class="com.amazonaws.eclipse.codedeploy.explorer.DeploymentGroupNodeDecorator"
+           id="com.amazonaws.eclipse.codedeploy.explorer.deploymentgroup.decorator"
+           label="CodeDeploy DeploymentGroup Decorator"
+           lightweight="true"
+           state="true">
+         <enablement>
+           <objectClass name="com.amazonaws.eclipse.codedeploy.explorer.DeploymentGroupNode"/>
+         </enablement>
+     </decorator>
+  </extension>
+
+</plugin>

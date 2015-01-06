@@ -74,6 +74,8 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_SOLUTION_STACK           = "solutionStack";
     private static final String PROPERTY_INCREMENTAL_DEPLOYMENT   = "incrementalDeployment";
     private static final String PROPERTY_IAM_ROLE_NAME            = "iamRoleName";
+    private static final String PROPERTY_SKIP_IAM_ROLE_AND_INSTANCE_PROFILE_CREATION
+                                                                  = "skipIamRoleAndInstanceProfileCreation";
     private static final String PROPERTY_WORKER_QUEUE_URL         = "workerQueueUrl";
 
     private static Map<String, EnvironmentDescription> map = new HashMap<String, EnvironmentDescription>();
@@ -240,6 +242,14 @@ public class Environment extends ServerDelegate {
      */
     public String getIamRoleName() {
         return getAttribute(PROPERTY_IAM_ROLE_NAME, (String)null);
+    }
+
+    public void setSkipIamRoleAndInstanceProfileCreation(boolean skip) {
+        setAttribute(PROPERTY_SKIP_IAM_ROLE_AND_INSTANCE_PROFILE_CREATION, skip);
+    }
+
+    public boolean isSkipIamRoleAndInstanceProfileCreation() {
+        return getAttribute(PROPERTY_SKIP_IAM_ROLE_AND_INSTANCE_PROFILE_CREATION, false);
     }
 
     public String getWorkerQueueUrl() {

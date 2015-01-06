@@ -14,12 +14,7 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.solutionstacks;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 
 public class SolutionStacks {
 
@@ -33,6 +28,8 @@ public class SolutionStacks {
             return getSolutionStackNameByTomcatVersion(TomcatVersion.TOMCAT_6);
         } else if (serverTypeId.equalsIgnoreCase(ElasticBeanstalkPlugin.TOMCAT_7_SERVER_TYPE_ID)) {
             return getSolutionStackNameByTomcatVersion(TomcatVersion.TOMCAT_7);
+        } else if (serverTypeId.equalsIgnoreCase(ElasticBeanstalkPlugin.TOMCAT_8_SERVER_TYPE_ID)) {
+            return getSolutionStackNameByTomcatVersion(TomcatVersion.TOMCAT_8);
         }
 
         throw new RuntimeException("Unknown server type: " + serverTypeId);
@@ -43,13 +40,16 @@ public class SolutionStacks {
             return ElasticBeanstalkPlugin.TOMCAT_6_SERVER_TYPE_ID;
         } else if (solutionStack.contains(" Tomcat 7")) {
             return ElasticBeanstalkPlugin.TOMCAT_7_SERVER_TYPE_ID;
+        } else if (solutionStack.contains(" Tomcat 8")) {
+            return ElasticBeanstalkPlugin.TOMCAT_8_SERVER_TYPE_ID;
         }
+
 
         throw new RuntimeException("Unsupported solution stack: " + solutionStack);
     }
 
     public static String getDefaultSolutionStackName() {
-        return getSolutionStackNameByTomcatVersion(TomcatVersion.TOMCAT_7);
+        return getSolutionStackNameByTomcatVersion(TomcatVersion.TOMCAT_8);
     }
 
     /**
@@ -65,6 +65,8 @@ public class SolutionStacks {
                 return TOMCAT_6_64BIT_AMAZON_LINUX;
             case TOMCAT_7:
                 return Tomcat7SolutionStacks.lookupLatestSolutionStackName();
+            case TOMCAT_8:
+                return Tomcat8SolutionStacks.lookupLatestSolutionStackName();
             default:
                 throw new RuntimeException("Unknown Tomcat version: " + version);
         }

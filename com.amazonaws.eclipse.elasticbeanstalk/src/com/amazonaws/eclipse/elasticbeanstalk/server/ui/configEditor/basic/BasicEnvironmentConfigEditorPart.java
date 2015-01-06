@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.forms.ManagedForm;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -41,9 +40,8 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.wst.server.ui.internal.ImageResource;
 
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
-import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
-
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.AbstractEnvironmentConfigEditorPart;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.RefreshListener;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -71,6 +69,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
     private static final Collection<String> containerNamespaces = new HashSet<String>();
     private static final Collection<String> applicationEnvironmentNamespaces = new HashSet<String>();
     private static final Collection<String> environmentNamespaces = new HashSet<String>();
+    private static final Collection<String> rollingDeploymentsNamespaces = new HashSet<String>();
 
 
     static {
@@ -86,6 +85,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         containerNamespaces.add(ConfigurationOptionConstants.HOSTMANAGER);
         applicationEnvironmentNamespaces.add(ConfigurationOptionConstants.ENVIRONMENT);
         environmentNamespaces.add(ConfigurationOptionConstants.ENVIRONMENT_TYPE);
+        rollingDeploymentsNamespaces.add(ConfigurationOptionConstants.COMMAND);
     }
 
     private static final Collection<NamespaceGroup> sectionGroups = new ArrayList<NamespaceGroup>();
@@ -93,14 +93,20 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         sectionGroups.add(new NamespaceGroup("Server", Position.LEFT, serverNamespaces));
         sectionGroups.add(new NamespaceGroup("Load Balancing", Position.LEFT, loadBalancingNamespaces, healthCheckNamespaces, sessionsNamespaces));
         sectionGroups.add(new NamespaceGroup("Environment Type", Position.RIGHT, environmentNamespaces));
+        sectionGroups.add(new NamespaceGroup("Rolling Deployments", Position.RIGHT, rollingDeploymentsNamespaces));
         sectionGroups.add(new NamespaceGroup("Auto Scaling", Position.RIGHT, autoscalingNamespaces, triggerNamespaces));
         sectionGroups.add(new NamespaceGroup("Notifications", Position.RIGHT, notificationsNamespaces));
         sectionGroups.add(new NamespaceGroup("Container", Position.CENTER, containerNamespaces, applicationEnvironmentNamespaces));
     }
 
-    private static final Collection<String>[] sectionOrder = new Collection[] { serverNamespaces,
-            loadBalancingNamespaces, healthCheckNamespaces, sessionsNamespaces, environmentNamespaces, autoscalingNamespaces,
-            triggerNamespaces, notificationsNamespaces, containerNamespaces, applicationEnvironmentNamespaces,  };
+    private static final Collection<String>[] sectionOrder = new Collection[] {
+            serverNamespaces,
+            loadBalancingNamespaces,healthCheckNamespaces, sessionsNamespaces,
+            environmentNamespaces,
+            rollingDeploymentsNamespaces,
+            autoscalingNamespaces, triggerNamespaces,
+            notificationsNamespaces,
+            containerNamespaces, applicationEnvironmentNamespaces,  };
 
     /**
      * Each time we create our control section, we create one composite for each
@@ -126,6 +132,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         editorSectionsByNamespace.put(containerNamespaces, new ContainerConfigEditorSection(this, model, environment, bindingContext));
         editorSectionsByNamespace.put(applicationEnvironmentNamespaces, new EnvironmentPropertiesConfigEditorSection(this, model, environment, bindingContext));
         editorSectionsByNamespace.put(environmentNamespaces, new EnvironmentTypeConfigEditorSection(this, model, environment, bindingContext));
+        editorSectionsByNamespace.put(rollingDeploymentsNamespaces, new RollingDeploymentsConfigEditorSection(this, model, environment, bindingContext));
 
         model.addRefreshListener(this);
     }
@@ -313,6 +320,20 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
                     final List<HumanReadableConfigEditorSection> editorSections = createEditorSections(model
                             .getOptions());
                     for ( HumanReadableConfigEditorSection section : editorSections ) {
+
+                        // Skip creating "Auto Scaling" and "Rolling Deployments" sections if the
+                        // environment is deployed to single-instance
+                        if (section instanceof RollingDeploymentsConfigEditorSection ||
+                                section instanceof AutoScalingConfigEditorSection) {
+                            Object envTypeValue = model.getEntry(
+                                    new ConfigurationOptionDescription()
+                                            .withNamespace(ConfigurationOptionConstants.ENVIRONMENT_TYPE)
+                                            .withName("EnvironmentType"));
+                            if ("SingleInstance".equals(envTypeValue)) {
+                                continue;
+                            }
+                        }
+
                         section.setServerEditorPart(BasicEnvironmentConfigEditorPart.this);
                         section.init(getEditorSite(), getEditorInput());
                         section.createSection(section.getParentComposite());

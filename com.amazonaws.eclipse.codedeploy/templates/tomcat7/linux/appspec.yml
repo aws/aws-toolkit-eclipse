@@ -1,0 +1,20 @@
+version: 0.0
+os: linux
+files:
+  - source: application.war
+    destination: /tmp/codedeploy-eclipse-deployment-staging-area/
+  - source: /scripts/configure_http_port.xsl
+    destination: /tmp/codedeploy-eclipse-deployment-staging-area/
+hooks:
+  ApplicationStop:
+    - location: scripts/stop_application
+      timeout: 300
+      runas: root
+  BeforeInstall:
+    - location: scripts/install_dependencies
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/start_application
+      timeout: 300
+      runas: root

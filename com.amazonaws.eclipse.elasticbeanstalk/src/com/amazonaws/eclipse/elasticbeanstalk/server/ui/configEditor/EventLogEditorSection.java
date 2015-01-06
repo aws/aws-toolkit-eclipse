@@ -76,7 +76,7 @@ public class EventLogEditorSection extends ServerEditorSection {
     private static final Object JOB_FAMILY = new Object();
     private AutoRefreshListener autoRefreshListener;
 
-    private boolean disposed;
+    private volatile boolean disposed;
 
     @Override
     public void createSection(Composite parent) {
@@ -203,7 +203,7 @@ public class EventLogEditorSection extends ServerEditorSection {
 
              Display.getDefault().syncExec(new Runnable() {
                 public void run() {
-                    if (disposed) {
+                    if (disposed || viewer.getTree().isDisposed()) {
                         return;
                     }
 

@@ -27,17 +27,16 @@ import com.amazonaws.services.rds.model.DBInstance;
 
 public class ImportWizard extends Wizard implements IImportWizard {
 
-    private ImportDBInstanceDataModel wizardDataModel = new ImportDBInstanceDataModel();
-
-    public ImportWizard() {
-        this(null);
-    }
+    private final ImportDBInstanceDataModel wizardDataModel = new ImportDBInstanceDataModel();
 
     public ImportWizard(DBInstance dbInstanceToImport) {
+        if (dbInstanceToImport == null)
+            throw new NullPointerException("dbInstanceToImport must not be null.");
+
         this.setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_WIZARD_CONFIGURE_DATABASE));
         this.setWindowTitle("Configure RDS Database Connection");
         this.setNeedsProgressMonitor(true);
-        
+
         wizardDataModel.setDbInstance(dbInstanceToImport);
         addPage(new ConfigureImportOptionsPage(wizardDataModel));
     }

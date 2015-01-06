@@ -21,10 +21,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import com.amazonaws.services.dynamodbv2.document.internal.InternalUtils;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.util.BinaryUtils;
+import com.amazonaws.util.json.Jackson;
 
 /**
  * Utility methods for working with attribute values
@@ -73,7 +76,7 @@ public class AttributeValueUtil {
             throw new RuntimeException("Unknown data type " + dataType);
         }
     }
-    
+
     /**
      * Gets a byte buffer corresponding to the base64 string given.
      */
@@ -104,7 +107,7 @@ public class AttributeValueUtil {
             throw new RuntimeException("Unknown data type " + dataType);
         }
     }
-    
+
     /**
      * Translates the data types returned by some Dynamo apis into the integers
      * used by this class.
@@ -158,7 +161,37 @@ public class AttributeValueUtil {
             return base64Format(value.getB());
         else if ( value.getBS() != null )
             return joinBase64(value.getBS());
+        else if ( value.getBOOL() != null )
+            return value.getBOOL() ? "true" : "false";
+        else if ( value.getNULL() != null )
+            return value.getNULL() ? "null" : "";
+        else if ( value.getM() != null )
+            return formatMapAttribute(value.getM());
+        else if ( value.getL() != null )
+            return formatListAttribute(value.getL());
         return "";
+    }
+
+    private static String formatMapAttribute(Map<String, AttributeValue> map) {
+        if (map == null) return "";
+
+        try {
+            Map<String, Object> objectMap = InternalUtils.toSimpleMapValue(map);
+            return Jackson.toJsonString(objectMap);
+        } catch (Exception e) {
+            return "A map of " + map.size() + " entries";
+        }
+    }
+
+    private static String formatListAttribute(List<AttributeValue> list) {
+        if (list == null) return "";
+
+        try {
+            List<Object> objectList = InternalUtils.toSimpleListValue(list);
+            return Jackson.toJsonString(objectList);
+        } catch (Exception e) {
+            return "A list of " + list.size() + " entries";
+        }
     }
 
     /**
@@ -175,7 +208,7 @@ public class AttributeValueUtil {
     private static String base64Format(ByteBuffer b) {
         return BinaryUtils.toBase64(b.array());
     }
-    
+
     /**
      * Returns a base-64 string of the given bytes
      */
@@ -198,7 +231,7 @@ public class AttributeValueUtil {
     /**
      * Joins a collection of values with commas, enclosed by brackets. An empty
      * or null set of values returns the empty string.
-     * 
+     *
      * @param quoted
      *            Whether each value should be quoted in the output.
      */
@@ -245,7 +278,7 @@ public class AttributeValueUtil {
             return Collections.emptyList();
         }
     }
-    
+
     /**
      * Validates the user input of a scalar attribute value.
      */
@@ -266,7 +299,7 @@ public class AttributeValueUtil {
             return false;
         }
     }
-    
+
     /**
      * Returns the warning message for the given attribute type.
      */
@@ -281,7 +314,7 @@ public class AttributeValueUtil {
             return "";
         }
     }
-    
+
     /**
      * Validates the user input of Base64 string.
      */
@@ -290,7 +323,7 @@ public class AttributeValueUtil {
         String encodedAgain = BinaryUtils.toBase64(decoded);
         return base64.equals(encodedAgain);
     }
-    
+
     /**
      * Validates the user input of a number.
      */

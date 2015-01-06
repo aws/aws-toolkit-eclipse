@@ -132,6 +132,7 @@ public class DeployWizard extends WizardFragment {
         environment.setAccountId(AwsToolkitCore.getDefault().getCurrentAccountId());
         environment.setIncrementalDeployment(wizardDataModel.isIncrementalDeployment());
         environment.setWorkerQueueUrl(wizardDataModel.getWorkerQueueUrl());
+        environment.setSkipIamRoleAndInstanceProfileCreation(wizardDataModel.isSkipIamRoleAndInstanceProfileCreation());
 
         if (wizardDataModel.getIamRole() != null) {
             environment.setIamRoleName(wizardDataModel.getIamRole().getRoleName());

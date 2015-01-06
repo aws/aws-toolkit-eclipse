@@ -82,6 +82,7 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
 
     public static final String TOMCAT_6_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.environment"; //$NON-NLS-1$
     public static final String TOMCAT_7_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"; //$NON-NLS-1$
+    public static final String TOMCAT_8_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat8"; //$NON-NLS-1$
 
     public static final Collection<String> SERVER_TYPE_IDS = new HashSet<String>();
     private Font subtleDialogFont;
@@ -89,6 +90,7 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
     static {
         SERVER_TYPE_IDS.add(TOMCAT_6_SERVER_TYPE_ID);
         SERVER_TYPE_IDS.add(TOMCAT_7_SERVER_TYPE_ID);
+        SERVER_TYPE_IDS.add(TOMCAT_8_SERVER_TYPE_ID);
     }
 
     /**

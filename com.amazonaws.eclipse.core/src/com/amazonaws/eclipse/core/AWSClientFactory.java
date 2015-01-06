@@ -46,8 +46,10 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFront;
 import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFrontClient;
-import com.amazonaws.services.dynamodb.AmazonDynamoDB;
-import com.amazonaws.services.dynamodb.AmazonDynamoDBClient;
+import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
+import com.amazonaws.services.codedeploy.AmazonCodeDeployClient;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
@@ -56,6 +58,8 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.opsworks.AWSOpsWorks;
+import com.amazonaws.services.opsworks.AWSOpsWorksClient;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.s3.AmazonS3;
@@ -189,11 +193,7 @@ public class AWSClientFactory {
         return getSNSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SNS));
     }
 
-    public AmazonDynamoDB getDynamoDBClient() {
-        return getDynamoDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.DYNAMODB));
-    }
-
-    public com.amazonaws.services.dynamodbv2.AmazonDynamoDB getDynamoDBV2Client() {
+    public AmazonDynamoDB getDynamoDBV2Client() {
         return getDynamoDBV2ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.DYNAMODB));
     }
 
@@ -215,6 +215,14 @@ public class AWSClientFactory {
 
     public AmazonEC2 getEC2Client() {
         return getEC2ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.EC2));
+    }
+
+    public AmazonCodeDeploy getCodeDeployClient() {
+        return getCodeDeployClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CODE_DEPLOY));
+    }
+
+    public AWSOpsWorks getOpsWorksClient() {
+        return getOpsWorksClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.OPSWORKS));
     }
 
     /*
@@ -279,6 +287,14 @@ public class AWSClientFactory {
 
     public AmazonCloudFormation getCloudFormationClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonCloudFormationClient.class);
+    }
+
+    public AmazonCodeDeploy getCodeDeployClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AmazonCodeDeployClient.class);
+    }
+
+    public AWSOpsWorks getOpsWorksClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AWSOpsWorksClient.class);
     }
 
     private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {

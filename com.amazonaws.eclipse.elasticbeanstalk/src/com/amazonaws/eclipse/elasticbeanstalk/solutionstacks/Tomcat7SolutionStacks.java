@@ -29,7 +29,7 @@ class Tomcat7SolutionStacks {
      * Tomcat 7, if we fail to retrieve the latest solution-stack name from the
      * DescribeSolutionStacks API.
      */
-    private static final String TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_7 = "64bit Amazon Linux 2014.03 v1.0.7 running Tomcat 7 Java 7";
+    private static final String TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_9 = "64bit Amazon Linux 2014.09 v1.0.9 running Tomcat 7 Java 7";
 
     private static final String SIX_FOUR_BIT_PREFIX = "64bit Amazon Linux ";
     private static final String TOMCAT_7_Java_7_SUFFIX = " running Tomcat 7 Java 7";
@@ -88,7 +88,7 @@ class Tomcat7SolutionStacks {
         }
 
         // returns the hard-coded string constant as fall-back
-        return TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_7;
+        return TOMCAT_7_64BIT_AMAZON_LINUX_v1_0_9;
     }
 
 }

@@ -7,24 +7,6 @@
          point="org.eclipse.ui.popupMenus">
    </extension>
 
-   <extension
-         point="org.eclipse.ui.importWizards">
-      <wizard
-            category="com.amazonaws.eclipse.importCategory"
-            class="com.amazonaws.eclipse.rds.ImportWizard"
-            icon="icons/aws-box.gif"
-            id="com.amazonaws.eclipse.rds.importDatabasesWizard"
-            name="Amazon RDS Databases">
-         <description>
-            Imports configuration for AWS Relational Database Service database instances.
-         </description>
-      </wizard>
-      <category
-            id="com.amazonaws.eclipse.importCategory"
-            name="AWS">
-      </category>
-   </extension>
-
   <extension point="org.eclipse.ui.navigator.navigatorContent">
     <navigatorContent
          activeByDefault="true"
@@ -57,7 +39,7 @@
       </actionProvider>
     </navigatorContent>
   </extension>
-  
+
   <extension point="org.eclipse.ui.decorators">
      <decorator
            class="com.amazonaws.eclipse.explorer.rds.DatabaseDecorator"

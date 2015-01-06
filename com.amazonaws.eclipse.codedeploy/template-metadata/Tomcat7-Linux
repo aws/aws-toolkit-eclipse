@@ -1,0 +1,21 @@
+{
+  "metadataVersion" : "1.0",
+  "templateName" : "Tomcat 7 running on Linux",
+  "templateDescription" : "Deploy to Tomcat 7 container running on Linux",
+  "templateBasedir" : "templates/tomcat7/linux",
+  "isCustomTemplate" : false,
+  "warFileExportLocationWithinDeploymentArchive" : "/application.war",
+  "useDefaultHttpPortParameter" : true,
+  "useDefaultContextPathParameter" : true,
+  "parameters" : [
+    {
+      "name" : "Tomcat Installation Directory",
+      "type" : "STRING",
+      "defaultValueAsString" : "/usr/share/tomcat7-codedeploy",
+      "substitutionAnchorText" : "##CATALINA_HOME##",
+      "constraints" : {
+        "validationRegex" : "[\\S]+"
+      }
+    }
+  ]
+}

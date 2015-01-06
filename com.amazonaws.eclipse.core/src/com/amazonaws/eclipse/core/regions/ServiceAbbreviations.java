@@ -33,4 +33,6 @@ public final class ServiceAbbreviations {
     public static final String DYNAMODB        = "DynamoDB";
     public static final String STS             = "STS";
     public static final String CLOUD_FORMATION = "CloudFormation";
+    public static final String CODE_DEPLOY     = "CodeDeploy";
+    public static final String OPSWORKS        = "OpsWorks";
 }

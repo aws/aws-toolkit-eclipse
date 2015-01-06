@@ -145,7 +145,9 @@ public class SdkProfilesCredentialsConfiguration extends
             // TODO: ideally this should be handled by ProfilesConfigFileWriter
             if ( !credentialsFile.exists() ) {
                 try {
-                    credentialsFile.getParentFile().mkdirs();
+                    if (credentialsFile.getParentFile() != null) {
+                        credentialsFile.getParentFile().mkdirs();
+                    }
                     credentialsFile.createNewFile();
                 } catch (IOException ioe) {
                     StatusManager.getManager().handle(

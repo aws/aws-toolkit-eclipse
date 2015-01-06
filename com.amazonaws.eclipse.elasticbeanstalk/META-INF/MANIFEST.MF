@@ -33,6 +33,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.navigator;bundle-version="3.2.0",
  com.jcraft.jsch;bundle-version="0.1.41"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Export-Package: com.amazonaws.eclipse.elasticbeanstalk.server.ui,
+ com.amazonaws.eclipse.elasticbeanstalk.deploy
 Bundle-ClassPath: .,
  src/,
  lib/jgit/jgit-1.3.0-aws-git-push.jar
