@@ -212,7 +212,7 @@ public class AccountInfoProvider {
                 ProfilesConfigFileWriter.dumpToFile(
                         credFile,
                         true, // overwrite=true
-                        new Profile("default", new BasicAWSCredentials("", "")));
+                        new Profile(PreferenceConstants.DEFAULT_ACCOUNT_NAME, new BasicAWSCredentials("", "")));
             }
 
             profileConfigFile = new ProfilesConfigFile(credFile);

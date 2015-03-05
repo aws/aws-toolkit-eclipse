@@ -72,16 +72,8 @@ public class LegacyPreferenceStoreAccountMerger {
 
         // If there are no user created legacy accounts, then exit
         // early since there's nothing to merge.
-        if (legacyAccounts.isEmpty()) {
+        if (!hasValidLegacyAccounts(legacyAccounts)) {
             return;
-        } else if (legacyAccounts.size() == 1) {
-            AccountInfo accountInfo = legacyAccounts.values().iterator().next();
-
-            if (accountInfo.getAccountName().equals("default") &&
-                isEmpty(accountInfo.getAccessKey()) &&
-                isEmpty(accountInfo.getSecretKey())) {
-                return;
-            }
         }
 
         final File credentialsFile = new File(
@@ -167,6 +159,28 @@ public class LegacyPreferenceStoreAccountMerger {
                 });
             }
         }
+    }
+
+    /**
+     * @return True if customer has valid (the only accounts that are considered
+     *         invalid is the default generated empty account) legacy accounts,
+     *         false if not
+     */
+    private static boolean hasValidLegacyAccounts(
+            Map<String, AccountInfo> legacyAccounts) {
+        if (legacyAccounts.isEmpty()) {
+            return false;
+        } else if (legacyAccounts.size() == 1) {
+            AccountInfo accountInfo = legacyAccounts.values().iterator().next();
+            // A legacy default empty account is ignored
+            if (accountInfo.getAccountName().equals(PreferenceConstants.DEFAULT_ACCOUNT_NAME)
+                    && isEmpty(accountInfo.getAccessKey())
+                    && isEmpty(accountInfo.getSecretKey())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -31,6 +31,8 @@ public class JavaSdkManager extends AbstractSdkManager<JavaSdkInstall> {
 
     private static JavaSdkManager instance;
 
+    private static final String JAVA_SDK_CLOUDFRONT_DISTRO_ENDPOINT_HTTPS = "https://d19kvtlom66ssw.cloudfront.net";
+
     /**
      * Returns the singleton instance of SdkManager.
      *
@@ -43,7 +45,9 @@ public class JavaSdkManager extends AbstractSdkManager<JavaSdkInstall> {
 
     /* Hide the default public constructor */
     private JavaSdkManager() {
-        super("AWS SDK for Java", "aws-java-sdk", "aws-java-sdk", new JavaSdkInstallFactory());
+        super("AWS SDK for Java", "aws-java-sdk", "aws-java-sdk",
+                JAVA_SDK_CLOUDFRONT_DISTRO_ENDPOINT_HTTPS,
+                new JavaSdkInstallFactory());
     }
 
     public static class JavaSdkInstallFactory implements SdkInstallFactory<JavaSdkInstall> {

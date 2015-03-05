@@ -141,7 +141,7 @@ public final class AwsPluginAccountManager {
 
             // Find the "default" account
             for (AccountInfo account : allAccounts) {
-                if (account.getAccountName().equals("default")) {
+                if (account.getAccountName().equals(PreferenceConstants.DEFAULT_ACCOUNT_NAME)) {
                     fallbackAccount = account;
                 }
             }

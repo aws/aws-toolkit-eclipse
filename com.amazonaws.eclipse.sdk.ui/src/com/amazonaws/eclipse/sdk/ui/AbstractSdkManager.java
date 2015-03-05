@@ -19,6 +19,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -56,9 +60,10 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
 
     private SdkDownloadJob installationJob = null;
-    private String sdkBucketName;
-    private String sdkFilenamePrefix;
-    private String initializingSdkJobName;
+    private final String cloudfrontDownloadUrl;
+    private final String sdkBucketName;
+    private final String sdkFilenamePrefix;
+    private final String initializingSdkJobName;
     private Pattern sdkFilenameVersionPattern;
 
     private final SdkInstallFactory<X> sdkInstallFactory;
@@ -76,16 +81,24 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
      * @param sdkFilenamePrefix
      *            The filename prefix (without the version component) of the SDK
      *            files in S3. For example, 'aws-java-sdk'.
+     * @param cloudfrontDistroDomain
+     *            The domain for the CloudFront distribution where the SDK is
+     *            hosted, or null if it's not available in CloudFront.
      */
-    public AbstractSdkManager(String sdkName, String sdkBucketName, String sdkFilenamePrefix, SdkInstallFactory<X> sdkInstallFactory) {
-        this.sdkInstallFactory = sdkInstallFactory;
+    public AbstractSdkManager(String sdkName, String sdkBucketName,
+            String sdkFilenamePrefix, String cloudfrontDistroDomain,
+            SdkInstallFactory<X> sdkInstallFactory) {
+
         if (sdkName == null) throw new IllegalArgumentException("No SDK name specified");
         if (sdkFilenamePrefix == null) throw new IllegalArgumentException("No SDK filename prefix specified");
 
-        this.sdkFilenamePrefix = sdkFilenamePrefix;
-        sdkFilenameVersionPattern = Pattern.compile("filename\\s*=\\s*" + sdkFilenamePrefix + "-(.*?)\\.zip");
-        initializingSdkJobName = "Initializing " + sdkName;
+        this.initializingSdkJobName = "Initializing " + sdkName;
         this.sdkBucketName = sdkBucketName;
+        this.sdkFilenamePrefix = sdkFilenamePrefix;
+        this.sdkFilenameVersionPattern = Pattern.compile("filename\\s*=\\s*" + sdkFilenamePrefix + "-(.*?)\\.zip");
+        this.cloudfrontDownloadUrl = cloudfrontDistroDomain + "/latest/"
+                + sdkFilenamePrefix + ".zip";
+        this.sdkInstallFactory = sdkInstallFactory;
     }
 
 
@@ -259,7 +272,7 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
                 monitor.beginTask("Updating SDK (click details to configure)", 101);
                 String latestSdkVersion = getLatestS3Version(monitor);
                 if ( getSdkInstall(latestSdkVersion) == null ) {
-                    downloadSDK(monitor);
+                    downloadAndInstallSDK(monitor);
                 }
             } catch ( Exception e ) {
                 StatusManager.getManager().handle(
@@ -302,26 +315,141 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
     /**
      * Downloads the latest copy of the SDK from s3 and caches it in the workspace metadata directory
      */
-    private void downloadSDK(IProgressMonitor monitor) throws IOException {
-        AmazonS3 client = AWSClientFactory.getAnonymousS3Client();
+    private void downloadAndInstallSDK(IProgressMonitor monitor) throws IOException {
+
         File tempFile = File.createTempFile(sdkFilenamePrefix, "");
         tempFile.delete();
         tempFile.mkdirs();
         File zipFile = new File(tempFile, "sdk.zip");
+
+        /*
+         *  60 units for SDK download
+         */
+        try {
+            downloadSdkFromCloudFront(zipFile, monitor, 60);
+
+        } catch (Exception e) {
+            JavaSdkPlugin.getDefault().getLog()
+                .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
+                            "Fall back to S3 download.", e));
+
+            downloadSdkFromS3(zipFile, monitor, 60);
+        }
+
+        JavaSdkPlugin.getDefault().getLog()
+            .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
+                "SDK download completes. Location: " + zipFile.getAbsolutePath() + ", " +
+                "File-length: " + zipFile.length()));
+
+        /*
+         *  20 units for unzipping
+         */
+        File unzippedDir = new File(tempFile, "unzipped");
+        unzipSDK(zipFile, unzippedDir, monitor, 20);
+
+
+        File sdkDir = unzippedDir.listFiles()[0];
+        AbstractSdkInstall latest = sdkInstallFactory.createSdkInstallFromDisk(sdkDir);
+
+        copySdk(latest, monitor);
+    }
+
+    private void downloadSdkFromCloudFront(File destination,
+            IProgressMonitor monitor, int totalUnitsOfWork)
+            throws IOException {
+        if (cloudfrontDownloadUrl == null) {
+            throw new IllegalStateException("No CloudFront endpoint is provided.");
+        }
+
+        monitor.subTask("Downloading latest SDK from CloudFront");
+
+        JavaSdkPlugin.getDefault().getLog()
+            .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
+                        "Downloading the SDK from CloudFront to location "
+                                + destination.getAbsolutePath()));
+
+        URL sourceUrl = new URL(cloudfrontDownloadUrl);
+        URLConnection connection = sourceUrl.openConnection();
+
+        long totalBytes;
+        String contentLength = connection.getHeaderField("Content-Length");
+        try {
+            totalBytes = Long.parseLong(contentLength);
+        } catch (NumberFormatException e) {
+            totalBytes = -1;
+        }
+
+        InputStream input = connection.getInputStream();
+        try {
+            FileOutputStream output = new FileOutputStream(destination);
+            try {
+                copyWithProgressMonitor(input, output, monitor,
+                        totalUnitsOfWork, totalBytes);
+            } finally {
+                IOUtils.closeQuietly(output);
+            }
+        } finally {
+            IOUtils.closeQuietly(input);
+        }
+
+        if ( !destination.exists() ) {
+            throw new IllegalStateException(
+                    destination.getAbsolutePath() + " does not exist " +
+                    "after the SDK download completes.");
+        }
+    }
+
+    private static void copyWithProgressMonitor(InputStream input, OutputStream output,
+            IProgressMonitor monitor, int totalUnitsOfWork, long totalBytes)
+            throws IOException {
+
+        byte[] buffer = new byte[1024 * 8];
+        int n = 0;
+        long workedBytes = 0;
+
+        int workedUnits = 0;
+
+        while (-1 != (n = input.read(buffer))) {
+            output.write(buffer, 0, n);
+            workedBytes += n;
+
+            if (totalBytes > 0 && workedUnits < totalUnitsOfWork) {
+                int newWork = (int)(workedBytes * totalUnitsOfWork / (double)totalBytes) - workedUnits;
+                if (newWork > 0) {
+                    monitor.worked(newWork);
+                    workedUnits += newWork;
+                }
+            }
+        }
+
+        if (workedBytes != totalBytes) {
+            throw new IllegalStateException(
+                    String.format(
+                            "Data length (%d bytes) doesn't match the content-length (%d bytes).",
+                            workedBytes, totalBytes));
+        }
+
+        if (workedUnits < totalUnitsOfWork) {
+            monitor.worked(totalUnitsOfWork - workedUnits);
+        }
+    }
+
+    private void downloadSdkFromS3(File destination, IProgressMonitor monitor, int totalUnitsOfWork) {
+        AmazonS3 client = AWSClientFactory.getAnonymousS3Client();
 
         TransferManager manager = new TransferManager(client);
 
         try {
             JavaSdkPlugin.getDefault().getLog()
                 .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
-                        "Downloading the SDK to temporary location " + zipFile.getAbsolutePath()));
+                            "Downloading the SDK from S3 to location "
+                                    + destination.getAbsolutePath()));
 
-            Download download = manager.download(sdkBucketName, "latest/" + sdkFilenamePrefix + ".zip", zipFile);
+            Download download = manager.download(sdkBucketName, "latest/" + sdkFilenamePrefix + ".zip", destination);
 
-            // 30 units of work to download the zip
-            monitor.subTask("Downloading latest SDK");
+            monitor.subTask("Downloading latest SDK from S3");
             int worked = 0;
-            int unitWorkInBytes = (int) (download.getProgress().getTotalBytesToTransfer() / 30);
+            int unitWorkInBytes = (int) (download.getProgress().getTotalBytesToTransfer() / totalUnitsOfWork);
 
             while ( !download.isDone() ) {
                 if ( download.getProgress().getBytesTransferred() / unitWorkInBytes > worked ) {
@@ -330,8 +458,8 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
                     worked += newWork;
                 }
             }
-            if ( worked < 30 )
-                monitor.worked(30 - worked);
+            if ( worked < totalUnitsOfWork )
+                monitor.worked(totalUnitsOfWork - worked);
 
             AmazonClientException ace;
             try {
@@ -346,33 +474,37 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
                         e);
             }
 
-            if ( !zipFile.exists() ) {
+            if ( !destination.exists() ) {
                 throw new IllegalStateException(
-                        zipFile.getAbsolutePath() + " does not exist " +
+                        destination.getAbsolutePath() + " does not exist " +
                         "after the SDK download completes.");
             }
 
-            JavaSdkPlugin.getDefault().getLog()
-                .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
-                    "SDK download completes. Location: " + zipFile.getAbsolutePath() + ", " +
-                    "File-length: " + zipFile.length()));
+        } finally {
+            // Leave the shared anonymous s3 client open
+            manager.shutdownNow(false);
+        }
+    }
 
+    private void unzipSDK(File zipFile, File unzipDestination,
+            IProgressMonitor monitor, int totalUnitsOfWork) throws IOException {
 
-            // Unzip the sdk.zip file
-            ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
 
-            // 50 units of work to unzip the sdk
-            monitor.subTask("Extracting SDK to workspace metadata directory");
-            File temp = new File(tempFile, "unzipped");
-            worked = 0;
-            long totalSize = zipFile.length();
-            long totalUnzipped = 0;
-            unitWorkInBytes = (int) (totalSize / 50);
-            ZipEntry zipEntry = null;
+        monitor.subTask("Extracting SDK to workspace metadata directory");
+
+        int worked = 0;
+        long totalSize = zipFile.length();
+        long totalUnzipped = 0;
+        int unitWorkInBytes = (int) (totalSize / (double)totalUnitsOfWork);
+
+        ZipEntry zipEntry = null;
+
+        try {
             while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 IPath path = new Path(zipEntry.getName());
 
-                File destinationFile = new File(temp, path.toOSString());
+                File destinationFile = new File(unzipDestination, path.toOSString());
                 if ( zipEntry.isDirectory() ) {
                     destinationFile.mkdirs();
                 } else {
@@ -400,26 +532,15 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
 
                     totalUnzipped += compressedSize;
                     if (totalUnzipped / unitWorkInBytes > worked) {
-                        int newWork = (int) (totalUnzipped / unitWorkInBytes) - worked;
+                        int newWork = (int) (totalUnzipped / (double)unitWorkInBytes) - worked;
                         monitor.worked(newWork);
                         worked += newWork;
                     }
                 }
             }
 
-            zipInputStream.close();
-
-            File sdkDir = temp.listFiles()[0];
-            AbstractSdkInstall latest = sdkInstallFactory.createSdkInstallFromDisk(sdkDir);
-
-            copySdk(latest, monitor);
-
         } finally {
-
-            // Leave the shared anonymous s3 client open
-            manager.shutdownNow(false);
+            zipInputStream.close();
         }
-
     }
-
 }

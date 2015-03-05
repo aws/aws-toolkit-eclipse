@@ -29,7 +29,8 @@ public class AndroidSdkManager extends AbstractSdkManager<AndroidSdkInstall> {
     private static AndroidSdkManager instance;
 
     private AndroidSdkManager() {
-        super("AWS SDK for Android", "aws-android-sdk", "aws-android-sdk", new AndroidSdkInstallFactory());
+        super("AWS SDK for Android", "aws-android-sdk", "aws-android-sdk",
+                null, new AndroidSdkInstallFactory());
     }
 
     public static AndroidSdkManager getInstance() {

@@ -16,7 +16,6 @@
 package com.amazonaws.eclipse.core.preferences;
 
 import java.io.File;
-import java.util.UUID;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -24,6 +23,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.util.StringUtils;
 
 /**
  * Responsible for initializing the preference store for the AWS Toolkit Core
@@ -110,57 +110,19 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
      * Bootstraps the current account preferences for new customers or customers
      * migrating from the legacy single-account or global-accounts-only preference
      */
-    @SuppressWarnings("deprecation")
     private void bootstrapAccountPreferences() {
         IPreferenceStore awsToolkitPreferenceStore = getAwsToolkitCorePreferenceStore();
 
-        /* Bootstrap customers from legacy single-account preference */
-        String currentAccount = awsToolkitPreferenceStore
-                .getString(PreferenceConstants.P_CURRENT_ACCOUNT);
-
-        // Bootstrap new customers
-        if ( currentAccount == null || currentAccount.length() == 0 ) {
-            String accountId = UUID.randomUUID().toString();
-            awsToolkitPreferenceStore.putValue(
-                    PreferenceConstants.P_CURRENT_ACCOUNT,
-                    accountId);
-            awsToolkitPreferenceStore.putValue(
-                    PreferenceConstants.P_ACCOUNT_IDS,
-                    accountId);
-            awsToolkitPreferenceStore.putValue(
-                    accountId + ":" + PreferenceConstants.P_ACCOUNT_NAME,
-                    PreferenceConstants.DEFAULT_ACCOUNT_NAME_BASE_64);
-
-            for ( String prefName : new String[] {
-                    PreferenceConstants.P_ACCESS_KEY,
-                    PreferenceConstants.P_CERTIFICATE_FILE,
-                    PreferenceConstants.P_PRIVATE_KEY_FILE,
-                    PreferenceConstants.P_SECRET_KEY,
-                    PreferenceConstants.P_USER_ID, } ) {
-
-                convertExistingPreference(awsToolkitPreferenceStore,
-                        accountId, prefName);
-
-            }
-        }
-
-        /* Bootstrap customers from the global-accounts-only preference */
+        // Bootstrap customers from the global-accounts-only preference
         String globalDefaultAccount = awsToolkitPreferenceStore
                 .getString(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT);
 
-        if (globalDefaultAccount == null || globalDefaultAccount.length() == 0) {
+        if (StringUtils.isNullOrEmpty(globalDefaultAccount)) {
             awsToolkitPreferenceStore.putValue(
                     PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT,
                     awsToolkitPreferenceStore
-                        .getString(PreferenceConstants.P_CURRENT_ACCOUNT));
+                            .getString(PreferenceConstants.P_CURRENT_ACCOUNT));
         }
-    }
-
-    private void convertExistingPreference(IPreferenceStore pref,
-            String accountId, String preferenceName) {
-        pref.putValue(
-                accountId + ":" + preferenceName,
-                pref.getString(preferenceName));
     }
 
     /**

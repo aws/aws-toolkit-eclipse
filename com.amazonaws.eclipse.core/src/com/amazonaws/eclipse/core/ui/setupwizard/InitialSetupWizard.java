@@ -17,7 +17,7 @@ package com.amazonaws.eclipse.core.ui.setupwizard;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.apache.commons.codec.binary.Base64;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -28,19 +28,22 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.profile.internal.Profile;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 
 public class InitialSetupWizard extends Wizard {
 
-    private static final String DEFAULT_ACCOUNT_NAME = "default";
-
-    private InitialSetupWizardDataModel dataModel = new InitialSetupWizardDataModel();
-
+    private final InitialSetupWizardDataModel dataModel = new InitialSetupWizardDataModel();
+    private final IPreferenceStore preferenceStore;
     private WizardPage configureAccountWizardPage;
 
 
-    public InitialSetupWizard() {
+    public InitialSetupWizard(IPreferenceStore preferenceStore) {
+        this.preferenceStore = preferenceStore;
         setNeedsProgressMonitor(false);
         setDefaultPageImageDescriptor(
             AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
@@ -57,32 +60,47 @@ public class InitialSetupWizard extends Wizard {
     @Override
     public boolean performFinish() {
         String internalAccountId = UUID.randomUUID().toString();
-        IPreferenceStore preferenceStore = AwsToolkitCore.getDefault().getPreferenceStore();
-        preferenceStore.setValue(internalAccountId + ":accountName", encodeString(DEFAULT_ACCOUNT_NAME));
-        preferenceStore.setValue(internalAccountId + ":accessKey",   encodeString(dataModel.getAccessKeyId()));
-        preferenceStore.setValue(internalAccountId + ":secretKey",   encodeString(dataModel.getSecretAccessKey()));
+        saveToCredentialsFile(internalAccountId);
         preferenceStore.setValue(PreferenceConstants.P_CURRENT_ACCOUNT, internalAccountId);
-        preferenceStore.setValue(PreferenceConstants.P_ACCOUNT_IDS, internalAccountId);
         preferenceStore.setValue(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT, internalAccountId);
-
         if (preferenceStore instanceof IPersistentPreferenceStore) {
             IPersistentPreferenceStore persistentPreferenceStore = (IPersistentPreferenceStore)preferenceStore;
             try {
                 persistentPreferenceStore.save();
             } catch (IOException e) {
-                String errorMessage = "Unable to open the AWS Explorer view: " + e.getMessage();
+                String errorMessage = "Unable to write the account information to disk: " + e.getMessage();
                 Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
                 StatusManager.getManager().handle(status, StatusManager.LOG);
             }
         }
+        AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
 
-        if (dataModel.isOpenExplorer()) openAwsExplorer();
+        if (dataModel.isOpenExplorer()) {
+            openAwsExplorer();
+        }
 
         return true;
     }
 
-    private static String encodeString(String s) {
-        return new String(Base64.encodeBase64(s.getBytes()));
+    /**
+     * Persist the credentials entered in the wizard to the AWS credentials file
+     * @param internalAccountId - Newly generated UUID to identify the account in eclipse
+     */
+    private void saveToCredentialsFile(String internalAccountId) {
+        Profile emptyProfile = new Profile( PreferenceConstants.DEFAULT_ACCOUNT_NAME, new BasicAWSCredentials("", ""));
+        SdkProfilesCredentialsConfiguration credentialsConfig = new SdkProfilesCredentialsConfiguration(
+                preferenceStore, internalAccountId, emptyProfile);
+        credentialsConfig.setAccessKey(dataModel.getAccessKeyId());
+        credentialsConfig.setSecretKey(dataModel.getSecretAccessKey());
+
+        try {
+            credentialsConfig.save();
+        } catch (AmazonClientException e) {
+            StatusManager.getManager()
+                    .handle(new Status(
+                            IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            "Could not write profile information to the credentials file ", e), StatusManager.SHOW);
+        }
     }
 
     private void openAwsExplorer() {

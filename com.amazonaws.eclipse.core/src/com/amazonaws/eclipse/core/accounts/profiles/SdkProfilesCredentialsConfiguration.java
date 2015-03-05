@@ -194,11 +194,17 @@ public class SdkProfilesCredentialsConfiguration extends
 
     @Override
     public boolean isDirty() {
-        // For performance reason, we only check whether there exists in-memory
-        // property values (no matter it differs from the source value or not.)
-        return profileNameInMemory != null
-                || accessKeyInMemory != null
-                || secretKeyInMemory != null;
+        return (hasPropertyChanged(profile.getProfileName(), profileNameInMemory)
+                || hasPropertyChanged(profile.getCredentials() .getAWSAccessKeyId(), accessKeyInMemory)
+                || hasPropertyChanged( profile.getCredentials().getAWSSecretKey(), secretKeyInMemory));
+    }
+
+    /**
+     * @return True if the new value of the property is non null and differs
+     *         from the original, false otherwise
+     */
+    private boolean hasPropertyChanged(Object originalValue, Object newValue) {
+        return newValue != null && !newValue.equals(originalValue);
     }
 
     private void clearInMemoryValue() {

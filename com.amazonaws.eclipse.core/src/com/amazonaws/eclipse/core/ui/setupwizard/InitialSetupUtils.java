@@ -44,7 +44,7 @@ public class InitialSetupUtils {
             Display.getDefault().asyncExec(new Runnable() {
                 public void run() {
                     Shell shell = new Shell(Display.getDefault(), SWT.DIALOG_TRIM);
-                    WizardDialog wizardDialog = new WizardDialog(shell, new InitialSetupWizard());
+                    WizardDialog wizardDialog = new WizardDialog(shell, new InitialSetupWizard(AwsToolkitCore.getDefault().getPreferenceStore()));
                     wizardDialog.open();
 
                     writeFlagFile(INITIALIZATION_FLAG_FILE);
