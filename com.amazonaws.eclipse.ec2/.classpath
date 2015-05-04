@@ -7,6 +7,7 @@
 	<classpathentry kind="src" path="etc"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-1.9.0-core-no-flow.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-1.9.6-core-no-flow.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/commons-io-2.4/commons-io-2.4.jar"/>
 	<classpathentry kind="output" path="eclipse-bin"/>
 </classpath>

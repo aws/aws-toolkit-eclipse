@@ -263,7 +263,7 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
             super(initializingSdkJobName);
             this.setUser(true);
             this.setProperty(IProgressConstants.ACTION_PROPERTY, getHyperlinkAction());
-            this.setProperty(IProgressConstants.KEEPONE_PROPERTY, true);
+            this.setProperty(IProgressConstants.KEEP_PROPERTY, true);
         }
 
         @Override

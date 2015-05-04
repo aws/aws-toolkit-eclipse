@@ -220,7 +220,7 @@
             vendor="Amazon Web Services">
          <moduleType
                types="jst.web"
-               versions="2.2, 2.3, 2.4, 2.5, 3.0"/>
+               versions="2.2, 2.3, 2.4, 2.5, 3.0, 3.1"/>
          <moduleType
                types="jst.utility"
                versions="1.0"/>

@@ -62,6 +62,8 @@ public class EnvironmentConfigDataModel {
     private final static Set<String> IGNORED_NAMESPACES = new HashSet<String>();
     static {
         IGNORED_NAMESPACES.add("aws:cloudformation:template:parameter");
+        // TODO: remove the following line once we support VPC environement
+        IGNORED_NAMESPACES.add("aws:ec2:vpc");
     }
 
     private EnvironmentConfigDataModel(Environment environment) {
@@ -139,7 +141,9 @@ public class EnvironmentConfigDataModel {
                             if ( valueType.equals("Scalar") ) {
                                 dataModel.put(key, setting.getValue());
                             } else if ( valueType.equals("Boolean") ) {
-                                dataModel.put(key, Boolean.valueOf(setting.getValue()));
+                                if (setting.getValue() != null) {
+                                    dataModel.put(key, Boolean.valueOf(setting.getValue()));
+                                }
                             } else if ( valueType.equals("List") ) {
                                 if ( !dataModel.containsKey(key) ) {
                                     dataModel.put(key, new WritableSet());
@@ -450,6 +454,11 @@ public class EnvironmentConfigDataModel {
         @Override
         public int hashCode() {
             return name.hashCode() + namespace.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return namespace + ":" + name;
         }
     }
 

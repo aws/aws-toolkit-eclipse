@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.apache.http.annotation.NotThreadSafe;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -28,6 +29,7 @@ import com.amazonaws.auth.profile.internal.Profile;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.preferences.PluginPreferenceStoreAccountOptionalConfiguration;
+import com.amazonaws.eclipse.core.accounts.profiles.SdkCredentialsFileMonitor;
 import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
@@ -46,6 +48,7 @@ import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
  * configured via different ways (e.g. by the Eclipse preference store system,
  * or loaded from the local credentials file).
  */
+@NotThreadSafe
 public final class AwsPluginAccountManager {
 
     /**
@@ -56,6 +59,9 @@ public final class AwsPluginAccountManager {
 
     /** Monitors for changes of global/regional default account preference */
     private DefaultAccountMonitor defaultAccountMonitor;
+
+    /** Monitors the configured location of the credentials file as specified in the preference store */
+    private final SdkCredentialsFileMonitor sdkCredentialsFileMonitor;
 
     /**
      * The AccountInfoProvider from which the manager retrieves the AccountInfo
@@ -75,6 +81,8 @@ public final class AwsPluginAccountManager {
             AccountInfoProvider accountInfoProvider) {
         this.preferenceStore = preferenceStore;
         this.accountInfoProvider = accountInfoProvider;
+
+        this.sdkCredentialsFileMonitor = new SdkCredentialsFileMonitor();
 
         Profile tempProfile = new Profile("temp", new BasicAWSCredentials("", ""));
         String accountId = UUID.randomUUID().toString();
@@ -98,8 +106,16 @@ public final class AwsPluginAccountManager {
      * Stop all the monitors on account-related preference properties.
      */
     public void stopAccountMonitors() {
-        getPreferenceStore()
-                .removePropertyChangeListener(defaultAccountMonitor);
+        if (defaultAccountMonitor != null) {
+            getPreferenceStore().removePropertyChangeListener(defaultAccountMonitor);
+        }
+    }
+
+    /**
+     * Start monitoring the location and content of the credentials file
+     */
+    public void startCredentialsFileMonitor() {
+        sdkCredentialsFileMonitor.start(preferenceStore);
     }
 
     /**

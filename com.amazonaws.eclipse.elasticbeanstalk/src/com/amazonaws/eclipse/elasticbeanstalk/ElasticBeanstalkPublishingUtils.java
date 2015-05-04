@@ -341,17 +341,28 @@ public class ElasticBeanstalkPublishingUtils {
                     .withPolicyName("DefaultAccessPolicy-" + roleName)
                     .withPolicyDocument(DEFAULT_ACCESS_POLICY));
             } else {
-                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Selected IAM role doesn't exit: " + roleName);
+                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Selected IAM role doesn't exist: " + roleName);
                 ElasticBeanstalkPlugin.getDefault().getLog().log(status);
                 return null;
             }
         }
 
-        InstanceProfile instanceProfile = getInstanceProfile(roleName);
+        // Use the role name as the instance profile name
+        // (since AWS console automatically creates an instance profile
+        // with the same name when you create an IAM role)
+        String instanceProfileName = roleName;
+
+        InstanceProfile instanceProfile = getInstanceProfile(instanceProfileName);
         if (instanceProfile == null) {
-            instanceProfile = iam.createInstanceProfile(new CreateInstanceProfileRequest().withInstanceProfileName(roleName).withPath("/")).getInstanceProfile();
-            iam.addRoleToInstanceProfile(new AddRoleToInstanceProfileRequest().withInstanceProfileName(roleName).withRoleName(roleName));
+            instanceProfile = iam.createInstanceProfile(new CreateInstanceProfileRequest().withInstanceProfileName(instanceProfileName).withPath("/")).getInstanceProfile();
         }
+
+        if ( !isRoleAddedToInstanceProfile(roleName, instanceProfile) ) {
+            iam.addRoleToInstanceProfile(new AddRoleToInstanceProfileRequest()
+                    .withInstanceProfileName(instanceProfileName)
+                    .withRoleName(roleName));
+        }
+
         return instanceProfile;
     }
 
@@ -375,6 +386,15 @@ public class ElasticBeanstalkPublishingUtils {
             }
             throw ase;
         }
+    }
+
+    private boolean isRoleAddedToInstanceProfile(String roleName, InstanceProfile instanceProfile) {
+        for (Role role : instanceProfile.getRoles()) {
+            if (role.getRoleName().equals(roleName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void waitForEnvironmentToBecomeAvailable(IModule moduleToPublish, IProgressMonitor monitor, Runnable runnable) throws CoreException {

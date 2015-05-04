@@ -412,6 +412,9 @@ public class AwsToolkitCore extends AbstractUIPlugin {
             // start monitoring account preference changes
             accountManager.startAccountMonitors();
 
+            // start monitoring the location and content of the credentials file
+            accountManager.startCredentialsFileMonitor();
+
             // Start listening for region preference changes...
             defaultRegionMonitor = new DefaultRegionMonitor();
             getPreferenceStore().addPropertyChangeListener(defaultRegionMonitor);

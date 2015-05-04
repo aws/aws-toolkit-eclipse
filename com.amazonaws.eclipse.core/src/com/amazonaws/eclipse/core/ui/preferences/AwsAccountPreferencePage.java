@@ -72,6 +72,8 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
     public static final String ID = "com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage";
 
+    private static final int PREFERRED_PAGE_WIDTH = 800;
+
     private TabFolder accountsTabFolder;
 
     /**
@@ -196,6 +198,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout());
         GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gridData.widthHint = PREFERRED_PAGE_WIDTH;
         composite.setLayoutData(gridData);
 
         // Accounts section
