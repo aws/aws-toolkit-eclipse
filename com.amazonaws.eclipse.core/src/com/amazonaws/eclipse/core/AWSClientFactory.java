@@ -58,6 +58,8 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.AWSLambdaClient;
 import com.amazonaws.services.opsworks.AWSOpsWorks;
 import com.amazonaws.services.opsworks.AWSOpsWorksClient;
 import com.amazonaws.services.rds.AmazonRDS;
@@ -225,6 +227,10 @@ public class AWSClientFactory {
         return getOpsWorksClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.OPSWORKS));
     }
 
+    public AWSLambda getLambdaClient() {
+        return getLambdaClientByEndpoint((RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.LAMBDA)));
+    }
+
     /*
      * Endpoint-specific getters return clients that use the endpoint given.
      */
@@ -295,6 +301,10 @@ public class AWSClientFactory {
 
     public AWSOpsWorks getOpsWorksClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSOpsWorksClient.class);
+    }
+
+    public AWSLambda getLambdaClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AWSLambdaClient.class);
     }
 
     private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {

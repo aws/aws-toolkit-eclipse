@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: AWS Beanstalk Plugin Tests
+Bundle-SymbolicName: com.amazonaws.eclipse.elasticbeanstalk.tests
+Bundle-Version: 1.0.0
+Bundle-Vendor: AMAZONAWS
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Require-Bundle: com.amazonaws.eclipse.elasticbeanstalk;bundle-version="1.0.0.qualifier",
+ org.eclipse.core.runtime;bundle-version="3.4.0",
+ org.junit4;bundle-version="4.3.1"

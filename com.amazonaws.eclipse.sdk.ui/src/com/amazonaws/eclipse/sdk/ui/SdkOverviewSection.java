@@ -30,8 +30,8 @@ import com.amazonaws.eclipse.sdk.ui.wizard.NewAwsJavaProjectWizard;
  */
 public class SdkOverviewSection extends OverviewSection implements OverviewSection.V2 {
 
-    private static final String SDK_FOR_JAVA_GETTING_STARTED_GUIDE_URL =
-        "http://developer.amazonwebservices.com/connect/entry.jspa?externalID=3586" + "&" + AwsUrls.TRACKING_PARAMS;
+    private static final String SDK_FOR_JAVA_DEVELOPER_GUIDE_URL =
+        "http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/welcome.html?" + AwsUrls.TRACKING_PARAMS;
 
     /**
      * @see com.amazonaws.eclipse.core.ui.overview.OverviewSection#createControls(org.eclipse.swt.widgets.Composite)
@@ -44,8 +44,8 @@ public class SdkOverviewSection extends OverviewSection implements OverviewSecti
 
         Composite resourcesSection = toolkit.newSubSection(parent, "Additional Resources");
         toolkit.newListItem(resourcesSection,
-                "Getting Started with the AWS SDK for Java",
-                SDK_FOR_JAVA_GETTING_STARTED_GUIDE_URL, null);
+                "AWS SDK for Java Developer Guide",
+                SDK_FOR_JAVA_DEVELOPER_GUIDE_URL, null);
     }
 
     /** Action to open the New AWS Java Project wizard in a dialog */

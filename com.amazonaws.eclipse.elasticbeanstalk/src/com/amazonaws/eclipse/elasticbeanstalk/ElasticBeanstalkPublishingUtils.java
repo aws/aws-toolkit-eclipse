@@ -41,6 +41,7 @@ import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.solutionstacks.SolutionStacks;
+import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
@@ -81,6 +82,7 @@ public class ElasticBeanstalkPublishingUtils {
     public static final String DEFAULT_ROLE_NAME = "aws-elasticbeanstalk-ec2-role";
 
     private final AWSElasticBeanstalk beanstalkClient;
+    private final ElasticBeanstalkClientExtensions beanstalkClientExtensions;
     private final AmazonS3 s3;
     private final Environment environment;
     private final AmazonIdentityManagement iam;
@@ -92,6 +94,7 @@ public class ElasticBeanstalkPublishingUtils {
         Region environmentRegion = RegionUtils.getRegionByEndpoint(environment.getRegionEndpoint());
 
         this.beanstalkClient = clientFactory.getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        this.beanstalkClientExtensions = new ElasticBeanstalkClientExtensions(beanstalkClient);
         this.iam = clientFactory.getIAMClientByEndpoint(environmentRegion.getServiceEndpoint(ServiceAbbreviations.IAM));
         this.s3 = clientFactory.getS3ClientByEndpoint(environmentRegion.getServiceEndpoint(ServiceAbbreviations.S3));
     }
@@ -148,7 +151,7 @@ public class ElasticBeanstalkPublishingUtils {
 
         trace("Updating environment");
         monitor.setTaskName("Updating environment with latest version");
-        if (doesEnvironmentExist(beanstalkClient, environmentName)) {
+        if (beanstalkClientExtensions.doesEnvironmentExist(environmentName)) {
             try {
                 beanstalkClient.updateEnvironment(new UpdateEnvironmentRequest()
                     .withEnvironmentName(environmentName)
@@ -182,10 +185,7 @@ public class ElasticBeanstalkPublishingUtils {
      *            An optional description for the new environment.
      */
     public void createNewApplication(String applicationName, String description) {
-        List<ApplicationDescription> applications = beanstalkClient.describeApplications(
-                new DescribeApplicationsRequest().withApplicationNames(applicationName)).getApplications();
-
-        if (applications.isEmpty()) {
+        if (beanstalkClientExtensions.doesApplicationExist(applicationName)) {
             beanstalkClient.createApplication(new CreateApplicationRequest(applicationName).withDescription(description));
         }
     }
@@ -205,13 +205,12 @@ public class ElasticBeanstalkPublishingUtils {
      *             If the specified application doesn't exist.
      */
     public String getLatestApplicationVersion(String applicationName) {
-        List<ApplicationVersionDescription> applicationVersions = beanstalkClient.describeApplicationVersions(new DescribeApplicationVersionsRequest().withApplicationName(applicationName)).getApplicationVersions();
-
-        if (applicationVersions.isEmpty()) {
+        ApplicationVersionDescription applicationVersion = beanstalkClientExtensions
+                .getLatestApplicationVersionDescription(applicationName);
+        if (applicationVersion == null) {
             return null;
         }
-
-        return applicationVersions.get(0).getVersionLabel();
+        return applicationVersion.getVersionLabel();
     }
 
     private static final Map<String, String> ENV_TIER_MAP;
@@ -437,31 +436,29 @@ public class ElasticBeanstalkPublishingUtils {
 
             try {
                 trace("Polling environment for status...");
-                DescribeEnvironmentsRequest request = new DescribeEnvironmentsRequest().withEnvironmentNames(environmentName);
-                List<EnvironmentDescription> environments = beanstalkClient.describeEnvironments(request).getEnvironments();
-                if (environments.size() > 0) {
-                    EnvironmentDescription environment = environments.get(0);
-                    trace(" - " + environment.getStatus());
+                EnvironmentDescription environmentDesc = beanstalkClientExtensions.getEnvironmentDescription(environmentName);
+                if (environmentDesc != null) {
+                    trace(" - " + environmentDesc.getStatus());
 
                     EnvironmentStatus environmentStatus = null;
                     try {
-                        environmentStatus = EnvironmentStatus.fromValue(environment.getStatus());
+                        environmentStatus = EnvironmentStatus.fromValue(environmentDesc.getStatus());
                     } catch (IllegalArgumentException e) {
                         Status status = new Status(Status.INFO, ElasticBeanstalkPlugin.PLUGIN_ID,
-                            "Unknown environment status: " + environment.getStatus());
+                            "Unknown environment status: " + environmentDesc.getStatus());
                         StatusManager.getManager().handle(status, StatusManager.LOG);
                         continue;
                     }
 
                     switch (environmentStatus) {
                         case Ready:
-                            trace("   - Health: " + environment.getHealth());
-                            if (EnvironmentHealth.Green.toString().equalsIgnoreCase(environment.getHealth())) {
+                            trace("   - Health: " + environmentDesc.getHealth());
+                            if (EnvironmentHealth.Green.toString().equalsIgnoreCase(environmentDesc.getHealth())) {
                                 trace("**Server started**");
                                 Status status = new Status(Status.INFO, ElasticBeanstalkPlugin.PLUGIN_ID,
                                     "Deployed application '" + applicationName + "' " +
                                     "to environment '" + environmentName + "' " +
-                                    "\nApplication available at: " + environment.getCNAME());
+                                    "\nApplication available at: " + environmentDesc.getCNAME());
                                 StatusManager.getManager().handle(status, StatusManager.LOG);
                                 return;
                             }
@@ -494,24 +491,11 @@ public class ElasticBeanstalkPublishingUtils {
     }
 
     private boolean isLaunchingNewEnvironment(String environmentName) {
-        List<EnvironmentDescription> environments = beanstalkClient.describeEnvironments(new DescribeEnvironmentsRequest().withEnvironmentNames(environmentName)).getEnvironments();
-        if (environments.isEmpty()) {
+        EnvironmentDescription environmentDesc = beanstalkClientExtensions.getEnvironmentDescription(environmentName);
+        if (environmentDesc == null) {
             return true;
         }
-        return environments.get(0).getStatus().equals(EnvironmentStatus.Launching.toString());
-    }
-
-    public boolean doesEnvironmentExist(AWSElasticBeanstalk beanstalkClient, String environmentName) {
-        List<EnvironmentDescription> environments = beanstalkClient.describeEnvironments(new DescribeEnvironmentsRequest()
-            .withEnvironmentNames(environmentName)).getEnvironments();
-
-        if (environments.isEmpty()) {
-            return false;
-        }
-
-        String status = environments.get(0).getStatus();
-        return (!status.equals(EnvironmentStatus.Terminated.toString()) &&
-                !status.equals(EnvironmentStatus.Terminating.toString()));
+        return environmentDesc.getStatus().equals(EnvironmentStatus.Launching.toString());
     }
 
     /**

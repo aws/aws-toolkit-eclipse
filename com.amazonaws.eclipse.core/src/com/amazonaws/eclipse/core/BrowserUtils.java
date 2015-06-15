@@ -17,6 +17,7 @@ package com.amazonaws.eclipse.core;
 import java.net.URL;
 
 import org.eclipse.core.runtime.Status;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.statushandlers.StatusManager;
@@ -30,12 +31,17 @@ public class BrowserUtils {
     /**
      * Opens the specified URL in an external browser window.
      * @param url The URL to open.
+     * @throws PartInitException
      */
+    public static void openExternalBrowser(URL url) throws PartInitException {
+        IWorkbenchBrowserSupport browserSupport = PlatformUI.getWorkbench().getBrowserSupport();
+        browserSupport.createBrowser(BROWSER_STYLE, null, null, null)
+            .openURL(url);
+    }
+
     public static void openExternalBrowser(String url) {
         try {
-            IWorkbenchBrowserSupport browserSupport = PlatformUI.getWorkbench().getBrowserSupport();
-            browserSupport.createBrowser(BROWSER_STYLE, null, null, null)
-                .openURL(new URL(url));
+            openExternalBrowser(new URL(url));
         } catch (Exception e) {
             Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
                     "Unable to open external web browser to '" + url + "': " + e.getMessage(), e);

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="lib" path="lib/aws-java-sdk-1.9.6-core-no-flow.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/httpclient-4.2.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/httpcore-4.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-core-asl-1.8.7.jar"/>
@@ -17,5 +16,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/jsoup-1.7.3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-io-2.4/commons-io-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/aws-java-sdk-1.9.40-core-no-flow.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

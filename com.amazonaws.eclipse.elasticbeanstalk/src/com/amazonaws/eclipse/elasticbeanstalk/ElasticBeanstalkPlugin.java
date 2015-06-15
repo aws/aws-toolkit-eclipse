@@ -46,7 +46,9 @@ import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.SyncEnvironmentsJob;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.ServerDefaultsUtils;
 import com.amazonaws.eclipse.elasticbeanstalk.solutionstacks.SolutionStacks;
+import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
+import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsRequest;
@@ -273,14 +275,13 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
      */
     private static void fillInEnvironmentValues(EnvironmentDescription elasticBeanstalkEnv, Environment env, IProgressMonitor monitor) {
 
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(env.getRegionEndpoint());
-
+        ElasticBeanstalkClientExtensions clientExt = new ElasticBeanstalkClientExtensions(env);
         monitor.subTask("Getting application info");
-        DescribeApplicationsResult describeApplicationsResult = client
-                .describeApplications(new DescribeApplicationsRequest().withApplicationNames(elasticBeanstalkEnv
-                        .getApplicationName()));
-        if ( describeApplicationsResult != null && !describeApplicationsResult.getApplications().isEmpty() )
-            env.setApplicationDescription(describeApplicationsResult.getApplications().get(0).getDescription());
+        ApplicationDescription applicationDesc = clientExt.getApplicationDescription(elasticBeanstalkEnv
+                .getApplicationName());
+        if (applicationDesc != null) {
+            env.setApplicationDescription(applicationDesc.getDescription());
+        }
         monitor.worked(1);
 
         monitor.subTask("Getting environment configuration");

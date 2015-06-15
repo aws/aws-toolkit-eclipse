@@ -37,6 +37,7 @@ import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
@@ -477,25 +478,12 @@ public class Environment extends ServerDelegate {
     }
 
     /**
-     * Returns true if the Beanstalk environment represented by this WTP server
-     * has been created yet.
+     * Returns true if the Beanstalk environment represented by this WTP server has been created
+     * yet.
      */
     public boolean doesEnvironmentExistInBeanstalk() {
-        AWSElasticBeanstalk beanstalk = getClient();
-
-        List<EnvironmentDescription> environments =
-            beanstalk.describeEnvironments(new DescribeEnvironmentsRequest()
-                .withEnvironmentNames(getEnvironmentName())
-                .withApplicationName(getApplicationName()))
-            .getEnvironments();
-
-        if (environments.isEmpty()) {
-            return false;
-        }
-
-        String status = environments.get(0).getStatus();
-        return (!status.equals(EnvironmentStatus.Terminated.toString()) &&
-                !status.equals(EnvironmentStatus.Terminating.toString()));
+        return new ElasticBeanstalkClientExtensions(this).doesEnvironmentExist(getApplicationName(),
+                getEnvironmentName());
     }
 
     /**

@@ -41,6 +41,7 @@ import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
+import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
@@ -212,16 +213,7 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
     }
 
     protected EnvironmentDescription describeEnvironment(String environmentName) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId()).getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
-        List<EnvironmentDescription> environments = client.describeEnvironments(
-            new DescribeEnvironmentsRequest()
-                .withEnvironmentNames(environment.getEnvironmentName())).getEnvironments();
-
-        if (environments.isEmpty()) {
-            return null;
-        } else {
-            return environments.get(0);
-        }
+        return new ElasticBeanstalkClientExtensions(environment).getEnvironmentDescription(environmentName);
     }
 
     protected Text createRow(Composite composite, String labelText, String value) {

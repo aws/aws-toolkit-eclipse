@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.amazonaws.eclipse.codedeploy.feature"
-      label="Amazon CodeDeploy Plugin"
+      label="AWS CodeDeploy Plugin"
       version="1.0.0.qualifier"
       provider-name="Amazon Web Services">
 

@@ -19,7 +19,7 @@ import java.security.MessageDigest;
 import java.util.Locale;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.Request;
+import com.amazonaws.SignableRequest;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.auth.AbstractAWSSigner;
@@ -46,8 +46,8 @@ public class BinaryUtils {
 
     public static byte[] sign(final byte[] data, final byte[] key) throws AmazonClientException {
         return new AbstractAWSSigner() {
-            public void sign(Request<?> arg0, AWSCredentials arg1) throws AmazonClientException {}
-            protected void addSessionCredentials(Request<?> arg0, AWSSessionCredentials arg1) {}
+            public void sign(SignableRequest<?> arg0, AWSCredentials arg1) {}
+            protected void addSessionCredentials(SignableRequest<?> arg0, AWSSessionCredentials arg1) {}
             public byte[] sign() {
                 return sign(data, key, SigningAlgorithm.HmacSHA256);
             }

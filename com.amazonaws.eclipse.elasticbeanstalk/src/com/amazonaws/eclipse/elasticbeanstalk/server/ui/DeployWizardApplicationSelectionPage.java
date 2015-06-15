@@ -57,12 +57,12 @@ import com.amazonaws.eclipse.core.ui.CancelableThread;
 import com.amazonaws.eclipse.databinding.BooleanValidator;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
-import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 import com.amazonaws.eclipse.databinding.NotInListValidator;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
-import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NoInvalidNameCharactersValidator;
+import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.ApplicationNameValidator;
+import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.EnvironmentNameValidator;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
@@ -286,8 +286,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.NEW_APPLICATION_NAME), null, null);
         ChainValidator<String> applicationNameValidator = new ChainValidator<String>(
                 newApplicationNameTextObservable, createNewApplicationRadioButtonObservable,
-                new NotEmptyValidator("Application name cannot be empty."),
-                new NoInvalidNameCharactersValidator("Invalid characters in application name."),
+                new ApplicationNameValidator(),
                 new NotInListValidator<String>(existingApplicationNames, "Duplicate application name."));
         bindingContext.addValidationStatusProvider(applicationNameValidator);
         bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(applicationNamesLoaded, new BooleanValidator("Appliction names not yet loaded")));
@@ -317,8 +316,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.NEW_ENVIRONMENT_DESCRIPTION), null, null);
         ChainValidator<String> environmentNameValidator = new ChainValidator<String>(
                 newEnvironmentNameTextObservable,
-                new NotEmptyValidator("The environment name cannot be empty."),
-                new NoInvalidNameCharactersValidator("Invalid characters in environment name."),
+                new EnvironmentNameValidator(),
                 new NotInListValidator<String>(existingEnvironmentNames, "Duplicate environment name."));
         bindingContext.addValidationStatusProvider(environmentNameValidator);
         bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(environmentNamesLoaded,

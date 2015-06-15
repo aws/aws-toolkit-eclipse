@@ -17,10 +17,13 @@ package com.amazonaws.eclipse.elasticbeanstalk.jobs;
 import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -55,10 +58,15 @@ import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPublishingUtils;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior;
 import com.amazonaws.eclipse.elasticbeanstalk.git.AWSGitPushCommand;
+import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
+import com.amazonaws.eclipse.elasticbeanstalk.util.PollForEvent;
+import com.amazonaws.eclipse.elasticbeanstalk.util.PollForEvent.Event;
+import com.amazonaws.eclipse.elasticbeanstalk.util.PollForEvent.Interval;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
+import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.util.StringUtils;
 
 public class UpdateEnvironmentJob extends Job {
 
@@ -75,7 +83,8 @@ public class UpdateEnvironmentJob extends Job {
         this.environment = environment;
         this.server = server;
 
-        ImageDescriptor imageDescriptor = AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_ICON);
+        ImageDescriptor imageDescriptor = AwsToolkitCore.getDefault().getImageRegistry()
+                .getDescriptor(AwsToolkitCore.IMAGE_AWS_ICON);
         setProperty(IProgressConstants.ICON_PROPERTY, imageDescriptor);
 
         setUser(true);
@@ -92,6 +101,24 @@ public class UpdateEnvironmentJob extends Job {
 
     public boolean needsToDeployNewVersion() {
         return (exportedWar != null);
+    }
+
+    /**
+     * Ensure the launch client job has been canceled so that the internal browser isn't opened with
+     * the user's application
+     */
+    private void forceCancelLaunchClientJob(EnvironmentBehavior behavior) {
+        long startTime = System.currentTimeMillis();
+        while (launchClientJob == null && (System.currentTimeMillis() - startTime) < 1000 * 60) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ie) {
+            }
+            cancelLaunchClientJob();
+        }
+
+        behavior.updateServerState(IServer.STATE_UNKNOWN);
+        behavior.updateModuleState(moduleToPublish, IServer.STATE_UNKNOWN, IServer.PUBLISH_STATE_UNKNOWN);
     }
 
     // Try to delay the scheduling of the LaunchClientJob
@@ -129,117 +156,123 @@ public class UpdateEnvironmentJob extends Job {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-        AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory(environment.getAccountId())
-                .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
-
         cancelLaunchClientJob();
 
         monitor.beginTask("Publishing to AWS Elastic Beanstalk", IProgressMonitor.UNKNOWN);
-        EnvironmentBehavior behavior = (EnvironmentBehavior)environment.getServer().loadAdapter(EnvironmentBehavior.class, null);
+        EnvironmentBehavior behavior = (EnvironmentBehavior) environment.getServer().loadAdapter(
+                EnvironmentBehavior.class, null);
 
         if (needsToDeployNewVersion()) {
             try {
                 behavior.updateServerState(IServer.STATE_STARTING);
 
-                Runnable runnable = new Runnable() {
-                    public void run() {
-                        cancelLaunchClientJob();
-                    }
-                };
-
                 ElasticBeanstalkPublishingUtils utils = new ElasticBeanstalkPublishingUtils(environment);
-                boolean doesEnvironmentExist = utils.doesEnvironmentExist(client, environment.getEnvironmentName());
+                boolean doesEnvironmentExist = environment.doesEnvironmentExistInBeanstalk();
 
                 if (environment.getIncrementalDeployment()) {
-                    AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(environment.getAccountId());
-                    AWSGitPushCommand pushCommand = new AWSGitPushCommand(
-                            getPrivateGitRepoLocation(environment), exportedWar.toFile(), environment,
-                            new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey()));
-
-                    if (doesEnvironmentExist) {
-                        /*
-                         * If the environment already exists, then all we have to do is push through
-                         * Git and it'll automatically create a new application version and kick off
-                         * a deployment to the environment.
-                         */
-                        pushCommand.execute();
-                    } else {
-                        /*
-                         * If the environment doesn't exist yet, then we need to create the application
-                         * and push a new version with Git, then grab the ID of that new version and
-                         * call the Beanstalk CreateEnvironment API.
-                         */
-                        utils.createNewApplication(environment.getApplicationName(),
-                                                   environment.getApplicationDescription());
-                        pushCommand.skipEnvironmentDeployment(true);
-                        pushCommand.execute();
-
-                        try {
-                            versionLabel = utils.getLatestApplicationVersion(environment.getApplicationName());
-                            utils.createNewEnvironment(versionLabel);
-                        } catch (AmazonClientException ace) {
-                            throw new CoreException(new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
-                                "Unable to create new environment: " + ace.getMessage(), ace));
-                        }
-                    }
+                    doIncrementalDeployment(utils, doesEnvironmentExist);
                 } else {
-                    if (versionLabel == null) {
-                        versionLabel = UUID.randomUUID().toString();
-                    }
-                    utils.publishApplicationToElasticBeanstalk(exportedWar, versionLabel, new SubProgressMonitor(monitor, 20));
+                    doFullDeployment(monitor, utils);
                 }
 
-                utils.waitForEnvironmentToBecomeAvailable(moduleToPublish, new SubProgressMonitor(monitor, 20), runnable);
+                waitForEnvironmentToBecomeAvailable(monitor, utils);
 
                 behavior.updateServerState(IServer.STATE_STARTED);
-                if ( moduleToPublish != null ) {
+                if (moduleToPublish != null) {
                     behavior.updateModuleState(moduleToPublish, IServer.STATE_STARTED, IServer.PUBLISH_STATE_NONE);
                 }
 
-                if ( server.getMode().equals(ILaunchManager.DEBUG_MODE) ) {
+                if (server.getMode().equals(ILaunchManager.DEBUG_MODE)) {
                     connectDebugger(monitor);
                 }
             } catch (CoreException e) {
-                // Ensure the launch client job has been canceled so that the
-                // internal browser isn't opened with the user's application
-                long startTime = System.currentTimeMillis();
-                while (launchClientJob == null &&
-                       (System.currentTimeMillis() - startTime) < 1000 * 60) {
-                    try {Thread.sleep(1000);} catch (InterruptedException ie) {}
-                    cancelLaunchClientJob();
-                }
-
-                behavior.updateServerState(IServer.STATE_UNKNOWN);
-                behavior.updateModuleState(moduleToPublish, IServer.STATE_UNKNOWN, IServer.PUBLISH_STATE_UNKNOWN);
+                forceCancelLaunchClientJob(behavior);
                 return e.getStatus();
             }
         }
 
-        // Update the URL of the client launch job (in a roundabout manner) to
-        // point to the correct endpoint, depending on whether we intend to
-        // connect to the environment CNAME or a particular instance
+        updateLaunchableHost(monitor);
+        IsCnameAvailable.waitForCnameToBeAvailable(environment, monitor);
+
+        if (!monitor.isCanceled() && launchClientJob != null
+                && ConfigurationOptionConstants.WEB_SERVER.equals(environment.getEnvironmentTier())) {
+
+            launchClientJob.schedule();
+        }
+
+        return Status.OK_STATUS;
+    }
+
+    /**
+     * Update the URL of the client launch job (in a roundabout manner) to point to the correct
+     * endpoint, depending on whether we intend to connect to the environment CNAME or a particular
+     * instance
+     */
+    private void updateLaunchableHost(IProgressMonitor monitor) {
         ElasticBeanstalkHttpLaunchable launchable = ElasticBeanstalkLaunchableAdapter.getLaunchable(server);
-        if ( launchable != null ) {
-            if ( debugInstanceId != null && debugInstanceId.length() > 0 ) {
+        if (launchable != null) {
+            if (debugInstanceId != null && debugInstanceId.length() > 0) {
                 try {
                     launchable.setHost(getEc2InstanceHostname());
-                } catch ( Exception e ) {
+                } catch (Exception e) {
                     AwsToolkitCore.getDefault().logException("Failed to set hostname", e);
                 }
             } else {
                 launchable.clearHost();
             }
         }
+    }
 
-        if (monitor.isCanceled() == false
-                && launchClientJob != null
-                && ConfigurationOptionConstants.WEB_SERVER
-                        .equals(environment.getEnvironmentTier())) {
+    private void waitForEnvironmentToBecomeAvailable(IProgressMonitor monitor, ElasticBeanstalkPublishingUtils utils)
+            throws CoreException {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                cancelLaunchClientJob();
+            }
+        };
+        utils.waitForEnvironmentToBecomeAvailable(moduleToPublish, new SubProgressMonitor(monitor, 20), runnable);
+    }
 
-            launchClientJob.schedule();
+    private void doIncrementalDeployment(ElasticBeanstalkPublishingUtils utils, boolean doesEnvironmentExist)
+            throws CoreException {
+        AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountManager()
+                .getAccountInfo(environment.getAccountId());
+        AWSGitPushCommand pushCommand = new AWSGitPushCommand(getPrivateGitRepoLocation(environment),
+                exportedWar.toFile(), environment, new BasicAWSCredentials(accountInfo.getAccessKey(),
+                        accountInfo.getSecretKey()));
+
+        if (doesEnvironmentExist) {
+            /*
+             * If the environment already exists, then all we have to do is push through Git and
+             * it'll automatically create a new application version and kick off a deployment to the
+             * environment.
+             */
+            pushCommand.execute();
+        } else {
+            /*
+             * If the environment doesn't exist yet, then we need to create the application and push
+             * a new version with Git, then grab the ID of that new version and call the Beanstalk
+             * CreateEnvironment API.
+             */
+            utils.createNewApplication(environment.getApplicationName(), environment.getApplicationDescription());
+            pushCommand.skipEnvironmentDeployment(true);
+            pushCommand.execute();
+
+            try {
+                versionLabel = utils.getLatestApplicationVersion(environment.getApplicationName());
+                utils.createNewEnvironment(versionLabel);
+            } catch (AmazonClientException ace) {
+                throw new CoreException(new Status(IStatus.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
+                        "Unable to create new environment: " + ace.getMessage(), ace));
+            }
         }
+    }
 
-        return Status.OK_STATUS;
+    private void doFullDeployment(IProgressMonitor monitor, ElasticBeanstalkPublishingUtils utils) throws CoreException {
+        if (versionLabel == null) {
+            versionLabel = UUID.randomUUID().toString();
+        }
+        utils.publishApplicationToElasticBeanstalk(exportedWar, versionLabel, new SubProgressMonitor(monitor, 20));
     }
 
     public void setVersionLabel(String versionLabel) {
@@ -260,15 +293,14 @@ public class UpdateEnvironmentJob extends Job {
     }
 
     /**
-     * Opens up a remote debugger connection based on the specified launch,
-     * host, and port and optionally reports progress through a specified
-     * progress monitor.
-     *
+     * Opens up a remote debugger connection based on the specified launch, host, and port and
+     * optionally reports progress through a specified progress monitor.
+     * 
      * @param monitor
      *            An optional progress monitor if progress reporting is desired.
      * @throws CoreException
-     *             If any problems were encountered setting up the remote
-     *             debugger connection to the specified host.
+     *             If any problems were encountered setting up the remote debugger connection to the
+     *             specified host.
      */
     private void connectDebugger(IProgressMonitor monitor) throws CoreException {
 
@@ -281,7 +313,7 @@ public class UpdateEnvironmentJob extends Job {
             List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();
 
             String debugPort = Environment.getDebugPort(settings);
-            if ( !confirmSecurityGroupIngress(debugPort, settings) ) {
+            if (!confirmSecurityGroupIngress(debugPort, settings)) {
                 return;
             }
 
@@ -299,15 +331,15 @@ public class UpdateEnvironmentJob extends Job {
     }
 
     /**
-     * Confirms that the security group of the environment allows ingress on the
-     * debug port given, prompting the user for permission to open it if not.
+     * Confirms that the security group of the environment allows ingress on the debug port given,
+     * prompting the user for permission to open it if not.
      */
     private boolean confirmSecurityGroupIngress(String debugPort, List<ConfigurationSettingsDescription> settings) {
 
         int debugPortInt = Integer.parseInt(debugPort);
         String securityGroup = Environment.getSecurityGroup(settings);
 
-        if ( environment.isIngressAllowed(debugPortInt, settings) ) {
+        if (environment.isIngressAllowed(debugPortInt, settings)) {
             return true;
         }
 
@@ -321,7 +353,7 @@ public class UpdateEnvironmentJob extends Job {
             }
         });
 
-        if ( dialog.result == 0 ) {
+        if (dialog.result == 0) {
             environment.openSecurityGroupPort(debugPortInt, securityGroup);
             return true;
         } else {
@@ -333,7 +365,7 @@ public class UpdateEnvironmentJob extends Job {
     /**
      * Simple dialog to confirm the opening of a port on a security group.
      */
-    private class DebugPortDialog {
+    private static class DebugPortDialog {
 
         private int result;
         private final String debugPort;
@@ -359,43 +391,98 @@ public class UpdateEnvironmentJob extends Job {
     }
 
     /**
-     * Returns the public dns name of the instance in the environment to connect
-     * the remote debugger to.
+     * Returns the public dns name of the instance in the environment to connect the remote debugger
+     * to.
      */
     private String getEc2InstanceHostname() {
         String instanceId = debugInstanceId;
         // For some launches, we won't know the EC2 instance ID until this point.
-        if ( instanceId == null || instanceId.length() == 0 ) {
+        if (instanceId == null || instanceId.length() == 0) {
             instanceId = environment.getEC2InstanceIds().iterator().next();
         }
         DescribeInstancesResult describeInstances = environment.getEc2Client().describeInstances(
                 new DescribeInstancesRequest().withInstanceIds(instanceId));
-        if ( describeInstances.getReservations().isEmpty()
-                || describeInstances.getReservations().get(0).getInstances().isEmpty() ) {
+        if (describeInstances.getReservations().isEmpty()
+                || describeInstances.getReservations().get(0).getInstances().isEmpty()) {
             return null;
         }
         return describeInstances.getReservations().get(0).getInstances().get(0).getPublicDnsName();
     }
 
     /**
-     * Returns the debug launch object corresponding to this update operation,
-     * or null if no such launch exists.
+     * Returns the debug launch object corresponding to this update operation, or null if no such
+     * launch exists.
      */
     private ILaunch findLaunch() throws CoreException {
         ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
         for (ILaunch launch : manager.getLaunches()) {
 
             // TODO: figure out a more correct way of doing this
-            if ( launch.getLaunchMode().equals(ILaunchManager.DEBUG_MODE)
+            if (launch.getLaunchMode().equals(ILaunchManager.DEBUG_MODE)
                     && launch.getLaunchConfiguration() != null
                     && launch.getLaunchConfiguration().getAttribute("launchable-adapter-id", "")
                             .equals("com.amazonaws.eclipse.wtp.elasticbeanstalk.launchableAdapter")
                     && launch.getLaunchConfiguration().getAttribute("module-artifact", "")
-                            .contains(moduleToPublish.getName()) ) {
+                            .contains(moduleToPublish.getName())) {
                 return launch;
             }
         }
         return null;
+    }
+
+    private static class IsCnameAvailable implements Event {
+
+        private static final int MAX_NUMBER_OF_INTERVALS_TO_POLL = 10;
+        private static final Interval DEFAULT_POLLING_INTERVAL = new Interval(10, TimeUnit.SECONDS);
+        private final String cname;
+
+        public IsCnameAvailable(String cname) {
+            this.cname = cname;
+        }
+
+        public boolean hasEventOccurred() {
+            try {
+                InetAddress address = InetAddress.getByName(cname);
+                return !(address == null || StringUtils.isNullOrEmpty(address.getHostAddress()));
+            } catch (UnknownHostException e) {
+                return false;
+            }
+        }
+
+        public static void waitForCnameToBeAvailable(Environment environment, IProgressMonitor monitor) {
+            ElasticBeanstalkClientExtensions clientExt = new ElasticBeanstalkClientExtensions(environment.getClient());
+            EnvironmentDescription environmentDesc = clientExt.getEnvironmentDescription(environment
+                    .getEnvironmentName());
+            IProgressMonitor cnameMonitor = startCnameMonitor(monitor);
+            new PollForEvent(getPollInterval(), MAX_NUMBER_OF_INTERVALS_TO_POLL).poll(new IsCnameAvailable(
+                    environmentDesc.getCNAME()));
+            cnameMonitor.done();
+        }
+
+        private static IProgressMonitor startCnameMonitor(IProgressMonitor monitor) {
+            final String taskName = "Waiting for environment's domain name to become available";
+            final IProgressMonitor cnameMonitor = new SubProgressMonitor(monitor, 1);
+            cnameMonitor.beginTask(taskName, 1);
+            cnameMonitor.setTaskName(taskName);
+            return cnameMonitor;
+        }
+
+        /**
+         * Try and use networkaddress.cache.negative.ttl if it's set, otherwise return default
+         * interval
+         */
+        private static Interval getPollInterval() {
+            try {
+                final int dnsNegativeTtl = Integer.valueOf(System.getProperty("networkaddress.cache.negative.ttl"));
+                if (dnsNegativeTtl > 0) {
+                    return new Interval(dnsNegativeTtl, TimeUnit.SECONDS);
+                } else {
+                    return DEFAULT_POLLING_INTERVAL;
+                }
+            } catch (Exception e) {
+                return DEFAULT_POLLING_INTERVAL;
+            }
+        }
     }
 
 }

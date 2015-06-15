@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension point="org.eclipse.ui.newWizards">
+      <wizard
+            canFinishEarly="false"
+            category="com.amazonaws.eclipse.sdk.category"
+            class="com.amazonaws.eclipse.lambda.project.wizard.NewLambdaJavaFunctionProjectWizard"
+            hasPages="true"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"
+            name="AWS Lambda Java Project"
+            project="true">
+      </wizard>
+   </extension>
+
+   <extension point="org.eclipse.jdt.core.classpathContainerInitializer">
+      <classpathContainerInitializer
+            class="com.amazonaws.eclipse.lambda.project.classpath.LambdaRuntimeClasspathContainerInitializer"
+            id="com.amazonaws.eclipse.lambda.AWS_LAMBDA_JAVA_CLASSPATH_CONTAINER">
+      </classpathContainerInitializer>
+   </extension>
+
+<!--
+   <extension point="org.eclipse.jdt.ui.classpathContainerPage">
+      <classpathContainerPage
+            class="com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainerPage"
+            id="com.amazonaws.eclipse.lambda.AWS_LAMBDA_JAVA_CLASSPATH_CONTAINER"
+            name="AWS Lambda Java Function Runtime">
+      </classpathContainerPage>
+   </extension>
+   -->
+
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.jst.j2ee.J2EEPerspective">
+         <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"/>
+      </perspectiveExtension>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            class="com.amazonaws.eclipse.lambda.project.classpath.LambdaRuntimeDecorator"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.lambda.lambdaRuntimeDecorator"
+            label="AWS Lambda Java Runtime Library Decorator"
+            location="BOTTOM_LEFT"
+            objectClass="org.eclipse.jdt.internal.ui.packageview.ClassPathContainer"
+            state="true">
+      </decorator>
+   </extension>
+
+   <!-- Lambda Java Project Wizard -->
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=java">
+         <command commandId="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectCommand"
+                  id="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectMenuItem"
+                  label="New AWS Lambda Java Project...">
+         </command>
+     </menuContribution>
+   </extension>
+
+   <extension point="org.eclipse.ui.commands">
+      <command id="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectCommand"
+            name="New AWS Lambda Java Project"
+            defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaJavaFunctionProjectHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+   </extension>
+
+   <!-- Upload Function to Lambda -->
+   <!-- Right click on project -->
+  <extension point="org.eclipse.ui.menus">
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+        <command
+              commandId="com.amazonaws.eclipse.lambda.uploadFunctionToLambda"
+              id="com.amazonaws.eclipse.lambda.uploadFunctionToLambdaMenuItem"
+              label="Upload function to AWS Lambda..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <adapt type="org.eclipse.core.resources.IProject">
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.core.resources.projectNature"
+                                value="org.eclipse.jdt.core.javanature"/>
+                      </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+        <command
+              commandId="com.amazonaws.eclipse.lambda.invokeFunction"
+              id="com.amazonaws.eclipse.lambda.invokeFunctionMenuItem"
+              label="Run function on AWS Lambda..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <adapt type="org.eclipse.core.resources.IProject">
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.core.resources.projectNature"
+                                value="org.eclipse.jdt.core.javanature"/>
+                      </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
+   </extension>
+
+   <!-- Right click on editor view -->
+    <extension point="org.eclipse.ui.popupMenus">
+        <objectContribution
+            adaptable="true"
+            id="com.amazonaws.eclipse.lambda.javaSourceEditorAction"
+            objectClass="org.eclipse.ui.IEditorInput"
+            nameFilter="*.java">
+            <menu
+                label="AWS Lambda"
+                path="additions"
+                id="com.amazonaws.eclipse.lambda.editor.contextMenu"
+                icon="icons/aws-box.gif">
+                <separator name="group" />
+            </menu>
+            <action class="com.amazonaws.eclipse.lambda.upload.wizard.editoraction.RunOnLambdaAction"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.lambda.editor.runFunctionAction"
+                label="Run function on AWS Lambda..."
+                menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
+            <action class="com.amazonaws.eclipse.lambda.upload.wizard.editoraction.UploadToLambdaAction"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.lambda.editor.uploadFunctionAction"
+                label="Upload function to AWS Lambda..."
+                menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
+        </objectContribution>
+    </extension>
+
+
+  <extension point="org.eclipse.ui.commands">
+     <command id="com.amazonaws.eclipse.lambda.uploadFunctionToLambda"
+            name="Upload function to AWS Lambda"
+            defaultHandler="com.amazonaws.eclipse.lambda.upload.wizard.handler.UploadFunctionToLambdaCommandHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+  </extension>
+
+  <extension point="org.eclipse.ui.commands">
+     <command id="com.amazonaws.eclipse.lambda.invokeFunction"
+            name="Invoke Function"
+            defaultHandler="com.amazonaws.eclipse.lambda.invoke.handler.InvokeFunctionHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+  </extension>
+
+  <!-- Lambda Project Decorator -->
+  <extension point="org.eclipse.ui.decorators">
+     <decorator id="com.amazonaws.eclipse.lambda.project.lambdaFunctionProjectDecorator"
+            label="AWS Lambda Java Project Decorator"
+            state="true"
+            class="com.amazonaws.eclipse.lambda.project.LambdaFunctionProjectDecorator">
+        <enablement>
+            <or>
+                <objectClass name="org.eclipse.core.resources.IProject" />
+                <objectClass name="org.eclipse.jdt.core.IJavaProject" />
+            </or>
+        </enablement>
+     </decorator>
+  </extension>
+
+
+</plugin>

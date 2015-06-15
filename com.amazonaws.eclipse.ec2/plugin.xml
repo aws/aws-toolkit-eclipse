@@ -59,14 +59,6 @@
     <extension point="com.amazonaws.eclipse.core.overview">
           <overviewSection title="Amazon EC2 Management" class="com.amazonaws.eclipse.ec2.ui.Ec2OverviewSection"/>
     </extension>
-    <extension point="org.eclipse.ui.perspectives">
-       <perspective
-             class="com.amazonaws.eclipse.ec2.ui.Ec2PerspectiveFactory"
-             icon="icons/aws-box.gif"
-             id="com.amazonaws.eclipse.ec2.perspective"
-             name="Amazon EC2 Management">
-       </perspective>
-    </extension>
 
     <!-- Add EC2 views to the AWS Management perspective -->
     <extension point="org.eclipse.ui.perspectiveExtensions">

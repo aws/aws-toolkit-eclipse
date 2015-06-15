@@ -35,6 +35,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.EnvironmentBehavior;
+import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
@@ -111,9 +112,9 @@ public class SyncEnvironmentsJob extends Job {
      * it should be considered in a "transitioning" state.
      */
     private boolean syncEnvironment(Environment environment, EnvironmentBehavior behavior) {
-        AWSElasticBeanstalk client = environment.getClient();
+        ElasticBeanstalkClientExtensions clientExt = new ElasticBeanstalkClientExtensions(environment);
 
-        EnvironmentDescription environmentDescription = describeEnvironment(client, environment.getEnvironmentName());
+        EnvironmentDescription environmentDescription = clientExt.getEnvironmentDescription(environment.getEnvironmentName());
         List<ConfigurationSettingsDescription> settings = environment.getCurrentSettings();
         behavior.updateServer(environmentDescription, settings);
 
@@ -131,14 +132,6 @@ public class SyncEnvironmentsJob extends Job {
         return (environmentStatus == EnvironmentStatus.Launching ||
                 environmentStatus == EnvironmentStatus.Updating ||
                 environmentStatus == EnvironmentStatus.Terminating);
-    }
-
-    static EnvironmentDescription describeEnvironment(AWSElasticBeanstalk client, String environmentName) {
-        List<EnvironmentDescription> environments = client.describeEnvironments(
-            new DescribeEnvironmentsRequest().withEnvironmentNames(environmentName)).getEnvironments();
-
-        if (environments.isEmpty()) return null;
-        return environments.get(0);
     }
 
     /**
