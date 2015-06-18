@@ -31,6 +31,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -48,6 +49,8 @@ import com.amazonaws.eclipse.databinding.RangeValidator;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.ServiceApiUtils;
 import com.amazonaws.eclipse.lambda.UrlConstants;
+import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateBasicLambdaRoleDialog;
+import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateS3BucketDialog;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.FunctionConfigPageDataModel;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
@@ -88,6 +91,7 @@ public class FunctionConfigurationComposite extends Composite {
 
     private Combo roleNameCombo;
     private IObservableValue roleLoadedObservable = new WritableValue();
+    private Button createRoleButton;
 
     /* S3 bucket */
     private Combo bucketNameCombo;
@@ -95,6 +99,7 @@ public class FunctionConfigurationComposite extends Composite {
     private IObservableValue bucketNameModelObservable;
     private IObservableValue bucketNameLoadedObservable = new WritableValue();
     private LoadS3BucketsInFunctionRegionThread loadS3BucketsInFunctionRegionThread;
+    private Button createBucketButton;
 
     /* Advanced settings */
     private Text memoryText;
@@ -111,7 +116,8 @@ public class FunctionConfigurationComposite extends Composite {
     private static final String LOADING = "Loading...";
     private static final String NONE_FOUND = "None found";
 
-    FunctionConfigurationComposite(Composite parent, UploadFunctionWizardDataModel dataModel) {
+    FunctionConfigurationComposite(Composite parent,
+            UploadFunctionWizardDataModel dataModel) {
         super(parent, SWT.NONE);
 
         this.dataModel = dataModel;
@@ -127,7 +133,7 @@ public class FunctionConfigurationComposite extends Composite {
         initializeValidators();
         pupulateDefaultData();
 
-        loadRolesAsync();
+        loadLambdaRolesAsync();
 
         // We defer loading S3 buckets until the user reaches the page
         // (after the function region is selected in the previous page).
@@ -139,7 +145,8 @@ public class FunctionConfigurationComposite extends Composite {
      * currently registered to this composite - only one listener instance is
      * allowed at a time.
      */
-    public synchronized void setValidationStatusChangeListener(IChangeListener listener) {
+    public synchronized void setValidationStatusChangeListener(
+            IChangeListener listener) {
         removeValidationStatusChangeListener();
         validationStatusChangeListener = listener;
         aggregateValidationStatus.addChangeListener(listener);
@@ -150,7 +157,8 @@ public class FunctionConfigurationComposite extends Composite {
      */
     public synchronized void removeValidationStatusChangeListener() {
         if (validationStatusChangeListener != null) {
-            aggregateValidationStatus.removeChangeListener(validationStatusChangeListener);
+            aggregateValidationStatus
+                    .removeChangeListener(validationStatusChangeListener);
             validationStatusChangeListener = null;
         }
     }
@@ -158,7 +166,7 @@ public class FunctionConfigurationComposite extends Composite {
     public void updateUIDataToModel() {
         Iterator<?> iterator = bindingContext.getBindings().iterator();
         while (iterator.hasNext()) {
-            Binding binding = (Binding)iterator.next();
+            Binding binding = (Binding) iterator.next();
             binding.updateTargetToModel();
         }
     }
@@ -174,19 +182,20 @@ public class FunctionConfigurationComposite extends Composite {
         Group group = newGroup(parent, "Basic Settings");
         group.setLayout(createSectionGroupLayout());
 
-        newFillingLabel(group, "Name:");
+        newLabel(group, "Name:");
         newFillingLabel(group, dataModel.getNewFunctionName(), 2);
 
-        newFillingLabel(group, "Description:");
+        newLabel(group, "Description:");
         descriptionText = newText(group, "", 2);
-        descriptionText.setMessage("The description for the function (optional)");
+        descriptionText
+                .setMessage("The description for the function (optional)");
     }
 
     private void createFunctionExecutionSettingSection(Composite parent) {
         Group group = newGroup(parent, "Function Execution");
         group.setLayout(createSectionGroupLayout());
 
-        newFillingLabel(group, "Handler:");
+        newLabel(group, "Handler:");
         handlerCombo = newCombo(group, 2);
         for (String handler : dataModel.getRequestHandlerImplementerClasses()) {
             handlerCombo.add(handler);
@@ -197,14 +206,22 @@ public class FunctionConfigurationComposite extends Composite {
         separatorGridData.horizontalSpan = 3;
         separator.setLayoutData(separatorGridData);
 
-        setItalicFont(newLink(group, UrlConstants.webLinkListener,
-                "Select the IAM role that AWS Lambda can assume to execute the function on your behalf. <a href=\"" +
-                UrlConstants.LAMBDA_EXECUTION_ROLE_DOC_URL +
-                "\">Learn more</a> about Lambda execution roles.",
-                3));
+        setItalicFont(newLink(
+                group,
+                UrlConstants.webLinkListener,
+                "Select the IAM role that AWS Lambda can assume to execute the function on your behalf. <a href=\""
+                        + UrlConstants.LAMBDA_EXECUTION_ROLE_DOC_URL
+                        + "\">Learn more</a> about Lambda execution roles.", 3));
 
-        newFillingLabel(group, "IAM Role:");
-        roleNameCombo = newCombo(group, 2);
+        newLabel(group, "IAM Role:");
+
+        Composite roleComposite = new Composite(group, SWT.NONE);
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gridData.horizontalSpan = 2;
+        roleComposite.setLayoutData(gridData);
+        roleComposite.setLayout(new GridLayout(2, false));
+
+        roleNameCombo = newCombo(roleComposite, 1);
         roleNameCombo.setEnabled(false);
 
         roleNameCombo.addSelectionListener(new SelectionAdapter() {
@@ -214,26 +231,90 @@ public class FunctionConfigurationComposite extends Composite {
             }
         });
 
+        createRoleButton = new Button(roleComposite, SWT.PUSH);
+        createRoleButton.setText("Create");
+        createRoleButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                CreateBasicLambdaRoleDialog dialog = new CreateBasicLambdaRoleDialog(
+                        Display.getCurrent().getActiveShell());
+                int returnCode = dialog.open();
+
+                if (returnCode == 0) {
+                    Role createdRole = dialog.getCreatedRole();
+
+                    if (roleLoadedObservable.getValue().equals(Boolean.FALSE)) {
+                        roleLoadedObservable.setValue(true);
+                        roleNameCombo.removeAll(); // remove the "none found" item
+                    }
+
+                    roleNameCombo.setEnabled(true);
+                    roleNameCombo.add(createdRole.getRoleName());
+                    roleNameCombo.setData(createdRole.getRoleName(), createdRole);
+                    roleNameCombo.select(roleNameCombo.getItemCount() - 1);
+
+                    onRoleSelectionChange();
+                }
+            }
+        });
+        createRoleButton.setEnabled(false); // re-enabled after the roles are loaded
+
     }
 
     private void createS3BucketSection(Composite parent) {
         Group group = newGroup(parent, "S3 Bucket for Function Code");
         group.setLayout(createSectionGroupLayout());
 
-        newFillingLabel(group, "S3 Bucket:");
-        bucketNameCombo = newCombo(group, 2);
+        newLabel(group, "S3 Bucket:");
+
+        Composite composite = new Composite(group, SWT.NONE);
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gridData.horizontalSpan = 2;
+        composite.setLayoutData(gridData);
+        composite.setLayout(new GridLayout(2, false));
+
+        bucketNameCombo = newCombo(composite, 1);
         bucketNameCombo.setEnabled(false);
+
+        createBucketButton = new Button(composite, SWT.PUSH);
+        createBucketButton.setText("Create");
+        createBucketButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                CreateS3BucketDialog dialog = new CreateS3BucketDialog(
+                        Display.getCurrent().getActiveShell(), dataModel.getRegion());
+                int returnCode = dialog.open();
+
+                if (returnCode == 0) {
+                    String bucketName = dialog.getCreatedBucketName();
+
+                    if (bucketNameLoadedObservable.getValue().equals(Boolean.TRUE)) {
+                        bucketNameCombo.add(bucketName);
+                        bucketNameCombo.select(bucketNameCombo.getItemCount() - 1);
+
+                    } else {
+                        CancelableThread.cancelThread(loadS3BucketsInFunctionRegionThread);
+                        bucketNameLoadedObservable.setValue(true);
+
+                        bucketNameCombo.setItems(new String[] {bucketName});
+                        bucketNameCombo.setEnabled(true);
+                        bucketNameCombo.select(0);
+                        updateUIDataToModel();
+                    }
+                }
+            }
+        });
     }
 
     private void createAdvancedSettingSection(Composite parent) {
         Group group = newGroup(parent, "Advanced Settings");
         group.setLayout(createSectionGroupLayout());
 
-        newFillingLabel(group, "Memory (MB):");
+        newLabel(group, "Memory (MB):");
         memoryText = newText(group, "", 2);
         memoryTextDecoration = newControlDecoration(memoryText, "");
 
-        newFillingLabel(group, "Timeout (s):");
+        newLabel(group, "Timeout (s):");
         timeoutText = newText(group, "", 2);
         timeoutTextDecoration = newControlDecoration(timeoutText, "");
     }
@@ -249,55 +330,56 @@ public class FunctionConfigurationComposite extends Composite {
         FunctionConfigPageDataModel createModel = dataModel
                 .getFunctionConfigPageDataModel();
 
-        descriptionTextObservable = SWTObservables
-                .observeText(descriptionText, SWT.Modify);
-        descriptionModelObservable = PojoObservables.observeValue(
-                createModel, FunctionConfigPageDataModel.P_DESCRIPTION);
+        descriptionTextObservable = SWTObservables.observeText(descriptionText,
+                SWT.Modify);
+        descriptionModelObservable = PojoObservables.observeValue(createModel,
+                FunctionConfigPageDataModel.P_DESCRIPTION);
         bindingContext.bindValue(descriptionTextObservable,
                 descriptionModelObservable);
 
         handlerComboObservable = SWTObservables.observeSelection(handlerCombo);
-        handlerModelObservable = PojoObservables.observeValue(
-                createModel,
+        handlerModelObservable = PojoObservables.observeValue(createModel,
                 FunctionConfigPageDataModel.P_HANDLER);
-        bindingContext.bindValue(handlerComboObservable, handlerModelObservable);
+        bindingContext
+                .bindValue(handlerComboObservable, handlerModelObservable);
 
-        bucketNameComboObservable = SWTObservables.observeSelection(bucketNameCombo);
-        bucketNameModelObservable = PojoObservables.observeValue(
-                createModel,
+        bucketNameComboObservable = SWTObservables
+                .observeSelection(bucketNameCombo);
+        bucketNameModelObservable = PojoObservables.observeValue(createModel,
                 FunctionConfigPageDataModel.P_BUCKET_NAME);
-        bindingContext.bindValue(bucketNameComboObservable, bucketNameModelObservable);
+        bindingContext.bindValue(bucketNameComboObservable,
+                bucketNameModelObservable);
 
-        memoryTextObservable = SWTObservables
-                .observeText(memoryText, SWT.Modify);
-        memoryModelObservable = PojoObservables.observeValue(
-                createModel,
+        memoryTextObservable = SWTObservables.observeText(memoryText,
+                SWT.Modify);
+        memoryModelObservable = PojoObservables.observeValue(createModel,
                 FunctionConfigPageDataModel.P_MEMORY);
         bindingContext.bindValue(memoryTextObservable, memoryModelObservable);
 
-        timeoutTextObservable = SWTObservables
-                .observeText(timeoutText, SWT.Modify);
-        timeoutModelObservable = PojoObservables.observeValue(
-                createModel,
+        timeoutTextObservable = SWTObservables.observeText(timeoutText,
+                SWT.Modify);
+        timeoutModelObservable = PojoObservables.observeValue(createModel,
                 FunctionConfigPageDataModel.P_TIMEOUT);
         bindingContext.bindValue(timeoutTextObservable, timeoutModelObservable);
     }
 
     private void initializeValidators() {
         bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(
-                roleLoadedObservable,
-                new BooleanValidator("Please select an execution role for your function")));
+                roleLoadedObservable, new BooleanValidator(
+                        "Please select an execution role for your function")));
 
-        bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(
-                bucketNameLoadedObservable,
-                new BooleanValidator("Please select the S3 bucket where your function code will be uploaded")));
+        bindingContext
+                .addValidationStatusProvider(new ChainValidator<Boolean>(
+                        bucketNameLoadedObservable,
+                        new BooleanValidator(
+                                "Please select the S3 bucket where your function code will be uploaded")));
 
         String memoryErrMsg = String.format(
                 "Please enter a memory size within the range of [%d, %d]",
                 MIN_MEMORY, MAX_MEMORY);
         ChainValidator<Long> memoryValidator = new ChainValidator<Long>(
-                memoryModelObservable,
-                new RangeValidator(memoryErrMsg, MIN_MEMORY, MAX_MEMORY));
+                memoryModelObservable, new RangeValidator(memoryErrMsg,
+                        MIN_MEMORY, MAX_MEMORY));
         bindingContext.addValidationStatusProvider(memoryValidator);
         new DecorationChangeListener(memoryTextDecoration,
                 memoryValidator.getValidationStatus());
@@ -306,8 +388,8 @@ public class FunctionConfigurationComposite extends Composite {
                 "Please enter a timeout within the range of [%d, %d]",
                 MIN_TIMEOUT, MAX_TIMEOUT);
         ChainValidator<Long> timeoutValidator = new ChainValidator<Long>(
-                timeoutModelObservable,
-                new RangeValidator(timeoutErrMsg, MIN_TIMEOUT, MAX_TIMEOUT));
+                timeoutModelObservable, new RangeValidator(timeoutErrMsg,
+                        MIN_TIMEOUT, MAX_TIMEOUT));
         bindingContext.addValidationStatusProvider(timeoutValidator);
         new DecorationChangeListener(timeoutTextDecoration,
                 timeoutValidator.getValidationStatus());
@@ -315,7 +397,8 @@ public class FunctionConfigurationComposite extends Composite {
 
     public void pupulateDefaultData() {
         descriptionTextObservable.setValue("");
-        handlerModelObservable.setValue(dataModel.getRequestHandlerImplementerClasses().get(0));
+        handlerModelObservable.setValue(dataModel
+                .getRequestHandlerImplementerClasses().get(0));
         memoryTextObservable.setValue(Integer.toString(DEFAULT_MEMORY));
         timeoutTextObservable.setValue(Integer.toString(DEFAULT_TIMEOUT));
     }
@@ -327,10 +410,12 @@ public class FunctionConfigurationComposite extends Composite {
             descriptionTextObservable.setValue(funcConfig.getDescription());
         }
 
-        if (dataModel.getRequestHandlerImplementerClasses().contains(funcConfig.getHandler())) {
+        if (dataModel.getRequestHandlerImplementerClasses().contains(
+                funcConfig.getHandler())) {
             handlerModelObservable.setValue(funcConfig.getHandler());
         } else {
-            handlerModelObservable.setValue(dataModel.getRequestHandlerImplementerClasses().get(0));
+            handlerModelObservable.setValue(dataModel
+                    .getRequestHandlerImplementerClasses().get(0));
         }
 
         selectRoleByArn(funcConfig.getRole());
@@ -348,9 +433,8 @@ public class FunctionConfigurationComposite extends Composite {
         bucketNameLoadedObservable.setValue(false);
 
         if (bucketNameCombo != null) {
-            bucketNameCombo.setItems(new String[] {
-                    "Loading buckets in " + dataModel.getRegion().getName()
-                    });
+            bucketNameCombo.setItems(new String[] { "Loading buckets in "
+                    + dataModel.getRegion().getName() });
             bucketNameCombo.select(0);
             bucketNameCombo.setEnabled(false);
         }
@@ -360,7 +444,8 @@ public class FunctionConfigurationComposite extends Composite {
         loadS3BucketsInFunctionRegionThread.start();
     }
 
-    private final class LoadS3BucketsInFunctionRegionThread extends CancelableThread {
+    private final class LoadS3BucketsInFunctionRegionThread extends
+            CancelableThread {
 
         @Override
         public void run() {
@@ -374,10 +459,11 @@ public class FunctionConfigurationComposite extends Composite {
                 public void run() {
                     try {
                         synchronized (LoadS3BucketsInFunctionRegionThread.this) {
-                            if ( !isCanceled() ) {
+                            if (!isCanceled()) {
 
                                 if (bucketsInFunctionRegion.isEmpty()) {
-                                    bucketNameCombo.setItems(new String[] {NONE_FOUND});
+                                    bucketNameCombo
+                                            .setItems(new String[] { NONE_FOUND });
                                     bucketNameLoadedObservable.setValue(false);
 
                                 } else {
@@ -402,8 +488,7 @@ public class FunctionConfigurationComposite extends Composite {
     }
 
     /*
-     * Async loading of IAM roles.
-     * IAM roles are only loaded once.
+     * Async loading of IAM roles. IAM roles are only loaded once.
      */
 
     private List<Role> allRolesSortedByName = new LinkedList<Role>();
@@ -414,7 +499,8 @@ public class FunctionConfigurationComposite extends Composite {
             // role already loaded, directly select the item
             doSelectRoleByArn(roleArn);
         } else {
-            // keep track the ARN and set the selection after the roles are loaded
+            // keep track the ARN and set the selection after the roles are
+            // loaded
             roleArnToBeSelectedAfterRolesAreLoaded = roleArn;
         }
     }
@@ -433,13 +519,13 @@ public class FunctionConfigurationComposite extends Composite {
         onRoleSelectionChange();
     }
 
-    private void loadRolesAsync() {
+    private void loadLambdaRolesAsync() {
         roleLoadedObservable.setValue(false);
 
         Display.getDefault().syncExec(new Runnable() {
 
             public void run() {
-                roleNameCombo.setItems(new String[] {LOADING});
+                roleNameCombo.setItems(new String[] { LOADING });
                 roleNameCombo.select(0);
                 roleNameCombo.setEnabled(false);
             }
@@ -451,12 +537,12 @@ public class FunctionConfigurationComposite extends Composite {
                 try {
                     AmazonIdentityManagement iam = AwsToolkitCore
                             .getClientFactory().getIAMClient();
-                    List<Role> roles = ServiceApiUtils.getAllRoles(iam);
+                    List<Role> roles = ServiceApiUtils.getAllLambdaRoles(iam);
 
                     roleNameCombo.removeAll();
 
                     if (roles.isEmpty()) {
-                        roleNameCombo.setItems(new String[] {NONE_FOUND});
+                        roleNameCombo.setItems(new String[] { NONE_FOUND });
                         roleLoadedObservable.setValue(false);
 
                     } else {
@@ -489,6 +575,8 @@ public class FunctionConfigurationComposite extends Composite {
                         onRoleSelectionChange();
                     }
 
+                    createRoleButton.setEnabled(true);
+
                 } catch (Exception e) {
                     LambdaPlugin.getDefault().reportException(
                             "Failed to load IAM roles.", e);
@@ -504,6 +592,12 @@ public class FunctionConfigurationComposite extends Composite {
         }
     }
 
+    private static Label newLabel(Composite parent, String text) {
+        Label label = new Label(parent, SWT.NONE);
+        label.setText(text);
+        return label;
+    }
+
     /*
      * Italic font resource
      */
@@ -511,8 +605,7 @@ public class FunctionConfigurationComposite extends Composite {
     private Font italicFont;
 
     private void setItalicFont(Control control) {
-        FontData[] fontData = control.getFont()
-                .getFontData();
+        FontData[] fontData = control.getFont().getFontData();
         for (FontData fd : fontData) {
             fd.setStyle(SWT.ITALIC);
         }

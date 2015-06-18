@@ -49,7 +49,7 @@ public class UploadFunctionUtil {
         AWSLambda client = AwsToolkitCore.getClientFactory()
                 .getLambdaClientByEndpoint(endpoint);
 
-        monitor.subTask("Uploading function code S3...");
+        monitor.subTask("Uploading function code to S3...");
         String bucketName = dataModel.getFunctionConfigPageDataModel().getBucketName();
         String randomKeyName = UUID.randomUUID().toString();
         AmazonS3 s3 = AwsToolkitCore.getClientFactory()

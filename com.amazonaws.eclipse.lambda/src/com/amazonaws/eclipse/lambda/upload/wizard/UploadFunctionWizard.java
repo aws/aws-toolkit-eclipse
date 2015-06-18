@@ -62,7 +62,7 @@ public class UploadFunctionWizard extends Wizard {
 
                     try {
                         UploadFunctionUtil.performFunctionUpload(dataModel, monitor, 100);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         LambdaPlugin.getDefault().reportException("Failed to upload project to Lambda", e);
                         return;
                     }
