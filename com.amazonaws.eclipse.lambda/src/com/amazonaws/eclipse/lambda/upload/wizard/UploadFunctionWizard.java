@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 

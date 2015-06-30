@@ -67,6 +67,7 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
         functionConfigurationComposite.refreshBucketsInFunctionRegion();
 
         if (dataModel.isCreatingNewFunction()) {
+            functionConfigurationComposite.populateNewFunctionName();
             functionConfigurationComposite.pupulateDefaultData();
         } else {
             functionConfigurationComposite

@@ -80,6 +80,7 @@ public class FunctionConfigurationComposite extends Composite {
     private IChangeListener validationStatusChangeListener;
 
     /* Basic settings */
+    private Label functionNameLabel;
     private Text descriptionText;
     private ISWTObservableValue descriptionTextObservable;
     private IObservableValue descriptionModelObservable;
@@ -183,7 +184,7 @@ public class FunctionConfigurationComposite extends Composite {
         group.setLayout(createSectionGroupLayout());
 
         newLabel(group, "Name:");
-        newFillingLabel(group, dataModel.getNewFunctionName(), 2);
+        functionNameLabel = newFillingLabel(group, "", 2);
 
         newLabel(group, "Description:");
         descriptionText = newText(group, "", 2);
@@ -395,6 +396,10 @@ public class FunctionConfigurationComposite extends Composite {
                 timeoutValidator.getValidationStatus());
     }
 
+    public void populateNewFunctionName() {
+        functionNameLabel.setText(dataModel.getNewFunctionName());
+    }
+
     public void pupulateDefaultData() {
         descriptionTextObservable.setValue("");
         handlerModelObservable.setValue(dataModel
@@ -404,6 +409,8 @@ public class FunctionConfigurationComposite extends Composite {
     }
 
     public void populateExistingFunctionConfig(FunctionConfiguration funcConfig) {
+        functionNameLabel.setText(funcConfig.getFunctionName());
+
         if (funcConfig.getDescription() == null) {
             descriptionTextObservable.setValue("");
         } else {
