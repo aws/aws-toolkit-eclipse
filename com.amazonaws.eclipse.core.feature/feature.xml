@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.amazonaws.eclipse.core.feature"
-      label="AWS Toolkit for Eclipse Core"
-      version="2.3.0.qualifier"
+      label="AWS Toolkit for Eclipse Core (Required)"
+      version="2.3.1.qualifier"
       provider-name="Amazon Web Services">
 
    <description url="http://aws.amazon.com/eclipse">
-      AWS Toolkit for Eclipse Core
+      Includes support for Amazon S3, Amazon EC2, AWS DynamoDB, AWS IAM, Amazon CloudFront, Amazon SNS and Amazon SQS.
    </description>
 
    <copyright>
@@ -284,7 +284,24 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.core.net"/>
       <import plugin="org.eclipse.help" version="3.3.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.ui.forms"/>
+      <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.jdt.ui"/>
+      <import plugin="org.eclipse.jdt.core"/>
+      <import plugin="org.eclipse.core.filesystem" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.databinding" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.databinding.beans" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.databinding.observable" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jface.databinding" version="1.3.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.databinding.property" version="1.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.navigator" version="3.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.core" version="3.3.2" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.ui"/>
+      <import plugin="org.eclipse.jdt.launching" version="3.3.2" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.intro"/>
+      <import plugin="org.eclipse.ui.intro.universal"/>
+      <import plugin="org.eclipse.core.net"/>
+      <import plugin="org.eclipse.help"/>
    </requires>
 
    <plugin
@@ -295,6 +312,25 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
    <plugin
          id="com.amazonaws.eclipse.identitymanagement"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="com.amazonaws.eclipse.sdk.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.amazonaws.eclipse.dynamodb"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="com.amazonaws.eclipse.ec2"
          download-size="0"
          install-size="0"
          version="0.0.0"/>

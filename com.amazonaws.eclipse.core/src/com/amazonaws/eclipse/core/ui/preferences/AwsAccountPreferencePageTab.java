@@ -121,7 +121,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
     private final DataBindingContext dataBindingContext = new DataBindingContext();
 
     /**
-     * Additional listeners to be notified when the account infomation is modified
+     * Additional listeners to be notified when the account information is modified
      */
     private final List<ModifyListener> accountInfoFieldEditorListeners = new LinkedList<ModifyListener>();
 
@@ -132,9 +132,10 @@ public class AwsAccountPreferencePageTab extends TabItem {
     private Button deleteAccount;
     private Label defaultAccountExplanationLabel;
     private AccountInfoPropertyEditor accountNameFieldEditor;
-    private AccountInfoPropertyEditor userIdFieldEditor;
     private AccountInfoPropertyEditor accessKeyFieldEditor;
     private AccountInfoPropertyEditor secretKeyFieldEditor;
+    private AccountInfoPropertyEditor sessionTokenFieldEditor;
+    private AccountInfoPropertyEditor userIdFieldEditor;
     private AccountInfoPropertyEditor certificateFieldEditor;
     private AccountInfoPropertyEditor certificatePrivateKeyFieldEditor;
 
@@ -146,6 +147,9 @@ public class AwsAccountPreferencePageTab extends TabItem {
 
     /** The checkbox controlling how we display the secret key */
     private Button hideSecretKeyCheckbox;
+
+    /** The checkbox controlling whether the credential includes the session token */
+    private Button useSessionTokenCheckbox;
 
     /** The Text control in the secret key field editor */
     private Text secretKeyText;
@@ -610,6 +614,11 @@ public class AwsAccountPreferencePageTab extends TabItem {
         accessKeyFieldEditor = newStringFieldEditor(
                 accountInfoByIdentifier.get(currentRegionAccountId),
                 "accessKey", "&Access Key ID:", awsAccountGroup);
+
+        /*
+         * Secret key editor and hide check-box
+         */
+
         secretKeyFieldEditor = newStringFieldEditor(
                 accountInfoByIdentifier.get(currentRegionAccountId),
                 "secretKey", "&Secret Access Key:", awsAccountGroup);
@@ -617,33 +626,63 @@ public class AwsAccountPreferencePageTab extends TabItem {
         // create an empty label in the first column so that the hide secret key
         // checkbox lines up with the other text controls
         new Label(awsAccountGroup, SWT.NONE);
+        hideSecretKeyCheckbox = createCheckbox(awsAccountGroup,
+                "Show secret access key", false);
 
-        hideSecretKeyCheckbox = new Button(awsAccountGroup, SWT.CHECK);
-        hideSecretKeyCheckbox.setText("Show secret access key");
-        hideSecretKeyCheckbox.setSelection(false);
-        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 2;
-        gridData.verticalIndent = -6;
-        gridData.horizontalIndent = 3;
-        hideSecretKeyCheckbox.setLayoutData(gridData);
         hideSecretKeyCheckbox.addListener(SWT.Selection, new Listener() {
-
             public void handleEvent(Event event) {
                 updateSecretKeyText();
             }
         });
-
         secretKeyText = secretKeyFieldEditor.getTextControl();
-
         updateSecretKeyText();
+
+        /*
+         * Session token input controls
+         */
+
+        sessionTokenFieldEditor = newStringFieldEditor(
+                accountInfoByIdentifier.get(currentRegionAccountId),
+                "sessionToken", "Session &Token:", awsAccountGroup);
+
+        new Label(awsAccountGroup, SWT.NONE);
+        useSessionTokenCheckbox = createCheckbox(awsAccountGroup,
+                "Use session token", false);
+        useSessionTokenCheckbox.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                boolean useSessionToken = useSessionTokenCheckbox.getSelection();
+                AccountInfo currentAccount = accountInfoByIdentifier.get(currentRegionAccountId);
+                currentAccount.setUseSessionToken(useSessionToken);
+                updateSessionTokenControls();
+
+                parentPrefPage.updatePageValidationOfAllTabs();
+            }
+        });
+
+        // Update session token controls according to the current account
+        updateSessionTokenControls();
+
         AwsToolkitPreferencePage.tweakLayout((GridLayout) awsAccountGroup
                 .getLayout());
 
         accountFieldEditors.add(accountNameFieldEditor);
         accountFieldEditors.add(accessKeyFieldEditor);
         accountFieldEditors.add(secretKeyFieldEditor);
+        accountFieldEditors.add(sessionTokenFieldEditor);
 
         return awsAccountGroup;
+    }
+
+    private Button createCheckbox(Composite parent, String text, boolean defaultSelection) {
+        Button checkbox = new Button(parent, SWT.CHECK);
+        checkbox.setText(text);
+        checkbox.setSelection(defaultSelection);
+        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalSpan = 2;
+        gridData.verticalIndent = -6;
+        gridData.horizontalIndent = 3;
+        checkbox.setLayoutData(gridData);
+        return checkbox;
     }
 
     /**
@@ -779,6 +818,13 @@ public class AwsAccountPreferencePageTab extends TabItem {
         for (AccountInfoPropertyEditor editor : accountFieldEditors) {
             editor.accountChanged(accountInfo);
         }
+        updateSessionTokenControls();
+    }
+
+    private void updateSessionTokenControls() {
+        AccountInfo accountInfo = accountInfoByIdentifier.get(currentRegionAccountId);
+        useSessionTokenCheckbox.setSelection(accountInfo.isUseSessionToken());
+        sessionTokenFieldEditor.getTextControl().setEnabled(accountInfo.isUseSessionToken());
     }
 
     /**
@@ -811,6 +857,12 @@ public class AwsAccountPreferencePageTab extends TabItem {
         for (AccountInfo accountInfo : accountInfoByIdentifier.values()) {
             if (accountInfo.getAccountName().trim().isEmpty()) {
                 return "Account name must not be blank";
+            }
+
+            if (accountInfo.isUseSessionToken()
+                    && (accountInfo.getSessionToken() == null ||
+                        accountInfo.getSessionToken().trim().isEmpty())) {
+                return "Session token must not be blank";
             }
 
             if (invalidFile(accountInfo.getEc2CertificateFile())) {

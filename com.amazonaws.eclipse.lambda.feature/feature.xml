@@ -198,13 +198,14 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
    <requires>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime" version="3.4.0" match="greaterOrEqual"/>
-      <import plugin="com.amazonaws.eclipse.core" version="2.3.0" match="greaterOrEqual"/>
-      <import plugin="com.amazonaws.eclipse.sdk.ui" version="2.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.jdt.ui"/>
       <import plugin="org.eclipse.jdt.core"/>
       <import plugin="org.eclipse.core.filesystem" version="1.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.core" version="2.3.0" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.sdk.ui" version="2.1.0" match="greaterOrEqual"/>
+      <import feature="com.amazonaws.eclipse.core.feature" version="2.3.1" match="greaterOrEqual"/>
    </requires>
 
    <plugin

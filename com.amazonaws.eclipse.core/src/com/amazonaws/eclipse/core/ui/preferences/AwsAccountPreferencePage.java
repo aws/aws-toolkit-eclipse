@@ -26,6 +26,7 @@ import java.util.Set;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.IntegerFieldEditor;
@@ -93,8 +94,9 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
     private final Set<AccountInfo> accountInfoToBeDeleted = new HashSet<AccountInfo>();
 
     private FileFieldEditor credentailsFileLocation;
-
     private boolean credentailsFileLocationChanged = false;
+
+    private BooleanFieldEditor alwaysReloadWhenCredFileChanged;
 
     private IntegerFieldEditor connectionTimeout;
     private IntegerFieldEditor socketTimeout;
@@ -205,7 +207,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         createAccountsSectionGroup(composite);
 
         // Credentials file location section
-        createCredentialsFileLocationGroup(composite);
+        createCredentialsFileGroup(composite);
 
         // Timeouts section
         createTimeoutSectionGroup(composite);
@@ -262,6 +264,9 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
         if (credentailsFileLocation != null) {
             credentailsFileLocation.loadDefault();
         }
+        if (alwaysReloadWhenCredFileChanged != null) {
+            alwaysReloadWhenCredFileChanged.loadDefault();
+        }
 
         if (connectionTimeout != null) {
             connectionTimeout.loadDefault();
@@ -312,6 +317,9 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
             if (credentailsFileLocation != null) {
                 credentailsFileLocation.store();
+            }
+            if (alwaysReloadWhenCredFileChanged != null) {
+                alwaysReloadWhenCredFileChanged.store();
             }
 
             AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
@@ -508,9 +516,9 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      * We currently don't support changing the credentials file location and
      * editing the account information at the same time.
      */
-    private Group createCredentialsFileLocationGroup(final Composite parent) {
+    private Group createCredentialsFileGroup(final Composite parent) {
         Group group = new Group(parent, SWT.NONE);
-        group.setText("Credentials file location:");
+        group.setText("Credentials file:");
         group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
         GridLayout groupLayout = new GridLayout();
         groupLayout.marginWidth = 20;
@@ -583,8 +591,20 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
                     });
                 }
             }
-
         }
+
+        Composite secondRow = new Composite(composite, SWT.NONE);
+        GridData secondRowGridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        secondRowGridData.horizontalSpan = 3; // file editor takes 3 columns
+        secondRow.setLayoutData(secondRowGridData);
+
+        alwaysReloadWhenCredFileChanged = new BooleanFieldEditor(
+                PreferenceConstants.P_ALWAYS_RELOAD_WHEN_CREDNENTIAL_PROFILE_FILE_MODIFIED,
+                "Automatically reload accounts when the credentials file is modified in the file system.",
+                secondRow);
+        alwaysReloadWhenCredFileChanged.setPage(this);
+        alwaysReloadWhenCredFileChanged.setPreferenceStore(getPreferenceStore());
+        alwaysReloadWhenCredFileChanged.load();
 
         return group;
     }

@@ -123,6 +123,13 @@ public class PreferenceConstants {
      */
     public static final String P_CREDENTIAL_PROFILE_FILE_LOCATION = "credentialProfileFileLocation";
 
+    /**
+     * Preference key for a boolean property that controls whether the plugin
+     * should automatically reload accounts when the credentials profile file is
+     * modified.
+     */
+    public static final String P_ALWAYS_RELOAD_WHEN_CREDNENTIAL_PROFILE_FILE_MODIFIED = "alwaysReloadWhenCredentialProfileFileModified";
+
     public static final String P_CONNECTION_TIMEOUT = "connectionTimeout";
     public static final String P_SOCKET_TIMEOUT = "socketTimeout";
 

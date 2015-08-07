@@ -98,6 +98,40 @@ public class PluginPreferenceStoreAccountCredentialsConfiguration extends
     }
 
     /**
+     * Session token is not supported when the preference store is in use as the
+     * data source; this method always return false.
+     */
+    @Override
+    public boolean isUseSessionToken() {
+        return false;
+    }
+
+    /**
+     * Session token is not supported when the preference store is in use as the
+     * data source; this method doesn't have any effect
+     */
+    @Override
+    public void setUseSessionToken(boolean useSessionToken) {
+    }
+
+    /**
+     * Session token is not supported when the preference store is in use as the
+     * data source; this method always return null.
+     */
+    @Override
+    public String getSessionToken() {
+        return null;
+    }
+
+    /**
+     * Session token is not supported when the preference store is in use as the
+     * data source; this method doesn't have any effect
+     */
+    @Override
+    public void setSessionToken(String sessionToken) {
+    }
+
+    /**
      * Persist all the in-memory property values in the preference store.
      */
     @Override
@@ -150,4 +184,5 @@ public class PluginPreferenceStoreAccountCredentialsConfiguration extends
         accessKeyInMemory = null;
         secretKeyInMemory = null;
     }
+
 }

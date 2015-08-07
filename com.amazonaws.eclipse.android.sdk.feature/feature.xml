@@ -198,8 +198,6 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
    <requires>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="com.amazonaws.eclipse.core" version="2.0.1" match="greaterOrEqual"/>
-      <import plugin="com.amazonaws.eclipse.sdk.ui" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="com.android.ide.eclipse.adt" version="18.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jface.databinding" version="1.4.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.databinding" version="1.3.0" match="greaterOrEqual"/>
@@ -207,6 +205,9 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
       <import plugin="org.eclipse.jdt.core" version="3.5.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jdt.ui" version="3.5.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.resources" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.core" version="2.0.1" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.sdk.ui" version="1.0.0" match="greaterOrEqual"/>
+      <import feature="com.amazonaws.eclipse.core.feature" version="2.3.1" match="greaterOrEqual"/>
    </requires>
 
    <plugin

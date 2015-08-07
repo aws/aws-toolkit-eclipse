@@ -63,6 +63,10 @@ import org.eclipse.jst.j2ee.classpathdep.ClasspathDependencyUtil;
 import org.eclipse.jst.j2ee.classpathdep.UpdateClasspathAttributeUtil;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelProperties;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.browser.IWebBrowser;
+import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetDataModelProperties;
 import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetProjectCreationDataModelProperties;
@@ -119,6 +123,9 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     }
 
     public static final String BUNDLE_BUCKET = "aws-travellog-sample-data";
+
+    private static final IWorkbenchBrowserSupport BROWSER_SUPPORT =
+            PlatformUI.getWorkbench().getBrowserSupport();
 
     public CreateNewAwsJavaWebProjectRunnable(NewAwsJavaWebProjectDataModel dataModel) {
         this.dataModel = dataModel;
@@ -207,6 +214,31 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
                 addSessionManagerConfigurationFiles(project);
             }
             monitor.worked(10);
+
+            // Open the readme.html in an editor browser window.
+            File root = project.getLocation().toFile();
+            final File indexHtml = new File(root, "WebContent/index.html");
+
+            // Internal browser must be opened within UI thread
+            Display.getDefault().syncExec(new Runnable() {
+                public void run() {
+                    try {
+                        IWebBrowser browser = BROWSER_SUPPORT.createBrowser(
+                                IWorkbenchBrowserSupport.AS_EDITOR,
+                                null,
+                                null,
+                                null);
+                        browser.openURL(indexHtml.toURI().toURL());
+                    } catch (Exception e) {
+                        ElasticBeanstalkPlugin
+                                .getDefault()
+                                .logException(
+                                        "Failed to open project index page in Eclipse editor.",
+                                        e);
+                    }
+                }
+            });
+
         } catch (Exception e) {
             throw new InvocationTargetException(e);
         } finally {

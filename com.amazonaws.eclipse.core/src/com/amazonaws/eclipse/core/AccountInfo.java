@@ -20,15 +20,11 @@ package com.amazonaws.eclipse.core;
 public interface AccountInfo {
 
     /**
-     * Returns the account identifier used internally by the plugin.
-     *
      * @return The account identifier used internally by the plugin.
      */
     public String getInternalAccountId();
 
     /**
-     * Returns the UI-friendly name for this account.
-     *
      * @return The UI-friendly name for this account.
      */
     public String getAccountName();
@@ -42,8 +38,6 @@ public interface AccountInfo {
     public void setAccountName(String accountName);
 
     /**
-     * Returns the currently configured AWS user access key.
-     *
      * @return The currently configured AWS user access key.
      */
     public String getAccessKey();
@@ -56,8 +50,6 @@ public interface AccountInfo {
     public void setAccessKey(String accessKey);
 
     /**
-     * Returns the currently configured AWS secret key.
-     *
      * @return The currently configured AWS secret key.
      */
     public String getSecretKey();
@@ -68,6 +60,31 @@ public interface AccountInfo {
      * @param secretKey The AWS Secret Access Key.
      */
     public void setSecretKey(String secretKey);
+
+    /**
+     * @return true if the current account includes a session token
+     */
+    public boolean isUseSessionToken();
+
+    /**
+     * Sets whether the current account includes a session token
+     *
+     * @param useSessionToken
+     *            true if the current account includes a session token
+     */
+    public void setUseSessionToken(boolean useSessionToken);
+
+    /**
+     * @return The currently configured AWS session token.
+     */
+    public String getSessionToken();
+
+    /**
+     * Sets the AWS session token for this account info object.
+     *
+     * @param sessionToken The AWS session token.
+     */
+    public void setSessionToken(String sessionToken);
 
     /**
      * Returns the currently configured AWS user account ID.

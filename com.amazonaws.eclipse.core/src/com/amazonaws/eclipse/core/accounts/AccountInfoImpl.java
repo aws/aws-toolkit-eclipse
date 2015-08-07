@@ -50,11 +50,11 @@ public class AccountInfoImpl implements AccountInfo {
             final AccountCredentialsConfiguration credentialsConfig,
             final AccountOptionalConfiguration optionalConfig) {
         if (accountId == null)
-            throw new IllegalAccessError("accountId must not be null.");
+            throw new IllegalArgumentException("accountId must not be null.");
         if (credentialsConfig == null)
-            throw new IllegalAccessError("credentialsConfig must not be null.");
+            throw new IllegalArgumentException("credentialsConfig must not be null.");
         if (optionalConfig == null)
-            throw new IllegalAccessError("optionalConfig must not be null.");
+            throw new IllegalArgumentException("optionalConfig must not be null.");
 
         this.accountId         = accountId;
         this.credentialsConfig = credentialsConfig;
@@ -80,7 +80,7 @@ public class AccountInfoImpl implements AccountInfo {
      */
     public void setAccountName(String accountName) {
         String oldValue = getAccountName();
-        if ( !oldValue.equals(accountName) ) {
+        if ( !isEqual(oldValue, accountName) ) {
             credentialsConfig.setAccountName(accountName);
             firePropertyChange("accountName", oldValue, accountName);
         }
@@ -98,7 +98,7 @@ public class AccountInfoImpl implements AccountInfo {
      */
     public void setAccessKey(String accessKey) {
         String oldValue = getAccessKey();
-        if ( !oldValue.equals(accessKey) ) {
+        if ( !isEqual(oldValue, accessKey) ) {
             credentialsConfig.setAccessKey(accessKey);
             firePropertyChange("accessKey", oldValue, accessKey);
         }
@@ -116,9 +116,45 @@ public class AccountInfoImpl implements AccountInfo {
      */
     public void setSecretKey(String secretKey) {
         String oldValue = getSecretKey();
-        if ( !oldValue.equals(secretKey) ) {
+        if ( !isEqual(oldValue, secretKey) ) {
             credentialsConfig.setSecretKey(secretKey);
             firePropertyChange("secretKey", oldValue, secretKey);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isUseSessionToken() {
+        return credentialsConfig.isUseSessionToken();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setUseSessionToken(boolean useSessionToken) {
+        boolean oldValue = isUseSessionToken();
+        if ( oldValue != useSessionToken ) {
+            credentialsConfig.setUseSessionToken(useSessionToken);
+            firePropertyChange("useSessionToken", oldValue, useSessionToken);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getSessionToken() {
+        return credentialsConfig.getSessionToken();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setSessionToken(String sessionToken) {
+        String oldValue = getSessionToken();
+        if ( !isEqual(oldValue, sessionToken) ) {
+            credentialsConfig.setSessionToken(sessionToken);
+            firePropertyChange("sessionToken", oldValue, sessionToken);
         }
     }
 
@@ -134,7 +170,7 @@ public class AccountInfoImpl implements AccountInfo {
      */
     public void setUserId(String userId) {
         String oldValue = getUserId();
-        if ( !oldValue.equals(userId) ) {
+        if ( !isEqual(oldValue, userId) ) {
             optionalConfig.setUserId(userId);
             firePropertyChange("userId", oldValue, userId);
         }
@@ -152,7 +188,7 @@ public class AccountInfoImpl implements AccountInfo {
      */
     public void setEc2PrivateKeyFile(String ec2PrivateKeyFile) {
         String oldValue = getEc2PrivateKeyFile();
-        if ( !oldValue.equals(ec2PrivateKeyFile) ) {
+        if ( !isEqual(oldValue, ec2PrivateKeyFile) ) {
             optionalConfig.setEc2PrivateKeyFile(ec2PrivateKeyFile);
             firePropertyChange("ec2PrivateKeyFile", oldValue, ec2PrivateKeyFile);
         }
@@ -170,7 +206,7 @@ public class AccountInfoImpl implements AccountInfo {
      */
     public void setEc2CertificateFile(String ec2CertificateFile) {
         String oldValue = getEc2CertificateFile();
-        if ( !oldValue.equals(ec2CertificateFile) ) {
+        if ( !isEqual(oldValue, ec2CertificateFile) ) {
             optionalConfig.setEc2CertificateFile(ec2CertificateFile);
             firePropertyChange("ec2CertificateFile", oldValue, ec2CertificateFile);
         }
@@ -253,4 +289,12 @@ public class AccountInfoImpl implements AccountInfo {
 
         return sb.toString();
     }
+
+    private static boolean isEqual(Object a, Object b) {
+        if (a == null || b == null) {
+            return a == null && b == null;
+        }
+        return a.equals(b);
+    }
+
 }

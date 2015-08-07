@@ -17,7 +17,6 @@ package com.amazonaws.eclipse.core.accounts.profiles;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
 
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -25,11 +24,11 @@ import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 
 /**
  * Used to monitor a specific credentials file and prompts the user to reload
@@ -60,7 +59,12 @@ class SdkCredentialsFileContentMonitor {
             public void onFileChange(final File changedFile) {
                 Display.getDefault().asyncExec(new Runnable() {
                     public void run() {
-                        showCredentialsReloadConfirmBox(changedFile);
+                        if (AwsToolkitCore.getDefault().getPreferenceStore()
+                                .getBoolean(PreferenceConstants.P_ALWAYS_RELOAD_WHEN_CREDNENTIAL_PROFILE_FILE_MODIFIED)) {
+                            AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
+                        } else {
+                            showCredentialsReloadConfirmBox(changedFile);
+                        }
                     }
                 });
             }
@@ -134,12 +138,18 @@ class SdkCredentialsFileContentMonitor {
                 AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON),
                 message,
                 MessageDialog.CONFIRM,
-                new String[] { "No", "Yes" },
+                new String[] { "No", "Yes", "Always Reload" },
                 1 // default to YES
                 );
 
         int result = dialog.open();
-        if (result == 1) {
+        if (result == 2) {
+            AwsToolkitCore.getDefault().getPreferenceStore()
+                    .setValue(
+                            PreferenceConstants.P_ALWAYS_RELOAD_WHEN_CREDNENTIAL_PROFILE_FILE_MODIFIED,
+                            true);
+        }
+        if (result == 1 || result == 2) {
             AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
         }
     }

@@ -196,32 +196,39 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
    END OF TERMS AND CONDITIONS
    </license>
 
+   <url>
+      <discovery label="Data Tools Platform Updates" url="http://download.eclipse.org/datatools/updates/"/>
+   </url>
+
    <requires>
-      <import plugin="org.eclipse.core.runtime" version="3.2.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.datatools.connectivity.sqm.core"/>
-      <import plugin="org.eclipse.datatools.connectivity" version="1.1.2.v200906020553" match="greaterOrEqual"/>
       <import plugin="com.ibm.icu"/>
-      <import plugin="org.eclipse.datatools.sqltools.parsers.sql.query"/>
       <import plugin="org.eclipse.core.net"/>
-      <import plugin="org.eclipse.ui" version="3.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.runtime" version="3.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.datatools.connectivity" version="1.1.2.v200906020553" match="greaterOrEqual"/>
       <import plugin="org.eclipse.datatools.connectivity.ui"/>
-      <import plugin="org.eclipse.ui.navigator" version="3.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.datatools.connectivity.sqm.core"/>
       <import plugin="org.eclipse.datatools.connectivity.sqm.core.ui"/>
       <import plugin="org.eclipse.datatools.connectivity.sqm.server.ui"/>
+      <import feature="org.eclipse.datatools.connectivity.feature" version="1.7.0.v200906050400" match="greaterOrEqual"/>
       <import plugin="org.eclipse.datatools.modelbase.sql"/>
       <import plugin="org.eclipse.datatools.sqltools.editor.core"/>
-      <import plugin="org.eclipse.text" version="3.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.datatools.sqltools.db.generic"/>
-      <import plugin="org.eclipse.ui.ide" version="3.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.datatools.sqltools.tabledataeditor"/>
       <import plugin="org.eclipse.datatools.sqltools.data.ui"/>
       <import plugin="org.eclipse.datatools.sqltools.data.core"/>
       <import plugin="org.eclipse.datatools.sqltools.result.ui"/>
-      <import feature="com.amazonaws.eclipse.core.feature" version="1.0.1" match="greaterOrEqual"/>
-      <import feature="org.eclipse.datatools.connectivity.feature" version="1.7.0.v200906050400" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.datatools.sqltools.sqlscrapbook"/>
+      <import plugin="org.eclipse.datatools.sqltools.sqlbuilder"/>
+      <import plugin="org.eclipse.datatools.sqltools.parsers.sql.query"/>
+      <import plugin="org.eclipse.text" version="3.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui" version="3.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.ide" version="3.2.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.navigator" version="3.2.0" match="greaterOrEqual"/>
+
       <import plugin="com.amazonaws.eclipse.datatools.enablement.simpledb.driver" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="com.amazonaws.eclipse.core" version="2.0.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
+      <import feature="com.amazonaws.eclipse.core.feature" version="2.3.1" match="greaterOrEqual"/>
    </requires>
 
    <plugin

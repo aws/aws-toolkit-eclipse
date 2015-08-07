@@ -34,6 +34,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.eclipse.core.accounts.AccountInfoChangeListener;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.Region;
@@ -327,7 +328,16 @@ public class AWSClientFactory {
 
             final AccountInfo accountInfo = AwsToolkitCore.getDefault()
                     .getAccountManager().getAccountInfo(accountId);
-            AWSCredentials credentials = new BasicAWSCredentials(accountInfo.getAccessKey(), accountInfo.getSecretKey());
+
+            AWSCredentials credentials = null;
+            if (accountInfo.isUseSessionToken()) {
+                credentials = new BasicSessionCredentials(
+                        accountInfo.getAccessKey(), accountInfo.getSecretKey(),
+                        accountInfo.getSessionToken());
+            } else {
+                credentials = new BasicAWSCredentials(
+                        accountInfo.getAccessKey(), accountInfo.getSecretKey());
+            }
 
             T client = constructor.newInstance(credentials, config);
 

@@ -154,4 +154,24 @@ public class TestAccountInfo implements AccountInfo {
         return false;
     }
 
+    public boolean isUseSessionToken() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void setUseSessionToken(boolean useSessionToken) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public String getSessionToken() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setSessionToken(String sessionToken) {
+        // TODO Auto-generated method stub
+
+    }
+
 }

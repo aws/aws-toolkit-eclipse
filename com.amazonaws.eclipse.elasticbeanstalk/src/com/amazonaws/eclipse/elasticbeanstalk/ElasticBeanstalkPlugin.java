@@ -320,4 +320,11 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
         }
     }
 
+    /**
+     * Convenience method for exception logging.
+     */
+    public void logException(String errorMessage, Throwable e) {
+        getLog().log(new Status(Status.ERROR, PLUGIN_ID, errorMessage, e));
+    }
+
 }

@@ -17,13 +17,12 @@ package com.amazonaws.eclipse.core.accounts;
 /**
  * Abstract class describing the credentials information of a configured AWS
  * account. The information includes the account name (or the profile name in
- * case of profile-based accounts), the AWS access key and secret key.
+ * case of profile-based accounts), the AWS access and secret keys and an
+ * optional session token.
  */
 public abstract class AccountCredentialsConfiguration {
 
     /**
-     * Returns the UI-friendly name for this account.
-     *
      * @return The UI-friendly name for this account.
      */
     public abstract String getAccountName();
@@ -37,8 +36,6 @@ public abstract class AccountCredentialsConfiguration {
     public abstract void setAccountName(String accountName);
 
     /**
-     * Returns the currently configured AWS user access key.
-     *
      * @return The currently configured AWS user access key.
      */
     public abstract String getAccessKey();
@@ -51,8 +48,6 @@ public abstract class AccountCredentialsConfiguration {
     public abstract void setAccessKey(String accessKey);
 
     /**
-     * Returns the currently configured AWS secret key.
-     *
      * @return The currently configured AWS secret key.
      */
     public abstract String getSecretKey();
@@ -63,6 +58,31 @@ public abstract class AccountCredentialsConfiguration {
      * @param secretKey The AWS Secret Access Key.
      */
     public abstract void setSecretKey(String secretKey);
+
+    /**
+     * @return true if the current account includes a session token
+     */
+    public abstract boolean isUseSessionToken();
+
+    /**
+     * Sets whether the current account includes a session token
+     *
+     * @param useSessionToken
+     *            true if the current account includes a session token
+     */
+    public abstract void setUseSessionToken(boolean useSessionToken);
+
+    /**
+     * @return The currently configured AWS session token.
+     */
+    public abstract String getSessionToken();
+
+    /**
+     * Sets the AWS session token for this account info object.
+     *
+     * @param sessionToken The AWS session token.
+     */
+    public abstract void setSessionToken(String sessionToken);
 
     /**
      * Persist this account credentials information in the source where it was
@@ -88,9 +108,14 @@ public abstract class AccountCredentialsConfiguration {
      * i.e. both the access key and the secret key are non-empty.
      */
     public boolean isCredentialsValid() {
-        if (getAccessKey() == null || getAccessKey().length() == 0) return false;
-        if (getSecretKey() == null || getSecretKey().length() == 0) return false;
+        if (isEmpty(getAccessKey())) return false;
+        if (isEmpty(getSecretKey())) return false;
+        if (isUseSessionToken() && isEmpty(getSessionToken())) return false;
         return true;
+    }
+
+    private boolean isEmpty(String value) {
+        return value == null || value.isEmpty();
     }
 
 }
