@@ -39,9 +39,6 @@ public class NoCredentialsConfiguredWizardFragment extends AbstractDeployWizardP
     }
 
     @Override
-    protected void radioButtonSelected(Object sourceButton) {}
-
-    @Override
     public Composite createComposite(Composite parent, IWizardHandle handle) {
         wizardHandle = handle;
 

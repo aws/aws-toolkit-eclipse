@@ -1,0 +1,16 @@
+AWS Toolkit for Eclipse
+Copyright 2010-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+This product includes software developed by
+Amazon Technologies, Inc (http://www.amazon.com/).
+
+**********************
+THIRD PARTY COMPONENTS
+**********************
+This software includes third party software subject to the following copyrights:
+- Logging framework from Apache Commons Logging - Copyright 2003-2014 The Apache Software Foundation 
+- Httpclient libraries from Apache Http Client - Copyright 2005-2015 The Apache Software Foundation
+- JSON parsing and utility functions Jackson - Copyright 2005 
+- Date and Timestamp utilities from Jodatime - Copyright Joda.org (http://www.joda.org/).
+- HTML parsing libraries from jsoup - Copyright  2009 - 2013 Jonathan Hedley (jonathan@hedley.net).
+- XML parsing and utility functions from Stax - Copyright 2005 Aleksander Slominski, Chris Fry.

@@ -42,8 +42,11 @@ public abstract class ResourceEditorDataLoaderThread extends Thread {
     }
 
     protected void setText(Text label, Date value) {
-        if (value == null) label.setText("");
-        else label.setText(new DateUtils().formatRfc822Date(value));
+        if (value == null) {
+            label.setText("");
+        } else {
+            label.setText(DateUtils.formatRFC822Date(value));
+        }
     }
     
     protected void setText(Text label, Boolean value) {
@@ -74,8 +77,11 @@ public abstract class ResourceEditorDataLoaderThread extends Thread {
     }
     
     protected void setText(Label label, Date value) {
-        if (value == null) label.setText("");
-        else label.setText(new DateUtils().formatRfc822Date(value));
+        if (value == null) {
+            label.setText("");
+        } else {
+            label.setText(DateUtils.formatRFC822Date(value));
+        }
     }
     
     protected void setText(Label label, Boolean value) {

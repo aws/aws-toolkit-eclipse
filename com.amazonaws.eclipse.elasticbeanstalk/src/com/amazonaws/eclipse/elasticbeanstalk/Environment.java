@@ -74,7 +74,8 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_SNS_ENDPOINT             = "snsEndpoint";
     private static final String PROPERTY_SOLUTION_STACK           = "solutionStack";
     private static final String PROPERTY_INCREMENTAL_DEPLOYMENT   = "incrementalDeployment";
-    private static final String PROPERTY_IAM_ROLE_NAME            = "iamRoleName";
+    private static final String PROPERTY_INSTANCE_ROLE_NAME       = "instanceRoleName";
+    private static final String PROPERTY_SERVICE_ROLE_NAME        = "serviceRoleName";
     private static final String PROPERTY_SKIP_IAM_ROLE_AND_INSTANCE_PROFILE_CREATION
                                                                   = "skipIamRoleAndInstanceProfileCreation";
     private static final String PROPERTY_WORKER_QUEUE_URL         = "workerQueueUrl";
@@ -223,15 +224,15 @@ public class Environment extends ServerDelegate {
     }
 
     /**
-     * Sets the name for the optional IAM role for this environment. If a role is
+     * Sets the name for the optional instance IAM role for this environment. If a role is
      * specified, the EC2 instances launched in this environment will have that
      * role available, including secure credentials distribution.
      *
-     * @param name
-     *            The name for a valid IAM role.
+     * @param instanceRoleName
+     *            The name for a valid instance IAM role.
      */
-    public void setIamRoleName(String name) {
-        setAttribute(PROPERTY_IAM_ROLE_NAME, name);
+    public void setInstanceRoleName(String instanceRoleName) {
+        setAttribute(PROPERTY_INSTANCE_ROLE_NAME, instanceRoleName);
     }
 
     /**
@@ -241,8 +242,29 @@ public class Environment extends ServerDelegate {
      *
      * @return The name of a valid IAM role.
      */
-    public String getIamRoleName() {
-        return getAttribute(PROPERTY_IAM_ROLE_NAME, (String)null);
+    public String getInstanceRoleName() {
+        return getAttribute(PROPERTY_INSTANCE_ROLE_NAME, (String)null);
+    }
+
+    /**
+     * Sets the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
+     * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
+     * 
+     * @param serviceRoleName
+     *            The name of the role that ElasticBeanstalk can assume
+     */
+    public void setServiceRoleName(String serviceRoleName) {
+        setAttribute(PROPERTY_SERVICE_ROLE_NAME, serviceRoleName);
+    }
+
+    /**
+     * Returns the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
+     * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
+     * 
+     * @return The name of the role that ElasticBeanstalk can assume
+     */
+    public String getServiceRoleName() {
+        return getAttribute(PROPERTY_SERVICE_ROLE_NAME, (String) null);
     }
 
     public void setSkipIamRoleAndInstanceProfileCreation(boolean skip) {

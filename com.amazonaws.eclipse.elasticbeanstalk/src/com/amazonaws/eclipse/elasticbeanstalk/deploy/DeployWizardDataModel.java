@@ -52,7 +52,8 @@ public class DeployWizardDataModel {
     public static final String SNS_ENDPOINT = "snsEndpoint";
     public static final String SSL_CERTIFICATE_ID = "sslCertificateId";
     public static final String HEALTH_CHECK_URL = "healthCheckUrl";
-    public static final String IAM_ROLE = "iamRole";
+    public static final String INSTANCE_ROLE_NAME = "instanceRoleName";
+    public static final String SERVICE_ROLE_NAME = "serviceRoleName";
 
     public static final String REGION_ENDPOINT = "regionEndpoint";
 
@@ -80,7 +81,8 @@ public class DeployWizardDataModel {
     private String snsEndpoint;
     private String healthCheckUrl;
     private String sslCertificateId;
-    private Role iamRole;
+    private String instanceRoleName;
+    private String serviceRoleName;
 
     private boolean skipIamRoleAndInstanceProfileCreation;
 
@@ -261,43 +263,59 @@ public class DeployWizardDataModel {
     }
 
     /**
-     * Sets the optional IAM role to use when launching this environment. Using
-     * a role will cause it to be available on the EC2 instances running as part
-     * of the Beanstalk environment, and allow applications to securely access
-     * credentials from that role.
+     * Sets the optional IAM role to use when launching this environment. Using a role will cause it
+     * to be available on the EC2 instances running as part of the Beanstalk environment, and allow
+     * applications to securely access credentials from that role.
      *
      * @param role
-     *            The role with which to launch EC2 instances in the Beanstalk
-     *            environment.
+     *            The role with which to launch EC2 instances in the Beanstalk environment.
      */
-    public void setIamRole(Role role) {
-        this.iamRole = role;
+    public void setInstanceRoleName(String roleName) {
+        this.instanceRoleName = roleName;
     }
 
     /**
-     * Returns the optional IAM role to use when launching this environment.
-     * Using a role will cause the role's security credentials to be securely
-     * distributed to the EC2 instances running as part of the Beanstalk
-     * environment.
+     * Returns the optional IAM role to use when launching this environment. Using a role will cause
+     * the role's security credentials to be securely distributed to the EC2 instances running as
+     * part of the Beanstalk environment.
      *
-     * @return The optional role with which to launch EC2 instances in the
-     *         Beanstalk environment.
+     * @return The optional role name with which to launch EC2 instances in the Beanstalk
+     *         environment.
      */
-    public Role getIamRole() {
-        return iamRole;
+    public String getInstanceRoleName() {
+        return instanceRoleName;
     }
 
     /**
-     * Returns true if the name of the IAM role/Instance Profile is directly
-     * provided via user input and that the plugin should not attempt
-     * to re-create them.
+     * Returns the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
+     * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
+     * 
+     * @return The name of the role that ElasticBeanstalk can assume
+     */
+    public String getServiceRoleName() {
+        return serviceRoleName;
+    }
+
+    /**
+     * Sets the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
+     * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
+     * 
+     * @param serviceRoleName
+     *            The name of the role that ElasticBeanstalk can assume
+     */
+    public void setServiceRoleName(String serviceRoleName) {
+        this.serviceRoleName = serviceRoleName;
+    }
+
+    /**
+     * Returns true if the name of the IAM role/Instance Profile is directly provided via user input
+     * and that the plugin should not attempt to re-create them.
      */
     public boolean isSkipIamRoleAndInstanceProfileCreation() {
         return skipIamRoleAndInstanceProfileCreation;
     }
 
-    public void setSkipIamRoleAndInstanceProfileCreation(
-            boolean skipIamRoleAndInstanceProfileCreation) {
+    public void setSkipIamRoleAndInstanceProfileCreation(boolean skipIamRoleAndInstanceProfileCreation) {
         this.skipIamRoleAndInstanceProfileCreation = skipIamRoleAndInstanceProfileCreation;
     }
 

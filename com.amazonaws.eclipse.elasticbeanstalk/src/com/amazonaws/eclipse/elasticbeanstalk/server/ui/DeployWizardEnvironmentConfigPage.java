@@ -14,25 +14,12 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.server.ui;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.eclipse.core.databinding.beans.PojoObservables;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.databinding.swt.ISWTObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.viewers.IViewerObservableValue;
 import org.eclipse.jface.databinding.viewers.ViewersObservables;
 import org.eclipse.jface.fieldassist.ControlDecoration;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -40,41 +27,26 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.diagnostic.utils.ServiceExceptionParser;
-import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 import com.amazonaws.eclipse.ec2.databinding.ValidKeyPairValidator;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
-import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
-import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPublishingUtils;
-import com.amazonaws.eclipse.elasticbeanstalk.deploy.DefaultRole;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.databinding.NoInvalidNameCharactersValidator;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
-import com.amazonaws.services.identitymanagement.model.ListRolesResult;
-import com.amazonaws.services.identitymanagement.model.Role;
 
 class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
-
-    private static final String IAM_ROLE_PERMISSIONS_DOC_URL = "http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.iam.roles.logs.html#iampolicy";
 
     private KeyPairComposite keyPairComposite;
     private Button usingCnameButton;
     private Text cname;
     private Button usingKeyPair;
     private Button incrementalDeploymentButton;
-    private ComboViewer iamRoleComboViewer;
     private Text healthCheckText;
     private Text workerQueueUrlText;
 
@@ -85,10 +57,8 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     private ISWTObservableValue snsTopicObservable;
     private ISWTObservableValue workerQueueUrlObservable;
 
-
     public DeployWizardEnvironmentConfigPage(DeployWizardDataModel wizardDataModel) {
         super(wizardDataModel);
-        setComplete(true);
     }
 
     @Override
@@ -106,49 +76,12 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         createHealthCheckURLControls(composite);
         createQueueURLControls(composite);
         createSNSTopicControls(composite);
-        createIamRoleControls(composite);
         newLabel(composite, "");
         createIncrementalDeploymentControls(composite);
 
         bindControls();
         initializeDefaults();
-
-        new LoadIamRolesJob("Loading IAM Roles").schedule();
-
         return composite;
-    }
-
-    private void createIamRoleControls(Composite parent) {
-        newLabel(parent, "IAM role");
-
-        iamRoleComboViewer = new ComboViewer(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
-        iamRoleComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-        iamRoleComboViewer.setLabelProvider(new LabelProvider() {
-            @Override
-            public String getText(Object element) {
-                if (element instanceof DefaultRole) {
-                    return "Default (aws-elasticbeanstalk-ec2-role)";
-                }
-                if (element instanceof Role) {
-                    return ((Role)element).getRoleName();
-                } else {
-                    return "";
-                }
-            }
-        });
-        iamRoleComboViewer.getCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-
-        Link link = new Link(parent, SWT.WRAP);
-        WebLinkListener webLinkListener = new WebLinkListener();
-        link.addListener(SWT.Selection, webLinkListener);
-
-        link.setText("If you choose not to use the default role, you must grant the relevant permissions to Elastic Beanstalk. " +
-                "See the <a href=\"" + IAM_ROLE_PERMISSIONS_DOC_URL + "\">AWS Elastic Beanstalk Developer Guide</a> for more details.");
-
-        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gridData.widthHint = 200;
-        link.setLayoutData(gridData);
     }
 
     private void createQueueURLControls(final Composite parent) {
@@ -190,7 +123,8 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
 
     private void createKeyPairComposite(Composite composite) {
         usingKeyPair = newCheckbox(composite, "Deploy with a key pair", 1);
-        keyPairComposite = new KeyPairComposite(composite, AwsToolkitCore.getDefault().getCurrentAccountId(), wizardDataModel.getRegion());
+        keyPairComposite = new KeyPairComposite(composite, AwsToolkitCore.getDefault().getCurrentAccountId(),
+                wizardDataModel.getRegion());
         wizardDataModel.setKeyPairComposite(keyPairComposite);
 
         usingKeyPair.addSelectionListener(new SelectionAdapter() {
@@ -276,9 +210,8 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
 
         bindingContext.bindValue(keyPairSelectionObservable,
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.KEY_PAIR), null, null);
-        ChainValidator<String> keyPairValidator = new ChainValidator<String>(
-                keyPairSelectionObservable, usingKeyPairObservable,
-                new ValidKeyPairValidator(AwsToolkitCore.getDefault().getCurrentAccountId()));
+        ChainValidator<String> keyPairValidator = new ChainValidator<String>(keyPairSelectionObservable,
+                usingKeyPairObservable, new ValidKeyPairValidator(AwsToolkitCore.getDefault().getCurrentAccountId()));
         bindingContext.addValidationStatusProvider(keyPairValidator);
 
         usingCnameObservable = SWTObservables.observeSelection(usingCnameButton);
@@ -314,21 +247,9 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
         bindingContext.bindValue(SWTObservables.observeSelection(incrementalDeploymentButton),
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.INCREMENTAL_DEPLOYMENT));
 
-        // IAM Role
-        IViewerObservableValue iamRoleComboObservable = ViewersObservables.observeSingleSelection(iamRoleComboViewer);
-        bindingContext.bindValue(iamRoleComboObservable,
-            PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.IAM_ROLE));
-
         // Worker Queue URL
-        bindingContext.bindValue(
-            workerQueueUrlObservable,
-            PojoObservables.observeValue(
-                wizardDataModel,
-                DeployWizardDataModel.WORKER_QUEUE_URL));
-    }
-
-    @Override
-    protected void radioButtonSelected(Object sourceButton) {
+        bindingContext.bindValue(workerQueueUrlObservable,
+                PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.WORKER_QUEUE_URL));
     }
 
     @Override
@@ -339,131 +260,6 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     @Override
     public String getPageDescription() {
         return "Specify advanced properties for your environment";
-    }
-
-    private final class LoadIamRolesJob extends Job {
-        private LoadIamRolesJob(String name) {
-            super(name);
-            setUser(false);
-        }
-
-        @Override
-        protected IStatus run(IProgressMonitor monitor) {
-            try {
-                // Just grab the IAM client for the active account/region...
-                // This wizard always works with the active account and IAM only has one region (except for GovCloud)
-                AmazonIdentityManagement iam = AwsToolkitCore.getClientFactory().getIAMClient();
-
-                final List<Role> roles = new LinkedList<Role>();
-                DefaultRole defaultRole = null;
-
-                ListRolesRequest request = new ListRolesRequest();
-                ListRolesResult result = null;
-
-                try {
-                    do {
-                        result = iam.listRoles(request);
-                        for (Role role : result.getRoles()) {
-                            if (role.getRoleName().equals(ElasticBeanstalkPublishingUtils.DEFAULT_ROLE_NAME)) {
-                                defaultRole = new DefaultRole(false); // isToBeCreated = false
-                                roles.add(defaultRole);
-                            } else {
-                                roles.add(role);
-                            }
-                        }
-
-                        if (result.isTruncated()) {
-                            request.setMarker(result.getMarker());
-                        }
-                    } while (result.isTruncated());
-
-                } catch (AmazonServiceException ase) {
-
-                    // Allow the user to manually put the role name if the IAM user
-                    // doens't have the permission for iam:ListRoles
-                    if (ServiceExceptionParser.isOperationNotAllowedException(ase)) {
-
-                        // To hold a reference to the exception thrown from the UI thread
-                        final AtomicReference<Exception> exceptionRef = new AtomicReference<Exception>();
-
-                        Display.getDefault().syncExec(new Runnable() {
-
-                            public void run() {
-                                try {
-                                    IAMOperationNotAllowedErrorDialog dialog = new IAMOperationNotAllowedErrorDialog(
-                                            Display.getDefault().getActiveShell());
-                                    int code = dialog.open();
-
-                                    if (code == IAMOperationNotAllowedErrorDialog.RETRY_IAM_OPERATION
-                                            || code == IAMOperationNotAllowedErrorDialog.CLOSE) {
-                                        // Reload the IAM roles
-                                        new LoadIamRolesJob("Loading IAM Roles").schedule();
-
-                                    } else if (code == IAMOperationNotAllowedErrorDialog.PROCEED_WITHOUT_ROLE) {
-                                        // Create the environment without any IAM role associated with it
-                                        wizardDataModel.setIamRole(null);
-
-                                        Display.getDefault().asyncExec(new Runnable() {
-                                            public void run() {
-                                                iamRoleComboViewer.getCombo().setEnabled(false);
-                                            }
-                                        });
-
-                                    } else if (code == IAMOperationNotAllowedErrorDialog.PROCEED_WITH_EXISTING_ROLE) {
-                                        // If the user manually inputs an instance profile,
-                                        // directly use it as the role name and skip any role/profile creation.
-                                        wizardDataModel.setSkipIamRoleAndInstanceProfileCreation(true);
-
-                                        final Role userSpecifiedRole = new Role().withRoleName(dialog.getInstanceProfileName());
-                                        Display.getDefault().asyncExec(new Runnable() {
-                                            public void run() {
-                                                iamRoleComboViewer.setInput(Arrays.asList(userSpecifiedRole));
-                                                iamRoleComboViewer.setSelection(new StructuredSelection(userSpecifiedRole));
-                                            }
-                                        });
-
-                                    } else {
-                                        throw new IllegalStateException("Unexpected return code " + code);
-
-                                    }
-
-                                } catch (Exception e) {
-                                    exceptionRef.set(e);
-                                }
-                            }
-                        });
-
-                        Exception exception = exceptionRef.get();
-                        if (exception != null) throw exception;
-
-                        return Status.OK_STATUS;
-                    }
-                }
-
-                // Boostrap the default role if it's not found in the ListRoles result
-                if ( defaultRole == null ) {
-                    defaultRole = new DefaultRole(true); // isToBeCreated = true
-                    roles.add(defaultRole);
-                }
-
-                // We by default select the default role, whether or not it is boostrapped
-                final DefaultRole defaultSelection = defaultRole;
-                Display.getDefault().asyncExec(new Runnable() {
-                    public void run() {
-                        iamRoleComboViewer.setInput(roles);
-                        iamRoleComboViewer.setSelection(new StructuredSelection(defaultSelection));
-                    }
-                });
-
-                return Status.OK_STATUS;
-
-            } catch (Exception e) {
-                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID,
-                    "Unable to query AWS Identity and Access Management for available instance profiles", e);
-                ElasticBeanstalkPlugin.getDefault().getLog().log(status);
-                return status;
-            }
-        }
     }
 
 }

@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:DescribeInstanceHealth",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",
+        "ec2:GetConsoleOutput",
+        "ec2:AssociateAddress",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeSecurityGroups",
+        "sqs:GetQueueAttributes",
+        "sqs:GetQueueUrl",
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances",
+        "autoscaling:DescribeScalingActivities",
+        "autoscaling:DescribeNotificationConfigurations"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}

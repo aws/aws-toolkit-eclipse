@@ -40,6 +40,7 @@ public class DeployWizard extends WizardFragment {
 
     private DeployWizardApplicationSelectionPage applicationSelectionPage;
     private DeployWizardEnvironmentConfigPage releaseDetailsPage;
+    private DeployWizardRoleSelectionPage roleSelectionPage;
     private NoCredentialsConfiguredWizardFragment noCredentialsConfiguredWizardFragment;
 
     private final DeployWizardDataModel wizardDataModel = new DeployWizardDataModel();
@@ -52,6 +53,7 @@ public class DeployWizard extends WizardFragment {
 
     public DeployWizard() {
         applicationSelectionPage = new DeployWizardApplicationSelectionPage(wizardDataModel);
+        roleSelectionPage = new DeployWizardRoleSelectionPage(wizardDataModel);
         releaseDetailsPage = new DeployWizardEnvironmentConfigPage(wizardDataModel);
         noCredentialsConfiguredWizardFragment = new NoCredentialsConfiguredWizardFragment(wizardDataModel);
 
@@ -74,6 +76,7 @@ public class DeployWizard extends WizardFragment {
         List<WizardFragment> list = new ArrayList<WizardFragment>();
         if (AwsToolkitCore.getDefault().getAccountInfo().isValid()) {
             list.add(applicationSelectionPage);
+            list.add(roleSelectionPage);
             list.add(releaseDetailsPage);
         } else {
             list.add(noCredentialsConfiguredWizardFragment);
@@ -133,10 +136,8 @@ public class DeployWizard extends WizardFragment {
         environment.setIncrementalDeployment(wizardDataModel.isIncrementalDeployment());
         environment.setWorkerQueueUrl(wizardDataModel.getWorkerQueueUrl());
         environment.setSkipIamRoleAndInstanceProfileCreation(wizardDataModel.isSkipIamRoleAndInstanceProfileCreation());
-
-        if (wizardDataModel.getIamRole() != null) {
-            environment.setIamRoleName(wizardDataModel.getIamRole().getRoleName());
-        }
+        environment.setInstanceRoleName(wizardDataModel.getInstanceRoleName());
+        environment.setServiceRoleName(wizardDataModel.getServiceRoleName());
 
         if ( wizardDataModel.isUsingCname() ) {
             environment.setCname(wizardDataModel.getCname());

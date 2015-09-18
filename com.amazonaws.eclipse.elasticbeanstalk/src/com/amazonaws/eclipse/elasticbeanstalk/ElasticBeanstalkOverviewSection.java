@@ -31,10 +31,10 @@ import com.amazonaws.eclipse.elasticbeanstalk.webproject.NewAwsJavaWebProjectWiz
  */
 public class ElasticBeanstalkOverviewSection extends OverviewSection implements OverviewSection.V2 {
 
-    private static final String ELASTIC_BEANSTALK_GETTING_STARTED_GUIDE_URL = "http://aws.amazon.com/articles/4412341514662386" + "?"
-            + AwsUrls.TRACKING_PARAMS;
-    private static final String ELASTIC_BEANSTALK_ECLIPSE_SCREENCAST_URL = "http://d1un85p0f2qstc.cloudfront.net/eclipse/elasticbeanstalk/index.html" + "?"
-            + AwsUrls.TRACKING_PARAMS;
+    private static final String ELASTIC_BEANSTALK_GETTING_STARTED_GUIDE_URL = "http://aws.amazon.com/articles/4412341514662386"
+            + "?" + AwsUrls.TRACKING_PARAMS;
+    private static final String ELASTIC_BEANSTALK_ECLIPSE_SCREENCAST_URL = "http://d1un85p0f2qstc.cloudfront.net/eclipse/elasticbeanstalk/index.html"
+            + "?" + AwsUrls.TRACKING_PARAMS;
 
     @Override
     public void createControls(Composite parent) {
@@ -56,7 +56,7 @@ public class ElasticBeanstalkOverviewSection extends OverviewSection implements 
         public void run() {
             NewAwsJavaWebProjectWizard newWizard = new NewAwsJavaWebProjectWizard();
             newWizard.init(PlatformUI.getWorkbench(), null);
-            WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), newWizard);
+            WizardDialog dialog = new WizardDialog(Display.getDefault().getActiveShell(), newWizard);
             dialog.open();
         }
     };
@@ -65,7 +65,7 @@ public class ElasticBeanstalkOverviewSection extends OverviewSection implements 
         @Override
         public void run() {
             ImportEnvironmentsWizard newWizard = new ImportEnvironmentsWizard();
-            WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), newWizard);
+            WizardDialog dialog = new WizardDialog(Display.getDefault().getActiveShell(), newWizard);
             dialog.open();
         }
     };

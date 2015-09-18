@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:AddRoleToInstanceProfile",
+                "iam:CreateInstanceProfile",
+                "iam:CreateRole",
+                "iam:GetInstanceProfile",
+                "iam:GetRole",
+                "iam:ListRoles",
+                "iam:PassRole",
+                "iam:PutRolePolicy"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}

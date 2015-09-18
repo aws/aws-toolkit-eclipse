@@ -14,10 +14,11 @@
  */
 package com.amazonaws.eclipse.databinding;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.core.databinding.validation.IValidator;
 import org.eclipse.core.databinding.validation.ValidationStatus;
 import org.eclipse.core.runtime.IStatus;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Simple IValidator implementation that returns an OK status if the String

@@ -22,6 +22,7 @@ public interface ConfigurationOptionConstants {
     public static final String SNS_TOPICS  = "aws:elasticbeanstalk:sns:topics";
     public static final String APPLICATION = "aws:elasticbeanstalk:application";
     public static final String ENVIRONMENT_TYPE = "aws:elasticbeanstalk:environment";
+    public static final String HEALTH_REPORTING_SYSTEM = "aws:elasticbeanstalk:healthreporting:system";
     public static final String SQSD                = "aws:elasticbeanstalk:sqsd";
 
     public static final String TRIGGER             = "aws:autoscaling:trigger";

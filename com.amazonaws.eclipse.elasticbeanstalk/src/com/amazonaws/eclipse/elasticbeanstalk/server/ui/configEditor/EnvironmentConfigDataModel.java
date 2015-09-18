@@ -52,26 +52,21 @@ public class EnvironmentConfigDataModel {
     private static final Map<Environment, EnvironmentConfigDataModel> models = new HashMap<Environment, EnvironmentConfigDataModel>();
 
     private final Environment environment;
-    private IObservableMap dataModel;
-    private final List<ConfigurationOptionDescription> options;
-
+    private final IObservableMap dataModel;
     private final Map<OptionKey, IObservableValue> sharedObservables;
     private final List<RefreshListener> listeners;
-    private CancelableThread refreshThread;
+    private final List<ConfigurationOptionDescription> options;
+    private final IgnoredOptions ignoredOptions;
 
-    private final static Set<String> IGNORED_NAMESPACES = new HashSet<String>();
-    static {
-        IGNORED_NAMESPACES.add("aws:cloudformation:template:parameter");
-        // TODO: remove the following line once we support VPC environement
-        IGNORED_NAMESPACES.add("aws:ec2:vpc");
-    }
+    private CancelableThread refreshThread;
 
     private EnvironmentConfigDataModel(Environment environment) {
         this.environment = environment;
-        dataModel = new WritableMap();
-        sharedObservables = new HashMap<OptionKey, IObservableValue>();
-        listeners = new LinkedList<RefreshListener>();
-        options = new LinkedList<ConfigurationOptionDescription>();
+        this.dataModel = new WritableMap();
+        this.sharedObservables = new HashMap<OptionKey, IObservableValue>();
+        this.listeners = new LinkedList<RefreshListener>();
+        this.options = new LinkedList<ConfigurationOptionDescription>();
+        this.ignoredOptions = IgnoredOptions.getDefault();
     }
 
     /**
@@ -131,7 +126,7 @@ public class EnvironmentConfigDataModel {
          *
          */
         for ( ConfigurationOptionDescription opt : options ) {
-            if ( !IGNORED_NAMESPACES.contains(opt.getNamespace()) ) {
+            if (!ignoredOptions.isNamespaceIgnored(opt.getNamespace())) {
                 List<ConfigurationOptionSetting> settingsInNamespace = settings.get(opt.getNamespace());
                 if ( settingsInNamespace != null ) {
                     for ( ConfigurationOptionSetting setting : settingsInNamespace ) {
@@ -267,7 +262,7 @@ public class EnvironmentConfigDataModel {
 
         List<ConfigurationOptionDescription> options = new ArrayList<ConfigurationOptionDescription>();
         for ( ConfigurationOptionDescription desc : optionsDesc.getOptions() ) {
-            if ( !IGNORED_NAMESPACES.contains(desc.getNamespace()) ) {
+            if (!ignoredOptions.isOptionIgnored(desc.getNamespace(), desc.getName())) {
                 options.add(desc);
             }
         }
@@ -462,4 +457,51 @@ public class EnvironmentConfigDataModel {
         }
     }
 
+    /**
+     * Container for ignored namespaces and options
+     */
+    public static class IgnoredOptions {
+
+        static final String IGNORE_ALL_OPTIONS = "aws:eclipse:toolkit:IGNORE_ALL_OPTIONS_IN_NAMESPACE";
+
+        private final Map<String, List<String>> ignoredOptions;
+
+        public static IgnoredOptions getDefault() {
+            IgnoredOptions options = new IgnoredOptions(new HashMap<String, List<String>>());
+            options.ignoreNamespace("aws:cloudformation:template:parameter");
+            options.ignoreNamespace("aws:ec2:vpc");
+            options.ignoreOption(ConfigurationOptionConstants.HEALTH_REPORTING_SYSTEM, "ConfigDocument");
+            return options;
+        }
+
+        public IgnoredOptions(Map<String, List<String>> ignoredOptions) {
+            this.ignoredOptions = ignoredOptions;
+        }
+
+        public boolean isOptionIgnored(String namespace, String optionName) {
+            return isNamespaceIgnored(namespace) || containsOption(namespace, optionName);
+        }
+
+        public boolean isNamespaceIgnored(String namespace) {
+            return containsOption(namespace, IGNORE_ALL_OPTIONS);
+        }
+
+        private boolean containsOption(String namespace, String option) {
+            if (!ignoredOptions.containsKey(namespace)) {
+                return false;
+            }
+            return ignoredOptions.get(namespace).contains(option);
+        }
+
+        void ignoreOption(String namespace, String optionName) {
+            if (ignoredOptions.get(namespace) == null) {
+                ignoredOptions.put(namespace, new LinkedList<String>());
+            }
+            ignoredOptions.get(namespace).add(optionName);
+        }
+
+        void ignoreNamespace(String namespace) {
+            ignoreOption(namespace, IGNORE_ALL_OPTIONS);
+        }
+    }
 }

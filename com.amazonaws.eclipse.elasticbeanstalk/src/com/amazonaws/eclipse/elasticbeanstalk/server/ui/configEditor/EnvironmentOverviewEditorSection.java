@@ -16,14 +16,22 @@ package com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor;
 
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.forms.IFormColors;
@@ -43,8 +51,12 @@ import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentHealthRequest;
+import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentHealthResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
+import com.amazonaws.services.elasticbeanstalk.model.InvalidRequestException;
+import com.amazonaws.util.CollectionUtils;
+import com.amazonaws.util.StringUtils;
 
 /**
  * Environment overview editor section
@@ -58,28 +70,31 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
 
     private FormToolkit toolkit;
 
-    private Text environmentNameLabel;
-    private Text environmentDescriptionLabel;
-    private Text regionNameLabel;
-    private Text applicationNameLabel;
-    private Text applicationVersionLabel;
-    private Text applicationTierLabel;
-    private Text statusLabel;
-    private Text healthLabel;
-    private Text solutionStackLabel;
-    private Text createdOnLabel;
-    private Text dateUpdatedLabel;
+    private StyledText environmentNameLabel;
+    private StyledText environmentDescriptionLabel;
+    private StyledText regionNameLabel;
+    private StyledText applicationNameLabel;
+    private StyledText applicationVersionLabel;
+    private StyledText applicationTierLabel;
+    private StyledText statusLabel;
+    private StyledText healthLabel;
+    private StyledText healthCausesLabel;
+    private StyledText solutionStackLabel;
+    private StyledText createdOnLabel;
+    private StyledText dateUpdatedLabel;
     private Hyperlink environmentUrlHyperlink;
     private Hyperlink owningAccountHyperlink;
 
-    /* (non-Javadoc)
-     * @see org.eclipse.wst.server.ui.editor.ServerEditorSection#init(org.eclipse.ui.IEditorSite, org.eclipse.ui.IEditorInput)
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.wst.server.ui.editor.ServerEditorSection#init(org.eclipse.ui.IEditorSite,
+     * org.eclipse.ui.IEditorInput)
      */
     @Override
     public void init(IEditorSite site, IEditorInput input) {
         super.init(site, input);
 
-        environment = (Environment)server.loadAdapter(Environment.class, null);
+        environment = (Environment) server.loadAdapter(Environment.class, null);
     }
 
     @Override
@@ -102,12 +117,13 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         toolkit = getFormToolkit(parent.getDisplay());
 
         section = toolkit.createSection(parent, ExpandableComposite.TWISTIE | ExpandableComposite.EXPANDED
-            | ExpandableComposite.TITLE_BAR | Section.DESCRIPTION | ExpandableComposite.FOCUS_TITLE);
+                | ExpandableComposite.TITLE_BAR | Section.DESCRIPTION | ExpandableComposite.FOCUS_TITLE);
         section.setText("AWS Elastic Beanstalk Environment");
         section.setDescription("Basic information about your environment.");
         section.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
 
-        GridData horizontalAndVerticalFillGridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL);
+        GridData horizontalAndVerticalFillGridData = new GridData(GridData.FILL_HORIZONTAL
+                | GridData.VERTICAL_ALIGN_FILL);
 
         Composite composite = toolkit.createComposite(section);
         GridLayout layout = new GridLayout();
@@ -124,7 +140,8 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         section.setLayoutData(horizontalAndVerticalFillGridData);
 
         environmentNameLabel = createRow(composite, "Environment Name: ", environment.getEnvironmentName());
-        environmentDescriptionLabel = createRow(composite, "Environment Description: ", environment.getEnvironmentDescription());
+        environmentDescriptionLabel = createRow(composite, "Environment Description: ",
+                environment.getEnvironmentDescription());
 
         if (ConfigurationOptionConstants.WEB_SERVER.equals(environment.getEnvironmentTier())) {
             createLabel(toolkit, composite, "Environment URL:");
@@ -141,13 +158,14 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
 
         statusLabel = createRow(composite, "Status:", "");
         healthLabel = createRow(composite, "Health: ", "");
+        healthCausesLabel = createRow(composite, "Causes:", "");
         solutionStackLabel = createRow(composite, "Solution Stack: ", "");
         createdOnLabel = createRow(composite, "Created On: ", "");
         dateUpdatedLabel = createRow(composite, "Last Updated: ", "");
 
         String accountId = environment.getAccountId();
         String accountName = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames().get(accountId);
-        if ( accountName != null ) {
+        if (accountName != null) {
             createLabel(toolkit, composite, "AWS Account: ");
             String href = "preference:" + AwsAccountPreferencePage.ID;
             String text = accountName;
@@ -160,18 +178,20 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
     }
 
     private void refreshEnvironmentDetails() {
+        new LoadHealthStatusJob().schedule();
+
         String regionEndpoint = environment.getRegionEndpoint();
         try {
             Region region = RegionUtils.getRegionByEndpoint(regionEndpoint);
             regionNameLabel.setText(region.getName());
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             regionNameLabel.setText(regionEndpoint);
         }
 
         EnvironmentDescription environmentDescription = environment.getCachedEnvironmentDescription();
         if (environmentDescription != null) {
             environmentNameLabel.setText(environmentDescription.getEnvironmentName());
-            if ( environmentDescription.getDescription() != null ) {
+            if (environmentDescription.getDescription() != null) {
                 environmentDescriptionLabel.setText(environmentDescription.getDescription());
             }
 
@@ -186,13 +206,12 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
             applicationTierLabel.setText(environmentDescription.getTier().getName());
             statusLabel.setText(environmentDescription.getStatus());
 
-            healthLabel.setText(environmentDescription.getHealth());
             solutionStackLabel.setText(environmentDescription.getSolutionStackName());
             createdOnLabel.setText(environmentDescription.getDateCreated().toString());
             dateUpdatedLabel.setText(environmentDescription.getDateUpdated().toString());
         } else {
             environmentNameLabel.setText(environment.getEnvironmentName());
-            if ( environment.getEnvironmentDescription() != null ) {
+            if (environment.getEnvironmentDescription() != null) {
                 environmentDescriptionLabel.setText(environment.getEnvironmentDescription());
             }
 
@@ -216,9 +235,9 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         return new ElasticBeanstalkClientExtensions(environment).getEnvironmentDescription(environmentName);
     }
 
-    protected Text createRow(Composite composite, String labelText, String value) {
+    protected StyledText createRow(Composite composite, String labelText, String value) {
         createLabel(toolkit, composite, labelText);
-        Text text = createReadOnlyText(toolkit, composite, value);
+        StyledText text = createReadOnlyText(toolkit, composite, value);
         text.setLayoutData(new GridData(GridData.FILL_BOTH));
         return text;
     }
@@ -229,12 +248,103 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         return label;
     }
 
-    protected Text createReadOnlyText(FormToolkit toolkit, Composite parent, String text) {
-        Text t = new Text(parent, SWT.READ_ONLY | SWT.NO_FOCUS);
+    protected StyledText createReadOnlyText(FormToolkit toolkit, Composite parent, String text) {
+        StyledText t = new StyledText(parent, SWT.READ_ONLY | SWT.NO_FOCUS | SWT.WRAP);
         t.setText(text);
         GridData gridData = new GridData(GridData.FILL_BOTH);
         gridData.widthHint = 400;
         t.setLayoutData(gridData);
         return t;
     }
+
+    /**
+     * Italize all text in the StyledText. Should be called after text is set.
+     * 
+     * @param styledText
+     */
+    private static void italizeStyledText(StyledText styledText) {
+        StyleRange italicStyle = new StyleRange();
+        italicStyle.fontStyle = SWT.ITALIC;
+        italicStyle.length = styledText.getText().length();
+        styledText.setStyleRange(italicStyle);
+    }
+
+    /**
+     * Background job to load the environment health data and dump it into the UI
+     */
+    private final class LoadHealthStatusJob extends Job {
+
+        private final BeanstalkHealthColorConverter colorConverter = new BeanstalkHealthColorConverter(
+                new LocalResourceManager(JFaceResources.getResources(), section));
+        private final AWSElasticBeanstalk beanstalk = environment.getClient();
+
+        public LoadHealthStatusJob() {
+            super("Loading Health Status");
+        }
+
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+            try {
+                updateEnhancedHealthControls(getEnvironmentHealth());
+            } catch (InvalidRequestException e) {
+                // Enhanced health isn't supported for this environment so just show the basic data
+                // from the EnvironmentDescription
+                updateBasicHealthControls();
+            }
+            return Status.OK_STATUS;
+        }
+
+        private DescribeEnvironmentHealthResult getEnvironmentHealth() {
+            return beanstalk.describeEnvironmentHealth(new DescribeEnvironmentHealthRequest().withEnvironmentName(
+                    environment.getEnvironmentName()).withAttributeNames("All"));
+        }
+
+        /**
+         * Update the Health using data from the {@link EnvironmentDescription} since Enhanced
+         * health reporting is not enabled for this environment
+         */
+        private void updateBasicHealthControls() {
+            final EnvironmentDescription envDesc = environment.getCachedEnvironmentDescription();
+            Display.getDefault().asyncExec(new Runnable() {
+                public void run() {
+                    healthLabel.setForeground(colorConverter.toColor(envDesc.getHealth()));
+                    healthLabel.setText(envDesc.getHealth());
+                    healthCausesLabel
+                            .setText("Causes information is only available for environments with Enhanced Health Reporting enabled");
+                    italizeStyledText(healthCausesLabel);
+                }
+            });
+        }
+
+        /**
+         * Update the Health and Causes using data from the {@link DescribeEnvironmentHealthResult}
+         * for the Enhanced Health capable environment
+         */
+        private void updateEnhancedHealthControls(final DescribeEnvironmentHealthResult result) {
+            Display.getDefault().asyncExec(new Runnable() {
+                public void run() {
+                    healthLabel.setText(result.getHealthStatus());
+                    healthLabel.setForeground(colorConverter.toColor(result.getColor()));
+                    healthCausesLabel.setText(getCausesDisplayText(result.getCauses()));
+                }
+            });
+        }
+
+        /**
+         * Convert the list of causes to something that can be displayed in the Text control
+         * 
+         * @param causes
+         *            List of causes for non-OK health statuses
+         * @return Display string
+         */
+        private String getCausesDisplayText(List<String> causes) {
+            if (!CollectionUtils.isNullOrEmpty(causes)) {
+                return StringUtils.join(",", causes.toArray(new String[0]));
+            } else {
+                return "";
+            }
+        }
+
+    }
+
 }

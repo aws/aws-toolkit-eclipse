@@ -232,9 +232,8 @@ public class AwsPortalFeedbackFormUtils {
 
         try {
             request.setEntity(new StringEntity(payload, "UTF-8"));
-        } catch (UnsupportedEncodingException uee) {
-            throw new AmazonClientException("Unable to send POST request to "
-                    + FORM_URL, uee);
+        } catch (Exception e) {
+            throw new AmazonClientException("Unable to send POST request to " + FORM_URL, e);
         }
 
         HttpResponse response;

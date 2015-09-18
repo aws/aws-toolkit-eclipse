@@ -40,11 +40,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
+import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.NotEmptyValidator;
 
@@ -98,10 +98,11 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
     protected IChangeListener changeListener;
 
     /**
-     * Subclasses can use this callback method to be notified when the value of
-     * a radio button changes so that any additional UI updates can be made.
+     * Subclasses can override this callback method to be notified when the value of a radio button
+     * changes so that any additional UI updates can be made.
      */
-    protected abstract void radioButtonSelected(Object sourceButton);
+    protected void radioButtonSelected(Object sourceButton) {
+    }
 
     protected AbstractDeployWizardPage(DeployWizardDataModel wizardDataModel) {
         this.wizardDataModel = wizardDataModel;
@@ -230,16 +231,14 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         return label;
     }
 
-    public static Link newLink(Composite composite, Listener linkListener, String linkText, int colspan) {
+    public static Link newLink(Composite composite, String message) {
         Link link = new Link(composite, SWT.WRAP);
-        link.setText(linkText);
-        link.addListener(SWT.Selection, linkListener);
-        GridData data = new GridData(SWT.FILL, SWT.TOP, true, false);
-        data.horizontalSpan = colspan;
-        data.widthHint = 100;
-        link.setLayoutData(data);
+        WebLinkListener webLinkListener = new WebLinkListener();
+        link.addListener(SWT.Selection, webLinkListener);
+        link.setText(message);
         return link;
     }
+
     public static Combo newCombo(Composite parent) {
         Combo combo = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
         combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));

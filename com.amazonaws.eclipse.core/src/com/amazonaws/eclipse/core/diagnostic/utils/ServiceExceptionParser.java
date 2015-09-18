@@ -34,8 +34,9 @@ public class ServiceExceptionParser {
      * Returns true if the given service exception indicates that the current
      * IAM user doesn't have sufficient permission to perform the operation.
      */
-    public static boolean isOperationNotAllowedException(AmazonServiceException ase) {
-        return parseOperationNotAllowedException(ase) != null;
+    public static boolean isOperationNotAllowedException(Exception e) {
+        return e instanceof AmazonServiceException
+                && parseOperationNotAllowedException((AmazonServiceException) e) != null;
     }
 
     /**
