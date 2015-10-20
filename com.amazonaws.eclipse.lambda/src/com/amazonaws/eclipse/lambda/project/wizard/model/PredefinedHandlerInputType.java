@@ -5,7 +5,8 @@ public enum PredefinedHandlerInputType {
     S3_EVENT("S3Event", "com.amazonaws.services.lambda.runtime.events.S3Event", "S3 Event", true, "s3-event.put.json"),
     SNS_EVENT("SNSEvent", "com.amazonaws.services.lambda.runtime.events.SNSEvent", "SNS Event", true, "sns-event.json"),
     KINESIS_EVENT("KinesisEvent", "com.amazonaws.services.lambda.runtime.events.KinesisEvent", "Kinesis Event", true, "kinesis-event.json"),
-    COGNITO_EVENT("CognitoEvent", "com.amazonaws.services.lambda.runtime.events.CognitoEvent", "Cognito Event", true, "cognito-sync-event.json")
+    COGNITO_EVENT("CognitoEvent", "com.amazonaws.services.lambda.runtime.events.CognitoEvent", "Cognito Event", true, "cognito-sync-event.json"),
+    DYNAMODB_EVENT("DynamodbEvent", "com.amazonaws.services.lambda.runtime.events.DynamodbEvent", "DynamoDB Event", true, "dynamodb-update-event.json"),
     ;
 
     private final String className;

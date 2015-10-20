@@ -5,13 +5,13 @@
 GENERAL
 *************************************/
 body {
-    margin: 0;
+    margin: 15;
     padding: 0;
     font: 12px/1.4em "Lucida Grande", Verdana, sans-serif;
     color: #333;
     overflow-y: scroll;
     text-rendering: optimizeLegibility;
-    background-color: #d5e9ed;
+    background-color: #F2F2F2;
 }
 
 h2 {

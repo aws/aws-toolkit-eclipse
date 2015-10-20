@@ -15,11 +15,14 @@
 package com.amazonaws.eclipse.lambda;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.osgi.framework.BundleContext;
+
+import com.amazonaws.eclipse.lambda.project.listener.LambdaProjectChangeTracker;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -38,6 +41,8 @@ public class LambdaPlugin extends AbstractUIPlugin {
     /** The shared instance */
     private static LambdaPlugin plugin;
 
+    private final LambdaProjectChangeTracker projectChangeTracker = new LambdaProjectChangeTracker();
+
     /**
      * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
      */
@@ -45,6 +50,8 @@ public class LambdaPlugin extends AbstractUIPlugin {
         super.start(context);
 
         initializePreferenceStoreDefaults();
+        projectChangeTracker.clearDirtyFlags();
+        projectChangeTracker.start();
 
         plugin = this;
     }
@@ -54,6 +61,8 @@ public class LambdaPlugin extends AbstractUIPlugin {
      */
     public void stop(BundleContext context) throws Exception {
         plugin = null;
+        projectChangeTracker.clearDirtyFlags();
+        projectChangeTracker.stop();
         super.stop(context);
     }
 
@@ -68,6 +77,10 @@ public class LambdaPlugin extends AbstractUIPlugin {
      */
     public static LambdaPlugin getDefault() {
         return plugin;
+    }
+
+    public LambdaProjectChangeTracker getProjectChangeTracker() {
+        return projectChangeTracker;
     }
 
     /**
@@ -100,5 +113,14 @@ public class LambdaPlugin extends AbstractUIPlugin {
 
     public void warn(String message, Throwable e) {
         getLog().log(new Status(Status.WARNING, PLUGIN_ID, message, e));
+    }
+
+    /**
+     * Print the message in system.out if Eclipse is running in debugging mode.
+     */
+    public void trace(String message) {
+        if (Platform.inDebugMode()) {
+            System.out.println(message);
+        }
     }
 }

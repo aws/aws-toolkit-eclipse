@@ -90,7 +90,15 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
             if (retCode == InvokeFunctionInputDialog.INVOKE_BUTTON_ID) {
                 String input = inputDialog.getInputBoxContent();
-                invokeAfterRepeatingLastDeployment(input, project, md);
+
+                boolean isProjectDirty = LambdaPlugin.getDefault()
+                        .getProjectChangeTracker().isProjectDirty(project);
+
+                if (isProjectDirty) {
+                    invokeAfterRepeatingLastDeployment(input, project, md);
+                } else {
+                    invokeWithoutDeployment(input, project, md);
+                }
             }
 
         } else {
@@ -100,6 +108,18 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
     private static void invokeAfterRepeatingLastDeployment(final String invokeInput,
             final IProject project, final LambdaFunctionProjectMetadata metadata) {
+        _doInvoke(invokeInput, project, metadata, true);
+    }
+
+    private static void invokeWithoutDeployment(final String invokeInput,
+            final IProject project, final LambdaFunctionProjectMetadata metadata) {
+        _doInvoke(invokeInput, project, metadata, false);
+    }
+
+    private static void _doInvoke(final String invokeInput,
+            final IProject project,
+            final LambdaFunctionProjectMetadata metadata,
+            final boolean updateFunctionCode) {
 
         MessageConsole console = getOrCreateLambdaConsoleIfNotExist();
         console.clearConsole();
@@ -116,7 +136,19 @@ public class InvokeFunctionHandler extends AbstractHandler {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    updateFunctionCode(lambda, project, funcName, bucketName, consoleOutput);
+                    if (updateFunctionCode) {
+                        updateFunctionCode(lambda, project, funcName, bucketName, consoleOutput);
+                        /*
+                         * clear the dirty flag so that the next invoke will not
+                         * attempt to re-upload the code if no change is made to
+                         * the project.
+                         */
+                        LambdaPlugin.getDefault().getProjectChangeTracker()
+                                .markProjectAsNotDirty(project);
+                    } else {
+                        consoleOutput
+                                .println("Skip uploading function code since no local change is found...");
+                    }
                     invokeFunction(lambda, invokeInput, funcName, consoleOutput);
                     saveInvokeInputInProjectMetadata(invokeInput, project);
                 } catch (Exception e) {

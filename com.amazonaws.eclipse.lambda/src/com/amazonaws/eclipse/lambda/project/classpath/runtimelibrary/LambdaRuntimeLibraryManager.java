@@ -26,13 +26,13 @@ import com.amazonaws.eclipse.lambda.LambdaPlugin;
 
 public class LambdaRuntimeLibraryManager {
 
-    private static final String LAMBDA_RUNTIME_LIBRARY_LATEST_VERSION = "1.0";
+    private static final String LAMBDA_RUNTIME_LIBRARY_LATEST_VERSION = "1.1";
 
     private static final String LAMBDA_RUNTIME_JAR_BASEDIR = "lambda-runtime-jar";
     private static final String LAMBDA_RUNTIME_JAR_CORE = "aws-lambda-java-core-1.0.0.jar";
-    private static final String LAMBDA_RUNTIME_JAR_EVENTS = "aws-lambda-java-events-1.0.0.jar";
+    private static final String LAMBDA_RUNTIME_JAR_EVENTS = "aws-lambda-java-events-1.1.0.jar";
     private static final String LAMBDA_RUNTIME_JAR_CORE_JAVADOC = "aws-lambda-java-core-1.0.0-javadoc.jar";
-    private static final String LAMBDA_RUNTIME_JAR_EVENTS_JAVADOC = "aws-lambda-java-events-1.0.0-javadoc.jar";
+    private static final String LAMBDA_RUNTIME_JAR_EVENTS_JAVADOC = "aws-lambda-java-events-1.1.0-javadoc.jar";
 
     private static final LambdaRuntimeLibraryManager INSTANCE = new LambdaRuntimeLibraryManager();
 

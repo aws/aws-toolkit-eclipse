@@ -4,10 +4,14 @@ import static com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUt
 
 import java.io.File;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -17,6 +21,10 @@ import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
 
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
@@ -75,7 +83,16 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
                 }
 
                 refreshProject(project);
-                selectAndReveal(project);
+
+                IFile handlerClass = findHandlerClassFile(project, dataModel);
+                selectAndReveal(handlerClass);
+
+                try {
+                    openHandlerClassEditor(handlerClass);
+                } catch (Exception e) {
+                    LambdaPlugin.getDefault().warn(
+                            "Failed to open the handler class in the editor", e);
+                }
 
                 if (readmeFile != null) {
                     try {
@@ -87,6 +104,30 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
                 }
             }
         });
+    }
+
+    private static IFile findHandlerClassFile(IProject project,
+            NewLambdaJavaFunctionProjectWizardDataModel dataModel) {
+
+        IPath handlerPath = new Path("src");
+        JavaPackageName handlerPackage = JavaPackageName.parse(dataModel
+                .getHandlerPackageName());
+        for (String component : handlerPackage.getComponents()) {
+            handlerPath = handlerPath.append(component);
+        }
+        handlerPath = handlerPath.append(dataModel.getHandlerClassName()
+                + ".java");
+
+        return project.getFile(handlerPath);
+    }
+
+    private static void openHandlerClassEditor(IFile handlerFile)
+            throws PartInitException {
+
+        IWorkbenchPage page = PlatformUI.getWorkbench()
+                .getActiveWorkbenchWindow().getActivePage();
+
+        IDE.openEditor(page, handlerFile, true);
     }
 
     @Override

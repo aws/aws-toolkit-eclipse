@@ -2,6 +2,10 @@ package com.amazonaws.eclipse.lambda.project.metadata;
 
 import java.util.Properties;
 
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+
 public class LambdaFunctionProjectMetadata {
 
     private static final String P_LAST_DEPLOYMENT_ENDPOINT = "lastDeploymentEndpoint";
@@ -16,6 +20,21 @@ public class LambdaFunctionProjectMetadata {
 
     public String getLastDeploymentEndpoint() {
         return lastDeploymentEndpoint;
+    }
+
+    /**
+     * @return null if no lambda service endpoint matches the endpoint persisted
+     *         in this metadata
+     */
+    public Region getLastDeploymentRegion() {
+        for (Region region : RegionUtils
+                .getRegionsForService(ServiceAbbreviations.LAMBDA)) {
+            if (region.getServiceEndpoint(ServiceAbbreviations.LAMBDA).equals(
+                    lastDeploymentEndpoint)) {
+                return region;
+            }
+        }
+        return null;
     }
 
     public void setLastDeploymentEndpoint(String lastDeploymentEndpoint) {

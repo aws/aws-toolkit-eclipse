@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IProject;
 
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.lambda.ServiceApiUtils;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.services.lambda.model.CreateFunctionRequest;
 import com.amazonaws.services.lambda.model.FunctionConfiguration;
 import com.amazonaws.services.lambda.model.UpdateFunctionConfigurationRequest;
@@ -19,6 +20,7 @@ public class UploadFunctionWizardDataModel {
 
     private final IProject project;
     private final List<String> requestHandlerImplementerClasses;
+    private final LambdaFunctionProjectMetadata projectMetadataBeforeUpload;
 
     /* Page 1*/
     private Region region;
@@ -56,11 +58,15 @@ public class UploadFunctionWizardDataModel {
      * @param requestHandlerImplementerClasses
      *            a non-empty list of FQCNs of the classes within the project
      *            that implement the RequestHandler interface.
+     * @param projectMetadataBeforeUpload
+     *            the existing persistent metadata for this project
      */
     public UploadFunctionWizardDataModel(IProject project,
-            List<String> requestHandlerImplementerClasses) {
+            List<String> requestHandlerImplementerClasses,
+            LambdaFunctionProjectMetadata projectMetadataBeforeUpload) {
 
         this.project = project;
+        this.projectMetadataBeforeUpload = projectMetadataBeforeUpload;
 
         if (requestHandlerImplementerClasses.isEmpty()) {
             throw new IllegalArgumentException(
@@ -78,6 +84,10 @@ public class UploadFunctionWizardDataModel {
 
     public List<String> getRequestHandlerImplementerClasses() {
         return requestHandlerImplementerClasses;
+    }
+
+    public LambdaFunctionProjectMetadata getProjectMetadataBeforeUpload() {
+        return projectMetadataBeforeUpload;
     }
 
     public Region getRegion() {

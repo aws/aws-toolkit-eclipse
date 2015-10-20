@@ -14,15 +14,17 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.wizard.Wizard;
 
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.upload.wizard.page.FunctionConfigurationPage;
 import com.amazonaws.eclipse.lambda.upload.wizard.page.TargetFunctionSelectionPage;
@@ -33,9 +35,10 @@ public class UploadFunctionWizard extends Wizard {
     private final UploadFunctionWizardDataModel dataModel;
 
     public UploadFunctionWizard(IProject project,
-            List<String> requestHandlerImplementerClasses) {
+            List<String> requestHandlerImplementerClasses,
+            LambdaFunctionProjectMetadata projectMetadata) {
         dataModel = new UploadFunctionWizardDataModel(project,
-                requestHandlerImplementerClasses);
+                requestHandlerImplementerClasses, projectMetadata);
         setNeedsProgressMonitor(true);
     }
 
@@ -49,10 +52,10 @@ public class UploadFunctionWizard extends Wizard {
     public boolean performFinish() {
 
         try {
-            getContainer().run(true, false, new IRunnableWithProgress() {
+            Job uploadJob = new Job("Uploading function code to Lambda") {
 
-                public void run(IProgressMonitor monitor) throws InvocationTargetException,
-                        InterruptedException {
+                @Override
+                protected IStatus run(IProgressMonitor monitor) {
 
                     IProject project = dataModel.getProject();
 
@@ -62,21 +65,27 @@ public class UploadFunctionWizard extends Wizard {
                     try {
                         UploadFunctionUtil.performFunctionUpload(dataModel, monitor, 100);
                     } catch (Exception e) {
-                        LambdaPlugin.getDefault().reportException("Failed to upload project to Lambda", e);
-                        return;
+                        LambdaPlugin.getDefault().reportException(
+                                "Failed to upload project to Lambda", e);
+                        return new Status(Status.ERROR, LambdaPlugin.PLUGIN_ID,
+                                e.getMessage(), e);
                     }
 
-                    monitor.done();
-                }
-            });
+                    LambdaPlugin.getDefault().getProjectChangeTracker()
+                            .markProjectAsNotDirty(project);
 
-        } catch (InvocationTargetException e) {
+                    monitor.done();
+
+                    return Status.OK_STATUS;
+                }
+            };
+
+            uploadJob.setUser(true);
+            uploadJob.schedule();
+
+        } catch (Exception e) {
             LambdaPlugin.getDefault().reportException(
                     "Unexpected error during deployment", e.getCause());
-
-        } catch (InterruptedException e) {
-            LambdaPlugin.getDefault().reportException(
-                    "Unexpected InterruptedException during deployment", e.getCause());
         }
 
         return true;

@@ -120,6 +120,7 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
         initializeValidators();
         initializeDefaults();
 
+        // Force refresh function list
         onRegionSelectionChange();
 
         setControl(composite);
@@ -133,22 +134,28 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
         newFillingLabel(regionGroup,
                 "Select the AWS region where your Lambda function is created.");
 
+        Region initialRegion = null;
+
+        Region lastDeploymentRegion = getLastDeploymentRegion();
+
         regionCombo = newCombo(regionGroup);
         for (Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.LAMBDA)) {
             regionCombo.add(region.getName());
             regionCombo.setData(region.getName(), region);
+            if (region.equals(lastDeploymentRegion)) {
+                initialRegion = region;
+            }
         }
 
         // Find the default region selection
-        Region selectedRegion = dataModel.getRegion();
-        if (selectedRegion == null) {
+        if (initialRegion == null) {
             if ( RegionUtils.isServiceSupportedInCurrentRegion(ServiceAbbreviations.LAMBDA) ) {
-                selectedRegion = RegionUtils.getCurrentRegion();
+                initialRegion = RegionUtils.getCurrentRegion();
             } else {
-                selectedRegion = RegionUtils.getRegion(LambdaPlugin.DEFAULT_REGION);
+                initialRegion = RegionUtils.getRegion(LambdaPlugin.DEFAULT_REGION);
             }
         }
-        regionCombo.setText(selectedRegion.getName());
+        regionCombo.setText(initialRegion.getName());
 
         regionCombo.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -157,6 +164,13 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
             }
         });
 
+    }
+
+    private Region getLastDeploymentRegion() {
+        return this.dataModel.getProjectMetadataBeforeUpload() == null
+                ? null
+                : this.dataModel.getProjectMetadataBeforeUpload()
+                        .getLastDeploymentRegion();
     }
 
     private void createJavaFunctionSection(Composite composite) {
@@ -215,8 +229,16 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
         }
 
         CancelableThread.cancelThread(loadJavaFunctionsThread);
-        loadJavaFunctionsThread = new LoadJavaFunctionsThread();
+        loadJavaFunctionsThread = new LoadJavaFunctionsThread(
+                getLastDeploymentFunctionName());
         loadJavaFunctionsThread.start();
+    }
+
+    private String getLastDeploymentFunctionName() {
+        return this.dataModel.getProjectMetadataBeforeUpload() == null
+                ? null
+                : this.dataModel.getProjectMetadataBeforeUpload()
+                        .getLastDeploymentFunctionName();
     }
 
     private void radioButtonSelected(Object source) {
@@ -305,6 +327,17 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
 
     private final class LoadJavaFunctionsThread extends CancelableThread {
 
+        private final String defaultFunctionName;
+
+        /**
+         * @param defaultFunctionName
+         *            the function that should be selected by default after all
+         *            functions are loaded.
+         */
+        LoadJavaFunctionsThread(String defaultFunctionName) {
+            this.defaultFunctionName = defaultFunctionName;
+        }
+
         @Override
         public void run() {
             final List<String> javaFunctionNames = new ArrayList<String>();
@@ -347,7 +380,8 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
 
                                     useExistingJavaFunctionRadioButton.setEnabled(true);
                                     existingJavaFunctionNameCombo.setEnabled(true);
-                                    existingJavaFunctionNameCombo.select(0);
+                                    existingJavaFunctionNameCombo
+                                            .select(findDefaultFunction(javaFunctionNames));
                                     onExistingJavaFunctionSelectionChange();
 
                                 } else {
@@ -374,9 +408,18 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
                 }
             });
         }
+
+        private int findDefaultFunction(List<String> functionNames) {
+            if (this.defaultFunctionName == null) {
+                return 0;
+            }
+            int defaultInd = functionNames.indexOf(this.defaultFunctionName);
+            return defaultInd < 0 ? 0 : defaultInd;
+        }
     }
 
     @Override
     protected void onEnterPage() {
     }
+
 }

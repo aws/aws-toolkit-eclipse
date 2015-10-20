@@ -29,6 +29,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
+import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
 import com.amazonaws.eclipse.lambda.upload.wizard.UploadFunctionWizard;
 import com.amazonaws.eclipse.lambda.upload.wizard.util.UploadFunctionUtil;
 
@@ -62,6 +64,9 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
     }
 
     public static void doUploadFunctionProjectToLambda(IProject project) {
+
+        // Load valid request handler classes
+
         List<String> handlerClasses = UploadFunctionUtil
                 .findValidHandlerClass(project);
 
@@ -75,9 +80,22 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
             return;
         }
 
+        // Load existing lambda project metadata
+
+        LambdaFunctionProjectMetadata md = FunctionProjectUtil
+                .loadLambdaProjectMetadata(project);
+
+        if (md != null && !md.isValid()) {
+            md = null;
+            LambdaPlugin.getDefault().logInfo(
+                    "Ignoring the existing metadata for project ["
+                            + project.getName()
+                            + "] since the content is invalid.");
+        }
+
         WizardDialog wizardDialog = new WizardDialog(
                 Display.getCurrent().getActiveShell(),
-                new UploadFunctionWizard(project, handlerClasses));
+                new UploadFunctionWizard(project, handlerClasses, md));
         wizardDialog.open();
     }
 }

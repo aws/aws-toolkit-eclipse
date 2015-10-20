@@ -62,7 +62,7 @@ import com.amazonaws.services.s3.model.Bucket;
 public class FunctionConfigurationComposite extends Composite {
 
     private static final int MIN_MEMORY = 128;
-    private static final int MAX_MEMORY = 1024;
+    private static final int MAX_MEMORY = 1536;
     private static final int DEFAULT_MEMORY = 512;
 
     private static final int MIN_TIMEOUT = 1;
@@ -447,12 +447,31 @@ public class FunctionConfigurationComposite extends Composite {
         }
 
         CancelableThread.cancelThread(loadS3BucketsInFunctionRegionThread);
-        loadS3BucketsInFunctionRegionThread = new LoadS3BucketsInFunctionRegionThread();
+        loadS3BucketsInFunctionRegionThread = new LoadS3BucketsInFunctionRegionThread(
+                getLastDeploymentBucketName());
         loadS3BucketsInFunctionRegionThread.start();
+    }
+
+    private String getLastDeploymentBucketName() {
+        return this.dataModel.getProjectMetadataBeforeUpload() == null
+                ? null
+                : this.dataModel.getProjectMetadataBeforeUpload()
+                        .getLastDeploymentBucketName();
     }
 
     private final class LoadS3BucketsInFunctionRegionThread extends
             CancelableThread {
+
+        private final String defaultBucket;
+
+        /**
+         * @param defaultBucket
+         *            the bucket that should be selected by default after all
+         *            buckets are loaded.
+         */
+        LoadS3BucketsInFunctionRegionThread(String defaultBucket) {
+            this.defaultBucket = defaultBucket;
+        }
 
         @Override
         public void run() {
@@ -479,7 +498,8 @@ public class FunctionConfigurationComposite extends Composite {
                                         bucketNameCombo.add(bucket.getName());
                                     }
                                     bucketNameCombo.setEnabled(true);
-                                    bucketNameCombo.select(0);
+                                    bucketNameCombo
+                                            .select(findDefaultBucket(bucketsInFunctionRegion));
                                     updateUIDataToModel();
 
                                     bucketNameLoadedObservable.setValue(true);
@@ -491,6 +511,15 @@ public class FunctionConfigurationComposite extends Composite {
                     }
                 }
             });
+        }
+
+        private int findDefaultBucket(List<Bucket> buckets) {
+            for (int i = 0; i < buckets.size(); i++) {
+                if (buckets.get(i).getName().equals(this.defaultBucket)) {
+                    return i;
+                }
+            }
+            return 0;
         }
     }
 
