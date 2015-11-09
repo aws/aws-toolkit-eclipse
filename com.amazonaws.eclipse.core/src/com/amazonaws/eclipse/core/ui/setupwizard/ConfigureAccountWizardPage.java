@@ -14,6 +14,9 @@
  */
 package com.amazonaws.eclipse.core.ui.setupwizard;
 
+import java.io.IOException;
+import java.util.UUID;
+
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
@@ -21,8 +24,11 @@ import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
@@ -31,11 +37,20 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.profile.internal.Profile;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
+import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
@@ -46,7 +61,8 @@ final class ConfigureAccountWizardPage extends WizardPage {
     private static final String CREATE_ACCOUNT_URL = "https://portal.aws.amazon.com/gp/aws/developer/registration/index.html?ie=UTF8&utm_source=eclipse&utm_campaign=awstoolkitforeclipse&utm_medium=ide&";
     private static final String SECURITY_CREDENTIALS_URL = "https://portal.aws.amazon.com/gp/aws/securityCredentials";
 
-    private InitialSetupWizardDataModel dataModel;
+    private final InitialSetupWizardDataModel dataModel;
+    private final IPreferenceStore preferenceStore;
 
     private final DataBindingContext bindingContext = new DataBindingContext();
 
@@ -57,18 +73,18 @@ final class ConfigureAccountWizardPage extends WizardPage {
     private Button openExplorerCheckBox;
 
 
-    ConfigureAccountWizardPage(InitialSetupWizardDataModel dataModel) {
+    ConfigureAccountWizardPage(InitialSetupWizardDataModel dataModel,
+            IPreferenceStore preferenceStore) {
         super("initialSetupWizard");
         this.dataModel = dataModel;
+        this.preferenceStore = preferenceStore;
         setTitle("Welcome to the AWS Toolkit for Eclipse");
         setDescription("Configure the toolkit with your AWS account credentials");
     }
 
     public void createControl(Composite parent) {
-        parent.setLayout(new GridLayout());
 
         Composite composite = new Composite(parent, SWT.NONE);
-        composite.setLayoutData(new GridData(450, 250));
         composite.setLayout(new GridLayout(2, false));
         setControl(composite);
 
@@ -151,5 +167,64 @@ final class ConfigureAccountWizardPage extends WizardPage {
         this.getShell().setLocation(
           workbenchBounds.x + (workbenchBounds.width - dialogSize.x) / 2,
           workbenchBounds.y + (workbenchBounds.height - dialogSize.y) / 2);
+    }
+
+    public boolean performFinish() {
+        String internalAccountId = UUID.randomUUID().toString();
+        saveToCredentialsFile(internalAccountId);
+        preferenceStore.setValue(PreferenceConstants.P_CURRENT_ACCOUNT, internalAccountId);
+        preferenceStore.setValue(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT, internalAccountId);
+        if (preferenceStore instanceof IPersistentPreferenceStore) {
+            IPersistentPreferenceStore persistentPreferenceStore = (IPersistentPreferenceStore)preferenceStore;
+            try {
+                persistentPreferenceStore.save();
+            } catch (IOException e) {
+                String errorMessage = "Unable to write the account information to disk: " + e.getMessage();
+                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
+                StatusManager.getManager().handle(status, StatusManager.LOG);
+            }
+        }
+        AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
+
+        if (dataModel.isOpenExplorer()) {
+            openAwsExplorer();
+        }
+
+        return true;
+    }
+
+    /**
+     * Persist the credentials entered in the wizard to the AWS credentials file
+     * @param internalAccountId - Newly generated UUID to identify the account in eclipse
+     */
+    private void saveToCredentialsFile(String internalAccountId) {
+        Profile emptyProfile = new Profile( PreferenceConstants.DEFAULT_ACCOUNT_NAME, new BasicAWSCredentials("", ""));
+        SdkProfilesCredentialsConfiguration credentialsConfig = new SdkProfilesCredentialsConfiguration(
+                preferenceStore, internalAccountId, emptyProfile);
+        credentialsConfig.setAccessKey(dataModel.getAccessKeyId());
+        credentialsConfig.setSecretKey(dataModel.getSecretAccessKey());
+
+        try {
+            credentialsConfig.save();
+        } catch (AmazonClientException e) {
+            StatusManager.getManager()
+                    .handle(new Status(
+                            IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            "Could not write profile information to the credentials file ", e), StatusManager.SHOW);
+        }
+    }
+
+    private void openAwsExplorer() {
+        Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+                try {
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(AwsToolkitCore.EXPLORER_VIEW_ID);
+                } catch (PartInitException e) {
+                    String errorMessage = "Unable to open the AWS Explorer view: " + e.getMessage();
+                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
+                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                }
+            }
+        });
     }
 }

@@ -1,5 +1,26 @@
+/*
+ * Copyright 2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package com.amazonaws.eclipse.lambda.project.wizard;
 
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_END_RESULT;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_FUNCTION_INPUT_TYPE;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_FUNCTION_OUTPUT_TYPE;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_CANCELED;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_FAILED;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_SUCCEEDED;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD;
 import static com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil.refreshProject;
 
 import java.io.File;
@@ -7,11 +28,12 @@ import java.io.File;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -25,7 +47,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerClassTemplateData;
@@ -63,6 +88,9 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
     @Override
     protected void finishPage(IProgressMonitor monitor)
             throws InterruptedException, CoreException {
+
+        trackNewProjectAttributes(dataModel);
+
         pageTwo.performFinish(monitor);
 
         monitor.setTaskName("Configuring AWS Lambda Java project");
@@ -73,25 +101,39 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
         Display.getDefault().syncExec(new Runnable() {
 
             public void run() {
-                savePreferences(dataModel, LambdaPlugin.getDefault().getPreferenceStore());
-
-                addSourceToProject(project, dataModel);
 
                 File readmeFile = null;
-                if (dataModel.isShowReadmeFile()) {
-                    readmeFile = addReadmeFileToProject(project, dataModel.collectHandlerTestTemplateData());
-                }
-
-                refreshProject(project);
-
-                IFile handlerClass = findHandlerClassFile(project, dataModel);
-                selectAndReveal(handlerClass);
 
                 try {
-                    openHandlerClassEditor(handlerClass);
+                    savePreferences(dataModel, LambdaPlugin.getDefault().getPreferenceStore());
+
+                    addSourceToProject(project, dataModel);
+
+                    if (dataModel.isShowReadmeFile()) {
+                        readmeFile = addReadmeFileToProject(project, dataModel.collectHandlerTestTemplateData());
+                    }
+
+                    refreshProject(project);
+
+                } catch (Exception e) {
+                    trackProjectCreationFailed();
+                    StatusManager.getManager().handle(
+                            new Status(IStatus.ERROR, LambdaPlugin.PLUGIN_ID,
+                                    "Failed to create new Lambda project",
+                                    e),
+                                    StatusManager.SHOW);
+                    return;
+                }
+
+                trackProjectCreationSucceeded();
+
+                try {
+                    IFile handlerClass = findHandlerClassFile(project, dataModel);
+                    selectAndReveal(handlerClass); // show in explorer
+                    openHandlerClassEditor(handlerClass); // show in editor
                 } catch (Exception e) {
                     LambdaPlugin.getDefault().warn(
-                            "Failed to open the handler class in the editor", e);
+                            "Failed to open the handler class", e);
                 }
 
                 if (readmeFile != null) {
@@ -104,6 +146,12 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
                 }
             }
         });
+    }
+
+    @Override
+    public boolean performCancel() {
+        trackProjectCreationCanceled();
+        return true;
     }
 
     private static IFile findHandlerClassFile(IProject project,
@@ -337,6 +385,55 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
             LambdaPlugin.getDefault().warn(
                     "Failed to add tst directory to the classpath", e);
         }
+    }
+
+    /*
+     * Analytics
+     */
+
+    private void trackProjectCreationSucceeded() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
+                .build());
+    }
+
+    private void trackProjectCreationFailed() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
+                .build());
+    }
+
+    private void trackProjectCreationCanceled() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
+                .build());
+
+    }
+
+    private void trackNewProjectAttributes(NewLambdaJavaFunctionProjectWizardDataModel dataModel) {
+
+        String inputType = dataModel.getPredefinedHandlerInputType() == null
+                ? dataModel.getCustomHandlerInputType()
+                : dataModel.getPredefinedHandlerInputType().getFqcn();
+        String outputType = dataModel.getHandlerOutputType();
+
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
+                .addAttribute(ATTR_NAME_FUNCTION_INPUT_TYPE, inputType)
+                .addAttribute(ATTR_NAME_FUNCTION_OUTPUT_TYPE, outputType)
+                .build());
+
     }
 
 }

@@ -70,6 +70,11 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
                 + ".aws" + File.separator
                 + "credentials";
         store.setDefault(PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION, defaultCredentialsFile);
+
+        /* Toolkit analytics is enabled by default */
+        store.setDefault(
+                PreferenceConstants.P_TOOLKIT_ANALYTICS_COLLECTION_ENABLED,
+                true);
     }
 
     /**

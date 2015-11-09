@@ -28,29 +28,64 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
  * Utilities for running the initial setup wizard to help users get the toolkit configured.
  */
 public class InitialSetupUtils {
-    private static final String INITIALIZATION_FLAG_FILE = ".toolkitInitialized";
+
+    private static final String ACCOUNT_INITIALIZATION_FLAG_FILE = ".toolkitInitialized";
+    private static final String ANALYTICS_INITIALIZATION_FLAG_FILE = ".analyticsInitialized";
+
+    private static final int INIT_SETUP_WIZARD_DIALOG_WIDTH = 550;
+    private static final int INIT_SETUP_WIZARD_DIALOG_HEIGHT = 250;
 
     public static void runInitialSetupWizard() {
-        // Launch the setup wizard only if there are no credentials configured
-        // and the setup wizard hasn't been run before.
-        
-        String accessKey = AwsToolkitCore.getDefault().getAccountInfo().getAccessKey();
-        boolean credentialsConfigured = (accessKey != null) && (accessKey.length() > 0);
-        boolean runSetupWizard =
-                credentialsConfigured == false
-                && doesFlagFileExist(INITIALIZATION_FLAG_FILE) == false;
+
+        final boolean showAccountInitPage = shouldShowAccountInitPage();
+        final boolean showAnalyticsInitPage = shouldShowAnalyticsInitPage();
+        final boolean runSetupWizard = showAccountInitPage || showAnalyticsInitPage;
 
         if (runSetupWizard) {
             Display.getDefault().asyncExec(new Runnable() {
                 public void run() {
                     Shell shell = new Shell(Display.getDefault(), SWT.DIALOG_TRIM);
-                    WizardDialog wizardDialog = new WizardDialog(shell, new InitialSetupWizard(AwsToolkitCore.getDefault().getPreferenceStore()));
+                    WizardDialog wizardDialog = new WizardDialog(shell,
+                            new InitialSetupWizard(showAccountInitPage,
+                                    showAnalyticsInitPage, AwsToolkitCore
+                                            .getDefault().getPreferenceStore()));
+                    wizardDialog.setPageSize(INIT_SETUP_WIZARD_DIALOG_WIDTH,
+                            INIT_SETUP_WIZARD_DIALOG_HEIGHT);
                     wizardDialog.open();
 
-                    writeFlagFile(INITIALIZATION_FLAG_FILE);
+                    if (showAccountInitPage) {
+                        markAccountInitPageShown();
+                    }
+                    if (showAnalyticsInitPage) {
+                        markAnalyticsInitPageShown();
+                    }
                 }
             });
         }
+    }
+
+    private static boolean shouldShowAccountInitPage() {
+        boolean showAccountInitPage = !isCredentialsConfigured()
+                && !doesFlagFileExist(ACCOUNT_INITIALIZATION_FLAG_FILE);
+        return showAccountInitPage;
+    }
+
+    private static boolean shouldShowAnalyticsInitPage() {
+        return !doesFlagFileExist(ANALYTICS_INITIALIZATION_FLAG_FILE);
+    }
+
+    private static void markAccountInitPageShown() {
+        writeFlagFile(ACCOUNT_INITIALIZATION_FLAG_FILE);
+    }
+
+    private static void markAnalyticsInitPageShown() {
+        writeFlagFile(ANALYTICS_INITIALIZATION_FLAG_FILE);
+    }
+
+    private static boolean isCredentialsConfigured() {
+        String accessKey = AwsToolkitCore.getDefault().getAccountInfo().getAccessKey();
+        boolean credentialsConfigured = (accessKey != null) && (accessKey.length() > 0);
+        return credentialsConfigured;
     }
 
     private static boolean doesFlagFileExist(String path) {
@@ -70,10 +105,10 @@ public class InitialSetupUtils {
 
             if (!awsDirectory.exists() && awsDirectory.mkdir() == false) {
                 AwsToolkitCore.getDefault().getLog().log(new Status(Status.WARNING, AwsToolkitCore.PLUGIN_ID,
-                		"Unable to create ~/.aws directory to save toolkit initialization file"));
+                        "Unable to create ~/.aws directory to save toolkit initialization file"));
             } else {
-            	File flagFile = new File(awsDirectory, path);
-            	flagFile.createNewFile();
+                File flagFile = new File(awsDirectory, path);
+                flagFile.createNewFile();
             }
         } catch (Exception e) {
             AwsToolkitCore.getDefault().getLog().log(

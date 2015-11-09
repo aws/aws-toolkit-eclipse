@@ -1,4 +1,30 @@
+/*
+ * Copyright 2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package com.amazonaws.eclipse.lambda.invoke.handler;
+
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_END_RESULT;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_OPENED_FROM;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_CANCELED;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_FAILED;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_PROJECT_CONTEXT_MENU;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_SUCCEEDED;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_UPLOAD_BEFORE_INVOKE;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_INVOKE_FUNCTION_DIALOG;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_UPLOAD_FUNCTION_WIZARD;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.METRIC_NAME_IS_INVOKE_INPUT_MODIFIED;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.METRIC_NAME_IS_PROJECT_MODIFIED_AFTER_LAST_INVOKE;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +52,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.invoke.ui.InvokeFunctionInputDialog;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
@@ -67,6 +94,8 @@ public class InvokeFunctionHandler extends AbstractHandler {
                 return null;
             }
 
+            trackInvokeDialogOpenedFromProjectContextMenu();
+
             try {
                 invokeLambdaFunctionProject(selectedProject);
             } catch (Exception e) {
@@ -93,12 +122,18 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
                 boolean isProjectDirty = LambdaPlugin.getDefault()
                         .getProjectChangeTracker().isProjectDirty(project);
+                boolean isInvokeInputModified = inputDialog.isInputBoxContentModified();
+
+                trackIsProjectModifiedAfterLastInvoke(isProjectDirty);
+                trackIsInvokeInputModified(isInvokeInputModified);
 
                 if (isProjectDirty) {
                     invokeAfterRepeatingLastDeployment(input, project, md);
                 } else {
                     invokeWithoutDeployment(input, project, md);
                 }
+            } else {
+                trackInvokeCanceled();
             }
 
         } else {
@@ -152,9 +187,12 @@ public class InvokeFunctionHandler extends AbstractHandler {
                     invokeFunction(lambda, invokeInput, funcName, consoleOutput);
                     saveInvokeInputInProjectMetadata(invokeInput, project);
                 } catch (Exception e) {
+                    trackInvokeFailed();
                     consoleOutput.println("==================== INVOCATION ERROR ====================");
                     consoleOutput.println(e.toString());
                 }
+
+                trackInvokeSucceeded();
 
                 try {
                     consoleOutput.close();
@@ -259,6 +297,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
         int result = dialog.open();
 
         if (result == 0) {
+            trackUploadWizardOpenedBeforeFunctionInvoke();
             UploadFunctionToLambdaCommandHandler.doUploadFunctionProjectToLambda(project);
         }
     }
@@ -267,4 +306,70 @@ public class InvokeFunctionHandler extends AbstractHandler {
         return new String(payload.array(), StringUtils.UTF8);
     }
 
+    /*
+     * Analytics
+     */
+
+    private static void trackUploadWizardOpenedBeforeFunctionInvoke() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_UPLOAD_BEFORE_INVOKE)
+                .build());
+    }
+
+    private void trackInvokeDialogOpenedFromProjectContextMenu() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_PROJECT_CONTEXT_MENU)
+                .build());
+    }
+
+    private static void trackIsProjectModifiedAfterLastInvoke(boolean isModified) {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addBooleanMetric(METRIC_NAME_IS_PROJECT_MODIFIED_AFTER_LAST_INVOKE, isModified)
+                .build());
+    }
+
+    private static void trackInvokeSucceeded() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
+                .build());
+    }
+
+    private static void trackInvokeFailed() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
+                .build());
+    }
+
+    private static void trackInvokeCanceled() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
+                .build());
+    }
+
+    private static void trackIsInvokeInputModified(boolean isModified) {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addBooleanMetric(METRIC_NAME_IS_INVOKE_INPUT_MODIFIED, isModified)
+                .build());
+    }
 }

@@ -38,6 +38,12 @@ import org.osgi.util.tracker.ServiceTracker;
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.diagnostic.ui.AwsToolkitErrorSupportProvider;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsProvider;
+import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
+import com.amazonaws.eclipse.core.mobileanalytics.internal.NoOpToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitAnalyticsManagerImpl;
+import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.preferences.regions.DefaultRegionMonitor;
 import com.amazonaws.eclipse.core.regions.Region;
@@ -159,6 +165,11 @@ public class AwsToolkitCore extends AbstractUIPlugin {
      * This field is only available after the plugin is fully initialized.
      */
     private AwsPluginAccountManager accountManager;
+
+    /**
+     * For tracking toolkit analytic sessions and events.
+     */
+    private ToolkitAnalyticsManager toolkitAnalyticsManager;
 
     /*
      * ======================================
@@ -312,6 +323,17 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         return accountManager.getAccountInfo();
     }
 
+    /**
+     * Returns the toolkit analytics manager. This method blocks until the
+     * plugin is fully initialized and it is guaranteed to return a non-null
+     * value.
+     */
+    public ToolkitAnalyticsManager getAnalyticsManager() {
+        waitTillFullInit();
+
+        return toolkitAnalyticsManager;
+    }
+
     /*
      * ======================================
      * Core plugin start-up workflow
@@ -433,6 +455,10 @@ public class AwsToolkitCore extends AbstractUIPlugin {
             accountManager.addDefaultAccountChangeListener(resetAccountListenr);
             addDefaultRegionChangeListener(resetAccountListenr);
 
+            // Initialize Mobile Analytics
+            toolkitAnalyticsManager = initializeToolkitAnalyticsManager();
+            toolkitAnalyticsManager.startSession(true);
+
         } catch (Exception e) {
             StatusManager.getManager().handle(
                     new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
@@ -447,6 +473,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
      */
     private void afterFullInit(BundleContext context, IProgressMonitor monitor) {
 
+        // Merge legacy preference store based accounts
         try {
             LegacyPreferenceStoreAccountMerger
                     .mergeLegacyAccountsIntoCredentialsFile();
@@ -459,6 +486,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
                             StatusManager.SHOW);
         }
 
+        // Initial setup wizard for account and analytics configuration
         try {
             InitialSetupUtils.runInitialSetupWizard();
         } catch (Exception e) {
@@ -508,15 +536,54 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         Policy.setErrorSupportProvider(awsProvider);
     }
 
+    // TODO: any better way to check debug mode?
+    private static final boolean DEBUG_MODE = false;
+
+    private ToolkitAnalyticsManager initializeToolkitAnalyticsManager() {
+
+        boolean enabled = getPreferenceStore().getBoolean(
+                PreferenceConstants.P_TOOLKIT_ANALYTICS_COLLECTION_ENABLED);
+
+        ToolkitAnalyticsManager toReturn = null;
+
+        if (enabled) {
+            try {
+                if (DEBUG_MODE) {
+                    toReturn = new ToolkitAnalyticsManagerImpl(
+                            AWSCognitoCredentialsProvider.TEST_PROVIDER,
+                            ClientContextConfig.TEST_CONFIG);
+                } else {
+                    toReturn = new ToolkitAnalyticsManagerImpl(
+                            AWSCognitoCredentialsProvider.PROD_PROVIDER,
+                            ClientContextConfig.PROD_CONFIG);
+                }
+
+            } catch (Exception e) {
+                logException("Failed to initialize analytics manager", e);
+            }
+
+        } else {
+            logInfo("Toolkit analytics collection disabled");
+        }
+
+        if (toReturn == null) {
+            toReturn = new NoOpToolkitAnalyticsManager();
+        }
+
+        return toReturn;
+    }
+
     /* (non-Javadoc)
      * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
      */
     @Override
     public void stop(BundleContext context) throws Exception {
-        plugin = null;
+        toolkitAnalyticsManager.endSession(true);
         accountManager.stopAccountMonitors();
         getPreferenceStore().removePropertyChangeListener(defaultRegionMonitor);
         proxyServiceTracker.close();
+
+        plugin = null;
         super.stop(context);
     }
 

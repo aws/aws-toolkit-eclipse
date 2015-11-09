@@ -14,6 +14,10 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard.handler;
 
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_OPENED_FROM;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_PROJECT_CONTEXT_MENU;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_UPLOAD_FUNCTION_WIZARD;
+
 import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -28,6 +32,8 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
@@ -57,6 +63,7 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
                 return null;
             }
 
+            trackUploadWizardOpenedFromProjectContextMenu();
             doUploadFunctionProjectToLambda(selectedProject);
         }
 
@@ -97,5 +104,18 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
                 Display.getCurrent().getActiveShell(),
                 new UploadFunctionWizard(project, handlerClasses, md));
         wizardDialog.open();
+    }
+
+    /*
+     * Analytics
+     */
+
+    private void trackUploadWizardOpenedFromProjectContextMenu() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_PROJECT_CONTEXT_MENU)
+                .build());
     }
 }

@@ -1,3 +1,17 @@
+/*
+ * Copyright 2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package com.amazonaws.eclipse.lambda.upload.wizard.page;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
@@ -6,6 +20,16 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFilli
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_CHANGE_SELECTION;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_CLICK;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_CREATE_IAM_ROLE_BUTTON;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_CREATE_S3_BUCKET_BUTTON;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_FUNCTION_HANDLER_SELECTION_COMBO;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_IAM_ROLE_SELECTION_COMBO;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_S3_BUCKET_SELECTION_COMBO;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_UPLOAD_FUNCTION_WIZARD;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.METRIC_NAME_LOAD_IAM_ROLE_TIME_DURATION_MS;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.METRIC_NAME_LOAD_S3_BUCKET_TIME_DURATION_MS;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,6 +65,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.ui.CancelableThread;
 import com.amazonaws.eclipse.databinding.BooleanValidator;
 import com.amazonaws.eclipse.databinding.ChainValidator;
@@ -201,6 +226,12 @@ public class FunctionConfigurationComposite extends Composite {
         for (String handler : dataModel.getRequestHandlerImplementerClasses()) {
             handlerCombo.add(handler);
         }
+        handlerCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                trackFunctionHandlerComboSelectionChange();
+            }
+        });
 
         Label separator = new Label(group, SWT.HORIZONTAL | SWT.SEPARATOR);
         GridData separatorGridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -228,6 +259,7 @@ public class FunctionConfigurationComposite extends Composite {
         roleNameCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                trackRoleComboSelectionChange();
                 onRoleSelectionChange();
             }
         });
@@ -237,6 +269,9 @@ public class FunctionConfigurationComposite extends Composite {
         createRoleButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+
+                trackClickCreateNewRoleButton();
+
                 CreateBasicLambdaRoleDialog dialog = new CreateBasicLambdaRoleDialog(
                         Display.getCurrent().getActiveShell());
                 int returnCode = dialog.open();
@@ -276,12 +311,21 @@ public class FunctionConfigurationComposite extends Composite {
 
         bucketNameCombo = newCombo(composite, 1);
         bucketNameCombo.setEnabled(false);
+        bucketNameCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                trackS3BucketComboSelectionChange();
+            }
+        });
 
         createBucketButton = new Button(composite, SWT.PUSH);
         createBucketButton.setText("Create");
         createBucketButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+
+                trackClickCreateNewBucketButton();
+
                 CreateS3BucketDialog dialog = new CreateS3BucketDialog(
                         Display.getCurrent().getActiveShell(), dataModel.getRegion());
                 int returnCode = dialog.open();
@@ -476,9 +520,11 @@ public class FunctionConfigurationComposite extends Composite {
         @Override
         public void run() {
 
+            long startTime = System.currentTimeMillis();
             AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3Client();
             final List<Bucket> bucketsInFunctionRegion = S3BucketUtil
                     .listBucketsInRegion(s3, dataModel.getRegion());
+            trackLoadBucketTimeDuration(System.currentTimeMillis() - startTime);
 
             Display.getDefault().asyncExec(new Runnable() {
 
@@ -571,9 +617,12 @@ public class FunctionConfigurationComposite extends Composite {
 
             public void run() {
                 try {
+
+                    long start = System.currentTimeMillis();
                     AmazonIdentityManagement iam = AwsToolkitCore
                             .getClientFactory().getIAMClient();
                     List<Role> roles = ServiceApiUtils.getAllLambdaRoles(iam);
+                    trackLoadRoleTimeDuration(System.currentTimeMillis() - start);
 
                     roleNameCombo.removeAll();
 
@@ -654,5 +703,72 @@ public class FunctionConfigurationComposite extends Composite {
         if (italicFont != null)
             italicFont.dispose();
         super.dispose();
+    }
+
+    /*
+     * Analytics
+     */
+
+    private void trackFunctionHandlerComboSelectionChange() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_FUNCTION_HANDLER_SELECTION_COMBO)
+                .build());
+    }
+
+    private void trackRoleComboSelectionChange() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_IAM_ROLE_SELECTION_COMBO)
+                .build());
+    }
+
+    private void trackS3BucketComboSelectionChange() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_S3_BUCKET_SELECTION_COMBO)
+                .build());
+    }
+
+    private void trackClickCreateNewRoleButton() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_CLICK, ATTR_VALUE_CREATE_IAM_ROLE_BUTTON)
+                .build());
+    }
+
+    private void trackClickCreateNewBucketButton() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_CLICK, ATTR_VALUE_CREATE_S3_BUCKET_BUTTON)
+                .build());
+    }
+
+    private void trackLoadRoleTimeDuration(long duration) {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addMetric(METRIC_NAME_LOAD_IAM_ROLE_TIME_DURATION_MS, duration)
+                .build());
+    }
+
+    private void trackLoadBucketTimeDuration(long duration) {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addMetric(METRIC_NAME_LOAD_S3_BUCKET_TIME_DURATION_MS, (double)duration)
+                .build());
     }
 }

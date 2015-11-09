@@ -139,6 +139,11 @@ public class PreferenceConstants {
     public static final String P_ERROR_REPORT_DEFAULT_USER_EMAIL = "errorReportDefaultUserEmail";
 
     /**
+     * Boolean type. Default is true.
+     */
+    public static final String P_TOOLKIT_ANALYTICS_COLLECTION_ENABLED = "toolkitAnalyticsCollectionEnabled";
+
+    /**
      * Returns the preference key for the selected default account for the given
      * region.
      */

@@ -1,14 +1,27 @@
+/*
+ * Copyright 2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package com.amazonaws.eclipse.lambda.invoke.ui;
 
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFillingLabel;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
+import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFillingLabel;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_CHANGE_SELECTION;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_INVOKE_FUNCTION_DIALOG;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
@@ -34,10 +47,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
-import com.amazonaws.eclipse.lambda.ServiceApiUtils;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.Role;
 
 public class InvokeFunctionInputDialog extends Dialog {
 
@@ -50,6 +61,7 @@ public class InvokeFunctionInputDialog extends Dialog {
 
     private Combo jsonInputFileCombo;
     private String inputBoxContent;
+    private String suggestedInputBoxContent;
     private Text inputBox;
 
     private static final String LOADING = "Loading...";
@@ -64,6 +76,10 @@ public class InvokeFunctionInputDialog extends Dialog {
         return inputBoxContent;
     }
 
+    public boolean isInputBoxContentModified() {
+        return !inputBox.equals(suggestedInputBoxContent);
+    }
+
     @Override
     protected Control createDialogArea(Composite parent) {
       Composite container = (Composite) super.createDialogArea(parent);
@@ -74,6 +90,7 @@ public class InvokeFunctionInputDialog extends Dialog {
       jsonInputFileCombo.addSelectionListener(new SelectionAdapter() {
           @Override
           public void widgetSelected(SelectionEvent e) {
+              trackInputJsonFileSelectionChange();
               onJsonFileSelectionChange();
           }
       });
@@ -180,10 +197,24 @@ public class InvokeFunctionInputDialog extends Dialog {
         try {
             String fileContent = IOUtils.toString(file.getContents());
             inputBox.setText(fileContent);
+            suggestedInputBoxContent = fileContent;
             inputBoxContent = fileContent;
         } catch (Exception ignored) {
             return;
         }
+    }
+
+    /*
+     * Analytics
+     */
+
+    private void trackInputJsonFileSelectionChange() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO)
+                .build());
     }
 
 }

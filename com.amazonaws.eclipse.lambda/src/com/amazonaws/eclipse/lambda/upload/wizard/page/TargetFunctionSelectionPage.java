@@ -1,3 +1,17 @@
+/*
+ * Copyright 2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package com.amazonaws.eclipse.lambda.upload.wizard.page;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
@@ -6,6 +20,9 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFilli
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newRadioButton;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_CHANGE_SELECTION;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_REGION_SELECTION_COMBO;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_UPLOAD_FUNCTION_WIZARD;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +58,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
@@ -160,6 +178,7 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
         regionCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                trackRegionComboChangeSelection();
                 onRegionSelectionChange();
             }
         });
@@ -420,6 +439,19 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
 
     @Override
     protected void onEnterPage() {
+    }
+
+    /*
+     * Analytics
+     */
+
+    private void trackRegionComboChangeSelection() {
+        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
+                .getAnalyticsManager();
+        analytics.publishEvent(analytics.eventBuilder()
+                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_REGION_SELECTION_COMBO)
+                .build());
     }
 
 }
