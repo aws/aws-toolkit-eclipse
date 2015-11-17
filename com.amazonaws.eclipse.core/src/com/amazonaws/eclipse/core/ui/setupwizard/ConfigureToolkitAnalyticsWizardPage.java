@@ -49,7 +49,7 @@ final class ConfigureToolkitAnalyticsWizardPage extends WizardPage {
         description.setText(
                 "By leaving this box checked, you agree that AWS may anonymously " +
                 "collect analytics about your usage of AWS Toolkit (such as " +
-                "service/feature usgae and view, UI instrumentation usage, AWS " +
+                "service/feature usage and view, UI instrumentation usage, AWS " +
                 "Toolkit version and user platform). AWS will use this information " +
                 "to improve the AWS Toolkit and other Amazon products and services " +
                 "and will handle all information received in accordance with the " +
