@@ -85,16 +85,21 @@ public abstract class DatabaseConnectionFactory {
      *         specified database.
      */
     public static DatabaseConnectionFactory createConnectionFactory(ImportDBInstanceDataModel wizardDataModel) {
-        if (wizardDataModel.getDbInstance().getEngine().startsWith("oracle")) {
+    	
+        final String dbEngine = wizardDataModel.getDbInstance().getEngine();
+        
+		if (dbEngine.startsWith("oracle")) {
             return new OracleConnectionFactory(wizardDataModel);
-        } else if (wizardDataModel.getDbInstance().getEngine().startsWith("mysql")) {
+        } else if (dbEngine.startsWith("mysql")) {
             return new MySqlConnectionFactory(wizardDataModel);
-        } else if (wizardDataModel.getDbInstance().getEngine().startsWith("postgres")) {
+        } else if (dbEngine.startsWith("postgres")) {
             return new PostgreSqlConnectionFactory(wizardDataModel);
-        } else if (wizardDataModel.getDbInstance().getEngine().startsWith("sqlserver")) {
+        } else if (dbEngine.startsWith("sqlserver")) {
             return new SqlServerConnectionFactory(wizardDataModel);
+        } else if (dbEngine.startsWith("aurora")) {
+            return new AuroraConnectionFactory(wizardDataModel);
         }
 
-        throw new RuntimeException("Unsupported database engine: " + wizardDataModel.getDbInstance().getEngine());
+        throw new RuntimeException("Unsupported database engine: " + dbEngine);
     }
 }
