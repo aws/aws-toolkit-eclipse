@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
 
@@ -28,10 +29,16 @@ public class S3BucketUtil {
         for (final Bucket bucket : buckets) {
             es.submit(new Runnable() {
                 public void run() {
-                    if (isBucketInRegion(s3, bucket, region)) {
-                        result.add(bucket);
+                    try {
+                        if (isBucketInRegion(s3, bucket, region)) {
+                            result.add(bucket);
+                        }
+                    } catch (Exception e) {
+                        LambdaPlugin.getDefault().logInfo("Exception thrown when checking bucket " + bucket.getName() +
+                            " with message: " + e.getMessage());
+                    } finally {
+                        latch.countDown();
                     }
-                    latch.countDown();
                 }
             });
         }
@@ -49,9 +56,9 @@ public class S3BucketUtil {
             Region eclipseRegion) {
 
         String s3RegionId = s3.getBucketLocation(bucket.getName());
-        com.amazonaws.services.s3.model.Region s3Region = com.amazonaws.services.s3.model.Region.fromValue(s3RegionId);
-        com.amazonaws.regions.Region awsRegion = s3Region.toAWSRegion();
-
-        return eclipseRegion.getId().equals(awsRegion.getName());
+        if (s3RegionId == null || s3RegionId.equals("US")) {
+            s3RegionId = "us-east-1";
+        }
+        return eclipseRegion.getId().equals(s3RegionId);
     }
 }

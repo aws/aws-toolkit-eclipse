@@ -28,7 +28,7 @@ public class EnvironmentNameValidator implements IValidator {
 
     private static final int MIN_LENGTH = 4;
 
-    private static final int MAX_LENGTH = 23;
+    private static final int MAX_LENGTH = 40;
 
     private final MinMaxLengthValidator lengthValidator = new MinMaxLengthValidator(
             "Environment Name", MIN_LENGTH, MAX_LENGTH);
