@@ -46,7 +46,6 @@ public class EventLogEditorPart extends ServerEditorPart {
         Composite columnComp = toolkit.createComposite(form.getBody());
         FillLayout layout = new FillLayout();
         layout.marginHeight = 0;
-        layout.marginHeight = 0;
         columnComp.setLayout(new FillLayout());
         form.getBody().setLayout(layout);
 
