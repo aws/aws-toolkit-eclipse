@@ -1,6 +1,7 @@
-<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 <%@ page import="com.amazonaws.*" %>
 <%@ page import="com.amazonaws.auth.*" %>
+<%@ page import="com.amazonaws.auth.profile.*" %>
 <%@ page import="com.amazonaws.services.ec2.*" %>
 <%@ page import="com.amazonaws.services.ec2.model.*" %>
 <%@ page import="com.amazonaws.services.s3.*" %>
@@ -31,7 +32,10 @@
 
 <%
     if (ec2 == null) {
-        AWSCredentialsProvider credentialsProvider = new ClasspathPropertiesFileCredentialsProvider();
+        AWSCredentialsProviderChain credentialsProvider = new AWSCredentialsProviderChain(
+            new InstanceProfileCredentialsProvider(),
+            new ProfileCredentialsProvider("{CREDENTIAL_PROFILE}"));
+
         ec2    = new AmazonEC2Client(credentialsProvider);
         s3     = new AmazonS3Client(credentialsProvider);
         dynamo = new AmazonDynamoDBClient(credentialsProvider);
