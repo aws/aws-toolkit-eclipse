@@ -135,7 +135,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
      * @see org.eclipse.jface.operation.IRunnableWithProgress#run(org.eclipse.core.runtime.IProgressMonitor)
      */
     public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
-        SubMonitor monitor = SubMonitor.convert(progressMonitor, "Creating new AWS Java web project", 110);
+        SubMonitor monitor = SubMonitor.convert(progressMonitor, "Creating new AWS Java web project", 100);
 
         try {
             IRuntime genericJeeServerRuntime = configureGenericJeeServerRuntime();
@@ -203,10 +203,6 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
 
             // Add files to the the project
             addTemplateFiles(project);
-            monitor.worked(10);
-            CredentialsUtils credentialsUtils = new CredentialsUtils();
-            AccountInfo accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(dataModel.getAccountId());
-            credentialsUtils.addAwsCredentialsFileToProject(project, accountInfo.getAccessKey(), accountInfo.getSecretKey());
             monitor.worked(10);
 
             // Configure the Tomcat session manager
@@ -368,23 +364,35 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     }
 
     private void addTemplateFiles(IProject project) throws IOException, CoreException {
+        final String CREDENTIAL_PROFILE_PLACEHOLDER = "{CREDENTIAL_PROFILE}";
         Bundle bundle = ElasticBeanstalkPlugin.getDefault().getBundle();
         URL url = FileLocator.resolve(bundle.getEntry("/"));
         IPath templateRoot = new Path(url.getFile(), "templates");
 
+        AccountInfo currentAccountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(dataModel.getAccountId());
+
         switch (dataModel.getProjectTemplate()) {
         case WORKER:
+            File workerServlet = templateRoot.append("worker/src/WorkerServlet.java").toFile();
+            String workerServletContent = replaceStringInFile(workerServlet, CREDENTIAL_PROFILE_PLACEHOLDER, currentAccountInfo.getAccountName());
+
             FileUtils.copyDirectory(
                 templateRoot.append("worker").toFile(),
                 project.getLocation().toFile(),
                 new SvnMetadataFilter());
+            FileUtils.writeStringToFile(workerServlet, workerServletContent);
             break;
 
         case DEFAULT:
+            File indexJsp = templateRoot.append("basic/WebContent/index.jsp").toFile();
+            String indexJspContent = replaceStringInFile(indexJsp, CREDENTIAL_PROFILE_PLACEHOLDER, currentAccountInfo.getAccountName());
+
             FileUtils.copyDirectory(
                 templateRoot.append("basic").toFile(),
                 project.getLocation().toFile(),
                 new SvnMetadataFilter());
+
+            FileUtils.writeStringToFile(indexJsp, indexJspContent);
             break;
 
         default:
@@ -393,5 +401,15 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         }
 
         project.refreshLocal(IResource.DEPTH_INFINITE, null);
+    }
+
+    /** Replace source strings with target string and return the original content of the file. */
+    private String replaceStringInFile(File file, String source, String target) throws IOException {
+
+        String originalContent = FileUtils.readFileToString(file);
+        String replacedContent = originalContent.replace(source, target);
+        FileUtils.writeStringToFile(file, replacedContent);
+
+        return originalContent;
     }
 }
