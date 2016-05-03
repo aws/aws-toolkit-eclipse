@@ -298,16 +298,13 @@ class CreateStackWizardFirstPage extends WizardPage {
         templateURLText.setEnabled(false);
         GridDataFactory.fillDefaults().grab(true, false).indent(fieldDecorationWidth, 0).applyTo(templateURLText);
         Link link = new Link(stackTemplateSourceGroup, SWT.None);
-        String sampleUrl = "http://docs.aws.amazon.com/cloudformation/aws-cloudformation-templates/";
 
         // TODO: this should really live in the regions file, not hardcoded here
         Region currentRegion = RegionUtils.getCurrentRegion();
-        if ( currentRegion.getId().equals("us-east-1") ) {
-            sampleUrl = "http://docs.aws.amazon.com/cloudformation/aws-cloudformation-templates/";
-        } else {
-            sampleUrl = "http://docs.aws.amazon.com/cloudformation/aws-cloudformation-templates/aws-cloudformation-templates-"
-                    + currentRegion.getId() + "/";
-        }
+
+        final String sampleUrl = String.format(
+                "http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-sample-templates-%s.html",
+                currentRegion.getId());
 
         link.setText("<a href=\"" +
                 sampleUrl +

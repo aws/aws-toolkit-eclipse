@@ -91,7 +91,7 @@ public class FunctionConfigurationComposite extends Composite {
     private static final int DEFAULT_MEMORY = 512;
 
     private static final int MIN_TIMEOUT = 1;
-    private static final int MAX_TIMEOUT = 60;
+    private static final int MAX_TIMEOUT = 300;
     private static final int DEFAULT_TIMEOUT = 15;
 
     private UploadFunctionWizardDataModel dataModel;
