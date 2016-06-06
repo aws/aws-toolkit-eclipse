@@ -76,7 +76,7 @@ public class DeployWizardDataModel {
     private boolean usingKeyPair = false;
     private KeyPairInfo keyPair;
 
-    private boolean incrementalDeployment = true;
+    private boolean incrementalDeployment = false;
 
     private String snsEndpoint;
     private String healthCheckUrl;

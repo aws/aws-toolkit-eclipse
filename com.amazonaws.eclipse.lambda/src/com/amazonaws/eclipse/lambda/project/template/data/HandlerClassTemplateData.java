@@ -3,21 +3,11 @@ package com.amazonaws.eclipse.lambda.project.template.data;
 import java.util.LinkedList;
 import java.util.List;
 
-public class HandlerClassTemplateData {
+public class HandlerClassTemplateData extends AbstractHandlerClassTemplateData {
 
-    private String packageName;
     private List<String> additionalImports;
-    private String handlerClassName;
     private String inputType;
     private String outputType;
-
-    public String getPackageName() {
-        return packageName;
-    }
-
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
-    }
 
     public List<String> getAdditionalImports() {
         return additionalImports;
@@ -28,14 +18,6 @@ public class HandlerClassTemplateData {
             additionalImports = new LinkedList<String>();
         }
         additionalImports.add(additionalImport);
-    }
-
-    public String getHandlerClassName() {
-        return handlerClassName;
-    }
-
-    public void setHandlerClassName(String className) {
-        this.handlerClassName = className;
     }
 
     public String getInputType() {

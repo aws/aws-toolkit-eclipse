@@ -33,6 +33,7 @@ import com.amazonaws.services.s3.AmazonS3;
 public class UploadFunctionUtil {
 
     private static final String LAMBDA_REQUEST_HANDLER_INTERFACE = "com.amazonaws.services.lambda.runtime.RequestHandler";
+    private static final String LAMBDA_REQUEST_STREAM_HANDLER_INTERFACE = "com.amazonaws.services.lambda.runtime.RequestStreamHandler";
 
     public static void performFunctionUpload(
             UploadFunctionWizardDataModel dataModel,
@@ -118,10 +119,18 @@ public class UploadFunctionUtil {
         LambdaPlugin.getDefault().logInfo("Upload complete! Funtion arn " + functionArn);
     }
 
-    /**
-     * @see #findValidHandlerClass(IJavaProject)
-     */
     public static List<String> findValidHandlerClass(IProject project) {
+        return findAllConcreteSubTypes(project, LAMBDA_REQUEST_HANDLER_INTERFACE);
+    }
+
+    public static List<String> findValidStreamHandlerClass(IProject project) {
+        return findAllConcreteSubTypes(project, LAMBDA_REQUEST_STREAM_HANDLER_INTERFACE);
+    }
+
+    /**
+     * @see #findValidLambdaHandlerClass(IJavaProject, String)
+     */
+    private static List<String> findAllConcreteSubTypes(IProject project, final String lambdaHandlerClass) {
 
         boolean isJavaProject = false;
         try {
@@ -134,19 +143,19 @@ public class UploadFunctionUtil {
 
         if (isJavaProject) {
             IJavaProject javaProject = JavaCore.create(project);
-            return findValidHandlerClass(javaProject);
+            return findValidLambdaHandlerClass(javaProject, lambdaHandlerClass);
         }
         return Collections.emptyList();
     }
 
     /**
      * @return a list of FQCNs of the concrete classes within the specified
-     *         project that implement the lambda request handler interface, or
+     *         project that implement the specified lambda request handler interface, or
      *         null if any error occurred during the search.
      */
-    public static List<String> findValidHandlerClass(IJavaProject javaProject) {
+    private static List<String> findValidLambdaHandlerClass(IJavaProject javaProject, final String lambdaHandlerClass) {
         try {
-            IType type = javaProject.findType(LAMBDA_REQUEST_HANDLER_INTERFACE);
+            IType type = javaProject.findType(lambdaHandlerClass);
             if (type == null) {
                 return Collections.emptyList();
             }
@@ -167,7 +176,7 @@ public class UploadFunctionUtil {
 
         } catch (JavaModelException e) {
             LambdaPlugin.getDefault()
-                    .warn("Failed to search for request handler implementer classes ",
+                    .warn("Failed to search for lambda request handler implementer classes ",
                           e);
             return null;
         }

@@ -55,6 +55,8 @@ import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerTestClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerTestClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.page.NewLambdaJavaFunctionProjectWizardPageOne;
 import com.amazonaws.eclipse.lambda.project.wizard.page.NewLambdaJavaFunctionProjectWizardPageTwo;
@@ -194,25 +196,33 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
     private static void addSourceToProject(IProject project,
             NewLambdaJavaFunctionProjectWizardDataModel dataModel) {
 
-        // Add handler class
-        HandlerClassTemplateData handlerClassData = dataModel.collectHandlerTemplateData();
-        addHandlerClassToProject(project, handlerClassData);
+        if (dataModel.isUseStreamHandler()) {
+            StreamHandlerClassTemplateData streamHandlerClassData = dataModel.collectStreamHandlerTemplateData();
+            addStreamHandlerClassToProject(project, streamHandlerClassData);
 
-        // Add handler test class
-        HandlerTestClassTemplateData handlerTestClassData = dataModel.collectHandlerTestTemplateData();
-        addHandlerTestClassToProject(project, handlerTestClassData);
-        addTestContextToProject(project, handlerTestClassData);
+            StreamHandlerTestClassTemplateData streamHandlerTestClassData = dataModel.collectStreamHandlerTestTemplateData();
+            addStreamHandlerTestClassToProject(project, streamHandlerTestClassData);
+        } else {
+            // Add handler class
+            HandlerClassTemplateData handlerClassData = dataModel.collectHandlerTemplateData();
+            addHandlerClassToProject(project, handlerClassData);
 
-        if (dataModel.getPredefinedHandlerInputType() != null) {
-            addTestUtilsToProject(project, handlerTestClassData);
-        }
+            // Add handler test class
+            HandlerTestClassTemplateData handlerTestClassData = dataModel.collectHandlerTestTemplateData();
+            addHandlerTestClassToProject(project, handlerTestClassData);
+            addTestContextToProject(project, handlerTestClassData);
 
-        // Add input json file if the user selects the predefined input type
-        if (dataModel.getPredefinedHandlerInputType() != null) {
-            String jsonFileName = dataModel.getPredefinedHandlerInputType()
-                    .getSampleInputJsonFile();
-            addSampleInputJsonFileToProject(project,
-                    handlerTestClassData.getPackageName(), jsonFileName);
+            if (dataModel.getPredefinedHandlerInputType() != null) {
+                addTestUtilsToProject(project, handlerTestClassData);
+            }
+
+            // Add input json file if the user selects the predefined input type
+            if (dataModel.getPredefinedHandlerInputType() != null) {
+                String jsonFileName = dataModel.getPredefinedHandlerInputType()
+                        .getSampleInputJsonFile();
+                addSampleInputJsonFileToProject(project,
+                        handlerTestClassData.getPackageName(), jsonFileName);
+            }
         }
 
         addTestDirectoryToClasspath(project);
@@ -247,6 +257,53 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
         try {
             Template testTemplate = CodeTemplateManager.getInstance()
                     .getHandlerTestClassTemplate();
+
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    testTemplate, templateData);
+
+            FunctionProjectUtil.addTestClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getHandlerTestClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add test class to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addStreamHandlerClassToProject(IProject project,
+            StreamHandlerClassTemplateData templateData) {
+
+        try {
+            Template streamHandlerTemplate = CodeTemplateManager.getInstance()
+                    .getStreamHandlderClassTemplate();
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    streamHandlerTemplate, templateData);
+
+            FunctionProjectUtil.addSourceClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getHandlerClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add source to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addStreamHandlerTestClassToProject(IProject project,
+            StreamHandlerTestClassTemplateData templateData) {
+
+        try {
+            Template testTemplate = CodeTemplateManager.getInstance()
+                    .getStreamHandlerTestClassTemplate();
 
             String fileContent = CodeTemplateManager.processTemplateWithData(
                     testTemplate, templateData);

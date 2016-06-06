@@ -46,6 +46,18 @@ public class CodeTemplateManager {
     }
 
     /**
+     * Stream handler class template
+     */
+    public Template getStreamHandlderClassTemplate() {
+        try {
+            return freemarkerCfg.getTemplate("handler/stream-handler-class-template.ftl");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load stream handler class template.", e);
+        }
+    }
+
+    /**
      * Handler test code template
      */
     public Template getHandlerTestClassTemplate() {
@@ -54,6 +66,18 @@ public class CodeTemplateManager {
         } catch (IOException e) {
             throw new RuntimeException(
                     "Failed to load handler test code template.", e);
+        }
+    }
+
+    /**
+     * Stream handler test code template
+     */
+    public Template getStreamHandlerTestClassTemplate() {
+        try {
+            return freemarkerCfg.getTemplate("test-class/stream-handler-test-code-template.ftl");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load stream handler test code template.", e);
         }
     }
 

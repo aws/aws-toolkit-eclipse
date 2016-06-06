@@ -11,7 +11,7 @@ import ${import};
 </#list>
 </#if>
 
-public class ${handlerClassName!""} implements RequestHandler<${inputType!""}, ${outputType!""}> {
+public class ${handlerClassName} implements RequestHandler<${inputType!""}, ${outputType!""}> {
 
     @Override
     public ${outputType!""} handleRequest(${inputType!""} input, Context context) {

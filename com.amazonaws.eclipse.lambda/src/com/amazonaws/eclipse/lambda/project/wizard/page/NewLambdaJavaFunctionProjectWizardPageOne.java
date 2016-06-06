@@ -21,10 +21,13 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFilli
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
+import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType.REQUEST_HANDLER;
+import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType.STREAM_REQUEST_HANDLER;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel.P_CUSTOM_HANDLER_INPUT_TYPE;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel.P_HANDLER_CLASS_NAME;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel.P_HANDLER_OUTPUT_TYPE;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel.P_HANDLER_PACKAGE_NAME;
+import static com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel.P_HANDLER_TYPE;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel.P_SHOW_README_FILE;
 
 import java.beans.PropertyChangeEvent;
@@ -54,6 +57,7 @@ import org.eclipse.jdt.ui.text.JavaTextTools;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
 import org.eclipse.jface.databinding.swt.ISWTObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
@@ -72,6 +76,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.databinding.BooleanValidator;
@@ -83,6 +88,7 @@ import com.amazonaws.eclipse.lambda.UrlConstants;
 import com.amazonaws.eclipse.lambda.project.classpath.LambdaRuntimeClasspathContainer;
 import com.amazonaws.eclipse.lambda.project.classpath.runtimelibrary.LambdaRuntimeLibraryManager;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
+import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.model.PredefinedHandlerInputType;
 import com.amazonaws.eclipse.lambda.project.wizard.page.validator.ValidPackageNameValidator;
@@ -109,6 +115,10 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
     private ControlDecoration handlerClassTextDecoration;
     private ISWTObservableValue handlerClassTextObservable;
 
+    private Combo handlerTypeCombo;
+    private Link handlerTypeDescriptionLink;
+    private ISWTObservableValue handlerTypeComboObservable;
+
     private Combo predefinedHandlerInputCombo;
 
     private Text customHandlerInputTypeText;
@@ -125,7 +135,8 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
 
     private JavaSourceViewer sourcePreview;
     private Document sourcePreviewDocument;
-    private final Template sourceTemplate;
+    private final Template handlerTemplate;
+    private final Template streamHandlerTemplate;
 
     private static String CUSTOM_INPUT_TYPE_COMBO_TEXT = "Custom";
     private static Object CUSTOM_INPUT_TYPE_COMBO_DATA = new Object();
@@ -143,7 +154,8 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
         this.aggregateValidationStatus = new AggregateValidationStatus(
                 bindingContext, AggregateValidationStatus.MAX_SEVERITY);
 
-        this.sourceTemplate = CodeTemplateManager.getInstance().getHandlerClassTemplate();
+        this.handlerTemplate = CodeTemplateManager.getInstance().getHandlerClassTemplate();
+        this.streamHandlerTemplate = CodeTemplateManager.getInstance().getStreamHandlderClassTemplate();
     }
 
     @Override
@@ -198,6 +210,11 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
         handlerClassText = newText(inputComposite, "", 2);
         handlerClassTextDecoration = newControlDecoration(handlerClassText, "");
 
+        newFillingLabel(inputComposite, "Handler Type");
+        handlerTypeCombo = createHandlerTypeCombo(inputComposite, 1);
+        handlerTypeDescriptionLink = newLink(inputComposite, UrlConstants.webLinkListener, "", 1);
+        setItalicFont(handlerTypeDescriptionLink);
+
         newFillingLabel(inputComposite, "Input Type:");
         predefinedHandlerInputCombo = createPredefinedHandlerInputTypeCombo(inputComposite, 1);
         customHandlerInputTypeText = newText(inputComposite, "", 1);
@@ -211,6 +228,66 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
         separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         createHandlerSourcePreview(group);
+    }
+
+    private Combo createHandlerTypeCombo(Composite composite, int colspan) {
+        final Combo combo = newCombo(composite, 1);
+
+        for (LambdaHandlerType handlerType : LambdaHandlerType.values()) {
+            combo.add(handlerType.getName());
+            combo.setData(handlerType.getName(), handlerType);
+        }
+
+        combo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onHandlerTypeSelectionChange();
+            }
+        });
+        return combo;
+    }
+
+    private void onHandlerTypeSelectionChange() {
+        final String handlerType = handlerTypeCombo.getText();
+        final Object handlerTypeData = handlerTypeCombo.getData(handlerType);
+
+        if (STREAM_REQUEST_HANDLER == handlerTypeData) {
+            customHandlerInputTypeText.setEnabled(false);
+            enableCustomHandlerInputTypeValidation.setValue(false);
+
+            handlerOutputTypeText.setEnabled(false);
+            predefinedHandlerInputCombo.setEnabled(false);
+
+            handlerTypeDescriptionLink.setText(createHandlerTypeDescriptionLink(STREAM_REQUEST_HANDLER));
+
+        } else if (REQUEST_HANDLER == handlerTypeData) {
+
+            String selectedText = predefinedHandlerInputCombo.getText();
+            Object selectedData = predefinedHandlerInputCombo.getData(selectedText);
+
+            boolean customHandlerInputTypeTextEnabled = selectedData == CUSTOM_INPUT_TYPE_COMBO_DATA;
+            customHandlerInputTypeText.setEnabled(customHandlerInputTypeTextEnabled);
+            enableCustomHandlerInputTypeValidation.setValue(customHandlerInputTypeTextEnabled);
+
+            handlerOutputTypeText.setEnabled(true);
+            predefinedHandlerInputCombo.setEnabled(true);
+
+            handlerTypeDescriptionLink.setText(createHandlerTypeDescriptionLink(REQUEST_HANDLER));
+
+        } else {
+            LambdaHandlerType lambdaHandlerType = (LambdaHandlerType)handlerTypeData;
+            MessageDialog.openInformation(getShell(),
+                    "Unsupported handler type combo selection.",
+                    "The handler type " + handlerType + " is not yet supported in the toolkit! For more information, see "
+                            + lambdaHandlerType.getDocUrl() + ".");
+            handlerTypeCombo.select(0);
+            onHandlerTypeSelectionChange();
+        }
+    }
+
+    /** Return the descriptive words for the specific Lambda Handler type. */
+    private String createHandlerTypeDescriptionLink(LambdaHandlerType handlerType) {
+        return "<a href=\"" + handlerType.getDocUrl() + "\">Learn more</a> about handlers.";
     }
 
     private Combo createPredefinedHandlerInputTypeCombo(Composite composite, int colspan) {
@@ -265,6 +342,7 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
 
         newFillingLabel(composite, "Preview:", 1);
 
+        sourcePreviewDocument = new Document("");
         IPreferenceStore javaPluginPrefStore = JavaPlugin.getDefault()
                 .getCombinedPreferenceStore();
 
@@ -273,9 +351,9 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
         sourcePreview.setEditable(false);
         sourcePreview.getTextWidget().setFont(JFaceResources.getFont(PreferenceConstants.EDITOR_TEXT_FONT));
 
-        // TODO: investigate why Java source coloring is not working
-        // org.eclipse.jdt.internal.ui.preferences.formatter.JavaPreview
+        // Setting up Java Syntax Highlight
         JavaTextTools tools= JavaPlugin.getDefault().getJavaTextTools();
+        tools.setupJavaDocumentPartitioner(sourcePreviewDocument, IJavaPartitions.JAVA_PARTITIONING);
         SimpleJavaSourceViewerConfiguration sourceConfig = new SimpleJavaSourceViewerConfiguration(
                 tools.getColorManager(), javaPluginPrefStore, null,
                 IJavaPartitions.JAVA_PARTITIONING, true);
@@ -285,8 +363,6 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
         gridData.horizontalSpan = 1;
         gridData.heightHint = 50;
         sourcePreview.getTextWidget().setLayoutData(gridData);
-
-        sourcePreviewDocument = new Document("");
         sourcePreview.setDocument(sourcePreviewDocument);
     }
 
@@ -298,11 +374,13 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
 
                 NewLambdaJavaFunctionProjectWizardPageOne thisPage = NewLambdaJavaFunctionProjectWizardPageOne.this;
 
+                Template template = thisPage.dataModel.isUseStreamHandler() ? streamHandlerTemplate : handlerTemplate;
+                Object dataModel = thisPage.dataModel.isUseStreamHandler() ? thisPage.dataModel.collectStreamHandlerTemplateData()
+                        : thisPage.dataModel.collectHandlerTemplateData();
+
                 StringWriter sw = new StringWriter();
                 try {
-                    sourceTemplate.process(
-                            NewLambdaJavaFunctionProjectWizardPageOne.this.dataModel.collectHandlerTemplateData(),
-                            sw);
+                    template.process(dataModel, sw);
                     sw.flush();
                 } catch (Exception e) {
                     LambdaPlugin.getDefault().reportException(
@@ -339,6 +417,11 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
                 .observeText(handlerClassText, SWT.Modify);
         bindingContext.bindValue(handlerClassTextObservable,
                 PojoObservables.observeValue(dataModel, P_HANDLER_CLASS_NAME));
+
+        handlerTypeComboObservable = SWTObservables
+                .observeText(handlerTypeCombo);
+        bindingContext.bindValue(handlerTypeComboObservable,
+                PojoObservables.observeValue(dataModel, P_HANDLER_TYPE));
 
         customHandlerInputTypeTextObservable = SWTObservables
                 .observeText(customHandlerInputTypeText, SWT.Modify);
@@ -418,6 +501,9 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends NewJavaProjectWiz
         handlerClassTextObservable.setValue("LambdaFunctionHandler");
         customHandlerInputTypeTextObservable.setValue("Object");
         handlerOutputTypeTextObservable.setValue("Object");
+
+        handlerTypeCombo.select(0);
+        onHandlerTypeSelectionChange();
 
         predefinedHandlerInputCombo.select(0);
         onPredefinedHandlerInputTypeComboSelectionChange();

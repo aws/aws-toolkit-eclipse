@@ -18,6 +18,7 @@ import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_OPENED_FROM
 import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_PROJECT_CONTEXT_MENU;
 import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_UPLOAD_FUNCTION_WIZARD;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -73,11 +74,11 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
     public static void doUploadFunctionProjectToLambda(IProject project) {
 
         // Load valid request handler classes
+        List<String> handlerClasses = new ArrayList<String>();
+        handlerClasses.addAll(UploadFunctionUtil.findValidHandlerClass(project));
+        handlerClasses.addAll(UploadFunctionUtil.findValidStreamHandlerClass(project));
 
-        List<String> handlerClasses = UploadFunctionUtil
-                .findValidHandlerClass(project);
-
-        if (handlerClasses == null || handlerClasses.isEmpty()) {
+        if (handlerClasses.isEmpty()) {
             MessageDialog.openError(
                     Display.getCurrent().getActiveShell(),
                     "Invalid AWS Lambda Project",

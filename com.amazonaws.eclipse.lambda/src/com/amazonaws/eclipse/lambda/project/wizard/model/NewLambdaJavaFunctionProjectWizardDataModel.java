@@ -1,13 +1,19 @@
 package com.amazonaws.eclipse.lambda.project.wizard.model;
 
+import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType.REQUEST_HANDLER;
+import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType.STREAM_REQUEST_HANDLER;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerTestClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerTestClassTemplateData;
 
 public class NewLambdaJavaFunctionProjectWizardDataModel {
 
+    public static final String P_HANDLER_TYPE = "handlerType";
     public static final String P_HANDLER_PACKAGE_NAME = "handlerPackageName";
     public static final String P_HANDLER_CLASS_NAME = "handlerClassName";
     public static final String P_PREDEFINED_HANDLER_INPUT_TYPE = "predefinedHandlerInputType";
@@ -18,6 +24,7 @@ public class NewLambdaJavaFunctionProjectWizardDataModel {
     /* Function handler section */
     private String handlerPackageName;
     private String handlerClassName;
+    private String handlerType;
     private String handlerOutputType;
 
     private PredefinedHandlerInputType predefinedHandlerInputType;
@@ -60,6 +67,27 @@ public class NewLambdaJavaFunctionProjectWizardDataModel {
         } else {
             data.setInputType(customHandlerInputType);
         }
+
+        return data;
+    }
+
+    public StreamHandlerClassTemplateData collectStreamHandlerTemplateData() {
+
+        StreamHandlerClassTemplateData data = new StreamHandlerClassTemplateData();
+
+        data.setPackageName(handlerPackageName);
+        data.setHandlerClassName(handlerClassName);
+
+        return data;
+    }
+
+    public StreamHandlerTestClassTemplateData collectStreamHandlerTestTemplateData() {
+
+        StreamHandlerTestClassTemplateData data = new StreamHandlerTestClassTemplateData();
+
+        data.setPackageName(handlerPackageName);
+        data.setHandlerClassName(handlerClassName);
+        data.setHandlerTestClassName(handlerClassName + "Test");
 
         return data;
     }
@@ -117,6 +145,20 @@ public class NewLambdaJavaFunctionProjectWizardDataModel {
         String oldValue = this.customHandlerInputType;
         this.customHandlerInputType = customHandlerInputType;
         this.pcs.firePropertyChange(P_CUSTOM_HANDLER_INPUT_TYPE, oldValue, customHandlerInputType);
+    }
+
+    public String getHandlerType() {
+        return handlerType;
+    }
+
+    public void setHandlerType(String handlerType) {
+        String oldValue = this.handlerType;
+        this.handlerType = handlerType;
+        this.pcs.firePropertyChange(P_HANDLER_TYPE, oldValue, handlerType);
+    }
+
+    public boolean isUseStreamHandler() {
+        return STREAM_REQUEST_HANDLER.getName().equals(handlerType);
     }
 
     public boolean isShowReadmeFile() {
