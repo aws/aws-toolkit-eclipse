@@ -20,9 +20,7 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFilli
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newRadioButton;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_CHANGE_SELECTION;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_REGION_SELECTION_COMBO;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_UPLOAD_FUNCTION_WIZARD;
+import static com.amazonaws.eclipse.lambda.LambdaAnalytics.trackRegionComboChangeSelection;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,7 +56,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
@@ -440,18 +437,4 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
     @Override
     protected void onEnterPage() {
     }
-
-    /*
-     * Analytics
-     */
-
-    private void trackRegionComboChangeSelection() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_REGION_SELECTION_COMBO)
-                .build());
-    }
-
 }

@@ -14,29 +14,16 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard.editoraction;
 
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_OPENED_FROM;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_INVOKE_FUNCTION_DIALOG;
-
 import org.eclipse.jface.action.IAction;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.invoke.handler.InvokeFunctionHandler;
 
 public class RunOnLambdaAction extends AbstractLambdaEditorAction {
 
     public void run(IAction action) {
-        trackInvokeDialogOpenedFromEditorContextMenu();
+        LambdaAnalytics.trackInvokeDialogOpenedFromEditorContextMenu();
         InvokeFunctionHandler.invokeLambdaFunctionProject(javaProject.getProject());
     }
 
-    private void trackInvokeDialogOpenedFromEditorContextMenu() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU)
-                .build());
-    }
 }

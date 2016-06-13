@@ -16,9 +16,7 @@ package com.amazonaws.eclipse.lambda.invoke.ui;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFillingLabel;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_CHANGE_SELECTION;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_INVOKE_FUNCTION_DIALOG;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -46,8 +44,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 
 public class InvokeFunctionInputDialog extends Dialog {
@@ -90,7 +86,7 @@ public class InvokeFunctionInputDialog extends Dialog {
       jsonInputFileCombo.addSelectionListener(new SelectionAdapter() {
           @Override
           public void widgetSelected(SelectionEvent e) {
-              trackInputJsonFileSelectionChange();
+              LambdaAnalytics.trackInputJsonFileSelectionChange();
               onJsonFileSelectionChange();
           }
       });
@@ -202,19 +198,6 @@ public class InvokeFunctionInputDialog extends Dialog {
         } catch (Exception ignored) {
             return;
         }
-    }
-
-    /*
-     * Analytics
-     */
-
-    private void trackInputJsonFileSelectionChange() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO)
-                .build());
     }
 
 }

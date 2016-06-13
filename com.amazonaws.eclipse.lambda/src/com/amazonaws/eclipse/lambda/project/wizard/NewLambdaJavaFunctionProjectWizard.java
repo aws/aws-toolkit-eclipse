@@ -14,13 +14,7 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard;
 
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_END_RESULT;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_FUNCTION_INPUT_TYPE;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_NAME_FUNCTION_OUTPUT_TYPE;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_CANCELED;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_FAILED;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_SUCCEEDED;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import static com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil.refreshProject;
 
 import java.io.File;
@@ -49,8 +43,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerClassTemplateData;
@@ -91,7 +83,7 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
     protected void finishPage(IProgressMonitor monitor)
             throws InterruptedException, CoreException {
 
-        trackNewProjectAttributes(dataModel);
+        LambdaAnalytics.trackNewProjectAttributes(dataModel);
 
         pageTwo.performFinish(monitor);
 
@@ -118,7 +110,7 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
                     refreshProject(project);
 
                 } catch (Exception e) {
-                    trackProjectCreationFailed();
+                    LambdaAnalytics.trackProjectCreationFailed();
                     StatusManager.getManager().handle(
                             new Status(IStatus.ERROR, LambdaPlugin.PLUGIN_ID,
                                     "Failed to create new Lambda project",
@@ -127,7 +119,7 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
                     return;
                 }
 
-                trackProjectCreationSucceeded();
+                LambdaAnalytics.trackProjectCreationSucceeded();
 
                 try {
                     IFile handlerClass = findHandlerClassFile(project, dataModel);
@@ -152,7 +144,7 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
 
     @Override
     public boolean performCancel() {
-        trackProjectCreationCanceled();
+        LambdaAnalytics.trackProjectCreationCanceled();
         return true;
     }
 
@@ -442,55 +434,6 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
             LambdaPlugin.getDefault().warn(
                     "Failed to add tst directory to the classpath", e);
         }
-    }
-
-    /*
-     * Analytics
-     */
-
-    private void trackProjectCreationSucceeded() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
-                .build());
-    }
-
-    private void trackProjectCreationFailed() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
-                .build());
-    }
-
-    private void trackProjectCreationCanceled() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
-                .build());
-
-    }
-
-    private void trackNewProjectAttributes(NewLambdaJavaFunctionProjectWizardDataModel dataModel) {
-
-        String inputType = dataModel.getPredefinedHandlerInputType() == null
-                ? dataModel.getCustomHandlerInputType()
-                : dataModel.getPredefinedHandlerInputType().getFqcn();
-        String outputType = dataModel.getHandlerOutputType();
-
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_FUNCTION_INPUT_TYPE, inputType)
-                .addAttribute(ATTR_NAME_FUNCTION_OUTPUT_TYPE, outputType)
-                .build());
-
     }
 
 }

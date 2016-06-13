@@ -1,5 +1,7 @@
 package com.amazonaws.eclipse.lambda.upload.wizard.util;
 
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -55,7 +57,15 @@ public class UploadFunctionUtil {
         String randomKeyName = UUID.randomUUID().toString();
         AmazonS3 s3 = AwsToolkitCore.getClientFactory()
                 .getS3ClientForBucket(bucketName);
+
+        LambdaAnalytics.trackExportedJarSize(jarFile.length());
+        long startTime = System.currentTimeMillis();
         s3.putObject(bucketName, randomKeyName, jarFile);
+        long uploadTime = System.currentTimeMillis() - startTime;
+
+        LambdaAnalytics.trackUploadS3BucketTime(uploadTime);
+        LambdaAnalytics.trackUploadS3BucketSpeed((double)jarFile.length() / (double)uploadTime);
+
         monitor.worked((int)(totalUnitOfWork * 0.4));
 
         String functionName;

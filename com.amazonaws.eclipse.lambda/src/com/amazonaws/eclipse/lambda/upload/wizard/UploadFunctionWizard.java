@@ -14,11 +14,7 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard;
 
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.*;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_CANCELED;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_FAILED;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.ATTR_VALUE_SUCCEEDED;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.EVENT_TYPE_UPLOAD_FUNCTION_WIZARD;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 
 import java.util.List;
 
@@ -29,8 +25,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.wizard.Wizard;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
@@ -65,19 +59,22 @@ public class UploadFunctionWizard extends Wizard {
                 @Override
                 protected IStatus run(IProgressMonitor monitor) {
 
-                    trackMetrics();
+                    LambdaAnalytics.trackMetrics(dataModel.isCreatingNewFunction(),
+                            dataModel.getRequestHandlerImplementerClasses().size());
 
                     IProject project = dataModel.getProject();
 
                     monitor.beginTask("Uploading AWS Lambda Function Project [" +
                             project.getName() + "]", 100);
 
+                    long startTime = System.currentTimeMillis();
+
                     try {
                         UploadFunctionUtil.performFunctionUpload(dataModel, monitor, 100);
                     } catch (Exception e) {
                         LambdaPlugin.getDefault().reportException(
                                 "Failed to upload project to Lambda", e);
-                        trackUploadFailed();
+                        LambdaAnalytics.trackUploadFailed();
                         return new Status(Status.ERROR, LambdaPlugin.PLUGIN_ID,
                                 e.getMessage(), e);
                     }
@@ -85,7 +82,9 @@ public class UploadFunctionWizard extends Wizard {
                     LambdaPlugin.getDefault().getProjectChangeTracker()
                             .markProjectAsNotDirty(project);
 
-                    trackUploadSucceeded();
+                    LambdaAnalytics.trackUploadSucceeded();
+
+                    LambdaAnalytics.trackUploadTotalTime(System.currentTimeMillis() - startTime);
                     monitor.done();
 
                     return Status.OK_STATUS;
@@ -105,49 +104,8 @@ public class UploadFunctionWizard extends Wizard {
 
     @Override
     public boolean performCancel() {
-        trackUploadCanceled();
+        LambdaAnalytics.trackUploadCanceled();
         return true;
-    }
-
-    /*
-     * Analytics
-     */
-
-    private void trackMetrics() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addBooleanMetric(METRIC_NAME_IS_CREATING_NEW_FUNCTION, dataModel.isCreatingNewFunction())
-                .addMetric(METRIC_NAME_VALID_FUNCTION_HANDLER_CLASS_COUNT, dataModel.getRequestHandlerImplementerClasses().size())
-                .build());
-    }
-
-    private void trackUploadSucceeded() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
-                .build());
-    }
-
-    private void trackUploadFailed() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
-                .build());
-    }
-
-    private void trackUploadCanceled() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
-                .build());
     }
 
 }

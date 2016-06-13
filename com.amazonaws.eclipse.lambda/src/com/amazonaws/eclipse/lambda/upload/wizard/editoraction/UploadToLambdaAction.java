@@ -15,27 +15,16 @@
 package com.amazonaws.eclipse.lambda.upload.wizard.editoraction;
 
 import org.eclipse.jface.action.IAction;
-import static com.amazonaws.eclipse.lambda.LambdaAnalytics.*;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.upload.wizard.handler.UploadFunctionToLambdaCommandHandler;
 
 public class UploadToLambdaAction extends AbstractLambdaEditorAction {
 
     public void run(IAction action) {
-        trackUploadWizardOpenedFromEditorContextMenu();
+        LambdaAnalytics.trackUploadWizardOpenedFromEditorContextMenu();
         UploadFunctionToLambdaCommandHandler
                 .doUploadFunctionProjectToLambda(javaProject.getProject());
-    }
-
-    private void trackUploadWizardOpenedFromEditorContextMenu() {
-        ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault()
-                .getAnalyticsManager();
-        analytics.publishEvent(analytics.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU)
-                .build());
     }
 
 }
