@@ -21,16 +21,15 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
-import com.amazonaws.eclipse.lambda.project.wizard.NewLambdaJavaFunctionProjectWizard;
+import com.amazonaws.eclipse.lambda.project.wizard.NewLambdaFunctionWizard;
 
-public class NewLambdaJavaFunctionProjectHandler extends AbstractHandler {
+public class NewLambdaFunctionHandler extends AbstractHandler {
 
     @SuppressWarnings("restriction")
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        NewLambdaJavaFunctionProjectWizard newWizard = new NewLambdaJavaFunctionProjectWizard();
+        NewLambdaFunctionWizard newWizard = new NewLambdaFunctionWizard();
         newWizard.init(PlatformUI.getWorkbench(), null);
         WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), newWizard);
         return dialog.open();
     }
-
 }

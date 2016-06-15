@@ -1,3 +1,17 @@
+/*
+ * Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package com.amazonaws.eclipse.lambda.project.wizard.util;
 
 import java.io.File;
@@ -12,17 +26,282 @@ import java.util.Properties;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaCore;
 
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
+import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
+import com.amazonaws.eclipse.lambda.project.template.data.HandlerClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.HandlerTestClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerTestClassTemplateData;
+import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
+
+import freemarker.template.Template;
 
 public class FunctionProjectUtil {
 
     private static final String LAMBDA_PROJECT_SETTING_FILE = "com.amazonaws.eclipse.lambda.project";
+
+    public static void addSourceToProject(IProject project,
+            LambdaFunctionWizardDataModel dataModel) {
+
+        if (dataModel.isUseStreamHandler()) {
+            StreamHandlerClassTemplateData streamHandlerClassData = dataModel.collectStreamHandlerTemplateData();
+            addStreamHandlerClassToProject(project, streamHandlerClassData);
+
+            StreamHandlerTestClassTemplateData streamHandlerTestClassData = dataModel.collectStreamHandlerTestTemplateData();
+            addStreamHandlerTestClassToProject(project, streamHandlerTestClassData);
+        } else {
+            // Add handler class
+            HandlerClassTemplateData handlerClassData = dataModel.collectHandlerTemplateData();
+            addHandlerClassToProject(project, handlerClassData);
+
+            // Add handler test class
+            HandlerTestClassTemplateData handlerTestClassData = dataModel.collectHandlerTestTemplateData();
+            addHandlerTestClassToProject(project, handlerTestClassData);
+            addTestContextToProject(project, handlerTestClassData);
+
+            if (dataModel.getPredefinedHandlerInputType() != null) {
+                addTestUtilsToProject(project, handlerTestClassData);
+            }
+
+            // Add input json file if the user selects the predefined input type
+            if (dataModel.getPredefinedHandlerInputType() != null) {
+                String jsonFileName = dataModel.getPredefinedHandlerInputType()
+                        .getSampleInputJsonFile();
+                addSampleInputJsonFileToProject(project,
+                        handlerTestClassData.getPackageName(), jsonFileName);
+            }
+        }
+
+        addTestDirectoryToClasspath(project);
+    }
+
+    private static void addHandlerClassToProject(IProject project,
+            HandlerClassTemplateData templateData) {
+
+        try {
+            Template handlerTemplate = CodeTemplateManager.getInstance()
+                    .getHandlerClassTemplate();
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    handlerTemplate, templateData);
+
+            FunctionProjectUtil.addSourceClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getHandlerClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add source to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addHandlerTestClassToProject(IProject project,
+            HandlerTestClassTemplateData templateData) {
+
+        try {
+            Template testTemplate = CodeTemplateManager.getInstance()
+                    .getHandlerTestClassTemplate();
+
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    testTemplate, templateData);
+
+            FunctionProjectUtil.addTestClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getHandlerTestClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add test class to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addStreamHandlerClassToProject(IProject project,
+            StreamHandlerClassTemplateData templateData) {
+
+        try {
+            Template streamHandlerTemplate = CodeTemplateManager.getInstance()
+                    .getStreamHandlderClassTemplate();
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    streamHandlerTemplate, templateData);
+
+            FunctionProjectUtil.addSourceClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getHandlerClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add source to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addStreamHandlerTestClassToProject(IProject project,
+            StreamHandlerTestClassTemplateData templateData) {
+
+        try {
+            Template testTemplate = CodeTemplateManager.getInstance()
+                    .getStreamHandlerTestClassTemplate();
+
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    testTemplate, templateData);
+
+            FunctionProjectUtil.addTestClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getHandlerTestClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add test class to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addTestContextToProject(
+            IProject project,
+            HandlerTestClassTemplateData templateData) {
+
+        try {
+            Template template = CodeTemplateManager.getInstance()
+                    .getTestContextTemplate();
+
+            String content = CodeTemplateManager.processTemplateWithData(
+                    template,
+                    templateData);
+
+            FunctionProjectUtil.addTestClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    "TestContext",
+                    content);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add test context to the new Lambda function project",
+                    e);
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addTestUtilsToProject(
+            IProject project,
+            HandlerTestClassTemplateData templateData) {
+
+        try {
+            Template template = CodeTemplateManager.getInstance()
+                    .getTestUtilsTemplate();
+
+            String content = CodeTemplateManager.processTemplateWithData(
+                    template,
+                    templateData);
+
+            FunctionProjectUtil.addTestClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    "TestUtils",
+                    content);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add test utils to the new Lambda function project",
+                    e);
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addSampleInputJsonFileToProject(IProject project,
+            String testPackageName, String jsonFileName) {
+
+        try {
+            Template jsonFileTemplate = CodeTemplateManager.getInstance()
+                    .getTestInputJsonFileTemplate(jsonFileName);
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    jsonFileTemplate, null);
+
+            FunctionProjectUtil.addTestResourceToProject(
+                    project,
+                    JavaPackageName.parse(testPackageName),
+                    jsonFileName,
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add test resource to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static File addReadmeFileToProject(IProject project,
+            HandlerTestClassTemplateData templateData) {
+
+        try {
+            Template readmeFileTemplate = CodeTemplateManager.getInstance()
+                    .getReadmeHtmlFileTemplate();
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    readmeFileTemplate, templateData);
+
+            return FunctionProjectUtil.addReadmeFileToProject(project, fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add README.html to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addTestDirectoryToClasspath(IProject project) {
+
+        try {
+            IJavaProject javaProj = JavaCore.create(project);
+            IFolder tstFolder = project.getFolder("tst");
+
+            IPackageFragmentRoot tstRoot = javaProj.getPackageFragmentRoot(tstFolder);
+
+            if (javaProj.isOnClasspath(tstRoot)) return;
+
+            IClasspathEntry[] originalCp = javaProj.getRawClasspath();
+            IClasspathEntry[] augmentedCp = new IClasspathEntry[originalCp.length + 1];
+            System.arraycopy(originalCp, 0, augmentedCp, 0, originalCp.length);
+
+            augmentedCp[originalCp.length] = JavaCore.newSourceEntry(tstRoot.getPath());
+            javaProj.setRawClasspath(augmentedCp, null);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().warn(
+                    "Failed to add tst directory to the classpath", e);
+        }
+    }
 
     /**
      * @param project
@@ -34,7 +313,7 @@ public class FunctionProjectUtil {
      * @param classContent
      *            the content of the class
      */
-    public static void addSourceClassToProject(IProject project,
+    private static void addSourceClassToProject(IProject project,
             JavaPackageName packageName, String className, String classContent)
             throws CoreException, FileNotFoundException {
 
@@ -43,7 +322,7 @@ public class FunctionProjectUtil {
         addClassToProject(srcRoot, packageName, fileName, classContent);
     }
 
-    public static void addTestClassToProject(IProject project,
+    private static void addTestClassToProject(IProject project,
             JavaPackageName packageName, String className, String classContent)
             throws CoreException, FileNotFoundException {
 
@@ -52,7 +331,7 @@ public class FunctionProjectUtil {
         addClassToProject(tstRoot, packageName, fileName, classContent);
     }
 
-    public static void addTestResourceToProject(IProject project,
+    private static void addTestResourceToProject(IProject project,
             JavaPackageName packageName, String fileName, String fileContent)
             throws FileNotFoundException, CoreException {
 
@@ -60,13 +339,12 @@ public class FunctionProjectUtil {
         addClassToProject(tstRoot, packageName, fileName, fileContent);
     }
 
-    public static File addReadmeFileToProject(IProject project,
+    private static File addReadmeFileToProject(IProject project,
             String fileContent) throws FileNotFoundException, CoreException {
 
         IPath projectRoot = getProjectDirectory(project, null);
         return addFileToProject(projectRoot, "README.html", fileContent);
     }
-
 
     private static void addClassToProject(IPath root,
             JavaPackageName packageName, String fileName, String classContent)

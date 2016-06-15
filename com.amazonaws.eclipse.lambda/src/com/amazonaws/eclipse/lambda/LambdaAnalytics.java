@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2015-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package com.amazonaws.eclipse.lambda;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
-import com.amazonaws.eclipse.lambda.project.wizard.model.NewLambdaJavaFunctionProjectWizardDataModel;
+import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 
 public final class LambdaAnalytics {
 
@@ -74,6 +74,7 @@ public final class LambdaAnalytics {
      * New Lambda function wizard
      */
     private static final String EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD = "Lambda-NewLambdaProjectWizard";
+    private static final String EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD = "Lambda-NewLambdaFunctionWizard";
 
     private static final String ATTR_NAME_FUNCTION_INPUT_TYPE = "FunctionInputType";
     private static final String ATTR_NAME_FUNCTION_OUTPUT_TYPE = "FunctionOutputType";
@@ -106,7 +107,7 @@ public final class LambdaAnalytics {
                 .build());
     }
 
-    public static void trackNewProjectAttributes(NewLambdaJavaFunctionProjectWizardDataModel dataModel) {
+    public static void trackNewProjectAttributes(LambdaFunctionWizardDataModel dataModel) {
 
         String inputType = dataModel.getPredefinedHandlerInputType() == null
                 ? dataModel.getCustomHandlerInputType()
@@ -117,6 +118,27 @@ public final class LambdaAnalytics {
                 .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
                 .addAttribute(ATTR_NAME_FUNCTION_INPUT_TYPE, inputType)
                 .addAttribute(ATTR_NAME_FUNCTION_OUTPUT_TYPE, outputType)
+                .build());
+    }
+
+    public static void trackLambdaFunctionCreationFailed() {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
+                .build());
+    }
+
+    public static void trackLambdaFunctionCreationSucceeded() {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
+                .build());
+    }
+
+    public static void trackLambdaFunctionCreationCanceled() {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD)
+                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
                 .build());
     }
 

@@ -13,6 +13,16 @@
             name="AWS Lambda Java Project"
             project="true">
       </wizard>
+      <wizard
+            canFinishEarly="false"
+            category="com.amazonaws.eclipse.sdk.category"
+            class="com.amazonaws.eclipse.lambda.project.wizard.NewLambdaFunctionWizard"
+            hasPages="true"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaFunctionWizard"
+            name="AWS Lambda Function"
+            project="false">
+      </wizard>
    </extension>
 
    <extension point="org.eclipse.jdt.core.classpathContainerInitializer">
@@ -35,9 +45,12 @@
    <extension point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"/>
+         <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaFunctionWizard"/>
       </perspectiveExtension>
+
       <perspectiveExtension targetID="org.eclipse.jst.j2ee.J2EEPerspective">
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"/>
+         <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaFunctionWizard"/>
       </perspectiveExtension>
    </extension>
 
@@ -61,6 +74,10 @@
                   id="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectMenuItem"
                   label="New AWS Lambda Java Project...">
          </command>
+         <command commandId="com.amazonaws.eclipse.lambda.newLambdaFunctionCommand"
+                  id="com.amazonaws.eclipse.lambda.newLambdaFunctionMenuItem"
+                  label="New AWS Lambda Function...">
+         </command>
      </menuContribution>
    </extension>
 
@@ -68,6 +85,11 @@
       <command id="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectCommand"
             name="New AWS Lambda Java Project"
             defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaJavaFunctionProjectHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+      <command id="com.amazonaws.eclipse.lambda.newLambdaFunctionCommand"
+            name="New AWS Lambda Function"
+            defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaFunctionHandler"
             categoryId="com.amazonaws.commands.category">
       </command>
    </extension>
@@ -173,6 +195,5 @@
         </enablement>
      </decorator>
   </extension>
-
 
 </plugin>
