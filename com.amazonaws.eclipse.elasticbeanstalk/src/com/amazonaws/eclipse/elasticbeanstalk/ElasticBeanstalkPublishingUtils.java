@@ -110,6 +110,8 @@ public class ElasticBeanstalkPublishingUtils {
 
         checkForCancellation(monitor);
 
+        long deployStartTime = System.currentTimeMillis();
+
         try {
             bucketName = beanstalkClient.createStorageLocation().getS3Bucket();
 
@@ -122,7 +124,13 @@ public class ElasticBeanstalkPublishingUtils {
 
             trace("Uploading application to Amazon S3");
             monitor.setTaskName("Uploading application to Amazon S3");
+
+            long startTime = System.currentTimeMillis();
             s3.putObject(bucketName, key, war.toFile());
+            long endTime = System.currentTimeMillis();
+
+            ElasticBeanstalkAnalytics.trackUploadMetrics(endTime - startTime, war.toFile().length());
+
             checkForCancellation(monitor);
             monitor.worked(40);
         } catch (AmazonClientException ace) {
@@ -163,6 +171,8 @@ public class ElasticBeanstalkPublishingUtils {
                         "Unable to create new environment: " + ace.getMessage(), ace));
             }
         }
+
+        ElasticBeanstalkAnalytics.trackDeployTotalTime(System.currentTimeMillis() - deployStartTime);
 
         trace("Done publishing to AWS Elastic Beanstalk, waiting for env to become available...");
         checkForCancellation(monitor);
@@ -380,7 +390,7 @@ public class ElasticBeanstalkPublishingUtils {
 
     /**
      * Create the instance profile with the specified name or return it if it already exists.
-     * 
+     *
      * @param instanceProfileName
      * @return InstanceProfile object of either the existing instance profile or the newly created
      *         one
