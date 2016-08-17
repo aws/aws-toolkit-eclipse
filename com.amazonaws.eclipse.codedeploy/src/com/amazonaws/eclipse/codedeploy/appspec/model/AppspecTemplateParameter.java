@@ -3,9 +3,9 @@ package com.amazonaws.eclipse.codedeploy.appspec.model;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AppspecTemplateParameter {
 

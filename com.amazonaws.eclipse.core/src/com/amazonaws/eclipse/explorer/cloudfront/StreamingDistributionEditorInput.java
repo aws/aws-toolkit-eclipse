@@ -18,16 +18,16 @@ import org.eclipse.jface.resource.ImageDescriptor;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.AbstractAwsResourceEditorInput;
-import com.amazonaws.services.cloudfront_2012_03_15.model.StreamingDistributionSummary;
+import com.amazonaws.services.cloudfront.model.StreamingDistributionSummary;
 
 public class StreamingDistributionEditorInput extends AbstractAwsResourceEditorInput {
     private final StreamingDistributionSummary distributionSummary;
-    
+
     public StreamingDistributionEditorInput(StreamingDistributionSummary distributionSummary, String regionEndpoint, String accountId) {
         super(regionEndpoint, accountId);
         this.distributionSummary = distributionSummary;
     }
-    
+
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_STREAMING_DISTRIBUTION);
     }
@@ -35,11 +35,11 @@ public class StreamingDistributionEditorInput extends AbstractAwsResourceEditorI
     public String getName() {
         return getDistributionId();
     }
-    
+
     public String getDistributionId() {
         return distributionSummary.getId();
     }
-    
+
     public StreamingDistributionSummary getDistributionSummary() {
         return distributionSummary;
     }

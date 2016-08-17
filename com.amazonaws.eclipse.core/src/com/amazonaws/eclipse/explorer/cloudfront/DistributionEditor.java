@@ -22,29 +22,29 @@ import org.eclipse.ui.PartInitException;
 
 import com.amazonaws.eclipse.explorer.cloudfront.CloudFrontActions.DisableDistributionAction;
 import com.amazonaws.eclipse.explorer.cloudfront.CloudFrontActions.EnableDistributionAction;
-import com.amazonaws.services.cloudfront_2012_03_15.model.Distribution;
-import com.amazonaws.services.cloudfront_2012_03_15.model.DistributionConfig;
-import com.amazonaws.services.cloudfront_2012_03_15.model.GetDistributionRequest;
+import com.amazonaws.services.cloudfront.model.Distribution;
+import com.amazonaws.services.cloudfront.model.DistributionConfig;
+import com.amazonaws.services.cloudfront.model.GetDistributionRequest;
 
 public class DistributionEditor extends AbstractDistributionEditor {
 
     private DistributionEditorInput editorInput;
     private EnableDistributionAction enableDistributionAction;
     private DisableDistributionAction disableDistributionAction;
-    
+
 
     public void refreshData() {
         new LoadDistributionInfoThread().start();
     }
-    
+
     protected String getResourceTitle() {
         return "Distribution";
     }
-    
+
     protected void contributeActions(IToolBarManager toolbarManager) {
         enableDistributionAction = new EnableDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
         disableDistributionAction = new DisableDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
-      
+
         toolbarManager.add(enableDistributionAction);
         toolbarManager.add(disableDistributionAction);
     }
@@ -67,17 +67,17 @@ public class DistributionEditor extends AbstractDistributionEditor {
                     setText(distributionIdText, distribution.getId());
                     setText(lastModifiedText, distribution.getLastModifiedTime());
                     setText(statusText, distribution.getStatus());
-                    
+
                     DistributionConfig distributionConfig = distribution.getDistributionConfig();
                     setText(enabledText, distributionConfig.getEnabled());
                     setText(commentText, distributionConfig.getComment());
                     setText(defaultRootObjectLabel, distributionConfig.getDefaultRootObject());
-                    
+
                     cnamesList.removeAll();
-                    for (String cname : distributionConfig.getCNAME()) {
+                    for (String cname : distributionConfig.getAliases().getItems()) {
                         cnamesList.add(cname);
                     }
-                        
+
                     if (distributionConfig.getLogging() != null) {
                         setText(loggingEnabledText, "Yes");
                         setText(loggingBucketText, distributionConfig.getLogging().getBucket());
@@ -87,17 +87,9 @@ public class DistributionEditor extends AbstractDistributionEditor {
                         loggingBucketText.setText("N/A");
                         loggingPrefixText.setText("N/A");
                     }
-                    
-                    if (distributionConfig.getRequiredProtocols() == null) {
-                        setText(requiredProtocolsLabel, "HTTP and HTTPS");
-                    } else {
-                        setText(requiredProtocolsLabel, distributionConfig.getRequiredProtocols().getProtocols());
-                    }
-                    
-                    if (distributionConfig.getCustomOrigin() != null) {
-                        setText(originText, distributionConfig.getCustomOrigin().getDNSName());
-                    } else if (distributionConfig.getS3Origin() != null) {
-                        setText(originText, distributionConfig.getS3Origin().getDNSName());
+
+                    if (!distributionConfig.getOrigins().getItems().isEmpty()) {
+                        setText(originText, distributionConfig.getOrigins().getItems().get(0).getDomainName());
                     } else {
                         originText.setText("N/A");
                     }

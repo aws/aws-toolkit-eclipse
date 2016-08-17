@@ -22,12 +22,12 @@ import org.eclipse.ui.PartInitException;
 
 import com.amazonaws.eclipse.explorer.cloudfront.CloudFrontActions.DisableStreamingDistributionAction;
 import com.amazonaws.eclipse.explorer.cloudfront.CloudFrontActions.EnableStreamingDistributionAction;
-import com.amazonaws.services.cloudfront_2012_03_15.model.GetStreamingDistributionRequest;
-import com.amazonaws.services.cloudfront_2012_03_15.model.StreamingDistribution;
-import com.amazonaws.services.cloudfront_2012_03_15.model.StreamingDistributionConfig;
+import com.amazonaws.services.cloudfront.model.GetStreamingDistributionRequest;
+import com.amazonaws.services.cloudfront.model.StreamingDistribution;
+import com.amazonaws.services.cloudfront.model.StreamingDistributionConfig;
 
 public class StreamingDistributionEditor extends AbstractDistributionEditor {
-    
+
     private StreamingDistributionEditorInput editorInput;
     private EnableStreamingDistributionAction enableDistributionAction;
     private DisableStreamingDistributionAction disableDistributionAction;
@@ -41,32 +41,28 @@ public class StreamingDistributionEditor extends AbstractDistributionEditor {
     public void refreshData() {
         new LoadDistributionInfoThread().start();
     }
-    
+
     protected boolean supportsDefaultRootObjects() {
-        return false;
-    }
-    
-    protected boolean supportsSpecificProtocols() {
         return false;
     }
 
     protected String getResourceTitle() {
         return "Streaming Distribution";
     }
-    
+
     protected void contributeActions(IToolBarManager toolbarManager) {
         enableDistributionAction = new EnableStreamingDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
         disableDistributionAction = new DisableStreamingDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
-      
+
         toolbarManager.add(enableDistributionAction);
         toolbarManager.add(disableDistributionAction);
     }
-    
+
     private class LoadDistributionInfoThread extends ResourceEditorDataLoaderThread {
         @Override
         public void loadData() {
             final StreamingDistribution distribution = getClient().getStreamingDistribution(new GetStreamingDistributionRequest(editorInput.getDistributionId())).getStreamingDistribution();
-            
+
             Display.getDefault().asyncExec(new Runnable() {
                 public void run() {
                     setText(domainNameText, distribution.getDomainName());
@@ -76,14 +72,14 @@ public class StreamingDistributionEditor extends AbstractDistributionEditor {
 
                     StreamingDistributionConfig distributionConfig = distribution.getStreamingDistributionConfig();
                     setText(commentText, distributionConfig.getComment());
-                    setText(originText, distributionConfig.getS3Origin().getDNSName());
+                    setText(originText, distributionConfig.getS3Origin().getDomainName());
                     setText(enabledText, distributionConfig.getEnabled());
 
                     cnamesList.removeAll();
-                    for (String cname : distributionConfig.getCNAME()) {
+                    for (String cname : distributionConfig.getAliases().getItems()) {
                         cnamesList.add(cname);
                     }
-                    
+
                     if (distributionConfig.getLogging() != null) {
                         setText(loggingEnabledText, "Yes");
                         setText(loggingBucketText, distributionConfig.getLogging().getBucket());
@@ -93,7 +89,7 @@ public class StreamingDistributionEditor extends AbstractDistributionEditor {
                         loggingBucketText.setText("N/A");
                         loggingPrefixText.setText("N/A");
                     }
-                    
+
                     enableDistributionAction.setEnabled(distributionConfig.isEnabled() == false);
                     disableDistributionAction.setEnabled(distributionConfig.isEnabled() == true);
                     updateToolbar();

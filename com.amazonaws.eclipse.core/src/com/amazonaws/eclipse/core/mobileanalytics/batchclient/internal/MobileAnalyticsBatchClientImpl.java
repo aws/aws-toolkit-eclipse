@@ -25,6 +25,7 @@ import com.amazonaws.services.mobileanalytics.AmazonMobileAnalyticsAsync;
 import com.amazonaws.services.mobileanalytics.AmazonMobileAnalyticsAsyncClient;
 import com.amazonaws.services.mobileanalytics.model.Event;
 import com.amazonaws.services.mobileanalytics.model.PutEventsRequest;
+import com.amazonaws.services.mobileanalytics.model.PutEventsResult;
 
 /**
  * An implementation of MobileAnalyticsBatchClient which uses a bounded queue
@@ -114,9 +115,9 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
         mobileAnalytics.putEventsAsync(
                 new PutEventsRequest().withClientContext(clientContextString)
                         .withEvents(eventsBatch),
-                new AsyncHandler<PutEventsRequest, Void>() {
+                new AsyncHandler<PutEventsRequest, PutEventsResult>() {
 
-                    public void onSuccess(PutEventsRequest arg0, Void arg1) {
+                    public void onSuccess(PutEventsRequest arg0, PutEventsResult arg1) {
                         markRequestDone();
                     }
 

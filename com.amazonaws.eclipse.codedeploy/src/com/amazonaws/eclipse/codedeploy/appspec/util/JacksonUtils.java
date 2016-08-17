@@ -1,13 +1,14 @@
 package com.amazonaws.eclipse.codedeploy.appspec.util;
 
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class JacksonUtils {
 
     public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
-        MAPPER.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 }

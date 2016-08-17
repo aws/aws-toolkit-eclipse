@@ -16,10 +16,10 @@ package com.amazonaws.eclipse.cloudformation.templates;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import org.codehaus.jackson.JsonLocation;
+import com.fasterxml.jackson.core.JsonLocation;
 
 /**
  * Represents a JSON object structure in a Template document.
@@ -30,7 +30,7 @@ public class TemplateObjectNode extends TemplateNode {
     public TemplateObjectNode(JsonLocation startLocation) {
         setStartLocation(startLocation);
     }
-    
+
     // TODO: We don't store location data for field tokens yet
 
     public boolean isObject() {
@@ -41,14 +41,14 @@ public class TemplateObjectNode extends TemplateNode {
         TemplateFieldNode fieldNode = new TemplateFieldNode(field);
         fieldNode.setParent(this);
         value.setParent(fieldNode);
-        
+
         map.put(field, value);
     }
-    
+
     public TemplateNode get(String field) {
         return map.get(field);
     }
-    
+
     public Set<Entry<String,TemplateNode>> getFields() {
         return map.entrySet();
     }

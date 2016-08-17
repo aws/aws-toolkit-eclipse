@@ -17,18 +17,18 @@ package com.amazonaws.eclipse.explorer.cloudfront;
 import org.eclipse.ui.IEditorInput;
 
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
-import com.amazonaws.services.cloudfront_2012_03_15.model.DistributionSummary;
+import com.amazonaws.services.cloudfront.model.DistributionSummary;
 
 public class OpenDistributionEditorAction extends AbstractOpenAwsEditorAction {
     private DistributionSummary distributionSummary;
 
     public OpenDistributionEditorAction(DistributionSummary distributionSummary) {
-        super("CloudFront Distribution Editor", 
+        super("CloudFront Distribution Editor",
               "com.amazonaws.eclipse.explorer.cloudfront.distributionEditor",
               ServiceAbbreviations.CLOUDFRONT);
         this.distributionSummary = distributionSummary;
     }
-    
+
     @Override
     public IEditorInput createEditorInput(String endpoint, String accountId) {
         return new DistributionEditorInput(distributionSummary, endpoint, accountId);

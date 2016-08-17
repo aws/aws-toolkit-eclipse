@@ -3,6 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Cloudformation
 Bundle-SymbolicName: com.amazonaws.eclipse.cloudformation;singleton:=true
 Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: src/,
+ .
 Bundle-Activator: com.amazonaws.eclipse.cloudformation.CloudFormationPlugin
 Bundle-Vendor: AMAZONAWS
 Require-Bundle: org.eclipse.ui,

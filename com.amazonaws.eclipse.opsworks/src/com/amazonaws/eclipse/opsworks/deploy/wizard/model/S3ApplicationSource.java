@@ -5,7 +5,7 @@ import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.opsworks.model.Source;
 import com.amazonaws.services.opsworks.model.SourceType;
 import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.util.HttpUtils;
+import com.amazonaws.util.SdkHttpUtils;
 
 public class S3ApplicationSource {
 
@@ -69,8 +69,8 @@ public class S3ApplicationSource {
         source.setType(asPublicHttpArchive ? SourceType.Archive : SourceType.S3);
         source.setUrl(String.format(
                 "http://%s.s3.amazonaws.com/%s",
-                HttpUtils.urlEncode(bucketName, false),
-                HttpUtils.urlEncode(keyName, true)));
+                SdkHttpUtils.urlEncode(bucketName, false),
+                SdkHttpUtils.urlEncode(keyName, true)));
 
         return source;
     }

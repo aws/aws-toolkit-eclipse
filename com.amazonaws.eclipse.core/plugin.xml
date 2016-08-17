@@ -71,7 +71,7 @@
        <editor
              class="com.amazonaws.eclipse.explorer.cloudfront.DistributionEditor"
              default="false"
-             icon="icons/distribution.gif"
+             icon="icons/distribution.png"
              id="com.amazonaws.eclipse.explorer.cloudfront.distributionEditor"
              name="Amazon CloudFront Distribution">
        </editor>

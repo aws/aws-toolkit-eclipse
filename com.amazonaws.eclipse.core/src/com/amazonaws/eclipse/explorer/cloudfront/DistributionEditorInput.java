@@ -18,7 +18,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.AbstractAwsResourceEditorInput;
-import com.amazonaws.services.cloudfront_2012_03_15.model.DistributionSummary;
+import com.amazonaws.services.cloudfront.model.DistributionSummary;
 
 public class DistributionEditorInput extends AbstractAwsResourceEditorInput {
 
@@ -36,11 +36,11 @@ public class DistributionEditorInput extends AbstractAwsResourceEditorInput {
     public String getName() {
         return getDistributionId();
     }
-    
+
     public String getDistributionId() {
         return distributionSummary.getId();
     }
-    
+
     public DistributionSummary getDistributionSummary() {
         return distributionSummary;
     }

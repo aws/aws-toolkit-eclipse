@@ -2,10 +2,13 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="policyTemplates"/>
+	<classpathentry exported="true" kind="lib" path="bin/"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.amazonaws.eclipse.core"/>
-	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-1.9.40-core-no-flow.jar"/>
-	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/commons-io-2.4/commons-io-2.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-core-1.11.21.jar"/>
+	<classpathentry exported="true" kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-iam-1.11.21.jar"/>
+	<classpathentry exported="true" kind="lib" path="/com.amazonaws.eclipse.core/lib/commons-io-2.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-sts-1.11.21.jar" sourcepath="/Users/zhaoxiz/.m2/repository/com/amazonaws/aws-java-sdk-sts/1.11.21/aws-java-sdk-sts-1.11.21-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -30,9 +30,9 @@ import com.amazonaws.auth.policy.Policy;
 import com.amazonaws.auth.policy.Principal;
 import com.amazonaws.auth.policy.Principal.Services;
 import com.amazonaws.auth.policy.Principal.WebIdentityProviders;
-import com.amazonaws.auth.policy.STSActions;
 import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.auth.policy.Statement.Effect;
+import com.amazonaws.auth.policy.actions.SecurityTokenServiceActions;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
@@ -226,9 +226,9 @@ public class CreateRoleWizard extends Wizard {
 
         Action action = null;
         if (dataModel.getWebProviderRoles()) {
-            action = STSActions.AssumeRoleWithWebIdentity;
+            action = SecurityTokenServiceActions.AssumeRoleWithWebIdentity;
         } else {
-            action = STSActions.AssumeRole;
+            action = SecurityTokenServiceActions.AssumeRole;
         }
         return action;
     }

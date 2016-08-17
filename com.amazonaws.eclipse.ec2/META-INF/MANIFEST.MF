@@ -3,9 +3,11 @@ Bundle-ManifestVersion: 2
 Bundle-Name: EC2 Eclipse Plugin
 Bundle-SymbolicName: com.amazonaws.eclipse.ec2;singleton:=true
 Bundle-Version: 1.1.0.qualifier
-Bundle-ClassPath: .,
- lib/jsch-0.1.40/jsch-0.1.40.jar
+Bundle-ClassPath: com.amazonaws.eclipse.ec2,
+ lib/jsch-0.1.40/jsch-0.1.40.jar,
+ .
 Bundle-Activator: com.amazonaws.eclipse.ec2.Ec2Plugin
+Bundle-Vendor: Amazon Web Services
 Export-Package: .,
  com.amazonaws.ec2.cluster,
  com.amazonaws.eclipse.ec2,
@@ -34,6 +36,5 @@ Require-Bundle: org.eclipse.core.runtime,
  com.amazonaws.eclipse.core;bundle-version="2.0.0",
  org.eclipse.ui.navigator;bundle-version="3.4.0",
  org.eclipse.core.databinding;bundle-version="1.2.0"
-Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Bundle-Vendor: Amazon Web Services
+Bundle-ActivationPolicy: lazy

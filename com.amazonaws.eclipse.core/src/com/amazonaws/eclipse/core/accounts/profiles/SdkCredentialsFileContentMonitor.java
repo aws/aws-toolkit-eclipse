@@ -34,7 +34,7 @@ import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
  * Used to monitor a specific credentials file and prompts the user to reload
  * the credentials whenever the file content is changed.
  */
-class SdkCredentialsFileContentMonitor {
+public class SdkCredentialsFileContentMonitor {
 
     private static final Log debugLogger = LogFactory.getLog(SdkCredentialsFileContentMonitor.class);
 
@@ -71,7 +71,7 @@ class SdkCredentialsFileContentMonitor {
         });
     }
 
-    SdkCredentialsFileContentMonitor(
+    public SdkCredentialsFileContentMonitor(
             File target,
             long pollingIntervalInMillis,
             FileAlterationListener listener) {
@@ -157,7 +157,7 @@ class SdkCredentialsFileContentMonitor {
     /**
      * For testing purpose only.
      */
-    void setDebugMode(boolean debug) {
+    public void setDebugMode(boolean debug) {
         this.debugMode = debug;
     }
 

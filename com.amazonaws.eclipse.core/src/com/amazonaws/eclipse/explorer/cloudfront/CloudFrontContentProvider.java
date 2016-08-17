@@ -23,16 +23,16 @@ import com.amazonaws.eclipse.explorer.AWSResourcesRootElement;
 import com.amazonaws.eclipse.explorer.AbstractContentProvider;
 import com.amazonaws.eclipse.explorer.ExplorerNode;
 import com.amazonaws.eclipse.explorer.Loading;
-import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFront;
-import com.amazonaws.services.cloudfront_2012_03_15.model.DistributionList;
-import com.amazonaws.services.cloudfront_2012_03_15.model.DistributionSummary;
-import com.amazonaws.services.cloudfront_2012_03_15.model.ListDistributionsRequest;
-import com.amazonaws.services.cloudfront_2012_03_15.model.ListStreamingDistributionsRequest;
-import com.amazonaws.services.cloudfront_2012_03_15.model.StreamingDistributionList;
-import com.amazonaws.services.cloudfront_2012_03_15.model.StreamingDistributionSummary;
+import com.amazonaws.services.cloudfront.AmazonCloudFront;
+import com.amazonaws.services.cloudfront.model.DistributionList;
+import com.amazonaws.services.cloudfront.model.DistributionSummary;
+import com.amazonaws.services.cloudfront.model.ListDistributionsRequest;
+import com.amazonaws.services.cloudfront.model.ListStreamingDistributionsRequest;
+import com.amazonaws.services.cloudfront.model.StreamingDistributionList;
+import com.amazonaws.services.cloudfront.model.StreamingDistributionSummary;
 
 public class CloudFrontContentProvider extends AbstractContentProvider {
-    
+
     public static class CloudFrontRootElement {
         public static final CloudFrontRootElement ROOT_ELEMENT = new CloudFrontRootElement();
     }
@@ -46,12 +46,12 @@ public class CloudFrontContentProvider extends AbstractContentProvider {
                 new OpenStreamingDistributionEditorAction(distributionSummary));
             this.distributionSummary = distributionSummary;
         }
-        
+
         public StreamingDistributionSummary getDistributionSummary() {
             return distributionSummary;
         }
     }
-    
+
     public static class DistributionNode extends ExplorerNode {
         private final DistributionSummary distributionSummary;
 
@@ -61,13 +61,13 @@ public class CloudFrontContentProvider extends AbstractContentProvider {
                 new OpenDistributionEditorAction(distributionSummary));
             this.distributionSummary = distributionSummary;
         }
-        
+
         public DistributionSummary getDistributionSummary() {
             return distributionSummary;
         }
     }
-    
-    
+
+
     public boolean hasChildren(Object element) {
         return (element instanceof CloudFrontRootElement);
     }
@@ -75,7 +75,7 @@ public class CloudFrontContentProvider extends AbstractContentProvider {
     @Override
     public Object[] loadChildren(Object parentElement) {
         if (parentElement instanceof AWSResourcesRootElement) {
-            return new Object[] { CloudFrontRootElement.ROOT_ELEMENT }; 
+            return new Object[] { CloudFrontRootElement.ROOT_ELEMENT };
         }
 
         if (parentElement instanceof CloudFrontRootElement) {
@@ -83,32 +83,32 @@ public class CloudFrontContentProvider extends AbstractContentProvider {
                 @Override
                 public Object[] loadData() {
                     AmazonCloudFront cf = AwsToolkitCore.getClientFactory().getCloudFrontClient();
-                    
+
                     List<ExplorerNode> distributionNodes = new ArrayList<ExplorerNode>();
-                    
+
                     DistributionList distributionList = null;
                     do {
                         ListDistributionsRequest request = new ListDistributionsRequest();
                         if (distributionList != null) request.setMarker(distributionList.getNextMarker());
-                        
+
                         distributionList = cf.listDistributions(request).getDistributionList();
-                        for (DistributionSummary distributionSummary : distributionList.getDistributionSummaries()) {
+                        for (DistributionSummary distributionSummary : distributionList.getItems()) {
                             distributionNodes.add(new DistributionNode(distributionSummary));
                         }
                     } while (distributionList.isTruncated());
-                    
-                    
+
+
                     StreamingDistributionList streamingDistributionList = null;
                     do {
                         ListStreamingDistributionsRequest request = new ListStreamingDistributionsRequest();
                         if (streamingDistributionList != null) request.setMarker(streamingDistributionList.getNextMarker());
-                        
+
                         streamingDistributionList = cf.listStreamingDistributions(request).getStreamingDistributionList();
-                        for (StreamingDistributionSummary distributionSummary : streamingDistributionList.getStreamingDistributionSummaries()) {
+                        for (StreamingDistributionSummary distributionSummary : streamingDistributionList.getItems()) {
                             distributionNodes.add(new StreamingDistributionNode(distributionSummary));
                         }
                     } while (streamingDistributionList.isTruncated());
-                    
+
                     return distributionNodes.toArray();
                 }
             }.start();

@@ -20,8 +20,9 @@ import org.eclipse.jface.viewers.ILightweightLabelDecorator;
 
 import com.amazonaws.eclipse.explorer.cloudfront.CloudFrontContentProvider.DistributionNode;
 import com.amazonaws.eclipse.explorer.cloudfront.CloudFrontContentProvider.StreamingDistributionNode;
-import com.amazonaws.services.cloudfront_2012_03_15.model.CustomOrigin;
-import com.amazonaws.services.cloudfront_2012_03_15.model.S3Origin;
+import com.amazonaws.services.cloudfront.model.Origin;
+import com.amazonaws.services.cloudfront.model.Origins;
+import com.amazonaws.services.cloudfront.model.S3Origin;
 
 public class DistributionDecorator implements ILightweightLabelDecorator {
 
@@ -38,29 +39,33 @@ public class DistributionDecorator implements ILightweightLabelDecorator {
             DistributionNode distributionNode = (DistributionNode)element;
 
             String origin = createOriginString(
-                distributionNode.getDistributionSummary().getS3Origin(),
-                distributionNode.getDistributionSummary().getCustomOrigin());
-            
+                distributionNode.getDistributionSummary().getOrigins());
+
             decoration.addSuffix(" " + origin);
         } else if (element instanceof StreamingDistributionNode) {
             StreamingDistributionNode distributionNode = (StreamingDistributionNode)element;
 
             String origin = createOriginString(
-                distributionNode.getDistributionSummary().getS3Origin(),
-                null);
-            
+                distributionNode.getDistributionSummary().getS3Origin());
+
             decoration.addSuffix(" " + origin);
         }
     }
-    
-    private String createOriginString(S3Origin s3Origin, CustomOrigin customOrigin) {
-        if (s3Origin != null) {
-            return s3Origin.getDNSName();
-        } else if (customOrigin != null) {
-            return customOrigin.getDNSName();
+
+    private String createOriginString(Origins origins) {
+        if (origins == null || origins.getItems().isEmpty()) {
+            return null;
         }
-        
+
+        return origins.getItems().get(0).getDomainName();
+    }
+
+    private String createOriginString(S3Origin s3Origin) {
+        if (s3Origin != null) {
+            return s3Origin.getDomainName();
+        }
+
         return null;
     }
-    
+
 }

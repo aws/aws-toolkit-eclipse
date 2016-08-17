@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -101,6 +102,10 @@ public class WizardWidgetFactory {
         return newCombo(parent, 1);
     }
 
+    public static List newList(Composite parent) {
+        return newList(parent, 1);
+    }
+
     public static Combo newCombo(Composite parent, int colspan) {
         Combo combo = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
         GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
@@ -128,5 +133,18 @@ public class WizardWidgetFactory {
         radioButton.addSelectionListener(selectionListener);
         radioButton.setSelection(selected);
         return radioButton;
+    }
+
+    public static List newList(Composite parent, int colspan) {
+        List list = new List(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL);
+
+
+        GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gridData.horizontalSpan = colspan;
+        gridData.verticalSpan = 1;
+        gridData.heightHint = 150;
+        list.setLayoutData(gridData);
+
+        return list;
     }
 }

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.codehaus.jackson.JsonLocation;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.IOpenListener;
@@ -42,6 +41,7 @@ import com.amazonaws.eclipse.cloudformation.templates.TemplateObjectNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateValueNode;
 import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocument;
 import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocumentListener;
+import com.fasterxml.jackson.core.JsonLocation;
 
 public class TemplateContentOutlinePage extends ContentOutlinePage implements TemplateDocumentListener {
 
@@ -111,7 +111,7 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
     private void expandTreeItems(TreeItem treeItem, Set<String> paths) {
         TemplateOutlineNode node = (TemplateOutlineNode)treeItem.getData();
         if (node == null) return;
-        
+
         if (paths.contains(node.getNode().getPath())) {
             getTreeViewer().setExpandedState(node, true);
             getTreeViewer().refresh(node, true);
@@ -163,7 +163,7 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
         public TemplateNode getNode() {
             return node;
         }
-        
+
         @Override
         public int hashCode() {
             if (node == null) {
@@ -192,14 +192,14 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
                 }
             } else if (node.isArray()) {
                 TemplateArrayNode array = (TemplateArrayNode)node;
-                
+
                 for (TemplateNode node : array.getMembers()) {
                     if (node.isObject()) children.add(new TemplateOutlineNode("{Object}", node));
                     if (node.isArray())  children.add(new TemplateOutlineNode("{Array}", node));
                     if (node.isValue())  children.add(new TemplateOutlineNode(((TemplateValueNode)node).getText(), node));
                 }
             }
-            
+
             return children.toArray(new TemplateOutlineNode[0]);
         }
     }

@@ -5,17 +5,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.eclipse.core.runtime.FileLocator;
 import org.osgi.framework.Bundle;
 
 import com.amazonaws.eclipse.codedeploy.CodeDeployPlugin;
 import com.amazonaws.eclipse.codedeploy.appspec.util.JacksonUtils;
+import com.amazonaws.protocol.json.SdkJsonGenerator.JsonGenerationException;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 public class AppspecTemplateMetadataModel {
 

@@ -258,7 +258,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
         InvokeResult result = lambda.invoke(new InvokeRequest()
                 .withFunctionName(funcName)
                 .withInvocationType(InvocationType.RequestResponse)
-                .withLogType(LogType.None)
+                .withLogType(LogType.Tail)
                 .withPayload(input));
 
         out.println("==================== FUNCTION OUTPUT ====================");

@@ -14,11 +14,11 @@
  */
 package com.amazonaws.eclipse.cloudformation.templates;
 
-import org.codehaus.jackson.JsonLocation;
+import com.fasterxml.jackson.core.JsonLocation;
 
 
 /**
- * Abstract base class representing a generic JSON node in a Template document. 
+ * Abstract base class representing a generic JSON node in a Template document.
  */
 public abstract class TemplateNode {
     private TemplateNode parent;
@@ -32,7 +32,7 @@ public abstract class TemplateNode {
     public void setParent(TemplateNode parent) {
         this.parent = parent;
     }
-    
+
     public String getPath() {
         String path = "";
         TemplateNode node = parent;
@@ -41,11 +41,11 @@ public abstract class TemplateNode {
                 path = ((TemplateFieldNode)node).getText() + "/" + path;
             }
             node = node.getParent();
-        } 
-        
+        }
+
         return "ROOT/" + path;
     }
-    
+
     public boolean isField() {
         return false;
     }
@@ -53,11 +53,11 @@ public abstract class TemplateNode {
     public boolean isObject() {
         return false;
     }
-    
+
     public boolean isArray() {
         return false;
     }
-    
+
     public boolean isValue() {
         return false;
     }

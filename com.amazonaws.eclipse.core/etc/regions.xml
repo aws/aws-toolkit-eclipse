@@ -19,6 +19,8 @@
       <service name="CloudWatch">https://monitoring.us-gov-west-1.amazonaws.com/</service>
       <service name="CloudFormation">https://cloudformation.us-gov-west-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.us-gov-west-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.us-gov-west-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.us-gov-west-1.amazonaws.com/</service>
     </services>
   </region>
 
@@ -43,8 +45,14 @@
       <service name="AutoScaling">https://autoscaling.us-east-1.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.us-east-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.us-east-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.us-east-1.amazonaws.com/</service>
       <service name="CodeDeploy">https://codedeploy.us-east-1.amazonaws.com/</service>
-    </services>
+      <service name="OpsWorks">https://opsworks.us-east-1.amazonaws.com/</service>
+      <service name="Lambda">https://lambda.us-east-1.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.us-east-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.us-east-1.amazonaws.com/</service>
+      <service name="CodeCommit">https://codecommit.us-east-1.amazonaws.com/</service>
+  </services>
   </region>
 
   <region>
@@ -66,9 +74,13 @@
       <service name="AutoScaling">https://autoscaling.us-west-2.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.us-west-2.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.us-west-2.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.us-west-2.amazonaws.com/</service>
       <service name="ElasticBeanstalk">https://elasticbeanstalk.us-west-2.amazonaws.com/</service>
       <service name="GitPush">https://git.elasticbeanstalk.us-west-2.amazonaws.com/</service>
       <service name="CodeDeploy">https://codedeploy.us-west-2.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.us-west-2.amazonaws.com/</service>
+      <service name="Lambda">https://lambda.us-west-2.amazonaws.com/</service>
+      <service name="Logs">https://logs.us-west-2.amazonaws.com/</service>
     </services>
   </region>
 
@@ -91,15 +103,18 @@
       <service name="AutoScaling">https://autoscaling.us-west-1.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.us-west-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.us-west-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.us-west-1.amazonaws.com/</service>
       <service name="ElasticBeanstalk">https://elasticbeanstalk.us-west-1.amazonaws.com/</service>
       <service name="GitPush">https://git.elasticbeanstalk.us-west-1.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.us-west-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.us-west-1.amazonaws.com/</service>
     </services>
   </region>
 
   <region>
     <displayname>EU West (Ireland)</displayname>
     <systemname>eu-west-1</systemname>
-    <flag-icon>flags/europe.png</flag-icon>
+    <flag-icon>flags/ireland.png</flag-icon>
     <min-toolkit-version>0.5.0.0</min-toolkit-version>
     <services>
       <service name="S3">https://s3-eu-west-1.amazonaws.com/</service>
@@ -110,13 +125,18 @@
       <service name="SimpleDB">https://sdb.eu-west-1.amazonaws.com/</service>
       <service name="EC2">https://ec2.eu-west-1.amazonaws.com/</service>
       <service name="ElasticBeanstalk">https://elasticbeanstalk.eu-west-1.amazonaws.com/</service>
-     <service name="GitPush">https://git.elasticbeanstalk.eu-west-1.amazonaws.com/</service>
+      <service name="GitPush">https://git.elasticbeanstalk.eu-west-1.amazonaws.com/</service>
       <service name="RDS">https://rds.eu-west-1.amazonaws.com/</service>
       <service name="CloudFormation">https://cloudformation.eu-west-1.amazonaws.com/</service>
       <service name="ELB">https://elasticloadbalancing.eu-west-1.amazonaws.com/</service>
       <service name="AutoScaling">https://autoscaling.eu-west-1.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.eu-west-1.amazonaws.com/</service>
+      <service name="CodeDeploy">https://codedeploy.eu-west-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.eu-west-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.eu-west-1.amazonaws.com/</service>
+      <service name="Lambda">https://lambda.eu-west-1.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.eu-west-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.eu-west-1.amazonaws.com/</service>
     </services>
   </region>
 
@@ -140,9 +160,37 @@
       <service name="AutoScaling">https://autoscaling.eu-central-1.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.eu-central-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.eu-central-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.eu-central-1.amazonaws.com/</service>
+      <service name="Lambda">https://lambda.eu-central-1.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.eu-central-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.eu-central-1.amazonaws.com/</service>
     </services>
   </region>
 
+  <region>
+    <displayname>Asia Pacific (Mumbai)</displayname>
+    <systemname>ap-south-1</systemname>
+    <flag-icon>flags/flag_india.png</flag-icon>
+    <min-toolkit-version>1.6.9.0</min-toolkit-version>
+    <services>
+      <service name="S3">https://s3-ap-south-1.amazonaws.com/</service>
+      <service name="CloudFront">https://cloudfront.amazonaws.com/</service>
+      <service name="IAM">https://iam.amazonaws.com/</service>
+      <service name="SNS">https://sns.ap-south-1.amazonaws.com/</service>
+      <service name="SQS">https://sqs.ap-south-1.amazonaws.com/</service>
+      <service name="EC2">https://ec2.ap-south-1.amazonaws.com/</service>
+      <service name="RDS">https://rds.ap-south-1.amazonaws.com/</service>
+      <service name="CloudFormation">https://cloudformation.ap-south-1.amazonaws.com/</service>
+      <service name="ElasticBeanstalk">https://elasticbeanstalk.ap-south-1.amazonaws.com/</service>
+      <service name="ELB">https://elasticloadbalancing.ap-south-1.amazonaws.com/</service>
+      <service name="AutoScaling">https://autoscaling.ap-south-1.amazonaws.com/</service>
+      <service name="CloudWatch">https://monitoring.ap-south-1.amazonaws.com/</service>
+      <service name="DynamoDB">https://dynamodb.ap-south-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.ap-south-1.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.ap-south-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.ap-south-1.amazonaws.com/</service>
+    </services>
+  </region>
   <region>
     <displayname>Asia Pacific (Singapore)</displayname>
     <systemname>ap-southeast-1</systemname>
@@ -164,6 +212,10 @@
       <service name="AutoScaling">https://autoscaling.ap-southeast-1.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.ap-southeast-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.ap-southeast-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.ap-southeast-1.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.ap-southeast-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.ap-southeast-1.amazonaws.com/</service>
+      <service name="Lambda">https://lambda.ap-southeast-1.amazonaws.com/</service>
     </services>
   </region>
 
@@ -187,7 +239,39 @@
       <service name="ELB">https://elasticloadbalancing.ap-northeast-1.amazonaws.com/</service>
       <service name="AutoScaling">https://autoscaling.ap-northeast-1.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.ap-northeast-1.amazonaws.com/</service>
+      <service name="CodeDeploy">https://codedeploy.ap-northeast-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.ap-northeast-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.ap-northeast-1.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.ap-northeast-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.ap-northeast-1.amazonaws.com/</service>
+      <service name="Lambda">https://lambda.ap-northeast-1.amazonaws.com/</service>
+    </services>
+  </region>
+
+  <region>
+    <displayname>Asia Pacific (Seoul)</displayname>
+    <systemname>ap-northeast-2</systemname>
+    <flag-icon>flags/south_korea.png</flag-icon>
+    <min-toolkit-version>0.5.0.0</min-toolkit-version>
+    <services>
+      <service name="S3">https://s3.ap-northeast-2.amazonaws.com/</service>
+      <service name="CloudFront">https://cloudfront.amazonaws.com/</service>
+      <service name="IAM">https://iam.amazonaws.com/</service>
+      <service name="SNS">http://sns.ap-northeast-2.amazonaws.com/</service>
+      <service name="SQS">http://sqs.ap-northeast-2.amazonaws.com/</service>
+      <service name="EC2">https://ec2.ap-northeast-2.amazonaws.com/</service>
+      <service name="RDS">https://rds.ap-northeast-2.amazonaws.com/</service>
+      <service name="CloudFormation">https://cloudformation.ap-northeast-2.amazonaws.com/</service>
+      <service name="ElasticBeanstalk">https://elasticbeanstalk.ap-northeast-2.amazonaws.com/</service>
+      <service name="GitPush">https://git.elasticbeanstalk.ap-northeast-2.amazonaws.com/</service>
+      <service name="ELB">https://elasticloadbalancing.ap-northeast-2.amazonaws.com/</service>
+      <service name="AutoScaling">https://autoscaling.ap-northeast-2.amazonaws.com/</service>
+      <service name="CloudWatch">https://monitoring.ap-northeast-2.amazonaws.com/</service>
+      <service name="CodeDeploy">https://codedeploy.ap-northeast-2.amazonaws.com/</service>
+      <service name="DynamoDB">https://dynamodb.ap-northeast-2.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.ap-northeast-2.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.ap-northeast-2.amazonaws.com/</service>
+      <service name="Logs">https://logs.ap-northeast-2.amazonaws.com/</service>
     </services>
   </region>
 
@@ -210,8 +294,13 @@
       <service name="GitPush">https://git.elasticbeanstalk.ap-southeast-2.amazonaws.com/</service>
       <service name="ELB">https://elasticloadbalancing.ap-southeast-2.amazonaws.com/</service>
       <service name="AutoScaling">https://autoscaling.ap-southeast-2.amazonaws.com/</service>
+      <service name="CodeDeploy">https://codedeploy.ap-southeast-2.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.ap-southeast-2.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.ap-southeast-2.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.ap-southeast-2.amazonaws.com/</service>
+      <service name="Kinesis">https://kinesis.ap-southeast-2.amazonaws.com/</service>
+      <service name="Logs">https://logs.ap-southeast-2.amazonaws.com/</service>
+      <service name="Lambda">https://lambda.ap-southeast-2.amazonaws.com/</service>
     </services>
   </region>
 
@@ -234,8 +323,10 @@
       <service name="AutoScaling">https://autoscaling.sa-east-1.amazonaws.com/</service>
       <service name="CloudWatch">https://monitoring.sa-east-1.amazonaws.com/</service>
       <service name="DynamoDB">https://dynamodb.sa-east-1.amazonaws.com/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.sa-east-1.amazonaws.com/</service>
       <service name="ElasticBeanstalk">https://elasticbeanstalk.sa-east-1.amazonaws.com/</service>
       <service name="GitPush">https://git.elasticbeanstalk.sa-east-1.amazonaws.com/</service>
+      <service name="Logs">https://logs.sa-east-1.amazonaws.com/</service>
     </services>
   </region>
 
@@ -253,10 +344,13 @@
       <service name="SQS">https://sqs.cn-north-1.amazonaws.com.cn/</service>
       <service name="RDS">https://rds.cn-north-1.amazonaws.com.cn/</service>
       <service name="ELB">https://elasticloadbalancing.cn-north-1.amazonaws.com.cn/</service>
+      <service name="ElasticBeanstalk">https://elasticbeanstalk.cn-north-1.amazonaws.com.cn/</service>
       <service name="AutoScaling">https://autoscaling.cn-north-1.amazonaws.com.cn/</service>
       <service name="CloudWatch">https://monitoring.cn-north-1.amazonaws.com.cn/</service>
       <service name="CloudFormation">https://cloudformation.cn-north-1.amazonaws.com.cn/</service>
       <service name="DynamoDB">https://dynamodb.cn-north-1.amazonaws.com.cn/</service>
+      <service name="DynamoDBStream">https://streams.dynamodb.cn-north-1.amazonaws.com.cn/</service>
+      <service name="Logs">https://logs.cn-north-1.amazonaws.com.cn/</service>
     </services>
   </region>
 

@@ -17,7 +17,7 @@ package com.amazonaws.eclipse.cloudformation.templates;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.JsonLocation;
+import com.fasterxml.jackson.core.JsonLocation;
 
 /**
  * Represents a JSON array structure in a Template document.
@@ -30,7 +30,7 @@ public class TemplateArrayNode extends TemplateNode {
     public TemplateArrayNode(JsonLocation startLocation) {
         this.startLocation = startLocation;
     }
-    
+
     public boolean isArray() {
         return true;
     }
@@ -38,13 +38,13 @@ public class TemplateArrayNode extends TemplateNode {
     public List<TemplateNode> getMembers() {
         return members;
     }
-    
+
     public void add(TemplateNode node) {
         node.setParent(this);
-        
+
         members.add(node);
     }
-    
+
     public JsonLocation getStartLocation() {
         return startLocation;
     }

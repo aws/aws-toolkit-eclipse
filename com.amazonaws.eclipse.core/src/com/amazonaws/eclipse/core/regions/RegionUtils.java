@@ -53,8 +53,14 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 public class RegionUtils {
 
     private static final String CLOUDFRONT_DISTRO = "http://vstoolkit.amazonwebservices.com/";
-    private static List<Region> regions;
     private static final String REGIONS_FILE_OVERRIDE = RegionUtils.class.getName() + ".fileOverride";
+
+    private static final String REGIONS_METADATA_S3_BUCKET = "aws-vs-toolkit";
+    private static final String REGIONS_METADATA_S3_OBJECT = "ServiceEndPoints.xml";
+
+    private static final String LOCAL_REGION_FILE = "/etc/regions.xml";
+
+    private static List<Region> regions;
 
     /**
      * Returns true if the specified service is available in the current/active
@@ -224,18 +230,18 @@ public class RegionUtils {
      * initializes the static list of regions with it.
      */
     public static synchronized void init() {
-        if ( System.getProperty(REGIONS_FILE_OVERRIDE) != null ) {
+
+        if (System.getProperty(REGIONS_FILE_OVERRIDE) != null) {
             loadRegionsFromOverrideFile();
         } else {
-            IPath stateLocation = Platform.getStateLocation(
-                AwsToolkitCore.getDefault().getBundle());
+            IPath stateLocation = Platform.getStateLocation(AwsToolkitCore
+                    .getDefault().getBundle());
             File regionsDir = new File(stateLocation.toFile(), "regions");
             File regionsFile = new File(regionsDir, "regions.xml");
 
             cacheRegionsFile(regionsFile);
             initCachedRegions(regionsFile);
         }
-
         // Fall back onto the version we ship with the toolkit
         if ( regions == null ) {
             initBundledRegions();
@@ -255,7 +261,7 @@ public class RegionUtils {
             System.setProperty("com.amazonaws.sdk.disableCertChecking", "true");
             File regionsFile =
                 new File(System.getProperty(REGIONS_FILE_OVERRIDE));
-            FileInputStream override = new FileInputStream(regionsFile);
+            InputStream override = new FileInputStream(regionsFile);
             regions = parseRegionMetadata(override);
             try {
                 cacheFlags(regionsFile.getParentFile());
@@ -287,7 +293,7 @@ public class RegionUtils {
             AmazonS3 s3 =
                 AWSClientFactory.getAnonymousS3Client();
             ObjectMetadata objectMetadata =
-                s3.getObjectMetadata("aws-vs-toolkit", "ServiceEndPoints.xml");
+                s3.getObjectMetadata(REGIONS_METADATA_S3_BUCKET, REGIONS_METADATA_S3_OBJECT);
             if ( objectMetadata.getLastModified()
                         .after(regionsFileLastModified) ) {
                 cacheRegionsFile(regionsFile, s3);
@@ -329,7 +335,7 @@ public class RegionUtils {
     private static void initBundledRegions() {
         ClassLoader classLoader = RegionUtils.class.getClassLoader();
         InputStream inputStream =
-            classLoader.getResourceAsStream("/etc/regions.xml");
+            classLoader.getResourceAsStream(LOCAL_REGION_FILE);
         regions = parseRegionMetadata(inputStream);
         for ( Region r : regions ) {
             if (r == LocalRegion.INSTANCE) {
@@ -342,7 +348,7 @@ public class RegionUtils {
                 .getImageRegistry()
                 .put(AwsToolkitCore.IMAGE_FLAG_PREFIX + r.getId(),
                     ImageDescriptor.createFromFile(RegionUtils.class,
-                                                   r.getFlagIconPath()));
+                                                   "/icons/" + r.getFlagIconPath()));
         }
     }
 
@@ -361,31 +367,16 @@ public class RegionUtils {
 
     /**
      * Caches the regions file to the location given
-     *
-     * TODO: bypassing cloudfront for s3 to get plugin update out the door.
      */
     private static void cacheRegionsFile(File regionsFile, AmazonS3 s3) {
-//        try {
-            // First truncate the existing file
-//            truncateFile(regionsFile);
-
-            // Then fetch from cloudfront
-//            String endpointsUrl = CLOUDFRONT_DISTRO + "ServiceEndPoints.xml";
-//            fetchFile(endpointsUrl, regionsFile);
-//        } catch ( Exception e ) {
-//            AwsToolkitCore.getDefault().logException(
-//                "Couldn't fetch regions file from cloudfront, trying s3", e);
-            try {
-                // Then from s3
-                truncateFile(regionsFile);
-                s3.getObject(new GetObjectRequest("aws-vs-toolkit",
-                                                  "ServiceEndPoints.xml"),
-                             regionsFile);
-            } catch ( Exception s3Exception ) {
-                AwsToolkitCore.getDefault().logException(
+        try {
+            truncateFile(regionsFile);
+            s3.getObject(new GetObjectRequest(REGIONS_METADATA_S3_BUCKET,
+                    REGIONS_METADATA_S3_OBJECT), regionsFile);
+        } catch (Exception s3Exception) {
+            AwsToolkitCore.getDefault().logException(
                     "Couldn't fetch regions file from s3", s3Exception);
-            }
-//        }
+        }
     }
 
     /**
@@ -459,6 +450,24 @@ public class RegionUtils {
         }
     }
 
+    /**
+     * Load regions from remote S3 bucket.
+     */
+    public static List<Region> loadRegionsFromS3() {
+        AmazonS3 s3 = AWSClientFactory.getAnonymousS3Client();
+        InputStream inputStream =
+                s3.getObject(REGIONS_METADATA_S3_BUCKET, REGIONS_METADATA_S3_OBJECT)
+                    .getObjectContent();
+        return parseRegionMetadata(inputStream);
+    }
 
-
+    /**
+     * Load regions from local file.
+     */
+    public static List<Region> loadRegionsFromLocalFile() {
+        ClassLoader classLoader = RegionUtils.class.getClassLoader();
+        InputStream inputStream =
+            classLoader.getResourceAsStream(LOCAL_REGION_FILE);
+        return parseRegionMetadata(inputStream);
+    }
 }

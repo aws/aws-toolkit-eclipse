@@ -21,8 +21,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class TemplateSchemaRules {
 
@@ -67,13 +68,13 @@ public class TemplateSchemaRules {
 
         ArrayList<PseudoParameter> pseudoParameters = new ArrayList<PseudoParameter>();
 
-        Iterator<Entry<String, JsonNode>> iterator = rootNode.get(PSEUDO_PARAMETERS).getFields();
+        Iterator<Entry<String, JsonNode>> iterator = rootNode.get(PSEUDO_PARAMETERS).fields();
         while (iterator.hasNext()) {
             Entry<String, JsonNode> entry = iterator.next();
 
             pseudoParameters.add(new PseudoParameter(entry.getKey(),
-                entry.getValue().get(TYPE).getValueAsText(),
-                entry.getValue().get(DESCRIPTION).getValueAsText()));
+                entry.getValue().get(TYPE).asText(),
+                entry.getValue().get(DESCRIPTION).asText()));
         }
 
         return pseudoParameters;
@@ -84,13 +85,13 @@ public class TemplateSchemaRules {
 
         ArrayList<IntrinsicFunction> intrinsicFunctions = new ArrayList<IntrinsicFunction>();
 
-        Iterator<Entry<String, JsonNode>> iterator = rootNode.get(INTRINSIC_FUNCTIONS).getFields();
+        Iterator<Entry<String, JsonNode>> iterator = rootNode.get(INTRINSIC_FUNCTIONS).fields();
         while (iterator.hasNext()) {
             Entry<String, JsonNode> entry = iterator.next();
 
             intrinsicFunctions.add(new IntrinsicFunction(entry.getKey(),
-                entry.getValue().get(PARAMETER).getValueAsText(),
-                entry.getValue().get(DESCRIPTION).getValueAsText()));
+                entry.getValue().get(PARAMETER).asText(),
+                entry.getValue().get(DESCRIPTION).asText()));
         }
 
         return intrinsicFunctions;
@@ -101,28 +102,28 @@ public class TemplateSchemaRules {
         Schema schema = new Schema();
 
         if (schemaNode.has(DESCRIPTION)) {
-            schema.setDescription(schemaNode.get(DESCRIPTION).getTextValue());
+            schema.setDescription(schemaNode.get(DESCRIPTION).textValue());
         }
 
         if (schemaNode.has(PROPERTIES)) {
-            Iterator<Entry<String, JsonNode>> fields = schemaNode.get(PROPERTIES).getFields();
+            Iterator<Entry<String, JsonNode>> fields = schemaNode.get(PROPERTIES).fields();
             while (fields.hasNext()) {
                 Entry<String, JsonNode> entry = fields.next();
 
-                SchemaProperty schemaProperty = new SchemaProperty(entry.getValue().get(TYPE).getValueAsText());
+                SchemaProperty schemaProperty = new SchemaProperty(entry.getValue().get(TYPE).asText());
 
                 if (entry.getValue().has(DESCRIPTION)) {
-                    schemaProperty.setDescription(entry.getValue().get(DESCRIPTION).getValueAsText());
+                    schemaProperty.setDescription(entry.getValue().get(DESCRIPTION).asText());
                 }
 
                 if (entry.getValue().has(REQUIRED)) {
-                    schemaProperty.setRequired(entry.getValue().get(REQUIRED).getValueAsBoolean());
+                    schemaProperty.setRequired(entry.getValue().get(REQUIRED).asBoolean());
                 }
 
                 if (entry.getValue().has(ALLOWED_VALUES)) {
                     List<String> allowedValues = new ArrayList<String>();
-                    Iterator<JsonNode> iterator = entry.getValue().get(ALLOWED_VALUES).getElements();
-                    while (iterator.hasNext()) allowedValues.add(iterator.next().getValueAsText());
+                    Iterator<JsonNode> iterator = entry.getValue().get(ALLOWED_VALUES).elements();
+                    while (iterator.hasNext()) allowedValues.add(iterator.next().asText());
                     schemaProperty.setAllowedValues(allowedValues);
                 }
 
@@ -138,11 +139,11 @@ public class TemplateSchemaRules {
                 }
 
                 if (node.has(SCHEMA_LOOKUP_PROPERTY)) {
-                    schemaProperty.setSchemaLookupProperty(node.get(SCHEMA_LOOKUP_PROPERTY).getValueAsText());
+                    schemaProperty.setSchemaLookupProperty(node.get(SCHEMA_LOOKUP_PROPERTY).asText());
                 }
 
                 if (node.has(CHILD_SCHEMAS)) {
-                    Iterator<Entry<String, JsonNode>> fields2 = node.get(CHILD_SCHEMAS).getFields();
+                    Iterator<Entry<String, JsonNode>> fields2 = node.get(CHILD_SCHEMAS).fields();
                     while (fields2.hasNext()) {
                         Entry<String, JsonNode> entry2 = fields2.next();
 

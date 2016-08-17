@@ -19,12 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Stack;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonLocation;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -40,6 +34,12 @@ import com.amazonaws.eclipse.cloudformation.templates.TemplateArrayNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateObjectNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateValueNode;
 import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocument;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TemplateReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
 

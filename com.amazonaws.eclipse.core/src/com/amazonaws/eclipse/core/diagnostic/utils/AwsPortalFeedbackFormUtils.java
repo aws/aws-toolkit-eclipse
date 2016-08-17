@@ -17,7 +17,6 @@ package com.amazonaws.eclipse.core.diagnostic.utils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -37,7 +36,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.diagnostic.model.ErrorReportDataModel;
 import com.amazonaws.eclipse.core.diagnostic.model.PlatformEnvironmentDataModel;
-import com.amazonaws.util.HttpUtils;
+import com.amazonaws.util.SdkHttpUtils;
 
 /**
  * A util class responsible for sending error report data to the Amazon
@@ -141,7 +140,7 @@ public class AwsPortalFeedbackFormUtils {
 
         // These are the additional fields required by the POST API
         content.append(AUTHENTICITY_TOKEN).append("=")
-               .append(HttpUtils.urlEncode(authentityToken, false));
+               .append(SdkHttpUtils.urlEncode(authentityToken, false));
         content.append("&_method=put");
 
 
@@ -150,23 +149,23 @@ public class AwsPortalFeedbackFormUtils {
         /* ============= User email ============= */
         content.append("&");
         content.append(FORM_FIELD_PREFIX).append(EMAIL).append("=");
-        content.append(HttpUtils.urlEncode(reportData.getUserEmail(), false));
+        content.append(SdkHttpUtils.urlEncode(reportData.getUserEmail(), false));
 
         /* ============= User description of the error ============= */
         content.append("&");
         content.append(FORM_FIELD_PREFIX).append(USER_DESCRIPTION).append("=");
-        content.append(HttpUtils.urlEncode(reportData.getUserDescription(), false));
+        content.append(SdkHttpUtils.urlEncode(reportData.getUserDescription(), false));
 
         /* ============= Error stack trace ============= */
         content.append("&");
         content.append(FORM_FIELD_PREFIX).append(ERROR_STACKTRACE).append("=");
-        content.append(HttpUtils.urlEncode(
+        content.append(SdkHttpUtils.urlEncode(
                 getStackTraceFromThrowable(reportData.getBug()), false));
 
         /* ============= Error status message ============= */
         content.append("&");
         content.append(FORM_FIELD_PREFIX).append(ERROR_STATUS_MESSAGE).append("=");
-        content.append(HttpUtils.urlEncode(reportData.getStatusMessage(), false));
+        content.append(SdkHttpUtils.urlEncode(reportData.getStatusMessage(), false));
 
         PlatformEnvironmentDataModel env = reportData.getPlatformEnv();
 
@@ -195,7 +194,7 @@ public class AwsPortalFeedbackFormUtils {
             pw.println();
             pw.println();
 
-            content.append(HttpUtils.urlEncode(eclipsePlatformEnv.toString(), false));
+            content.append(SdkHttpUtils.urlEncode(eclipsePlatformEnv.toString(), false));
         }
 
         /* ============= Installed Plug-ins ============= */
@@ -210,7 +209,7 @@ public class AwsPortalFeedbackFormUtils {
                 pw.println(bundle.toString());
             }
 
-            content.append(HttpUtils.urlEncode(installedPlugins.toString(), false));
+            content.append(SdkHttpUtils.urlEncode(installedPlugins.toString(), false));
         }
 
         return content.toString();

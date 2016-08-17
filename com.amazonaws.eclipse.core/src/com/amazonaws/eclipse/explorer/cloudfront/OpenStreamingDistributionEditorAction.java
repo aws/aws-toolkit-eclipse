@@ -17,18 +17,18 @@ package com.amazonaws.eclipse.explorer.cloudfront;
 import org.eclipse.ui.IEditorInput;
 
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
-import com.amazonaws.services.cloudfront_2012_03_15.model.StreamingDistributionSummary;
+import com.amazonaws.services.cloudfront.model.StreamingDistributionSummary;
 
 public class OpenStreamingDistributionEditorAction extends AbstractOpenAwsEditorAction {
     private StreamingDistributionSummary streamingDistributionSummary;
-    
+
     public OpenStreamingDistributionEditorAction(StreamingDistributionSummary distributionSummary) {
-        super("CloudFront Streaming Distribution Editor", 
+        super("CloudFront Streaming Distribution Editor",
             "com.amazonaws.eclipse.explorer.cloudfront.streamingDistributionEditor",
             ServiceAbbreviations.CLOUDFRONT);
         this.streamingDistributionSummary = distributionSummary;
     }
-    
+
     @Override
     public IEditorInput createEditorInput(String endpoint, String accountId) {
         return new StreamingDistributionEditorInput(streamingDistributionSummary, endpoint, accountId);

@@ -64,7 +64,7 @@ public class StackEditor extends EditorPart {
     private Text lastUpdatedLabel;
     private Text descriptionLabel;
     private Text rollbackOnFailureLabel;
-    
+
     private StackEventsTable stackEventsTable;
     private StackOutputsTable stackOutputsTable;
     private StackParametersTable stackParametersTable;
@@ -108,14 +108,14 @@ public class StackEditor extends EditorPart {
         toolkit.decorateFormHeading(form.getForm());
         form.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_STACK));
         form.getBody().setLayout(new GridLayout());
-        
-     
+
+
         createSummarySection(form.getBody(), toolkit);
         createTabsSection(form.getBody(), toolkit);
 
         form.getToolBarManager().add(new RefreshAction());
         form.getToolBarManager().update(true);
-        
+
         new LoadStackSummaryThread().start();
     }
 
@@ -141,32 +141,32 @@ public class StackEditor extends EditorPart {
         toolkit.createLabel(composite, "Stack Name:");
         stackNameLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE);
         gridDataFactory.applyTo(stackNameLabel);
-        
+
         toolkit.createLabel(composite, "Created:");
         createdLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE);
         gridDataFactory.applyTo(createdLabel);
-        
+
         toolkit.createLabel(composite, "Status:");
         statusLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE);
         gridDataFactory.applyTo(statusLabel);
-        
+
         toolkit.createLabel(composite, "Create Timeout:");
         createTimeoutLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE);
         gridDataFactory.applyTo(createTimeoutLabel);
-        
+
         toolkit.createLabel(composite, "Status Reason:");
         statusReasonLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE);
         gridDataFactory.applyTo(statusReasonLabel);
-        
+
         toolkit.createLabel(composite, "Last Updated:");
         lastUpdatedLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE);
         gridDataFactory.applyTo(lastUpdatedLabel);
-        
+
         toolkit.createLabel(composite, "Rollback on Failure:");
         rollbackOnFailureLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE);
         toolkit.createLabel(composite, "");
         toolkit.createLabel(composite, "");
-        
+
         Label l = toolkit.createLabel(composite, "Description:");
         gridDataFactory.copy().hint(100, SWT.DEFAULT).minSize(1, SWT.DEFAULT).align(SWT.LEFT, SWT.TOP).grab(false, false).applyTo(l);
         descriptionLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE | SWT.MULTI | SWT.WRAP);
@@ -177,7 +177,7 @@ public class StackEditor extends EditorPart {
         Composite tabsSection = toolkit.createComposite(parent, SWT.NONE);
         tabsSection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         tabsSection.setLayout(new FillLayout());
-        
+
         TabFolder tabFolder = new TabFolder (tabsSection, SWT.BORDER);
 
         Rectangle clientArea = parent.getClientArea();
@@ -197,15 +197,15 @@ public class StackEditor extends EditorPart {
         parametersTab.setText("Parameters");
         stackParametersTable = new StackParametersTable(tabFolder, toolkit);
         parametersTab.setControl(stackParametersTable);
-        
+
         TabItem outputsTab = new TabItem(tabFolder, SWT.NONE);
         outputsTab.setText("Outputs");
         stackOutputsTable = new StackOutputsTable(tabFolder, toolkit);
         outputsTab.setControl(stackOutputsTable);
-        
+
         tabFolder.pack();
     }
-    
+
     @Override
     public void setFocus() {}
 
@@ -215,20 +215,20 @@ public class StackEditor extends EditorPart {
     }
 
     private class LoadStackSummaryThread extends Thread {
-        
+
         private Stack describeStack() {
             DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackEditorInput.getStackName());
             List<Stack> stacks = getClient().describeStacks(request).getStacks();
-            
+
             if (stacks.size() == 0) {
                 return new Stack();
             } else  if (stacks.size() > 1) {
                 throw new RuntimeException("Unexpected number of stacks returned");
-            } 
-            
+            }
+
             return stacks.get(0);
         }
-        
+
         @Override
         public void run() {
             try {
@@ -242,14 +242,14 @@ public class StackEditor extends EditorPart {
                         statusReasonLabel.setText(stack.getStackStatusReason());
                         createdLabel.setText(valueOrDefault(stack.getCreationTime(), "N/A"));
                         createTimeoutLabel.setText(valueOrDefault(stack.getTimeoutInMinutes(), "N/A"));
-                        
+
                         Boolean disableRollback = stack.getDisableRollback();
                         if (disableRollback != null) disableRollback = !disableRollback;
                         rollbackOnFailureLabel.setText(booleanYesOrNo(disableRollback));
-    
+
                         stackNameLabel.getParent().layout();
                         stackNameLabel.getParent().getParent().layout(true);
-                        
+
                         stackOutputsTable.setStackOutputs(stack.getOutputs());
                         stackParametersTable.setStackParameters(stack.getParameters());
                     }
@@ -259,7 +259,7 @@ public class StackEditor extends EditorPart {
                 StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.SHOW);
             }
         }
-        
+
         private String booleanYesOrNo(Boolean b) {
             if (b == null) return "";
             if (b == true) return "Yes";
@@ -270,25 +270,25 @@ public class StackEditor extends EditorPart {
             if (date != null) return date.toString();
             else return defaultValue;
         }
-        
+
         private String valueOrDefault(Integer integer, String defaultValue) {
             if (integer != null) return integer.toString();
             else return defaultValue;
         }
-        
+
         private String valueOrDefault(String value, String defaultValue) {
             if (value != null) return value;
             else return defaultValue;
         }
     }
-    
+
     private class RefreshAction extends Action {
         public RefreshAction() {
             this.setText("Refresh");
             this.setToolTipText("Refresh stack information");
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_REFRESH));
         }
-        
+
         @Override
         public void run() {
             new LoadStackSummaryThread().start();
@@ -296,5 +296,5 @@ public class StackEditor extends EditorPart {
             stackResourcesTable.refresh();
         }
     }
-    
+
 }

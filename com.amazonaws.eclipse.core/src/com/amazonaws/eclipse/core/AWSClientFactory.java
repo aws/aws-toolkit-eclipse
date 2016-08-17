@@ -45,8 +45,10 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
-import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFront;
-import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFrontClient;
+import com.amazonaws.services.cloudfront.AmazonCloudFront;
+import com.amazonaws.services.cloudfront.AmazonCloudFrontClient;
+import com.amazonaws.services.codecommit.AWSCodeCommit;
+import com.amazonaws.services.codecommit.AWSCodeCommitClient;
 import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
 import com.amazonaws.services.codedeploy.AmazonCodeDeployClient;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
@@ -229,7 +231,11 @@ public class AWSClientFactory {
     }
 
     public AWSLambda getLambdaClient() {
-        return getLambdaClientByEndpoint((RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.LAMBDA)));
+        return getLambdaClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.LAMBDA));
+    }
+
+    public AWSCodeCommit getCodeCommitClient() {
+        return getCodeCommitClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CODECOMMIT));
     }
 
     /*
@@ -306,6 +312,10 @@ public class AWSClientFactory {
 
     public AWSLambda getLambdaClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSLambdaClient.class);
+    }
+
+    public AWSCodeCommit getCodeCommitClientByEndpoint(String endpoint) {
+        return getOrCreateClient(endpoint, AWSCodeCommitClient.class);
     }
 
     private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {

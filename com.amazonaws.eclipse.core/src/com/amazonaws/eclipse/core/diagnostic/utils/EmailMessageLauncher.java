@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.swt.program.Program;
 
-import com.amazonaws.util.HttpUtils;
+import com.amazonaws.util.SdkHttpUtils;
 
 /**
  * A utility class responsible for opening an email message.
@@ -49,9 +49,9 @@ public class EmailMessageLauncher {
         try {
 
             StringBuilder mailto = new StringBuilder()
-                .append("mailto:").append(HttpUtils.urlEncode(recipient, false))
-                .append("?subject=").append(HttpUtils.urlEncode(subject, false))
-                .append("&body=").append(HttpUtils.urlEncode(body, false));
+                .append("mailto:").append(SdkHttpUtils.urlEncode(recipient, false))
+                .append("?subject=").append(SdkHttpUtils.urlEncode(subject, false))
+                .append("&body=").append(SdkHttpUtils.urlEncode(body, false));
 
             Program.launch(mailto.toString());
 

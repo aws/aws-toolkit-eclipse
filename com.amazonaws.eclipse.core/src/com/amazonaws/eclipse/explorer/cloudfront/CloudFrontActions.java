@@ -22,15 +22,15 @@ import org.eclipse.jface.action.Action;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
-import com.amazonaws.services.cloudfront_2012_03_15.AmazonCloudFront;
-import com.amazonaws.services.cloudfront_2012_03_15.model.DistributionConfig;
-import com.amazonaws.services.cloudfront_2012_03_15.model.GetDistributionConfigRequest;
-import com.amazonaws.services.cloudfront_2012_03_15.model.GetDistributionConfigResult;
-import com.amazonaws.services.cloudfront_2012_03_15.model.GetStreamingDistributionConfigRequest;
-import com.amazonaws.services.cloudfront_2012_03_15.model.GetStreamingDistributionConfigResult;
-import com.amazonaws.services.cloudfront_2012_03_15.model.StreamingDistributionConfig;
-import com.amazonaws.services.cloudfront_2012_03_15.model.UpdateDistributionRequest;
-import com.amazonaws.services.cloudfront_2012_03_15.model.UpdateStreamingDistributionRequest;
+import com.amazonaws.services.cloudfront.AmazonCloudFront;
+import com.amazonaws.services.cloudfront.model.DistributionConfig;
+import com.amazonaws.services.cloudfront.model.GetDistributionConfigRequest;
+import com.amazonaws.services.cloudfront.model.GetDistributionConfigResult;
+import com.amazonaws.services.cloudfront.model.GetStreamingDistributionConfigRequest;
+import com.amazonaws.services.cloudfront.model.GetStreamingDistributionConfigResult;
+import com.amazonaws.services.cloudfront.model.StreamingDistributionConfig;
+import com.amazonaws.services.cloudfront.model.UpdateDistributionRequest;
+import com.amazonaws.services.cloudfront.model.UpdateStreamingDistributionRequest;
 
 public class CloudFrontActions {
 
@@ -80,7 +80,7 @@ public class CloudFrontActions {
         @Override
         public void updateDistributionConfig() {
             AmazonCloudFront cf = getClient();
-            GetStreamingDistributionConfigResult distributionConfigResult = 
+            GetStreamingDistributionConfigResult distributionConfigResult =
                 cf.getStreamingDistributionConfig(new GetStreamingDistributionConfigRequest(distributionId));
             StreamingDistributionConfig distributionConfig = distributionConfigResult.getStreamingDistributionConfig();
             distributionConfig.setEnabled(isEnablingDistribution());
@@ -100,7 +100,7 @@ public class CloudFrontActions {
         @Override
         public void updateDistributionConfig() {
             AmazonCloudFront cf = getClient();
-            GetDistributionConfigResult distributionConfigResult = 
+            GetDistributionConfigResult distributionConfigResult =
                 cf.getDistributionConfig(new GetDistributionConfigRequest(distributionId));
             DistributionConfig distributionConfig = distributionConfigResult.getDistributionConfig();
             distributionConfig.setEnabled(isEnablingDistribution());
