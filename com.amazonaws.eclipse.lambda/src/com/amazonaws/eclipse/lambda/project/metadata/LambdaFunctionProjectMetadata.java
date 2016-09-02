@@ -26,11 +26,13 @@ public class LambdaFunctionProjectMetadata {
     private static final String P_LAST_DEPLOYMENT_FUNCTION_NAME = "lastDeploymentFunctionName";
     private static final String P_LAST_DEPLOYMENT_BUCKET_NAME = "lastDeploymentBucketName";
     private static final String P_LAST_INVOKE_INPUT = "lastInvokeInput";
+    private static final String P_LAST_INVOKE_SHOW_LIVE_LOG = "lastInvokeShowLiveLog";
 
     private String lastDeploymentEndpoint;
     private String lastDeploymentFunctionName;
     private String lastDeploymentBucketName;
     private String lastInvokeInput;
+    private Boolean lastInvokeShowLiveLog;
 
     public String getLastDeploymentEndpoint() {
         return lastDeploymentEndpoint;
@@ -79,6 +81,14 @@ public class LambdaFunctionProjectMetadata {
         this.lastInvokeInput = lastInvokeInput;
     }
 
+    public Boolean getLastInvokeShowLiveLog() {
+        return lastInvokeShowLiveLog;
+    }
+
+    public void setLastInvokeShowLiveLog(Boolean lastInvokeShowLiveLog) {
+        this.lastInvokeShowLiveLog = lastInvokeShowLiveLog;
+    }
+
     public boolean isValid() {
         return isNotEmpty(lastDeploymentEndpoint)
                 && isNotEmpty(lastDeploymentFunctionName)
@@ -101,6 +111,9 @@ public class LambdaFunctionProjectMetadata {
         if (lastInvokeInput != null) {
             props.setProperty(P_LAST_INVOKE_INPUT, lastInvokeInput);
         }
+        if (lastInvokeShowLiveLog != null) {
+            props.setProperty(P_LAST_INVOKE_SHOW_LIVE_LOG, lastInvokeShowLiveLog.toString());
+        }
 
         return props;
     }
@@ -113,6 +126,9 @@ public class LambdaFunctionProjectMetadata {
         md.setLastDeploymentFunctionName(props.getProperty(P_LAST_DEPLOYMENT_FUNCTION_NAME));
         md.setLastDeploymentBucketName(props.getProperty(P_LAST_DEPLOYMENT_BUCKET_NAME));
         md.setLastInvokeInput(props.getProperty(P_LAST_INVOKE_INPUT));
+        Boolean showLiveLog = props.getProperty(P_LAST_INVOKE_SHOW_LIVE_LOG) == null ? null :
+            Boolean.valueOf(props.getProperty(P_LAST_INVOKE_SHOW_LIVE_LOG));
+        md.setLastInvokeShowLiveLog(showLiveLog);
 
         return md;
     }

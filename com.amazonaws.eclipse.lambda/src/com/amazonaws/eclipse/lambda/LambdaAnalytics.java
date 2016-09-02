@@ -69,6 +69,8 @@ public final class LambdaAnalytics {
 
     private static final String METRIC_NAME_IS_INVOKE_INPUT_MODIFIED = "IsInvokeInputModified";
     private static final String METRIC_NAME_IS_PROJECT_MODIFIED_AFTER_LAST_INVOKE = "IsProjectModifiedAfterLastInvoke";
+    private static final String METRIC_NAME_FUNCTION_LOG_LENGTH = "FunctionLogLength";
+    private static final String METRIC_NAME_SHOW_LIVE_LOG = "ShowLiveLog";
 
     /*
      * New Lambda function wizard
@@ -198,6 +200,20 @@ public final class LambdaAnalytics {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
                 .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU)
+                .build());
+    }
+
+    public static void trackFunctionLogLength(long length) {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addMetric(METRIC_NAME_FUNCTION_LOG_LENGTH, length)
+                .build());
+    }
+
+    public static void trackIsShowLiveLog(boolean showLiveLog) {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .addBooleanMetric(METRIC_NAME_SHOW_LIVE_LOG, showLiveLog)
                 .build());
     }
 

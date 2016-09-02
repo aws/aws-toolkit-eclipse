@@ -46,7 +46,7 @@ public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
     }
 
     public void init(IStructuredSelection selection) {
-        IJavaElement jelem= getInitialJavaElement(selection);
+        IJavaElement jelem = getInitialJavaElement(selection);
         initContainerPage(jelem);
         initTypePage(jelem);
     }

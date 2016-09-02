@@ -16,7 +16,6 @@ package com.amazonaws.eclipse.lambda.invoke.ui;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFillingLabel;
-import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +36,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -44,32 +44,36 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 
 public class InvokeFunctionInputDialog extends Dialog {
 
+    private static final boolean DEFAULT_SHOW_LIVE_LOG = false;
     public static final int INVOKE_BUTTON_ID = IDialogConstants.OK_ID;
 
     private static final int PREFERRED_WIDTH = 600;
     private static final int PREFERRED_HEIGHT = 400;
 
     private final IProject project;
+    private final LambdaFunctionProjectMetadata md;
 
     private Combo jsonInputFileCombo;
-    private String inputBoxContent;
     private String suggestedInputBoxContent;
     private Text inputBox;
+    private Button showLiveLogButton;
 
     private static final String LOADING = "Loading...";
     private static final String NONE_FOUND = "None found";
 
-    public InvokeFunctionInputDialog(Shell parentShell, IProject project) {
+    public InvokeFunctionInputDialog(Shell parentShell, IProject project, LambdaFunctionProjectMetadata md) {
         super(parentShell);
         this.project = project;
-    }
-
-    public String getInputBoxContent() {
-        return inputBoxContent;
+        this.md = md;
+        if (md.getLastInvokeShowLiveLog() == null) {
+            md.setLastInvokeShowLiveLog(DEFAULT_SHOW_LIVE_LOG);
+        }
     }
 
     public boolean isInputBoxContentModified() {
@@ -100,11 +104,24 @@ public class InvokeFunctionInputDialog extends Dialog {
 
       inputBox.addModifyListener(new ModifyListener() {
           public void modifyText(ModifyEvent e) {
-              inputBoxContent = inputBox.getText();
+              md.setLastInvokeInput(inputBox.getText());
           }
       });
+      if (md.getLastInvokeInput() != null) {
+          inputBox.setText(md.getLastInvokeInput());
+      }
 
-      loadJsonFilesAsync();
+      showLiveLogButton = new Button(container, SWT.CHECK);
+      showLiveLogButton.setText("Show live log");
+      showLiveLogButton.addSelectionListener(new SelectionAdapter() {
+          @Override
+          public void widgetSelected(SelectionEvent event) {
+              md.setLastInvokeShowLiveLog(showLiveLogButton.getSelection());
+          }
+      });
+      showLiveLogButton.setSelection(md.getLastInvokeShowLiveLog());
+
+      loadJsonFilesAsync(md.getLastInvokeInput() == null);
 
       return container;
     }
@@ -119,7 +136,7 @@ public class InvokeFunctionInputDialog extends Dialog {
     @Override
     protected void configureShell(Shell newShell) {
       super.configureShell(newShell);
-      newShell.setText("Lambda Function Input");
+      newShell.setText(md.getLastDeploymentFunctionName() + " Lambda Function Input");
     }
 
     @Override
@@ -127,7 +144,7 @@ public class InvokeFunctionInputDialog extends Dialog {
       return new Point(PREFERRED_WIDTH, PREFERRED_HEIGHT);
     }
 
-    private void loadJsonFilesAsync() {
+    private void loadJsonFilesAsync(final boolean showJsonFile) {
         Display.getDefault().syncExec(new Runnable() {
 
             public void run() {
@@ -161,8 +178,7 @@ public class InvokeFunctionInputDialog extends Dialog {
                     }
                     jsonInputFileCombo.select(0);
                     jsonInputFileCombo.setEnabled(true);
-                    onJsonFileSelectionChange();
-
+                    if (showJsonFile) onJsonFileSelectionChange();
                 }
             }
         });
@@ -194,7 +210,7 @@ public class InvokeFunctionInputDialog extends Dialog {
             String fileContent = IOUtils.toString(file.getContents());
             inputBox.setText(fileContent);
             suggestedInputBoxContent = fileContent;
-            inputBoxContent = fileContent;
+            md.setLastInvokeInput(fileContent);
         } catch (Exception ignored) {
             return;
         }

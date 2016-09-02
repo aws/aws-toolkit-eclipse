@@ -14,8 +14,6 @@
  */
 package com.amazonaws.eclipse.lambda.invoke.handler;
 
-import com.amazonaws.eclipse.lambda.LambdaAnalytics;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,6 +31,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
@@ -42,7 +41,9 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.invoke.logs.CloudWatchLogsUtils;
 import com.amazonaws.eclipse.lambda.invoke.ui.InvokeFunctionInputDialog;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
@@ -59,8 +60,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.util.StringUtils;
 
 public class InvokeFunctionHandler extends AbstractHandler {
-
-    private static final String LAMBDA_CONSOLE_NAME = "AWS Lambda Console";
 
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
@@ -102,12 +101,14 @@ public class InvokeFunctionHandler extends AbstractHandler {
                 .loadLambdaProjectMetadata(project);
 
         if (md != null && md.isValid()) {
+            // Invoke related properties are to be populated within inputDialog
             InvokeFunctionInputDialog inputDialog = new InvokeFunctionInputDialog(
-                    Display.getCurrent().getActiveShell(), project);
+                    Display.getCurrent().getActiveShell(), project, md);
             int retCode = inputDialog.open();
 
             if (retCode == InvokeFunctionInputDialog.INVOKE_BUTTON_ID) {
-                String input = inputDialog.getInputBoxContent();
+                String input = md.getLastInvokeInput();
+                boolean showLiveLog = md.getLastInvokeShowLiveLog();
 
                 boolean isProjectDirty = LambdaPlugin.getDefault()
                         .getProjectChangeTracker().isProjectDirty(project);
@@ -115,6 +116,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
                 LambdaAnalytics.trackIsProjectModifiedAfterLastInvoke(isProjectDirty);
                 LambdaAnalytics.trackIsInvokeInputModified(isInvokeInputModified);
+                LambdaAnalytics.trackIsShowLiveLog(showLiveLog);
 
                 if (isProjectDirty) {
                     invokeAfterRepeatingLastDeployment(input, project, md);
@@ -132,78 +134,115 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
     private static void invokeAfterRepeatingLastDeployment(final String invokeInput,
             final IProject project, final LambdaFunctionProjectMetadata metadata) {
-        _doInvoke(invokeInput, project, metadata, true);
+        _doInvoke(project, metadata, true);
     }
 
     private static void invokeWithoutDeployment(final String invokeInput,
             final IProject project, final LambdaFunctionProjectMetadata metadata) {
-        _doInvoke(invokeInput, project, metadata, false);
+        _doInvoke(project, metadata, false);
     }
 
-    private static void _doInvoke(final String invokeInput,
-            final IProject project,
+    private static void _doInvoke(final IProject project,
             final LambdaFunctionProjectMetadata metadata,
             final boolean updateFunctionCode) {
 
-        MessageConsole console = getOrCreateLambdaConsoleIfNotExist();
-        console.clearConsole();
-        ConsolePlugin.getDefault().getConsoleManager().showConsoleView(console);
-        final MessageConsoleStream consoleOutput = console.newMessageStream();
+        MessageConsole lambdaConsole = getOrCreateLambdaConsoleIfNotExist(
+                metadata.getLastDeploymentFunctionName() + " Lambda Console");
+        lambdaConsole.clearConsole();
+        ConsolePlugin.getDefault().getConsoleManager().showConsoleView(lambdaConsole);
+        final MessageConsoleStream lambdaOutput = lambdaConsole.newMessageStream();
+        final MessageConsoleStream lambdaError = lambdaConsole.newMessageStream();
+        lambdaError.setColor(new Color(Display.getDefault(), 255, 0, 0));
 
-        final AWSLambda lambda = AwsToolkitCore.getClientFactory()
-                .getLambdaClientByEndpoint(metadata.getLastDeploymentEndpoint());
-        final String funcName = metadata.getLastDeploymentFunctionName();
-        final String bucketName = metadata.getLastDeploymentBucketName();
-
-        new Job("Running " + funcName + " on Lambda...") {
+        new Job("Running " + metadata.getLastDeploymentFunctionName() + " on Lambda...") {
 
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    if (updateFunctionCode) {
-                        updateFunctionCode(lambda, project, funcName, bucketName, consoleOutput);
-                        /*
-                         * clear the dirty flag so that the next invoke will not
-                         * attempt to re-upload the code if no change is made to
-                         * the project.
-                         */
-                        LambdaPlugin.getDefault().getProjectChangeTracker()
-                                .markProjectAsNotDirty(project);
-                    } else {
-                        consoleOutput
-                                .println("Skip uploading function code since no local change is found...");
-                    }
-                    invokeFunction(lambda, invokeInput, funcName, consoleOutput);
-                    saveInvokeInputInProjectMetadata(invokeInput, project);
+                    invokeLatestLambdaFunction(project, metadata, updateFunctionCode, lambdaOutput, lambdaError);
                 } catch (Exception e) {
-                    LambdaAnalytics.trackInvokeFailed();
-                    consoleOutput.println("==================== INVOCATION ERROR ====================");
-                    consoleOutput.println(e.toString());
+                    showLambdaInvocationError(lambdaError, e);
                 }
 
                 LambdaAnalytics.trackInvokeSucceeded();
-
-                try {
-                    consoleOutput.close();
-                } catch (IOException e) {
-                    LambdaPlugin.getDefault().warn(
-                            "Failed to close console message stream.", e);
-                }
+                safelyCloseMessageConsoleStreams(lambdaOutput, lambdaError);
 
                 return Status.OK_STATUS;
             }
         }.schedule();
     }
 
-    private static MessageConsole getOrCreateLambdaConsoleIfNotExist() {
+    private static void invokeLatestLambdaFunction(IProject project,
+            LambdaFunctionProjectMetadata metadata,
+            boolean updateFunctionCode,
+            MessageConsoleStream lambdaOutput,
+            MessageConsoleStream lambdaError) throws IOException {
 
+        AWSLambda lambda = AwsToolkitCore.getClientFactory()
+                .getLambdaClientByEndpoint(metadata.getLastDeploymentEndpoint());
+        String funcName = metadata.getLastDeploymentFunctionName();
+        String bucketName = metadata.getLastDeploymentBucketName();
+        String invokeInput = metadata.getLastInvokeInput();
+        boolean showLiveLog = metadata.getLastInvokeShowLiveLog();
+
+        if (updateFunctionCode) {
+            updateFunctionCode(lambda, project, funcName, bucketName, lambdaOutput);
+            /*
+             * clear the dirty flag so that the next invoke will not
+             * attempt to re-upload the code if no change is made to
+             * the project.
+             */
+            LambdaPlugin.getDefault().getProjectChangeTracker()
+                    .markProjectAsNotDirty(project);
+        } else {
+            lambdaOutput
+                    .println("Skip uploading function code since no local change is found...");
+        }
+        InvokeResult result = invokeFunction(lambda, invokeInput, funcName, lambdaOutput);
+        if (showLiveLog) showLambdaLiveLog(result, lambdaOutput, lambdaError);
+        FunctionProjectUtil.addLambdaProjectMetadata(project, metadata);
+    }
+
+    private static void safelyCloseMessageConsoleStreams(MessageConsoleStream... streams) {
+        if (streams == null) return;
+        try {
+            for (MessageConsoleStream stream : streams) {
+                stream.close();
+            }
+        } catch (IOException e) {
+            LambdaPlugin.getDefault().warn(
+                    "Failed to close console message stream.", e);
+        }
+    }
+
+    private static void showLambdaInvocationError(MessageConsoleStream lambdaError, Exception e) {
+        LambdaAnalytics.trackInvokeFailed();
+        lambdaError.println("==================== INVOCATION ERROR ====================");
+        lambdaError.println(e.toString());
+    }
+
+    private static void showLambdaLiveLog(InvokeResult result, MessageConsoleStream lambdaOutput, MessageConsoleStream lambdaError) {
+        lambdaOutput.println();
+        lambdaOutput.println("==================== FUNCTION LOG OUTPUT ====================");
+        String log = CloudWatchLogsUtils.fetchLogsForLambdaFunction(result);
+        if (log != null) {
+            lambdaOutput.print(log);
+            LambdaAnalytics.trackFunctionLogLength(log.length());
+            if (log.length() >= CloudWatchLogsUtils.MAX_LAMBDA_LOG_RESULT_LENGTH) {
+                lambdaError.println("WARNING: Log is truncated for being longer than 4Kb.");
+                lambdaError.println("To see the complete log, go to AWS CloudWatch Logs console.");
+            }
+        }
+    }
+
+    private static MessageConsole getOrCreateLambdaConsoleIfNotExist(String consoleName) {
         IConsoleManager consoleManager = ConsolePlugin.getDefault()
                 .getConsoleManager();
 
         // Search existing consoles
         if (consoleManager.getConsoles() != null) {
             for (IConsole console : consoleManager.getConsoles()) {
-                if (LAMBDA_CONSOLE_NAME.equals(console.getName())
+                if (consoleName.equals(console.getName())
                         && (console instanceof MessageConsole)) {
                     return (MessageConsole)console;
                 }
@@ -211,7 +250,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
         }
 
         // If not found, create a new console
-        MessageConsole newConsole = new MessageConsole(LAMBDA_CONSOLE_NAME, null);
+        MessageConsole newConsole = new MessageConsole(consoleName, null);
         ConsolePlugin.getDefault().getConsoleManager()
                 .addConsoles(new IConsole[] { newConsole });
         return newConsole;
@@ -250,30 +289,23 @@ public class InvokeFunctionHandler extends AbstractHandler {
         out.println("Upload success. Function ARN: " + result.getFunctionArn());
     }
 
-    private static void invokeFunction(AWSLambda lambda, String input,
+    private static InvokeResult invokeFunction(AWSLambda lambda, String input,
             String funcName, MessageConsoleStream out) {
 
         out.println("Invoking function...");
 
-        InvokeResult result = lambda.invoke(new InvokeRequest()
-                .withFunctionName(funcName)
-                .withInvocationType(InvocationType.RequestResponse)
-                .withLogType(LogType.Tail)
-                .withPayload(input));
+        InvokeRequest invokeRequest = new InvokeRequest()
+            .withFunctionName(funcName)
+            .withInvocationType(InvocationType.RequestResponse)
+            .withLogType(LogType.Tail)
+            .withPayload(input);
+
+        InvokeResult result = lambda.invoke(invokeRequest);
 
         out.println("==================== FUNCTION OUTPUT ====================");
         out.print(readPayload(result.getPayload()));
-    }
 
-    private static void saveInvokeInputInProjectMetadata(String invokeInput,
-            IProject project) {
-
-        // Load existing metadata so it doens't clobber other metadata fields
-        LambdaFunctionProjectMetadata md = FunctionProjectUtil
-                .loadLambdaProjectMetadata(project);
-        md.setLastInvokeInput(invokeInput);
-
-        FunctionProjectUtil.addLambdaProjectMetadata(project, md);
+        return result;
     }
 
     private static void askForDeploymentFirst(IProject project) {
