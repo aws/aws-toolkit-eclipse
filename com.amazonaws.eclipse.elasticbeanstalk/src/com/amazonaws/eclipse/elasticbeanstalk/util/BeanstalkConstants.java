@@ -19,4 +19,7 @@ public class BeanstalkConstants {
     public static final String DEFAULT_INSTANCE_ROLE_NAME = "aws-elasticbeanstalk-ec2-role";
     public static final String DEFAULT_SERVICE_ROLE_NAME = "aws-elasticbeanstalk-service-role";
 
+    public static final String ELB_SCHEME_EXTERNAL = "external";
+    public static final String ELB_SCHEME_INTERNAL = "internal";
+
 }

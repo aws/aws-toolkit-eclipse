@@ -16,11 +16,12 @@ package com.amazonaws.eclipse.elasticbeanstalk.deploy;
 
 import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
 
+import java.util.List;
+
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
-import com.amazonaws.services.identitymanagement.model.Role;
 
 public class DeployWizardDataModel {
 
@@ -52,6 +53,13 @@ public class DeployWizardDataModel {
     public static final String SNS_ENDPOINT = "snsEndpoint";
     public static final String SSL_CERTIFICATE_ID = "sslCertificateId";
     public static final String HEALTH_CHECK_URL = "healthCheckUrl";
+
+    public static final String USE_NON_DEFAULT_VPC = "useNonDefaultVpc";
+    public static final String VPC_ID = "vpcId";
+    public static final String ELB_SCHEME = "elbScheme";
+    public static final String SECURITY_GROUP = "securityGroup";
+    public static final String ASSOCIATE_PUBLIC_IP_ADDRESS = "associatePublicIpAddress";
+
     public static final String INSTANCE_ROLE_NAME = "instanceRoleName";
     public static final String SERVICE_ROLE_NAME = "serviceRoleName";
 
@@ -81,6 +89,14 @@ public class DeployWizardDataModel {
     private String snsEndpoint;
     private String healthCheckUrl;
     private String sslCertificateId;
+
+    private boolean useNonDefaultVpc;
+    private String vpcId;
+    private List<String> subnets;
+    private String elbScheme;
+    private String securityGroup;
+    private boolean associatePublicIpAddress;
+
     private String instanceRoleName;
     private String serviceRoleName;
 
@@ -262,6 +278,59 @@ public class DeployWizardDataModel {
         return keyPairComposite;
     }
 
+    public String getVpcId() {
+        return vpcId;
+    }
+
+    /**
+     * Sets the optional VPC id to be used when creating environment.
+     *
+     * @param vpcId the VPC to be used when creating environment.
+     */
+    public void setVpcId(String vpcId) {
+        this.vpcId = vpcId;
+    }
+
+    public String getSecurityGroup() {
+        return securityGroup;
+    }
+
+    public void setSecurityGroup(String securityGroup) {
+        this.securityGroup = securityGroup;
+    }
+
+    public boolean isUseNonDefaultVpc() {
+        return useNonDefaultVpc;
+    }
+
+    public void setUseNonDefaultVpc(boolean useNonDefaultVpc) {
+        this.useNonDefaultVpc = useNonDefaultVpc;
+    }
+
+    public List<String> getSubnets() {
+        return subnets;
+    }
+
+    public void setSubnets(List<String> subnets) {
+        this.subnets = subnets;
+    }
+
+    public String getElbScheme() {
+        return elbScheme;
+    }
+
+    public void setElbScheme(String elbScheme) {
+        this.elbScheme = elbScheme;
+    }
+
+    public boolean isAssociatePublicIpAddress() {
+        return associatePublicIpAddress;
+    }
+
+    public void setAssociatePublicIpAddress(boolean associatePublicIpAddress) {
+        this.associatePublicIpAddress = associatePublicIpAddress;
+    }
+
     /**
      * Sets the optional IAM role to use when launching this environment. Using a role will cause it
      * to be available on the EC2 instances running as part of the Beanstalk environment, and allow
@@ -289,7 +358,7 @@ public class DeployWizardDataModel {
     /**
      * Returns the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
      * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
-     * 
+     *
      * @return The name of the role that ElasticBeanstalk can assume
      */
     public String getServiceRoleName() {
@@ -299,7 +368,7 @@ public class DeployWizardDataModel {
     /**
      * Sets the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
      * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
-     * 
+     *
      * @param serviceRoleName
      *            The name of the role that ElasticBeanstalk can assume
      */

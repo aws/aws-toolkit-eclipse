@@ -31,6 +31,7 @@ import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -46,6 +47,7 @@ import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.Hyperlink;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
+import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -73,6 +75,10 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private static final String LOADING = "Loading...";
     private static final String NONE_FOUND = "None found";
 
+    private static final String VPC_CONFIGURATION_DOC_URL = "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/vpc.html";
+
+    private DeployWizardVpcConfigurationPage vpcConfigPage;
+
     // Region controls
     private Combo regionCombo;
     private SelectionListener regionChangeListener;
@@ -91,6 +97,9 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private Text newEnvironmentNameText;
     private Text newEnvironmentDescriptionText;
     private Combo environmentTypeCombo;
+    private Button useNonDefaultVpcButton;
+
+    private boolean useNonDefaultVpc = false;
 
     // Asynchronous workers
     private LoadApplicationsThread loadApplicationsThread;
@@ -106,6 +115,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private ISWTObservableValue newEnvironmentDescriptionTextObservable;
     private ISWTObservableValue newEnvironmentNameTextObservable;
     private ISWTObservableValue environmentTypeComboObservable;
+    private ISWTObservableValue useNonDefaultVpcButtonObservable;
 
     // Status of our connectivity to AWS Elastic Beanstalk
     private IStatus connectionStatus;
@@ -114,9 +124,18 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
 
     DeployWizardApplicationSelectionPage(DeployWizardDataModel wizardDataModel) {
         super(wizardDataModel);
-        setComplete(false);
         environmentNamesLoaded.setValue(false);
         applicationNamesLoaded.setValue(false);
+        vpcConfigPage = new DeployWizardVpcConfigurationPage(wizardDataModel);
+    }
+
+    @Override
+    public List<WizardFragment> getChildFragments() {
+        List<WizardFragment> fragmentList = new ArrayList<WizardFragment>();
+        if (useNonDefaultVpc) {
+            fragmentList.add(vpcConfigPage);
+        }
+        return fragmentList;
     }
 
     /* (non-Javadoc)
@@ -327,6 +346,11 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         bindingContext.bindValue(
                 environmentTypeComboObservable,
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.ENVIRONMENT_TYPE));
+
+        useNonDefaultVpcButtonObservable = SWTObservables.observeSelection(useNonDefaultVpcButton);
+        bindingContext.bindValue(
+                useNonDefaultVpcButtonObservable,
+                PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.USE_NON_DEFAULT_VPC));
     }
 
     /**
@@ -474,7 +498,24 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
             environmentTypeCombo = newCombo(this);
             environmentTypeCombo.setItems(items);
 
+            useNonDefaultVpcButton = newCheckbox(parent, "", 1);
+            useNonDefaultVpcButton.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent e) {
+                    useNonDefaultVpc = useNonDefaultVpcButton.getSelection();
+                    wizardHandle.update();
+                }
+            });
+            createVpcSelectionLabel(parent);
         }
+    }
+
+    private void createVpcSelectionLabel(Composite composite) {
+        adjustLinkLayout(newLink(composite,
+                "Select the VPC to use when creating your environment. "
+                        + "<a href=\""
+                        + VPC_CONFIGURATION_DOC_URL
+                        + "\">Learn more</a>"), 1);
     }
 
     private final class LoadApplicationsThread extends CancelableThread {

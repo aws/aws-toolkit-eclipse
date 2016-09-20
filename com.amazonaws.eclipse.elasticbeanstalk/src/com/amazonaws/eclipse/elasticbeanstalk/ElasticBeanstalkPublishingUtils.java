@@ -255,7 +255,7 @@ public class ElasticBeanstalkPublishingUtils {
 
         List<ConfigurationOptionSetting> optionSettings = new ArrayList<ConfigurationOptionSetting>();
         if (!StringUtils.isNullOrEmpty(environment.getKeyPairName())) {
-            optionSettings.add(new ConfigurationOptionSetting().withNamespace("aws:autoscaling:launchconfiguration")
+            optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
                     .withOptionName("EC2KeyName").withValue(environment.getKeyPairName()));
         }
         if (!StringUtils.isNullOrEmpty(environment.getHealthCheckUrl())) {
@@ -305,9 +305,46 @@ public class ElasticBeanstalkPublishingUtils {
                         .withOptionName("SystemType").withValue("enhanced"));
             }
         }
+        if (!StringUtils.isNullOrEmpty(environment.getVpcId())) {
+            optionSettings.add(new ConfigurationOptionSetting()
+                    .withNamespace(ConfigurationOptionConstants.VPC)
+                    .withOptionName("VPCId")
+                    .withValue(environment.getVpcId()));
+            optionSettings.add(new ConfigurationOptionSetting()
+                    .withNamespace(ConfigurationOptionConstants.VPC)
+                    .withOptionName("AssociatePublicIpAddress")
+                    .withValue(String.valueOf(environment.getAssociatePublicIpAddress())));
+            if (!StringUtils.isNullOrEmpty(environment.getSubnets())) {
+                optionSettings.add(new ConfigurationOptionSetting()
+                    .withNamespace(ConfigurationOptionConstants.VPC)
+                    .withOptionName("Subnets")
+                    .withValue(environment.getSubnets()));
+            }
+            if (!StringUtils.isNullOrEmpty(environment.getElbSubnets())) {
+                optionSettings.add(new ConfigurationOptionSetting()
+                    .withNamespace(ConfigurationOptionConstants.VPC)
+                    .withOptionName("ELBSubnets")
+                    .withValue(environment.getElbSubnets()));
+            }
+            if (!StringUtils.isNullOrEmpty(environment.getElbScheme())
+                    && BeanstalkConstants.ELB_SCHEME_INTERNAL.equals(environment.getElbScheme())) {
+                optionSettings.add(new ConfigurationOptionSetting()
+                    .withNamespace(ConfigurationOptionConstants.VPC)
+                    .withOptionName("ELBScheme")
+                    .withValue(environment.getElbScheme()));
+            }
+            if (!StringUtils.isNullOrEmpty(environment.getSecurityGroup())) {
+                optionSettings.add(new ConfigurationOptionSetting()
+                    .withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
+                    .withOptionName("SecurityGroups")
+                    .withValue(environment.getSecurityGroup()));
+            }
+        }
         if (StringUtils.isNullOrEmpty(environment.getWorkerQueueUrl())) {
-            optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.SQSD)
-                    .withOptionName("WorkerQueueURL").withValue(environment.getWorkerQueueUrl()));
+            optionSettings.add(new ConfigurationOptionSetting()
+                    .withNamespace(ConfigurationOptionConstants.SQSD)
+                    .withOptionName("WorkerQueueURL")
+                    .withValue(environment.getWorkerQueueUrl()));
         }
 
         if (optionSettings.size() > 0) {

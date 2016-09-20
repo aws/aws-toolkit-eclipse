@@ -132,7 +132,10 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
 
     @Override
     public void enter() {
-        if (wizardHandle != null) wizardHandle.setTitle(getPageTitle());
+        if (wizardHandle != null) {
+            wizardHandle.setTitle(getPageTitle());
+            wizardHandle.setMessage(getPageDescription(), IStatus.OK);
+        }
         if (aggregateValidationStatus != null)
             aggregateValidationStatus.addChangeListener(changeListener);
     }
@@ -231,6 +234,16 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         return label;
     }
 
+    public static Label newLabel(Composite parent, String text, int colspan,
+            int horizontalAlignment, int verticalAlignment) {
+        Label label = new Label(parent, SWT.WRAP);
+        label.setText(text);
+        GridData gridData = new GridData(horizontalAlignment, verticalAlignment, false, false);
+        gridData.horizontalSpan = colspan;
+        label.setLayoutData(gridData);
+        return label;
+    }
+
     public static Link newLink(Composite composite, String message) {
         Link link = new Link(composite, SWT.WRAP);
         WebLinkListener webLinkListener = new WebLinkListener();
@@ -240,8 +253,14 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
     }
 
     public static Combo newCombo(Composite parent) {
+        return newCombo(parent, 1);
+    }
+
+    public static Combo newCombo(Composite parent, int colspan) {
         Combo combo = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
-        combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gridData.horizontalSpan = colspan;
+        combo.setLayoutData(gridData);
         return combo;
     }
 
@@ -278,5 +297,15 @@ public abstract class AbstractDeployWizardPage extends WizardFragment {
         radioButton.addSelectionListener(selectionListener);
         radioButton.setSelection(selected);
         return radioButton;
+    }
+
+    /**
+     * Customize the link's layout data
+     */
+    public void adjustLinkLayout(Link link, int colspan) {
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gridData.widthHint = 200;
+        gridData.horizontalSpan = colspan;
+        link.setLayoutData(gridData);
     }
 }

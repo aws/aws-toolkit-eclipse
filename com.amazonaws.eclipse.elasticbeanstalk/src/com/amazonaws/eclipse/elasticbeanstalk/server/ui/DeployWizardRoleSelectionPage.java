@@ -36,13 +36,13 @@ import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.deploy.DeployWizardDataModel;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.LoadIamRolesJob;
-import com.amazonaws.eclipse.elasticbeanstalk.jobs.LoadIamRolesJob.LoadIamRolesCallback;
+import com.amazonaws.eclipse.elasticbeanstalk.jobs.LoadResourcesCallback;
 import com.amazonaws.eclipse.elasticbeanstalk.util.BeanstalkConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.util.OnUiThreadProxyFactory;
 import com.amazonaws.services.identitymanagement.model.Role;
 import com.amazonaws.util.StringUtils;
 
-public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage implements LoadIamRolesCallback {
+public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage {
 
     public final RoleWidgetBuilder instanceRoleWidgetBuilder = new RoleWidgetBuilder()
             .withDefaultRole(BeanstalkConstants.DEFAULT_INSTANCE_ROLE_NAME)
@@ -59,7 +59,7 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
     private static final String IAM_ROLE_PERMISSIONS_DOC_URL = "http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.iam.roles.logs.html#iampolicy";
 
     private Composite wizardPageRoot;
-    private final LoadIamRolesCallback callback;
+    private final LoadResourcesCallback<Role> loadIamRoleCallback;
     /** Only accessed through the UI thread. No need for synchronization **/
     private boolean hasInsufficientIamPermissionDialogBeenShown;
 
@@ -67,7 +67,7 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
         super(wizardDataModel);
         // At this point the user can finish the wizard. All remaining pages are optional
         setComplete(true);
-        this.callback = OnUiThreadProxyFactory.getProxy(LoadIamRolesCallback.class, this);
+        this.loadIamRoleCallback = OnUiThreadProxyFactory.getProxy(LoadResourcesCallback.class, new LoadIamRolesCallback());
     }
 
     @Override
@@ -94,41 +94,111 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
         wizardPageRoot.setLayout(new GridLayout(1, false));
 
         initializeValidators();
-        new LoadIamRolesJob(callback).schedule();
+        new LoadIamRolesJob(loadIamRoleCallback).schedule();
 
         return wizardPageRoot;
     }
 
-    public void onLoadRoles(List<Role> roles) {
-        createRoleComboBoxControls(roles);
-    }
+    private class LoadIamRolesCallback implements LoadResourcesCallback<Role> {
 
-    public void onInsufficientIamPermissions() {
-        if (!hasInsufficientIamPermissionDialogBeenShown) {
-            hasInsufficientIamPermissionDialogBeenShown = true;
-            IAMOperationNotAllowedErrorDialog dialog = new IAMOperationNotAllowedErrorDialog(Display.getDefault()
-                    .getActiveShell());
-            int code = dialog.open();
-
-            if (code == IAMOperationNotAllowedErrorDialog.OK_BUTTON_CODE
-                    || code == IAMOperationNotAllowedErrorDialog.CLOSE) {
-                new LoadIamRolesJob(callback).schedule();
-            }
-        } else {
-            createManualRoleControls();
+        public void onSuccess(List<Role> roles) {
+            createRoleComboBoxControls(roles);
         }
-    }
 
-    // TODO When we fail to load IAM roles for reasons other then permissions issue then we should
-    // probably throw an error dialog up. It may be that our logic for determining a service error
-    // is a permissions failure has gotten stale and needs to be updated. Not entirely sure what the
-    // experience for this should look like, hence the todo
-    public void onFailedToLoadRoles() {
-        onInsufficientIamPermissions();
+        public void onInsufficientPermissions() {
+            if (!hasInsufficientIamPermissionDialogBeenShown) {
+                hasInsufficientIamPermissionDialogBeenShown = true;
+                IAMOperationNotAllowedErrorDialog dialog = new IAMOperationNotAllowedErrorDialog(
+                        Display.getDefault().getActiveShell());
+                int code = dialog.open();
+
+                if (code == IAMOperationNotAllowedErrorDialog.OK_BUTTON_CODE
+                        || code == IAMOperationNotAllowedErrorDialog.CLOSE) {
+                    new LoadIamRolesJob(loadIamRoleCallback).schedule();
+                }
+            } else {
+                createManualRoleControls();
+            }
+        }
+
+        // TODO When we fail to load IAM roles for reasons other then permissions issue then we should
+        // probably throw an error dialog up. It may be that our logic for determining a service error
+        // is a permissions failure has gotten stale and needs to be updated. Not entirely sure what the
+        // experience for this should look like, hence the todo
+        public void onFailure() {
+            onInsufficientPermissions();
+        }
+
+        /**
+         * If we do have IAM permissions we display the users roles in a dropdown to choose from
+         */
+        private void createRoleComboBoxControls(List<Role> roles) {
+            wizardDataModel.setSkipIamRoleAndInstanceProfileCreation(false);
+
+            createInstanceProfileRoleLabel(wizardPageRoot);
+            instanceRoleWidgetBuilder.setupComboViewer(wizardPageRoot, roles);
+            newInstanceRoleDescLink(wizardPageRoot);
+
+            createServiceRoleLabel(wizardPageRoot);
+            serviceRoleWidgetBuilder.setupComboViewer(wizardPageRoot, roles);
+            newServiceRoleDescLink(wizardPageRoot);
+
+            // Redraw
+            wizardPageRoot.layout(true);
+        }
+
+        /**
+         * If we don't have IAM permissions to list roles then we display manual Text views that allow
+         * users to manually specify the role.
+         */
+        private void createManualRoleControls() {
+            wizardDataModel.setSkipIamRoleAndInstanceProfileCreation(true);
+
+            createInstanceProfileRoleLabel(wizardPageRoot);
+            instanceRoleWidgetBuilder.setupManualControls(wizardPageRoot);
+            newInstanceRoleDescLink(wizardPageRoot);
+
+            createServiceRoleLabel(wizardPageRoot);
+            serviceRoleWidgetBuilder.setupManualControls(wizardPageRoot);
+            newServiceRoleDescLink(wizardPageRoot);
+
+            // Redraw
+            wizardPageRoot.layout(true);
+        }
+
+        private void createInstanceProfileRoleLabel(Composite composite) {
+            newFillingLabel(composite, INSTANCE_PROFILE_ROLE_LABEL_TEXT);
+        }
+
+        private void createServiceRoleLabel(Composite composite) {
+            newFillingLabel(composite, SERVICE_ROLE_LABEL_TEXT);
+        }
+
+        /**
+         * Description and hyperlink for what the Instance Profile role is needed for
+         */
+        private void newInstanceRoleDescLink(Composite composite) {
+            adjustLinkLayout(newLink(composite,
+                    "If you choose not to use the default role, you must grant the relevant permissions to Elastic Beanstalk. "
+                            + "See the <a href=\"" + IAM_ROLE_PERMISSIONS_DOC_URL
+                            + "\">AWS Elastic Beanstalk Developer Guide</a> for more details."));
+        }
+
+        /**
+         * Description and hyperlink for what the Service role is needed for
+         */
+        private void newServiceRoleDescLink(Composite composite) {
+            adjustLinkLayout(newLink(composite,
+                    "A service role allows the Elastic Beanstalk service to monitor environment resources on your behalf. "
+                            + "See <a href=\""
+                            + SERVICE_ROLE_PERMISSIONS_DOC_URL
+                            + "\">Service Roles, Instance Profiles, and User Policies</a> in the Elastic Beanstalk developer guide for details."));
+        }
+
     }
 
     /**
-     * Set the default values for the roles in the data model to be reflected in the UI when the
+     * Set the default values for the roles and vpc in the data model to be reflected in the UI when the
      * model is bound to a control
      */
     private void setDefaultsInDataModel() {
@@ -138,81 +208,6 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
         if (StringUtils.isNullOrEmpty(wizardDataModel.getServiceRoleName())) {
             wizardDataModel.setServiceRoleName(BeanstalkConstants.DEFAULT_SERVICE_ROLE_NAME);
         }
-    }
-
-    /**
-     * If we do have IAM permissions we display the users roles in a dropdown to choose from
-     */
-    private void createRoleComboBoxControls(List<Role> roles) {
-        wizardDataModel.setSkipIamRoleAndInstanceProfileCreation(false);
-
-        createInstanceProfileRoleLabel();
-        instanceRoleWidgetBuilder.setupComboViewer(roles);
-        newInstanceRoleDescLink();
-
-        createServiceRoleLabel();
-        serviceRoleWidgetBuilder.setupComboViewer(roles);
-        newServiceRoleDescLink();
-
-        // Redraw
-        wizardPageRoot.layout(true);
-    }
-
-    /**
-     * If we don't have IAM permissions to list roles then we display manual Text views that allow
-     * users to manually specify the role.
-     */
-    private void createManualRoleControls() {
-        wizardDataModel.setSkipIamRoleAndInstanceProfileCreation(true);
-
-        createInstanceProfileRoleLabel();
-        instanceRoleWidgetBuilder.setupManualControls();
-        newInstanceRoleDescLink();
-
-        createServiceRoleLabel();
-        serviceRoleWidgetBuilder.setupManualControls();
-        newServiceRoleDescLink();
-
-        // Redraw
-        wizardPageRoot.layout(true);
-    }
-
-    private void createInstanceProfileRoleLabel() {
-        newFillingLabel(wizardPageRoot, INSTANCE_PROFILE_ROLE_LABEL_TEXT);
-    }
-
-    private void createServiceRoleLabel() {
-        newFillingLabel(wizardPageRoot, SERVICE_ROLE_LABEL_TEXT);
-    }
-
-    /**
-     * Description and hyperlink for what the Instance Profile role is needed for
-     */
-    private void newInstanceRoleDescLink() {
-        adjustLinkLayout(newLink(wizardPageRoot,
-                "If you choose not to use the default role, you must grant the relevant permissions to Elastic Beanstalk. "
-                        + "See the <a href=\"" + IAM_ROLE_PERMISSIONS_DOC_URL
-                        + "\">AWS Elastic Beanstalk Developer Guide</a> for more details."));
-    }
-
-    /**
-     * Description and hyperlink for what the Service role is needed for
-     */
-    private void newServiceRoleDescLink() {
-        adjustLinkLayout(newLink(wizardPageRoot,
-                "A service role allows the Elastic Beanstalk service to monitor environment resources on your behalf. "
-                        + "See <a href=\""
-                        + SERVICE_ROLE_PERMISSIONS_DOC_URL
-                        + "\">Service Roles, Instance Profiles, and User Policies</a> in the Elastic Beanstalk developer guide for details."));
-    }
-
-    /**
-     * Customize the link's layout data
-     */
-    private void adjustLinkLayout(Link link) {
-        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gridData.widthHint = 200;
-        link.setLayoutData(gridData);
     }
 
     /**
@@ -242,27 +237,27 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
 
         /**
          * Create the ComboViewer, setup databinding for it, and select the default role
-         * 
+         *
          * @param roles
          *            List of IAM roles in the user's account
          */
-        public void setupComboViewer(List<Role> roles) {
-            bindRoleComboView(newRoleComboView(transformRoleList(roles)), dataBindingFieldName);
+        public void setupComboViewer(Composite composite, List<Role> roles) {
+            bindRoleComboView(newRoleComboView(composite, transformRoleList(roles)), dataBindingFieldName);
         }
 
         /**
          * Setup manual text controls when we don't have sufficient IAM permisisons to list roles so
          * user can still explicitly specify a role
          */
-        public void setupManualControls() {
-            IObservableValue instanceRoleObservable = SWTObservables.observeText(newText(wizardPageRoot), SWT.Modify);
+        public void setupManualControls(Composite composite) {
+            IObservableValue instanceRoleObservable = SWTObservables.observeText(newText(composite), SWT.Modify);
             getBindingContext().bindValue(instanceRoleObservable,
                     PojoObservables.observeValue(wizardDataModel, dataBindingFieldName));
         }
 
         /**
          * Setup data-binding for the ComboViewer
-         * 
+         *
          * @param comboViewer
          * @param fieldName
          *            Field name in Data Model to bind to
@@ -273,8 +268,8 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
             getBindingContext().bindValue(roleObservable, observable);
         }
 
-        private ComboViewer newRoleComboView(List<String> roles) {
-            ComboViewer roleComboViewer = new ComboViewer(wizardPageRoot, SWT.DROP_DOWN | SWT.READ_ONLY);
+        private ComboViewer newRoleComboView(Composite composite, List<String> roles) {
+            ComboViewer roleComboViewer = new ComboViewer(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
             roleComboViewer.setContentProvider(ArrayContentProvider.getInstance());
             roleComboViewer.getCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
             roleComboViewer.setInput(roles);
@@ -300,7 +295,7 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
          * Transform the list of Role objects to a list of role names and filter out any roles that
          * don't have the required trust entity. Default role is always appended to the beginning of
          * the list (injected if it doesn't exist yet)
-         * 
+         *
          * @param roles
          *            List of {@link Role} objects to transform
          * @return List of strings containing all role names that are appropriate for this role type
@@ -330,12 +325,16 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage impl
 
         /**
          * DataBindingContext is setup in {@link AbstractDeployWizardPage}
-         * 
+         *
          * @return The current data binding context
          */
         private DataBindingContext getBindingContext() {
             return DeployWizardRoleSelectionPage.this.bindingContext;
         }
+    }
+
+    private void adjustLinkLayout(Link link) {
+        adjustLinkLayout(link, 1);
     }
 
 }

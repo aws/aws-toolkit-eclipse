@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="bin/" sourcepath="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/jgit/jgit-1.3.0-aws-git-push.jar"/>
-	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/commons-io-2.4/commons-io-2.4.jar"/>
-	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-1.10.12.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-core-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-ec2-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-elasticbeanstalk-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-iam-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-s3-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/commons-io-2.4.0.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/commons-logging-1.1.3.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/httpclient-4.5.2.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/httpcore-4.4.4.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-autoscaling-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-elasticloadbalancing-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-sqs-1.11.21.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

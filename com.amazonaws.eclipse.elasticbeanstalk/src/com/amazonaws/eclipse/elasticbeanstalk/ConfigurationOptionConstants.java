@@ -32,6 +32,8 @@ public interface ConfigurationOptionConstants {
     public static final String LOADBALANCER        = "aws:elb:loadbalancer";
     public static final String LAUNCHCONFIGURATION = "aws:autoscaling:launchconfiguration";
 
+    public static final String VPC                 = "aws:ec2:vpc";
+
     public static final String WEB_SERVER = "WebServer";
     public static final String WORKER = "Worker";
 

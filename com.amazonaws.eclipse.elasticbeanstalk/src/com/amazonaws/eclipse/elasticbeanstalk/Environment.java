@@ -79,6 +79,12 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_SKIP_IAM_ROLE_AND_INSTANCE_PROFILE_CREATION
                                                                   = "skipIamRoleAndInstanceProfileCreation";
     private static final String PROPERTY_WORKER_QUEUE_URL         = "workerQueueUrl";
+    private static final String PROPERTY_VPC_ID                   = "vpcId";
+    private static final String PROPERTY_SUBNETS                  = "subnets";
+    private static final String PROPERTY_ELB_SUBNETS              = "elbSubnets";
+    private static final String PROPERTY_ELB_SCHEME               = "elbScheme";
+    private static final String PROPERTY_SECURITY_GROUP           = "securityGroup";
+    private static final String PROPERTY_ASSOCIATE_PUBLIC_IP_ADDRESS = "associatePublicIpAddress";
 
     private static Map<String, EnvironmentDescription> map = new HashMap<String, EnvironmentDescription>();
 
@@ -249,7 +255,7 @@ public class Environment extends ServerDelegate {
     /**
      * Sets the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
      * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
-     * 
+     *
      * @param serviceRoleName
      *            The name of the role that ElasticBeanstalk can assume
      */
@@ -260,11 +266,65 @@ public class Environment extends ServerDelegate {
     /**
      * Returns the name of the optional IAM role that the service (ElasticBeanstalk) is allowed to
      * impersonate. Currently this is only used for Enhanced Health reporting/monitoring
-     * 
+     *
      * @return The name of the role that ElasticBeanstalk can assume
      */
     public String getServiceRoleName() {
         return getAttribute(PROPERTY_SERVICE_ROLE_NAME, (String) null);
+    }
+
+    /**
+     * Sets the id of the optional VPC that the service (ElasticBeanstalk) is to be deployed.
+     *
+     * @param vpcId
+     *           The id of the VPC that ElasticBeanstalk will be deployed to.
+     */
+    public void setVpcId(String vpcId) {
+        setAttribute(PROPERTY_VPC_ID, vpcId);
+    }
+
+    public String getVpcId() {
+        return getAttribute(PROPERTY_VPC_ID, (String) null);
+    }
+
+    public void setSubnets(String subnets) {
+        setAttribute(PROPERTY_SUBNETS, subnets);
+    }
+
+    public String getSubnets() {
+        return getAttribute(PROPERTY_SUBNETS, (String) null);
+    }
+
+    public void setElbSubnets(String elbSubnets) {
+        setAttribute(PROPERTY_ELB_SUBNETS, elbSubnets);
+    }
+
+    public String getElbSubnets() {
+        return getAttribute(PROPERTY_ELB_SUBNETS, (String) null);
+    }
+
+    public void setElbScheme(String elbScheme) {
+        setAttribute(PROPERTY_ELB_SCHEME, elbScheme);
+    }
+
+    public String getElbScheme() {
+        return getAttribute(PROPERTY_ELB_SCHEME, (String) null);
+    }
+
+    public void setSecurityGroup(String securityGroup) {
+        setAttribute(PROPERTY_SECURITY_GROUP, securityGroup);
+    }
+
+    public String getSecurityGroup() {
+        return getAttribute(PROPERTY_SECURITY_GROUP, (String) null);
+    }
+
+    public void setAssociatePublicIpAddress(boolean associatePublicIpAddress) {
+        setAttribute(PROPERTY_ASSOCIATE_PUBLIC_IP_ADDRESS, associatePublicIpAddress);
+    }
+
+    public boolean getAssociatePublicIpAddress() {
+        return getAttribute(PROPERTY_ASSOCIATE_PUBLIC_IP_ADDRESS, false);
     }
 
     public void setSkipIamRoleAndInstanceProfileCreation(boolean skip) {
@@ -584,6 +644,19 @@ public class Environment extends ServerDelegate {
             setAttribute(PROPERTY_REGION_ID, RegionUtils.getRegionByEndpoint(regionEndpoint).getId());
         }
 
+    }
+
+    public static String catSubnetList(List<String> subnetList) {
+        if (null == subnetList || subnetList.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder(subnetList.get(0));
+        for (int i = 1; i < subnetList.size(); ++i) {
+            builder.append(",");
+            builder.append(subnetList.get(i));
+        }
+
+        return builder.toString();
     }
 
 }
