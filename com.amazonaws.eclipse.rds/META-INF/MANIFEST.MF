@@ -3,6 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: RDS
 Bundle-SymbolicName: com.amazonaws.eclipse.rds;singleton:=true
 Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: .,
+ lib/mysql-connector-java-5.1.33-bin.jar
 Bundle-Activator: com.amazonaws.eclipse.rds.RDSPlugin
 Bundle-Vendor: AMAZONAWS
 Require-Bundle: org.eclipse.ui,
@@ -24,6 +26,5 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.navigator;bundle-version="3.2.0",
  org.eclipse.datatools.connectivity.ui.dse;bundle-version="1.1.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .
 Import-Package: org.eclipse.core.net.proxy
+Bundle-ActivationPolicy: lazy
