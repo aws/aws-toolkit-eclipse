@@ -46,10 +46,10 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.internal.Profile;
+import com.amazonaws.auth.profile.internal.BasicProfile;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
+import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.databinding.ChainValidator;
@@ -198,7 +198,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
      * @param internalAccountId - Newly generated UUID to identify the account in eclipse
      */
     private void saveToCredentialsFile(String internalAccountId) {
-        Profile emptyProfile = new Profile( PreferenceConstants.DEFAULT_ACCOUNT_NAME, new BasicAWSCredentials("", ""));
+        BasicProfile emptyProfile = SdkProfilesFactory.newEmptyBasicProfile(PreferenceConstants.DEFAULT_ACCOUNT_NAME);
         SdkProfilesCredentialsConfiguration credentialsConfig = new SdkProfilesCredentialsConfiguration(
                 preferenceStore, internalAccountId, emptyProfile);
         credentialsConfig.setAccessKey(dataModel.getAccessKeyId());

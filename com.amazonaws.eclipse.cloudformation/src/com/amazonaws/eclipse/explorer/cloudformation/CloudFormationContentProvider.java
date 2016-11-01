@@ -14,19 +14,16 @@
  */
 package com.amazonaws.eclipse.explorer.cloudformation;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.eclipse.cloudformation.CloudFormationUtils;
+import com.amazonaws.eclipse.cloudformation.CloudFormationUtils.StackSummaryConverter;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.explorer.AWSResourcesRootElement;
 import com.amazonaws.eclipse.explorer.AbstractContentProvider;
 import com.amazonaws.eclipse.explorer.ExplorerNode;
 import com.amazonaws.eclipse.explorer.Loading;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.ListStacksRequest;
-import com.amazonaws.services.cloudformation.model.ListStacksResult;
-import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.StackSummary;
 
 public class CloudFormationContentProvider extends AbstractContentProvider {
@@ -44,7 +41,7 @@ public class CloudFormationContentProvider extends AbstractContentProvider {
             this.stack = stack;
         }
     }
-    
+
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof CloudFormationRootElement);
@@ -55,28 +52,17 @@ public class CloudFormationContentProvider extends AbstractContentProvider {
         if (parentElement instanceof AWSResourcesRootElement) {
             return new Object[] {CloudFormationRootElement.ROOT_ELEMENT};
         }
-        
+
         if (parentElement instanceof CloudFormationRootElement) {
             new DataLoaderThread(parentElement) {
                 @Override
                 public Object[] loadData() {
-                    AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory().getCloudFormationClient();
-                    
-                    List<StackNode> stackNodes = new ArrayList<StackNode>();
-                    ListStacksRequest request = new ListStacksRequest();
-                    
-                    ListStacksResult result = null;
-                    do {
-                        if (result != null) request.setNextToken(result.getNextToken());
-                        result = cloudFormation.listStacks(request);
-                        
-                        for (StackSummary stack : result.getStackSummaries()) {
-                            if (stack.getStackStatus().equalsIgnoreCase(StackStatus.DELETE_COMPLETE.toString())) continue;
-                            if (stack.getStackStatus().equalsIgnoreCase(StackStatus.DELETE_IN_PROGRESS.toString())) continue;
-                            stackNodes.add(new StackNode(stack));
-                        }
-                    } while (result.getNextToken() != null);
-                    
+                    List<StackNode> stackNodes = CloudFormationUtils.listExistingStacks(
+                            new StackSummaryConverter<StackNode>() {
+                                public StackNode convert(StackSummary stack) {
+                                    return new StackNode(stack);
+                                }
+                            });
                     return stackNodes.toArray();
                 }
             }.start();
@@ -89,5 +75,5 @@ public class CloudFormationContentProvider extends AbstractContentProvider {
     public String getServiceAbbreviation() {
         return ServiceAbbreviations.CLOUD_FORMATION;
     }
-    
+
 }

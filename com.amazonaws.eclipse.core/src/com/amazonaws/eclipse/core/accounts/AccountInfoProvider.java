@@ -31,6 +31,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.profile.ProfilesConfigFile;
 import com.amazonaws.auth.profile.ProfilesConfigFileWriter;
+import com.amazonaws.auth.profile.internal.BasicProfile;
 import com.amazonaws.auth.profile.internal.Profile;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -239,9 +240,10 @@ public class AccountInfoProvider {
         // Iterate through the newly loaded profiles. Re-use the existing
         // account id if the profile name is already configured in the toolkit.
         // Otherwise assign a new UUID for it.
-        for (Entry<String, Profile> entry : profileConfigFile.getAllProfiles().entrySet()) {
+
+        for (Entry<String, BasicProfile> entry : profileConfigFile.getAllBasicProfiles().entrySet()) {
             String profileName = entry.getKey();
-            Profile profile    = entry.getValue();
+            BasicProfile basicProfile = entry.getValue();
 
             String accountId = exisitingProfileAccountIds.get(profileName);
             if (accountId == null) {
@@ -250,7 +252,7 @@ public class AccountInfoProvider {
             }
 
             AccountInfo profileAccountInfo = new AccountInfoImpl(accountId,
-                    new SdkProfilesCredentialsConfiguration(prefStore, accountId, profile),
+                    new SdkProfilesCredentialsConfiguration(prefStore, accountId, basicProfile),
                     // Profile accounts use profileName as the preference name prefix
                     // @see PluginPreferenceStoreAccountOptionalConfiguration
                     new PluginPreferenceStoreAccountOptionalConfiguration(prefStore, profileName));

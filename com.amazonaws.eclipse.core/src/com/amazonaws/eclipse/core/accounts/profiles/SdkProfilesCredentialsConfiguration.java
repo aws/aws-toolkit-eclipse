@@ -16,21 +16,21 @@ package com.amazonaws.eclipse.core.accounts.profiles;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSSessionCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfilesConfigFileWriter;
-import com.amazonaws.auth.profile.internal.Profile;
+import com.amazonaws.auth.profile.internal.BasicProfile;
+import com.amazonaws.auth.profile.internal.ProfileKeyConstants;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.AccountCredentialsConfiguration;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
+import com.amazonaws.util.StringUtils;
 
 /**
  * Concrete implementation of AccountCredentialsConfiguration, which uses the
@@ -48,7 +48,7 @@ public class SdkProfilesCredentialsConfiguration extends
     /**
      * The profile instance loaded from the credentials file.
      */
-    private Profile profile;
+    private BasicProfile profile;
 
     /**
      * The name of the preference property that maps an internal account id to
@@ -66,7 +66,7 @@ public class SdkProfilesCredentialsConfiguration extends
     public SdkProfilesCredentialsConfiguration(
                 IPreferenceStore prefStore,
                 String accountId,
-                Profile profile) {
+                BasicProfile profile) {
         if (prefStore == null)
             throw new IllegalAccessError("prefStore must not be null.");
         if (accountId == null)
@@ -104,7 +104,7 @@ public class SdkProfilesCredentialsConfiguration extends
         return this.accessKeyInMemory != null ?
                 this.accessKeyInMemory
                 :
-                profile.getCredentials().getAWSAccessKeyId();
+                profile.getAwsAccessIdKey();
     }
 
     @Override
@@ -117,7 +117,7 @@ public class SdkProfilesCredentialsConfiguration extends
         return this.secretKeyInMemory != null ?
                 this.secretKeyInMemory
                 :
-                profile.getCredentials().getAWSSecretKey();
+                profile.getAwsSecretAccessKey();
     }
 
     @Override
@@ -131,7 +131,7 @@ public class SdkProfilesCredentialsConfiguration extends
         if (useSessionToken != null) {
             return useSessionToken;
         }
-        return isSessionCredentials(profile.getCredentials());
+        return !StringUtils.isNullOrEmpty(profile.getAwsSessionToken());
     }
 
     @Override
@@ -144,24 +144,12 @@ public class SdkProfilesCredentialsConfiguration extends
         if (sessionTokenInMemory != null) {
             return sessionTokenInMemory;
         }
-        return getSessionToken(profile.getCredentials());
+        return profile.getAwsSessionToken();
     }
 
     @Override
     public void setSessionToken(String sessionToken) {
         this.sessionTokenInMemory = sessionToken;
-    }
-
-    private String getSessionToken(AWSCredentials creds) {
-        if (creds instanceof AWSSessionCredentials) {
-            return ((AWSSessionCredentials)creds).getSessionToken();
-        } else {
-            return null;
-        }
-    }
-
-    private boolean isSessionCredentials(AWSCredentials creds) {
-        return getSessionToken(creds) != null;
     }
 
     /**
@@ -184,14 +172,8 @@ public class SdkProfilesCredentialsConfiguration extends
                 sessionTokenInMemory = sessionTokenInMemory.trim();
             }
 
-            AWSCredentials creds = null;
-            if (isUseSessionToken()) {
-                creds = new BasicSessionCredentials(getAccessKey(), getSecretKey(), getSessionToken());
-            } else {
-                creds = new BasicAWSCredentials(getAccessKey(), getSecretKey());
-            }
-            Profile newProfile = new Profile(getAccountName(), creds);
-
+            BasicProfile newBasicProfile = SdkProfilesFactory.newBasicProfile(
+                    getAccountName(), getAccessKey(), getSecretKey(), isUseSessionToken() ? getSessionToken() : null);
             // Output the new profile to the credentials file
             File credentialsFile = new File(
                     prefStore.getString(
@@ -217,15 +199,15 @@ public class SdkProfilesCredentialsConfiguration extends
 
             String prevProfileName = profile.getProfileName();
             ProfilesConfigFileWriter.modifyOneProfile(credentialsFile,
-                    prevProfileName, newProfile);
+                    prevProfileName, SdkProfilesFactory.convert(newBasicProfile));
 
             // Persist the profile metadata in the preference store:
             // accountId:credentialProfileName=profileName
             prefStore.setValue(
                     profileNamePreferenceName,
-                    newProfile.getProfileName());
+                    newBasicProfile.getProfileName());
 
-            this.profile = newProfile;
+            this.profile = newBasicProfile;
             clearInMemoryValue();
         }
     }
@@ -251,10 +233,10 @@ public class SdkProfilesCredentialsConfiguration extends
     @Override
     public boolean isDirty() {
         return (hasPropertyChanged(profile.getProfileName(), profileNameInMemory)
-                || hasPropertyChanged(profile.getCredentials().getAWSAccessKeyId(), accessKeyInMemory)
-                || hasPropertyChanged(profile.getCredentials().getAWSSecretKey(), secretKeyInMemory)
-                || hasPropertyChanged(isSessionCredentials(profile.getCredentials()), useSessionToken)
-                || hasPropertyChanged(getSessionToken(profile.getCredentials()), sessionTokenInMemory));
+                || hasPropertyChanged(profile.getAwsAccessIdKey(), accessKeyInMemory)
+                || hasPropertyChanged(profile.getAwsSecretAccessKey(), secretKeyInMemory)
+                || hasPropertyChanged(!StringUtils.isNullOrEmpty(profile.getAwsSessionToken()), useSessionToken)
+                || hasPropertyChanged(profile.getAwsSessionToken(), sessionTokenInMemory));
     }
 
     /**

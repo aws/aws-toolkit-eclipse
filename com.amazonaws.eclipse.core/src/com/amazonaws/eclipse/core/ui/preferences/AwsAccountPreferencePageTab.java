@@ -68,6 +68,7 @@ import com.amazonaws.eclipse.core.AwsUrls;
 import com.amazonaws.eclipse.core.accounts.AccountInfoImpl;
 import com.amazonaws.eclipse.core.accounts.preferences.PluginPreferenceStoreAccountOptionalConfiguration;
 import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
+import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
@@ -990,10 +991,9 @@ public class AwsAccountPreferencePageTab extends TabItem {
     }
 
     private AccountInfo createNewProfileAccountInfo(String newAccountId) {
-        Profile emptyProfile = new Profile("", new BasicAWSCredentials("", ""));
         return new AccountInfoImpl(newAccountId,
                 new SdkProfilesCredentialsConfiguration(prefStore,
-                        newAccountId, emptyProfile),
+                        newAccountId, SdkProfilesFactory.newEmptyBasicProfile("")),
                 new PluginPreferenceStoreAccountOptionalConfiguration(
                         prefStore, newAccountId));
     }

@@ -45,6 +45,7 @@ import com.amazonaws.eclipse.core.accounts.AccountInfoImpl;
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
 import com.amazonaws.eclipse.core.accounts.preferences.PluginPreferenceStoreAccountOptionalConfiguration;
 import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
+import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
@@ -212,7 +213,7 @@ public class LegacyPreferenceStoreAccountMerger {
                     new SdkProfilesCredentialsConfiguration(
                             prefStore,
                             legacyAccountId,
-                            new Profile("", new BasicAWSCredentials("", ""))),
+                            SdkProfilesFactory.newEmptyBasicProfile("")),
                     new PluginPreferenceStoreAccountOptionalConfiguration(
                             prefStore,
                             newProfileName));

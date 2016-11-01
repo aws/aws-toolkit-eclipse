@@ -31,6 +31,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.preferences.PluginPreferenceStoreAccountOptionalConfiguration;
 import com.amazonaws.eclipse.core.accounts.profiles.SdkCredentialsFileMonitor;
 import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
+import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.regions.Region;
@@ -84,10 +85,10 @@ public final class AwsPluginAccountManager {
 
         this.sdkCredentialsFileMonitor = new SdkCredentialsFileMonitor();
 
-        Profile tempProfile = new Profile("temp", new BasicAWSCredentials("", ""));
         String accountId = UUID.randomUUID().toString();
         tempAccount =  new AccountInfoImpl(accountId,
-                new SdkProfilesCredentialsConfiguration(preferenceStore, accountId, tempProfile),
+                new SdkProfilesCredentialsConfiguration(preferenceStore, accountId,
+                        SdkProfilesFactory.newEmptyBasicProfile("temp")),
                 new PluginPreferenceStoreAccountOptionalConfiguration(preferenceStore, accountId));
     }
 

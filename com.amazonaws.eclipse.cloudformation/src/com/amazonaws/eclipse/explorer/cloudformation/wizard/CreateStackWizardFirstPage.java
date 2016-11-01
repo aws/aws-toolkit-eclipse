@@ -61,6 +61,8 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.amazonaws.eclipse.cloudformation.CloudFormationUtils;
+import com.amazonaws.eclipse.cloudformation.CloudFormationUtils.StackSummaryConverter;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
@@ -74,7 +76,6 @@ import com.amazonaws.eclipse.explorer.sns.CreateTopicDialog;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
-import com.amazonaws.services.cloudformation.model.ListStacksResult;
 import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackSummary;
@@ -253,12 +254,12 @@ class CreateStackWizardFirstPage extends WizardPage {
         }
 
         public void run() {
-            AmazonCloudFormation cf = getCloudFormationClient();
-            ListStacksResult listStacks = cf.listStacks();
-            final List<String> stackNames = new ArrayList<String>();
-            for ( StackSummary summary : listStacks.getStackSummaries() ) {
-                stackNames.add(summary.getStackName());
-            }
+            final List<String> stackNames = CloudFormationUtils.listExistingStacks(
+                    new StackSummaryConverter<String>() {
+                        public String convert(StackSummary stack) {
+                            return stack.getStackName();
+                        }
+                    });
 
             Display.getDefault().syncExec(new Runnable() {
 
