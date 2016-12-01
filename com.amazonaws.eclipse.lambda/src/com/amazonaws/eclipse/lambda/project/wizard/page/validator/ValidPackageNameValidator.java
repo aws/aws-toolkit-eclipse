@@ -19,6 +19,7 @@ import org.eclipse.core.databinding.validation.ValidationStatus;
 import org.eclipse.core.runtime.IStatus;
 
 import com.amazonaws.eclipse.lambda.project.wizard.util.JavaPackageName;
+import com.amazonaws.util.StringUtils;
 
 public class ValidPackageNameValidator implements IValidator {
     public String message;
@@ -29,6 +30,9 @@ public class ValidPackageNameValidator implements IValidator {
 
     public IStatus validate(Object value) {
         String s = (String)value;
+        if (StringUtils.isNullOrEmpty(s)) {
+            return ValidationStatus.error("The package prefix must be provided!");
+        }
         try {
             JavaPackageName.parse(s);
             return ValidationStatus.ok();

@@ -23,7 +23,7 @@ import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
 @SuppressWarnings("restriction")
-abstract class AbstractLambdaEditorAction implements IObjectActionDelegate {
+public abstract class AbstractLambdaEditorAction implements IObjectActionDelegate {
 
     protected IJavaProject javaProject;
 

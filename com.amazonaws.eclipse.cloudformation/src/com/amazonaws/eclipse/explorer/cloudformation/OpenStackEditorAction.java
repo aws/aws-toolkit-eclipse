@@ -25,23 +25,37 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 
 public class OpenStackEditorAction extends Action {
     private final String stackId;
+    private Region region;
+    private final boolean autoRefresh;
 
     public OpenStackEditorAction(String stackId) {
+        this(stackId, null, false);
+    }
+
+    public OpenStackEditorAction(String stackId, Region region) {
+        this(stackId, region, false);
+    }
+
+    public OpenStackEditorAction(String stackId, Region region, boolean autoRefresh) {
         this.setText("Open in Stack Editor");
         this.stackId = stackId;
+        this.region = region;
+        this.autoRefresh = autoRefresh;
     }
-    
+
     @Override
     public void run() {
-        String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoints().get(ServiceAbbreviations.CLOUD_FORMATION);
+        Region selectedRegion = region == null ? RegionUtils.getCurrentRegion() : region;
+        String endpoint = selectedRegion.getServiceEndpoints().get(ServiceAbbreviations.CLOUD_FORMATION);
         String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
 
-        final IEditorInput input = new StackEditorInput(stackId, endpoint, accountId);
+        final IEditorInput input = new StackEditorInput(stackId, endpoint, accountId, autoRefresh);
         
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {

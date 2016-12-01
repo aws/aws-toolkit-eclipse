@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.core.rss;
 
+import java.util.List;
+
 /*
  * Represents one RSS message
  */
@@ -24,6 +26,7 @@ public class FeedMessage {
   String link;
   String author;
   String guid;
+  List<String> categories;
 
   public String getTitle() {
     return title;
@@ -65,7 +68,15 @@ public class FeedMessage {
     this.guid = guid;
   }
 
-  @Override
+  public List<String> getCategories() {
+    return categories;
+}
+
+public void setCategories(List<String> categories) {
+    this.categories = categories;
+}
+
+@Override
   public String toString() {
     return "FeedMessage [title=" + title + ", description=" + description
         + ", link=" + link + ", author=" + author + ", guid=" + guid

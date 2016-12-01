@@ -65,6 +65,10 @@ public class S3BucketUtil {
 
         return result;
     }
+    
+    public static String createS3Path(String bucketName, String keyName) {
+        return String.format("s3://%s/%s", bucketName, keyName);
+    }
 
     private static boolean isBucketInRegion(AmazonS3 s3, Bucket bucket,
             Region eclipseRegion) {

@@ -1,0 +1,24 @@
+{
+    "version" : "2016-11-10",
+    "blueprints" : {
+        "article": {
+            "name": "article",
+            "description": "This is a Blueprint for creating an article API in API Gateway. It will create two Lambda functions, PutArticle and GetArticle, for creating and retrieving an article. It will also create a S3 bucket for hosting the article content and a DynamoDB table for storing article metadata.",
+            "templatePath": "serverless/blueprint/article/serverless.template",
+            "handlerTemplatePaths": {
+                "GetArticle": "serverless/blueprint/article/get-article.ftl",
+                "PutArticle": "serverless/blueprint/article/put-article.ftl"
+            },
+            "needLambdaProxyIntegrationModel" : true
+        },
+        "hello-world": {
+            "name": "hello-world",
+            "description": "This is a Blueprint for creating a Lambda function with no event source.",
+            "templatePath": "serverless/blueprint/hello-world/serverless.template",
+            "handlerTemplatePaths": {
+                "HelloWorld": "serverless/blueprint/hello-world/hello-world.ftl"
+            },
+            "needLambdaProxyIntegrationModel" : false
+        }
+    }
+}

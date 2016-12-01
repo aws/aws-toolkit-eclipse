@@ -32,6 +32,8 @@ import freemarker.template.TemplateExceptionHandler;
 public class CodeTemplateManager {
 
     private static final String CODE_TEMPLATE_DIR_BASEDIR = "code-template";
+    private static final String BLUEPRINT_CONFIG_PATH = "serverless/blueprint/blueprint.json";
+    private static final String SERVERLESS_README_FILE_PATH = "serverless/README.html";
 
     private final Configuration freemarkerCfg;
 
@@ -45,6 +47,42 @@ public class CodeTemplateManager {
         template.process(templateData, sw);
         sw.flush();
         return sw.toString();
+    }
+    
+    public Template getTemplate(String templatePath) {
+        try {
+            return freemarkerCfg.getTemplate(templatePath);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load Freemarker template from " + templatePath, e);
+        }
+    }
+
+    public Template getServerlessInputClassTemplate() {
+        try {
+            return freemarkerCfg.getTemplate("serverless/serverless-input.ftl");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load Serverless Input class template", e);
+        }
+    }
+
+    public Template getServerlessOutputClassTemplate() {
+        try {
+            return freemarkerCfg.getTemplate("serverless/serverless-output.ftl");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load Serverless Input class template", e);
+        }
+    }
+
+    public Template getServerlessHandlerClassTemplate() {
+        try {
+            return freemarkerCfg.getTemplate("serverless/serverless-handler.ftl");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load Serverless Input class template", e);
+        }
     }
 
     /**
@@ -144,7 +182,7 @@ public class CodeTemplateManager {
         return cfg;
     }
 
-    private File getCodeTemplateBasedir() {
+    public File getCodeTemplateBasedir() {
         Bundle bundle = LambdaPlugin.getDefault().getBundle();
         URL bundleBaseUrl;
         try {
@@ -155,6 +193,13 @@ public class CodeTemplateManager {
         return new File(bundleBaseUrl.getFile(), CODE_TEMPLATE_DIR_BASEDIR);
     }
 
+    public File getBlueprintConfigFile() {
+        return new File(getCodeTemplateBasedir(), BLUEPRINT_CONFIG_PATH);
+    }
+    
+    public File getServerlessReadmeFile() {
+        return new File(getCodeTemplateBasedir(), SERVERLESS_README_FILE_PATH);
+    }
 
     private static final CodeTemplateManager INSTANCE = new CodeTemplateManager();
     public static CodeTemplateManager getInstance() {

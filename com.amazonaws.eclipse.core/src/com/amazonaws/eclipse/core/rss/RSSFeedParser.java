@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -36,6 +38,7 @@ public class RSSFeedParser {
   static final String ITEM = "item";
   static final String PUB_DATE = "pubDate";
   static final String GUID = "guid";
+  static final String CATEGORY = "category";
 
   final URL url;
 
@@ -51,7 +54,7 @@ public class RSSFeedParser {
     Feed feed = null;
     try {
       boolean isFeedHeader = true;
-      // Set header values intial to the empty string
+      // Set header values initially to the empty string
       String description = "";
       String title = "";
       String link = "";
@@ -60,6 +63,7 @@ public class RSSFeedParser {
       String author = "";
       String pubdate = "";
       String guid = "";
+      List<String> categories = new ArrayList<String>();
 
       // First create a new XMLInputFactory
       XMLInputFactory inputFactory = XMLInputFactory.newInstance();
@@ -95,6 +99,8 @@ public class RSSFeedParser {
             pubdate = getCharacterData(event, eventReader);
           } else if (localPart.equals(COPYRIGHT)) {
             copyright = getCharacterData(event, eventReader);
+          } else if (localPart.equals(CATEGORY)) {
+            categories.add(getCharacterData(event, eventReader));
           }
         } else if (event.isEndElement()) {
           if (event.asEndElement().getName().getLocalPart() == (ITEM)) {
@@ -104,6 +110,8 @@ public class RSSFeedParser {
             message.setGuid(guid);
             message.setLink(link);
             message.setTitle(title);
+            message.setCategories(categories);
+            categories = new ArrayList<String>();
             feed.getMessages().add(message);
             event = eventReader.nextEvent();
             continue;

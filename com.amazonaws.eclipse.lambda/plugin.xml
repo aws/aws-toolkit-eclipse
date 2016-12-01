@@ -7,10 +7,24 @@
             canFinishEarly="false"
             category="com.amazonaws.eclipse.sdk.category"
             class="com.amazonaws.eclipse.lambda.project.wizard.NewLambdaJavaFunctionProjectWizard"
+            finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             hasPages="true"
             icon="icons/aws-box.gif"
             id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"
             name="AWS Lambda Java Project"
+            preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
+            project="true">
+      </wizard>
+      <wizard
+            canFinishEarly="false"
+            category="com.amazonaws.eclipse.sdk.category"
+            class="com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard"
+            finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
+            hasPages="true"
+            icon="icons/aws-box.gif"
+            id="com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard"
+            name="AWS Serverless Java Project"
+            preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
             project="true">
       </wizard>
       <wizard
@@ -46,11 +60,13 @@
       <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"/>
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaFunctionWizard"/>
+         <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard"/>
       </perspectiveExtension>
 
       <perspectiveExtension targetID="org.eclipse.jst.j2ee.J2EEPerspective">
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"/>
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaFunctionWizard"/>
+         <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard"/>
       </perspectiveExtension>
    </extension>
 
@@ -78,6 +94,10 @@
                   id="com.amazonaws.eclipse.lambda.newLambdaFunctionMenuItem"
                   label="New AWS Lambda Function...">
          </command>
+         <command commandId="com.amazonaws.eclipse.lambda.NewServerlessProjectCommand"
+                  id="com.amazonaws.eclipse.lambda.NewServerlessProjectMenuItem"
+                  label="New AWS Serverless Project...">
+         </command>
      </menuContribution>
    </extension>
 
@@ -90,6 +110,11 @@
       <command id="com.amazonaws.eclipse.lambda.newLambdaFunctionCommand"
             name="New AWS Lambda Function"
             defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaFunctionHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+      <command id="com.amazonaws.eclipse.lambda.NewServerlessProjectCommand"
+            name="New AWS Serverless Project"
+            defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewServerlessProjectHandler"
             categoryId="com.amazonaws.commands.category">
       </command>
    </extension>
@@ -135,6 +160,25 @@
             </visibleWhen>
          </command>
      </menuContribution>
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+        <command
+              commandId="com.amazonaws.eclipse.lambda.DeployServerlessProject"
+              id="com.amazonaws.eclipse.lambda.DeployServerlessProject"
+              label="Deploy Serverless Project..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <adapt type="org.eclipse.core.resources.IProject">
+                          <test forcePluginActivation="true"
+                                property="org.eclipse.core.resources.projectNature"
+                                value="org.eclipse.jdt.core.javanature"/>
+                      </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
    </extension>
 
    <!-- Right click on editor view -->
@@ -161,6 +205,12 @@
                 id="com.amazonaws.eclipse.lambda.editor.uploadFunctionAction"
                 label="Upload function to AWS Lambda..."
                 menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
+
+            <action class="com.amazonaws.eclipse.lambda.serverless.wizard.editoraction.DeployServerlessAction"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.lambda.editor.DeployServerlessAction"
+                label="Deploy Serverless Project..."
+                menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
         </objectContribution>
     </extension>
 
@@ -177,6 +227,14 @@
      <command id="com.amazonaws.eclipse.lambda.invokeFunction"
             name="Invoke Function"
             defaultHandler="com.amazonaws.eclipse.lambda.invoke.handler.InvokeFunctionHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+  </extension>
+
+  <extension point="org.eclipse.ui.commands">
+     <command id="com.amazonaws.eclipse.lambda.DeployServerlessProject"
+            name="Deploy Serverless Project"
+            defaultHandler="com.amazonaws.eclipse.lambda.serverless.handler.DeployServerlessProjectHandler"
             categoryId="com.amazonaws.commands.category">
       </command>
   </extension>

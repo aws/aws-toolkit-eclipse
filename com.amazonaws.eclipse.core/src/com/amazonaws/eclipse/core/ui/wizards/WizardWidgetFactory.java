@@ -4,6 +4,7 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -34,13 +35,28 @@ public class WizardWidgetFactory {
     }
 
     public static Group newGroup(Composite parent, String text, int colspan) {
+        return newGroup(parent, text, colspan, 1);
+    }
+
+    public static Group newGroup(Composite parent, String text, int colspan, int cols) {
         Group group = new Group(parent, SWT.NONE);
         group.setText(text);
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         gridData.horizontalSpan = colspan;
         group.setLayoutData(gridData);
-        group.setLayout(new GridLayout(1, false));
+        group.setLayout(new GridLayout(cols, false));
         return group;
+    }
+    
+    public static SashForm newSashForm(Composite parent, int colspan, int cols) {
+        SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
+        GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gridData.horizontalSpan = colspan;
+        gridData.widthHint = 300;
+        gridData.heightHint = 200;
+        sashForm.setLayoutData(gridData);
+        sashForm.setLayout(new GridLayout(cols, false));
+        return sashForm;
     }
 
     public static Text newText(Composite parent) {
@@ -81,7 +97,7 @@ public class WizardWidgetFactory {
     public static Label newLabel(Composite parent, String text, int colspan) {
         Label label = new Label(parent, SWT.WRAP);
         label.setText(text);
-        GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
+        GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
         gridData.horizontalSpan = colspan;
         label.setLayoutData(gridData);
         return label;
@@ -133,6 +149,19 @@ public class WizardWidgetFactory {
         radioButton.addSelectionListener(selectionListener);
         radioButton.setSelection(selected);
         return radioButton;
+    }
+
+    public static Button newPushButton(Composite parent, String text) {
+        return newPushButton(parent, text, 1);
+    }
+
+    public static Button newPushButton(Composite parent, String text, int colspan) {
+        Button pushButton = new Button(parent, SWT.PUSH);
+        pushButton.setText(text);
+        GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+        gridData.horizontalSpan = colspan;
+        pushButton.setLayoutData(gridData);
+        return pushButton;
     }
 
     public static List newList(Composite parent, int colspan) {

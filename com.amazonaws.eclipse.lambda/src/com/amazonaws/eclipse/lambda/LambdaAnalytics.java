@@ -16,7 +16,9 @@ package com.amazonaws.eclipse.lambda;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
+import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
 
 public final class LambdaAnalytics {
 
@@ -25,6 +27,7 @@ public final class LambdaAnalytics {
      */
     private static final String EVENT_TYPE_UPLOAD_FUNCTION_WIZARD = "Lambda-UploadFunctionWizard";
 
+    // OpenedFrom -> ProjectContextMenu/FileEditorContextMenu
     private static final String ATTR_NAME_OPENED_FROM = "OpenedFrom";
     private static final String ATTR_VALUE_PROJECT_CONTEXT_MENU = "ProjectContextMenu";
     private static final String ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU = "FileEditorContextMenu";
@@ -39,11 +42,6 @@ public final class LambdaAnalytics {
     private static final String ATTR_NAME_CLICK = "Click";
     private static final String ATTR_VALUE_CREATE_IAM_ROLE_BUTTON = "CreateIamRoleButton";
     private static final String ATTR_VALUE_CREATE_S3_BUCKET_BUTTON = "CreateS3BucketButton";
-
-    private static final String ATTR_NAME_END_RESULT = "EndResult";
-    private static final String ATTR_VALUE_SUCCEEDED = "Succeeded";
-    private static final String ATTR_VALUE_FAILED = "Failed";
-    private static final String ATTR_VALUE_CANCELED = "Canceled";
 
     private static final String METRIC_NAME_UPLOAD_TOTAL_TIME_DURATION_MS = "UploadTotalTimeDurationMs";
     private static final String METRIC_NAME_UPLOAD_S3_BUCKET_TIME_DURATION_MS = "UploadS3BucketTimeDurationMs";
@@ -60,12 +58,8 @@ public final class LambdaAnalytics {
      */
     private static final String EVENT_TYPE_INVOKE_FUNCTION_DIALOG = "Lambda-InvokeFunctionDialog";
 
-    // OpenedFrom -> ProjectContextMenu/FileEditorContextMenu
-
     // Change selection
     private static final String ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO = "InvokeInputFileSelectionCombo";
-
-    // End result -> Succeeded/Failed/Canceled
 
     private static final String METRIC_NAME_IS_INVOKE_INPUT_MODIFIED = "IsInvokeInputModified";
     private static final String METRIC_NAME_IS_PROJECT_MODIFIED_AFTER_LAST_INVOKE = "IsProjectModifiedAfterLastInvoke";
@@ -73,15 +67,23 @@ public final class LambdaAnalytics {
     private static final String METRIC_NAME_SHOW_LIVE_LOG = "ShowLiveLog";
 
     /*
-     * New Lambda function wizard
+     * New wizard
      */
     private static final String EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD = "Lambda-NewLambdaProjectWizard";
     private static final String EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD = "Lambda-NewLambdaFunctionWizard";
+    private static final String EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD = "Lambda-NewServerlessProjectWizard";
+    private static final String EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD = "Lambda-DeployServerlessProjectWizard";
 
     private static final String ATTR_NAME_FUNCTION_INPUT_TYPE = "FunctionInputType";
     private static final String ATTR_NAME_FUNCTION_OUTPUT_TYPE = "FunctionOutputType";
+    private static final String ATTR_NAME_BLUEPRINT_NAME = "BlueprintName";
+    private static final String ATTR_NAME_IS_IMPORT_TEMPLATE = "IsImportTemplate";
 
     // End result -> Succeeded/Failed/Canceled
+    private static final String ATTR_NAME_END_RESULT = "EndResult";
+    private static final String ATTR_VALUE_SUCCEEDED = "Succeeded";
+    private static final String ATTR_VALUE_FAILED = "Failed";
+    private static final String ATTR_VALUE_CANCELED = "Canceled";
 
     private static final ToolkitAnalyticsManager ANALYTICS = AwsToolkitCore.getDefault().getAnalyticsManager();
 
@@ -89,59 +91,79 @@ public final class LambdaAnalytics {
      * Analytics for Lambda-NewLambdaProjectWizard
      */
     public static void trackProjectCreationSucceeded() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED);
     }
 
     public static void trackProjectCreationFailed() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED);
     }
 
     public static void trackProjectCreationCanceled() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED);
     }
 
     public static void trackNewProjectAttributes(LambdaFunctionWizardDataModel dataModel) {
-
         String inputType = dataModel.getPredefinedHandlerInputType() == null
                 ? dataModel.getCustomHandlerInputType()
                 : dataModel.getPredefinedHandlerInputType().getFqcn();
         String outputType = dataModel.getHandlerOutputType();
 
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD)
-                .addAttribute(ATTR_NAME_FUNCTION_INPUT_TYPE, inputType)
-                .addAttribute(ATTR_NAME_FUNCTION_OUTPUT_TYPE, outputType)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD, ATTR_NAME_FUNCTION_INPUT_TYPE, inputType, ATTR_NAME_FUNCTION_OUTPUT_TYPE, outputType);
     }
 
+    /*
+     * Analytics for Lambda-NewLambdaFunctionWizard
+     */
     public static void trackLambdaFunctionCreationFailed() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED);
     }
 
     public static void trackLambdaFunctionCreationSucceeded() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED);
     }
 
     public static void trackLambdaFunctionCreationCanceled() {
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED);
+    }
+
+    /*
+     * Analytics for Lambda-NewServerlessProjectWizard
+     */
+    public static void trackServerlessProjectCreationSucceeded() {
+        publishEventWithAttributes(EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED);
+    }
+
+    public static void trackServerlessProjectCreationFailed() {
+        publishEventWithAttributes(EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED);
+    }
+
+    public static void trackServerlessProjectCreationCanceled() {
+        publishEventWithAttributes(EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED);
+    }
+
+    public static void trackServerlessProjectSelection(NewServerlessProjectDataModel dataModel) {
+        if (dataModel.isUseBlueprint()) {
+            publishEventWithAttributes(EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_BLUEPRINT_NAME, dataModel.getBlueprintName());
+        }
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
+                .setEventType(EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD)
+                .addBooleanMetric(ATTR_NAME_IS_IMPORT_TEMPLATE, !dataModel.isUseBlueprint())
                 .build());
+    }
+
+    /*
+     * Analytics for Lambda-DeployServerlessProjectWizard
+     */
+    public static void trackDeployServerlessProjectSucceeded() {
+        publishEventWithAttributes(EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED);
+    }
+
+    public static void trackDeployServerlessProjectFailed() {
+        publishEventWithAttributes(EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED);
+    }
+
+    public static void trackDeployServerlessProjectCanceled() {
+        publishEventWithAttributes(EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED);
     }
 
     /*
@@ -221,52 +243,39 @@ public final class LambdaAnalytics {
      * Analytics for Lambda-UploadFunctionWizard
      */
     public static void trackUploadWizardOpenedFromEditorContextMenu() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_OPENED_FROM, ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU);
     }
 
     public static void trackUploadWizardOpenedBeforeFunctionInvoke() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_UPLOAD_BEFORE_INVOKE)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_OPENED_FROM, ATTR_VALUE_UPLOAD_BEFORE_INVOKE);
+    }
+
+    public static void trackUploadWizardOpenedFromProjectContextMenu() {
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_OPENED_FROM, ATTR_VALUE_PROJECT_CONTEXT_MENU);
     }
 
     public static void trackFunctionHandlerComboSelectionChange() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_FUNCTION_HANDLER_SELECTION_COMBO)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_FUNCTION_HANDLER_SELECTION_COMBO);
     }
 
     public static void trackRoleComboSelectionChange() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_IAM_ROLE_SELECTION_COMBO)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_IAM_ROLE_SELECTION_COMBO);
     }
 
     public static void trackS3BucketComboSelectionChange() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_S3_BUCKET_SELECTION_COMBO)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_S3_BUCKET_SELECTION_COMBO);
+    }
+
+    public static void trackRegionComboChangeSelection() {
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_REGION_SELECTION_COMBO);
     }
 
     public static void trackClickCreateNewRoleButton() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_CLICK, ATTR_VALUE_CREATE_IAM_ROLE_BUTTON)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_CLICK, ATTR_VALUE_CREATE_IAM_ROLE_BUTTON);
     }
 
     public static void trackClickCreateNewBucketButton() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_CLICK, ATTR_VALUE_CREATE_S3_BUCKET_BUTTON)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_CLICK, ATTR_VALUE_CREATE_S3_BUCKET_BUTTON);
     }
 
     public static void trackLoadRoleTimeDuration(long duration) {
@@ -283,20 +292,6 @@ public final class LambdaAnalytics {
                 .build());
     }
 
-    public static void trackUploadWizardOpenedFromProjectContextMenu() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_PROJECT_CONTEXT_MENU)
-                .build());
-    }
-
-    public static void trackRegionComboChangeSelection() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_REGION_SELECTION_COMBO)
-                .build());
-    }
-
     public static void trackMetrics(boolean isCreatingNewFunction, int validFunctionHandlerClassCount) {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
@@ -306,24 +301,15 @@ public final class LambdaAnalytics {
     }
 
     public static void trackUploadSucceeded() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED);
     }
 
     public static void trackUploadFailed() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED);
     }
 
     public static void trackUploadCanceled() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
-                .build());
+        publishEventWithAttributes(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED);
     }
 
     public static void trackUploadTotalTime(long uploadTotalTime) {
@@ -352,6 +338,14 @@ public final class LambdaAnalytics {
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
                 .addMetric(METRIC_NAME_UPLOAD_S3_BUCKET_SPEED, uploadS3BucketSpeed)
                 .build());
+    }
+
+    private static void publishEventWithAttributes(String eventType, String... attributes) {
+        ToolkitEventBuilder builder = ANALYTICS.eventBuilder().setEventType(eventType);
+        for (int i = 0; i < attributes.length; i += 2) {
+            builder.addAttribute(attributes[i], attributes[i + 1]);
+        }
+        ANALYTICS.publishEvent(builder.build());
     }
 
 }

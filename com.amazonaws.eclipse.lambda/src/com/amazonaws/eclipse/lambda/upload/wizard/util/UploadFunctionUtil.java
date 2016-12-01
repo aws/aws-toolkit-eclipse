@@ -14,14 +14,11 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard.util;
 
-import com.amazonaws.eclipse.lambda.LambdaAnalytics;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -34,6 +31,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
@@ -68,7 +66,11 @@ public class UploadFunctionUtil {
 
         monitor.subTask("Uploading function code to S3...");
         String bucketName = dataModel.getFunctionConfigPageDataModel().getBucketName();
-        String randomKeyName = UUID.randomUUID().toString();
+        // TODO use non-random key name
+        //String randomKeyName = UUID.randomUUID().toString();
+        String randomKeyName = dataModel.isCreatingNewFunction() ?
+                dataModel.getNewFunctionName() : dataModel.getExistingFunction().getFunctionName();
+        randomKeyName += ".zip";
         AmazonS3 s3 = AwsToolkitCore.getClientFactory()
                 .getS3ClientForBucket(bucketName);
 
@@ -120,15 +122,6 @@ public class UploadFunctionUtil {
                     "Function " + functionArn + " updated.");
         }
         monitor.worked((int)(totalUnitOfWork * 0.2));
-
-        // Clean up ourself after the function is created
-        try {
-            s3.deleteObject(bucketName, randomKeyName);
-        } catch (Exception e) {
-            LambdaPlugin.getDefault()
-                    .warn("Failed to clean up function code in the S3 bucket.",
-                            e);
-        }
 
         monitor.subTask("Saving project metadata");
         LambdaFunctionProjectMetadata md = new LambdaFunctionProjectMetadata();

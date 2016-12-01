@@ -22,10 +22,16 @@ import com.amazonaws.eclipse.explorer.AbstractAwsResourceEditorInput;
 public class StackEditorInput extends AbstractAwsResourceEditorInput {
 
     private final String stackName;
+    private final boolean autoRefresh;
 
     public StackEditorInput(String stackName, String endpoint, String accountId) {
+        this(stackName, endpoint, accountId, false);
+    }
+
+    public StackEditorInput(String stackName, String endpoint, String accountId, boolean autoRefresh) {
         super(endpoint, accountId);
         this.stackName = stackName;
+        this.autoRefresh = autoRefresh;
     }
 
     public String getStackName() {
@@ -36,10 +42,14 @@ public class StackEditorInput extends AbstractAwsResourceEditorInput {
         return stackName;
     }
 
+    public boolean isAutoRefresh() {
+        return autoRefresh;
+    }
+
     public String getToolTipText() {
         return "Amazon CloudFormation Stack Editor - " + getName();
     }
-    
+
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_STACK);
     }

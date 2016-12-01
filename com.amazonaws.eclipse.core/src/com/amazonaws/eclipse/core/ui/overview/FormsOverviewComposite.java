@@ -145,7 +145,7 @@ class FormsOverviewComposite extends Composite {
 
         composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
 
-        Toolkit.newLabel(composite, "Loading...");
+//        Toolkit.newLabel(composite, "Loading...");
 
         new LoadJavaDeveloperBlogJob(composite, overviewToolkit).schedule();
 
@@ -232,7 +232,7 @@ class FormsOverviewComposite extends Composite {
      * Simple Job for asynchronously retreiving a blog feed and updating the UI.
      */
     private final class LoadJavaDeveloperBlogJob extends Job {
-        private static final String JAVA_DEVELOPER_BLOG_RSS_URL = "http://java.awsblog.com/blog/feed/recentPosts.rss";
+        private static final String JAVA_DEVELOPER_BLOG_RSS_URL = "https://aws.amazon.com/blogs/developer/category/java/";
 
         private Composite composite;
         private Toolkit toolkit;
@@ -246,28 +246,35 @@ class FormsOverviewComposite extends Composite {
 
         @Override
         protected IStatus run(IProgressMonitor monitor) {
-            try {
-                RSSFeedParser parser = new RSSFeedParser(JAVA_DEVELOPER_BLOG_RSS_URL);
-
-                Feed feed = parser.readFeed();
-                final List<FeedMessage> mostRecentPosts = feed.getMessages().subList(0, 10);
-
-                Display.getDefault().syncExec(new Runnable () {
-                    public void run() {
-                        for (Control control : composite.getChildren()) control.dispose();
-
-                        for (FeedMessage message : mostRecentPosts) {
-                            toolkit.newListItem(composite, message.getTitle(), message.getLink(), null);
-                        }
-
-                        form.reflow(true);
-                    }
-                });
-
-                return Status.OK_STATUS;
-            } catch (Exception e) {
-                return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to load AWS Java Developer Blog feed", e);
-            }
+            Display.getDefault().syncExec(new Runnable() {
+                public void run() {
+                    toolkit.newListItem(composite, "AWS Java Developer Blog", JAVA_DEVELOPER_BLOG_RSS_URL, null);
+                    form.reflow(true);
+                }
+            });
+            return Status.OK_STATUS;
+//            try {
+//                RSSFeedParser parser = new RSSFeedParser(JAVA_DEVELOPER_BLOG_RSS_URL);
+//
+//                Feed feed = parser.readFeed();
+//                final List<FeedMessage> mostRecentPosts = feed.getMessages().subList(0, 10);
+//
+//                Display.getDefault().syncExec(new Runnable () {
+//                    public void run() {
+//                        for (Control control : composite.getChildren()) control.dispose();
+//
+//                        for (FeedMessage message : mostRecentPosts) {
+//                            toolkit.newListItem(composite, message.getTitle(), message.getLink(), null);
+//                        }
+//
+//                        form.reflow(true);
+//                    }
+//                });
+//
+//                return Status.OK_STATUS;
+//            } catch (Exception e) {
+//                return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to load AWS Java Developer Blog feed", e);
+//            }
         }
     }
 

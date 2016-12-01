@@ -44,6 +44,16 @@ import com.amazonaws.eclipse.lambda.project.template.data.HandlerTestClassTempla
 import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerTestClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
+import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
+import com.amazonaws.eclipse.lambda.serverless.NameUtils;
+import com.amazonaws.eclipse.lambda.serverless.blueprint.Blueprint;
+import com.amazonaws.eclipse.lambda.serverless.blueprint.BlueprintProvider;
+import com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplateData;
+import com.amazonaws.eclipse.lambda.serverless.template.ServerlessInputTemplateData;
+import com.amazonaws.eclipse.lambda.serverless.template.ServerlessOutputTemplateData;
+import com.amazonaws.util.IOUtils;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import freemarker.template.Template;
 
@@ -84,6 +94,87 @@ public class FunctionProjectUtil {
         }
 
         addTestDirectoryToClasspath(project);
+    }
+
+    public static void addSourceToProject(IProject project, NewServerlessProjectDataModel dataModel)
+            throws JsonParseException, JsonMappingException, IOException {
+        emitServerlessModels(project, dataModel);
+        emitServerlessHandlers(project, dataModel);
+        emitServerlessTemplate(project, dataModel);
+    }
+
+    private static void emitServerlessTemplate(IProject project, NewServerlessProjectDataModel dataModel) {
+        try {
+            FunctionProjectUtil.addSourceFileToProject(
+                    project,
+                    NameUtils.SERVERLESS_TEMPLATE_FILE_NAME,
+                    dataModel.getServerlessFilePath());
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add Serverless template file to the new Serverless project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static File addServerlessReadmeFileToProject(IProject project, NewServerlessProjectDataModel dataModel) {
+        try {
+            return FunctionProjectUtil.addSourceFileToProject(
+                    project,
+                    "README.html",
+                    CodeTemplateManager.getInstance().getServerlessReadmeFile().getAbsolutePath());
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add Serverless template file to the new Serverless project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static File getServerlessTemplateFile(IProject project) {
+        return getProjectDirectory(project, NameUtils.SERVERLESS_TEMPLATE_FILE_NAME).toFile();
+    }
+
+    private static void emitServerlessModels(IProject project, NewServerlessProjectDataModel dataModel)
+            throws JsonParseException, JsonMappingException, IOException {
+        if (dataModel.isNeedLambdaProxyIntegrationModel()) {
+            addServerlessInputModelClassToProject(project, dataModel.getServerlessInputTemplateData());
+            addServerlessOutputModelClassToProject(project, dataModel.getServerlessOutputTemplateData());
+        }
+    }
+
+    private static void emitServerlessHandlers(IProject project, NewServerlessProjectDataModel dataModel)
+            throws JsonParseException, JsonMappingException, IOException {
+        for (ServerlessHandlerTemplateData templateData : dataModel.getServerlessHandlerTemplateData()) {
+            if (dataModel.isUseBlueprint()) {
+                Blueprint blueprint = BlueprintProvider.getInstance().getBlueprint(dataModel.getBlueprintName());
+                String templatePath = blueprint.getHandlerTemplatePaths().get(templateData.getClassName());
+                addServerlessBlueprintHandlerModelClassToProject(project, templateData, templatePath);
+            } else {
+                addServerlessHandlerModelClassToProject(project, templateData);
+            }
+        }
+    }
+
+    private static void addServerlessBlueprintHandlerModelClassToProject(IProject project, ServerlessHandlerTemplateData templateData, String templatePath) {
+        try {
+            Template handlerTemplate = CodeTemplateManager.getInstance()
+                    .getTemplate(templatePath);
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    handlerTemplate, templateData);
+
+            FunctionProjectUtil.addSourceClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add source to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
     }
 
     private static void addHandlerClassToProject(IProject project,
@@ -303,6 +394,72 @@ public class FunctionProjectUtil {
         }
     }
 
+    private static void addServerlessInputModelClassToProject(IProject project,
+            ServerlessInputTemplateData templateData) {
+        try {
+            Template serverlessInputTemplate = CodeTemplateManager.getInstance()
+                    .getServerlessInputClassTemplate();
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    serverlessInputTemplate, templateData);
+
+            FunctionProjectUtil.addSourceClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add Serverless INput model file to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addServerlessOutputModelClassToProject(IProject project,
+            ServerlessOutputTemplateData templateData) {
+        try {
+            Template serverlessOutputTemplate = CodeTemplateManager.getInstance()
+                    .getServerlessOutputClassTemplate();
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    serverlessOutputTemplate, templateData);
+
+            FunctionProjectUtil.addSourceClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add Serverless Output model file to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void addServerlessHandlerModelClassToProject(IProject project,
+            ServerlessHandlerTemplateData templateData) {
+        try {
+            Template serverlessHandlerTemplate = CodeTemplateManager.getInstance()
+                    .getServerlessHandlerClassTemplate();
+            String fileContent = CodeTemplateManager.processTemplateWithData(
+                    serverlessHandlerTemplate, templateData);
+
+            FunctionProjectUtil.addSourceClassToProject(
+                    project,
+                    JavaPackageName.parse(templateData.getPackageName()),
+                    templateData.getClassName(),
+                    fileContent);
+
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to add Serverless Output model file to the new Lambda function project",
+                    e);
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * @param project
      *            the target project where the source is added
@@ -344,6 +501,13 @@ public class FunctionProjectUtil {
 
         IPath projectRoot = getProjectDirectory(project, null);
         return addFileToProject(projectRoot, "README.html", fileContent);
+    }
+
+    private static File addSourceFileToProject(IProject project, String fileName,
+            String filePath) throws FileNotFoundException, IOException, CoreException {
+        IPath targetPath = getProjectDirectory(project, null);
+        String fileContent = IOUtils.toString(new FileInputStream(new File(filePath)));
+        return addFileToProject(targetPath, fileName, fileContent);
     }
 
     private static void addClassToProject(IPath root,

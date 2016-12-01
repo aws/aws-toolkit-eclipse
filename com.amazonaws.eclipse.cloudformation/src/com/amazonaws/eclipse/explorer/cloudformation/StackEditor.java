@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.explorer.cloudformation;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +32,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
@@ -43,17 +45,26 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.DescribeStackResourcesRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackResource;
 
 public class StackEditor extends EditorPart {
+
+    private static final String SERVERLESS_REST_API = "ServerlessRestApi";
+    private static final String SERVERLESS_REST_API_PROD_STAGE = "ServerlessRestApiProdStage";
+    private static final String[] STABLE_STATES = {
+        "CREATE_COMPLETE", "CREATE_FAILED", "DELETE_COMPLETE", "DELETE_FAILED", "ROLLBACK_COMPLETE", "ROLLBACK_FAILED",
+        "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE", "UPDATE_ROLLBACK_FAILED"};
+    private static final List<String> STABLE_STATE_LIST = Arrays.asList(STABLE_STATES);
 
     private StackEditorInput stackEditorInput;
     private Text stackNameLabel;
@@ -65,10 +76,16 @@ public class StackEditor extends EditorPart {
     private Text descriptionLabel;
     private Text rollbackOnFailureLabel;
 
+    private Link outputLink;
+    private volatile boolean stackInStableState;
+    private Thread autoRefreshThread;
+
     private StackEventsTable stackEventsTable;
     private StackOutputsTable stackOutputsTable;
     private StackParametersTable stackParametersTable;
     private StackResourcesTable stackResourcesTable;
+
+    private RefreshAction refreshAction;
 
     @Override
     public void doSave(IProgressMonitor monitor) {}
@@ -113,10 +130,28 @@ public class StackEditor extends EditorPart {
         createSummarySection(form.getBody(), toolkit);
         createTabsSection(form.getBody(), toolkit);
 
-        form.getToolBarManager().add(new RefreshAction());
+        refreshAction = new RefreshAction();
+        form.getToolBarManager().add(refreshAction);
         form.getToolBarManager().update(true);
 
         new LoadStackSummaryThread().start();
+
+        if (stackEditorInput.isAutoRefresh()) {
+            autoRefreshThread = new Thread(new Runnable() {
+                public void run() {
+                    while (!isStackInStableState()) {
+                        try {
+                            Thread.sleep(5 * 1000);
+                            refreshAction.run();
+                        } catch (InterruptedException e) {
+                            // When exception happens, we leave this thread.
+                            return;
+                        }
+                    }
+                }
+            });
+            autoRefreshThread.start();
+        }
     }
 
     private String getFormTitle() {
@@ -171,6 +206,12 @@ public class StackEditor extends EditorPart {
         gridDataFactory.copy().hint(100, SWT.DEFAULT).minSize(1, SWT.DEFAULT).align(SWT.LEFT, SWT.TOP).grab(false, false).applyTo(l);
         descriptionLabel = new Text(composite, SWT.READ_ONLY | SWT.NONE | SWT.MULTI | SWT.WRAP);
         gridDataFactory.copy().span(3, 1).applyTo(descriptionLabel);
+
+        Label outputL = toolkit.createLabel(composite, "Output:");
+        gridDataFactory.copy().hint(100, SWT.DEFAULT).minSize(1, SWT.DEFAULT).align(SWT.LEFT, SWT.TOP).grab(false, false).applyTo(outputL);
+        outputLink = new Link(composite, SWT.READ_ONLY | SWT.NONE | SWT.MULTI | SWT.WRAP);
+        outputLink.addListener(SWT.Selection, new WebLinkListener());
+        gridDataFactory.copy().span(3, 1).applyTo(outputLink);
     }
 
     private void createTabsSection(Composite parent, FormToolkit toolkit) {
@@ -209,9 +250,25 @@ public class StackEditor extends EditorPart {
     @Override
     public void setFocus() {}
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        if (autoRefreshThread != null) {
+            autoRefreshThread.interrupt();
+        }
+    }
+
     private AmazonCloudFormation getClient() {
         AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory(stackEditorInput.getAccountId());
         return clientFactory.getCloudFormationClientByEndpoint(stackEditorInput.getRegionEndpoint());
+    }
+
+    public boolean isStackInStableState() {
+        return stackInStableState;
+    }
+
+    private void setStackInStableState(boolean stackInStableState) {
+        this.stackInStableState = stackInStableState;
     }
 
     private class LoadStackSummaryThread extends Thread {
@@ -229,23 +286,48 @@ public class StackEditor extends EditorPart {
             return stacks.get(0);
         }
 
+        private String createRestApiProdLink(String restApi, String region, String restApiProdStage) {
+            return String.format("https://%s.execute-api.%s.amazonaws.com/%s", restApi, region, restApiProdStage);
+        }
+
         @Override
         public void run() {
             try {
                 final Stack stack = describeStack();
+                setStackInStableState(STABLE_STATE_LIST.contains(stack.getStackStatus()));
+                DescribeStackResourcesRequest request = new DescribeStackResourcesRequest().withStackName(stackEditorInput.getStackName());
+                final List<StackResource> stackResources = getClient().describeStackResources(request).getStackResources();
+
                 Display.getDefault().asyncExec(new Runnable() {
                     public void run() {
-                        descriptionLabel.setText(stack.getDescription());
+                        descriptionLabel.setText(valueOrDefault(stack.getDescription(), ""));
                         lastUpdatedLabel.setText(valueOrDefault(stack.getLastUpdatedTime(), "N/A"));
                         stackNameLabel.setText(stack.getStackName());
                         statusLabel.setText(stack.getStackStatus());
-                        statusReasonLabel.setText(stack.getStackStatusReason());
+                        statusReasonLabel.setText(valueOrDefault(stack.getStackStatusReason(), ""));
                         createdLabel.setText(valueOrDefault(stack.getCreationTime(), "N/A"));
                         createTimeoutLabel.setText(valueOrDefault(stack.getTimeoutInMinutes(), "N/A"));
 
                         Boolean disableRollback = stack.getDisableRollback();
                         if (disableRollback != null) disableRollback = !disableRollback;
                         rollbackOnFailureLabel.setText(booleanYesOrNo(disableRollback));
+
+                        String serverlessRestApi = null;
+                        String serverlessRestApiProdStage = null;
+                        for (StackResource resource : stackResources) {
+                            if (resource.getLogicalResourceId().equals(SERVERLESS_REST_API)) {
+                                serverlessRestApi = resource.getPhysicalResourceId();
+                            }
+                            if (resource.getLogicalResourceId().equals(SERVERLESS_REST_API_PROD_STAGE)) {
+                                serverlessRestApiProdStage = resource.getPhysicalResourceId();
+                            }
+                        }
+
+                        if (serverlessRestApi != null && serverlessRestApiProdStage != null) {
+                            String region = RegionUtils.getRegionByEndpoint(stackEditorInput.getRegionEndpoint()).getId();
+                            outputLink.setText(createLinkText(createRestApiProdLink(
+                                    serverlessRestApi, region, serverlessRestApiProdStage)));
+                        }
 
                         stackNameLabel.getParent().layout();
                         stackNameLabel.getParent().getParent().layout(true);
@@ -295,6 +377,10 @@ public class StackEditor extends EditorPart {
             stackEventsTable.refresh();
             stackResourcesTable.refresh();
         }
+    }
+
+    private String createLinkText(String url) {
+        return String.format("<a href=\"%s\">%s</a>", url, url);
     }
 
 }

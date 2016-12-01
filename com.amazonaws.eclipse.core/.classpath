@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="bin/"/>
 	<classpathentry exported="true" kind="lib" path="icons/"/>
 	<classpathentry exported="true" kind="lib" path="etc/"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
@@ -8,14 +9,12 @@
 	<classpathentry kind="lib" path="lib/activation-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-autoscaling-1.11.21.jar"/>
-	<classpathentry kind="lib" path="lib/aws-java-sdk-cloudformation-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-cloudfront-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-cloudwatch-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-cloudwatchmetrics-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-codecommit-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-codedeploy-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-cognitoidentity-1.11.21.jar"/>
-	<classpathentry kind="lib" path="lib/aws-java-sdk-core-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-dynamodb-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-ec2-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-elasticbeanstalk-1.11.21.jar"/>
@@ -49,5 +48,8 @@
 	<classpathentry kind="lib" path="lib/mail-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/stax-1.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/stax-api-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/aws-java-sdk-api-gateway-1.11.60.jar"/>
+	<classpathentry kind="lib" path="lib/aws-java-sdk-cloudformation-1.11.60.jar"/>
+	<classpathentry kind="lib" path="lib/aws-java-sdk-core-1.11.60.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

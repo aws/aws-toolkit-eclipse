@@ -205,7 +205,9 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
       <import plugin="org.eclipse.ui.forms" version="3.3.0" match="greaterOrEqual"/>
       <import plugin="com.amazonaws.eclipse.core" version="2.3.0" match="greaterOrEqual"/>
       <import plugin="com.amazonaws.eclipse.sdk.ui" version="2.1.0" match="greaterOrEqual"/>
+      <import plugin="com.amazonaws.eclipse.cloudformation" version="1.0.0" match="greaterOrEqual"/>
       <import feature="com.amazonaws.eclipse.core.feature" version="2.3.1" match="greaterOrEqual"/>
+      <import feature="com.amazonaws.eclipse.cloudformation.feature" version="1.0.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin

@@ -1,0 +1,109 @@
+{
+  "Description": "Simple article service.",
+  "Parameters" : {
+    "ArticleBucketName" : {
+        "Type" : "String",
+        "Default" : "serverless-blueprint-article-bucket",
+        "Description" : "Name of S3 bucket used to store the article content. If left blank a new bucket will be created.",
+        "MinLength" : "0"
+    },
+    "ArticleTableName" : {
+        "Type" : "String",
+        "Default" : "serverless-blueprint-article-table",
+        "Description" : "Name of DynamoDB table used to store the article metadata. If left blank a new table will be created.",
+        "MinLength" : "0"
+      },
+    "ReadCapacity" : {
+        "Type" : "Number",
+        "Description" : "Read capacity for the DynamoDB blog table.",
+        "Default" : "3",
+        "MinValue" : 1
+    },
+    "WriteCapacity" : {
+        "Type" : "Number",
+        "Description" : "Write capacity for the DynamoDB blog table.",
+        "Default" : "3",
+        "MinValue" : 1
+    }
+  },
+  "Resources": {
+    "GetArticle": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "GetArticle",
+        "Policies": [
+          "AmazonDynamoDBReadOnlyAccess",
+          "AmazonS3ReadOnlyAccess"
+        ],
+        "Environment" : {
+          "Variables" : {
+            "ARTICLE_TABLE_NAME" : { "Ref" : "ArticleTableName" },
+            "ARTICLE_BUCKET_NAME" : { "Ref" : "ArticleBucketName" }
+          }
+        },
+        "Events": {
+          "GetResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/",
+              "Method": "get"
+            }
+          }
+        }
+      }
+    },
+    "PutArticle": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "PutArticle",
+        "Policies": [
+          "AmazonDynamoDBFullAccess",
+          "AmazonS3FullAccess"
+        ],
+        "Environment" : {
+          "Variables" : {
+            "ARTICLE_TABLE_NAME" : { "Ref" : "ArticleTableName" },
+            "ARTICLE_BUCKET_NAME" : { "Ref" : "ArticleBucketName" }
+          }
+        },
+        "Events": {
+          "PutResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/",
+              "Method": "post"
+            }
+          }
+        }
+      }
+    },
+    "ArticleTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": {"Ref" : "ReadCapacity"},
+          "WriteCapacityUnits": {"Ref" : "WriteCapacity"}
+        },
+        "TableName": {"Ref" : "ArticleTableName"}
+      }
+    },
+    "ArticleBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {"Ref" : "ArticleBucketName"}
+      }
+    }
+  }
+}

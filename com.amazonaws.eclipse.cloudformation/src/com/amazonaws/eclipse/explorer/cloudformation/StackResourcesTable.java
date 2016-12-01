@@ -83,7 +83,6 @@ class StackResourcesTable extends Composite {
             }
         }
 
-
         Composite composite = toolkit.createComposite(this);
         composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
