@@ -183,7 +183,7 @@ class CreateBucketWizard extends Wizard {
                     // treating these as valid so we don't accidentally block
                     // a valid creation request?
 
-                    AwsToolkitCore.getDefault().logException(
+                    AwsToolkitCore.getDefault().logError(
                         "Error checking whether bucket exists",
                         exception
                     );

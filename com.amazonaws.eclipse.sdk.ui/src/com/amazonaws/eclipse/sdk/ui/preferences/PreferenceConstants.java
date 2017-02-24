@@ -21,7 +21,7 @@ import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
  */
 public class PreferenceConstants {
 
-    public static final String DOWNLOAD_AUTOMATICALLY = JavaSdkPlugin.PLUGIN_ID + ".downloadAutomatically";
-    public static final String DOWNLOAD_DIRECTORY = JavaSdkPlugin.PLUGIN_ID + ".downloadDirectory";
+    public static final String DOWNLOAD_AUTOMATICALLY = JavaSdkPlugin.getDefault().getPluginId() + ".downloadAutomatically";
+    public static final String DOWNLOAD_DIRECTORY = JavaSdkPlugin.getDefault().getPluginId() + ".downloadDirectory";
 
 }

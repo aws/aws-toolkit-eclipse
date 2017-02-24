@@ -16,7 +16,6 @@ package com.amazonaws.eclipse.core.ui.overview;
 
 import java.net.URL;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.swt.program.Program;
 import org.eclipse.ui.PlatformUI;
@@ -24,7 +23,6 @@ import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 
@@ -66,9 +64,7 @@ public final class HyperlinkHandler extends HyperlinkAdapter {
                 browserSupport.createBrowser(browserStyle, null, null, null)
                     .openURL(new URL(href));
             } catch (Exception e) {
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
-                        "Unable to open external web browser: " + e.getMessage(), e);
-                StatusManager.getManager().handle(status, StatusManager.SHOW);
+                AwsToolkitCore.getDefault().reportException("Unable to open external web browser", e);
             }
         } else if (href.startsWith("preference:")) {
             PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(

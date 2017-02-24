@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.wizard.Wizard;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
@@ -77,7 +78,7 @@ class CreateTableWizard extends Wizard {
                     dynamoDBClient.createTable(createTableRequest);
                     return Status.OK_STATUS;
                 } catch (Exception e) {
-                    return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create the table: " + e.getMessage(), e);
+                    return new Status(Status.ERROR, DynamoDBPlugin.getDefault().getPluginId(), "Unable to create the table: " + e.getMessage(), e);
                 }
             }
         }.schedule();
@@ -154,7 +155,7 @@ class CreateTableWizard extends Wizard {
                 index.getProjection().setProjectionType(UINameToValueMap.get(index.getProjection().getProjectionType()));
             }
         }
-        
+
         if (null != dataModel.getGlobalSecondaryIndexes()) {
             for (GlobalSecondaryIndex index : dataModel.getGlobalSecondaryIndexes()) {
                 index.getProjection().setProjectionType(UINameToValueMap.get(index.getProjection().getProjectionType()));

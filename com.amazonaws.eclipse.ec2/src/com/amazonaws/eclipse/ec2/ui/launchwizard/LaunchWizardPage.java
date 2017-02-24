@@ -115,7 +115,7 @@ public class LaunchWizardPage extends WizardPage {
                 loadInstanceProfiles();
             } catch ( Exception e ) {
                 instanceProfileCombo.select(0);
-                AwsToolkitCore.getDefault().logException("Couldn't load IAM Instance Profiles", e);
+                AwsToolkitCore.getDefault().logError("Couldn't load IAM Instance Profiles", e);
             }
         }
 

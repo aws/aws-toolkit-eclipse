@@ -42,7 +42,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.ui.progress.IProgressConstants;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AWSClientFactory;
@@ -140,8 +139,7 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
 
             return sdkInstalls;
         } catch ( IllegalStateException e ) {
-            JavaSdkPlugin.getDefault().getLog()
-                    .log(new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, "No state directory to cache SDK", e));
+            JavaSdkPlugin.getDefault().logWarning("No state directory to cache SDK", e);
             return sdkInstalls;
         }
     }
@@ -179,10 +177,9 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
             FileUtils.copyDirectory(install.getRootDirectory(), versionDir);
             monitor.worked(20);
         } catch ( IllegalStateException e ) {
-            JavaSdkPlugin.getDefault().getLog()
-                    .log(new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, "No state directory to cache SDK", e));
+            JavaSdkPlugin.getDefault().logWarning("No state directory to cache SDK", e);
         } catch ( Exception e ) {
-            JavaSdkPlugin.getDefault().getLog().log(new Status(Status.ERROR, JavaSdkPlugin.PLUGIN_ID, e.getMessage(), e));
+            JavaSdkPlugin.getDefault().logError("Failed to copy Aws Java Sdk.", e);
         }
     }
 
@@ -200,8 +197,7 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
             return matcher.group(1);
         }
 
-        IStatus status = new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to detect latest plugin version (Content-Disposition: " + filename + ")");
-        StatusManager.getManager().handle(status, StatusManager.LOG);
+        AwsToolkitCore.getDefault().logError("Unable to detect latest plugin version (Content-Disposition: " + filename + ")", null);
         return null;
     }
 
@@ -275,17 +271,14 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
                     downloadAndInstallSDK(monitor);
                 }
             } catch ( Exception e ) {
-                StatusManager.getManager().handle(
-                        new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID,
-                                "Couldn't download latest SDK", e),
-                                StatusManager.SHOW);
+                JavaSdkPlugin.getDefault().reportException("Couldn't download latest SDK", e);
             } finally {
                 monitor.done();
                 synchronized ( AbstractSdkManager.this ) {
                     installationJob = null;
                 }
             }
-            return new Status(IStatus.OK, JavaSdkPlugin.PLUGIN_ID, "Click to configure");
+            return new Status(IStatus.OK, JavaSdkPlugin.getDefault().getPluginId(), "Click to configure");
         }
 
 
@@ -329,17 +322,12 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
             downloadSdkFromCloudFront(zipFile, monitor, 60);
 
         } catch (Exception e) {
-            JavaSdkPlugin.getDefault().getLog()
-                .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
-                            "Fall back to S3 download.", e));
-
+            JavaSdkPlugin.getDefault().logInfo("Fall back to S3 download.");
             downloadSdkFromS3(zipFile, monitor, 60);
         }
 
-        JavaSdkPlugin.getDefault().getLog()
-            .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
-                "SDK download completes. Location: " + zipFile.getAbsolutePath() + ", " +
-                "File-length: " + zipFile.length()));
+        JavaSdkPlugin.getDefault().logInfo("SDK download completes. Location: " + zipFile.getAbsolutePath() + ", " +
+                "File-length: " + zipFile.length());
 
         /*
          *  20 units for unzipping
@@ -363,10 +351,8 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
 
         monitor.subTask("Downloading latest SDK from CloudFront");
 
-        JavaSdkPlugin.getDefault().getLog()
-            .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
-                        "Downloading the SDK from CloudFront to location "
-                                + destination.getAbsolutePath()));
+        JavaSdkPlugin.getDefault().logInfo("Downloading the SDK from CloudFront to location "
+                + destination.getAbsolutePath());
 
         URL sourceUrl = new URL(cloudfrontDownloadUrl);
         URLConnection connection = sourceUrl.openConnection();
@@ -440,10 +426,8 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
         TransferManager manager = new TransferManager(client);
 
         try {
-            JavaSdkPlugin.getDefault().getLog()
-                .log(new Status(Status.INFO, JavaSdkPlugin.PLUGIN_ID,
-                            "Downloading the SDK from S3 to location "
-                                    + destination.getAbsolutePath()));
+            JavaSdkPlugin.getDefault().logInfo("Downloading the SDK from S3 to location "
+                                    + destination.getAbsolutePath());
 
             Download download = manager.download(sdkBucketName, "latest/" + sdkFilenamePrefix + ".zip", destination);
 
@@ -521,12 +505,8 @@ public abstract class AbstractSdkManager<X extends AbstractSdkInstall> {
                          *
                          * http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6519463
                          */
-                        JavaSdkPlugin.getDefault().getLog()
-                            .log(new Status(
-                                    Status.WARNING, JavaSdkPlugin.PLUGIN_ID,
-                                    "Ignore EOFException when unpacking zip-entry " +
-                                            zipEntry.getName(),
-                                    eof));
+                        JavaSdkPlugin.getDefault().logWarning("Ignore EOFException when unpacking zip-entry " +
+                                            zipEntry.getName(), eof);
                     }
                     outputStream.close();
 

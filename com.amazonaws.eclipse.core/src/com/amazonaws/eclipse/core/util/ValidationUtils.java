@@ -21,7 +21,7 @@ public class ValidationUtils {
 
     /**
      * Validates that the given object is non-null
-     * 
+     *
      * @param object
      *            Object to validate
      * @param fieldName

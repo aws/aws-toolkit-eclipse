@@ -53,7 +53,6 @@ public class UploadFunctionUtil {
             UploadFunctionWizardDataModel dataModel,
             final IProgressMonitor monitor, int totalUnitOfWork)
             throws IOException {
-
         monitor.subTask("Exporting Lambda function project...");
         File jarFile = FunctionJarExportHelper.exportProjectToJarFile(
                 dataModel.getProject(), true);
@@ -154,7 +153,7 @@ public class UploadFunctionUtil {
             isJavaProject = project.hasNature(JavaCore.NATURE_ID);
         } catch (Exception e) {
             LambdaPlugin.getDefault()
-                    .warn("Failed read the project nature of "
+                    .logWarning("Failed read the project nature of "
                             + project.getName(), e);
         }
 
@@ -193,7 +192,7 @@ public class UploadFunctionUtil {
 
         } catch (JavaModelException e) {
             LambdaPlugin.getDefault()
-                    .warn("Failed to search for lambda request handler implementer classes ",
+                    .logWarning("Failed to search for lambda request handler implementer classes ",
                           e);
             return null;
         }

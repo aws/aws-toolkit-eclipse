@@ -14,34 +14,35 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard;
 
-import com.amazonaws.eclipse.lambda.LambdaAnalytics;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 
+import com.amazonaws.eclipse.core.plugin.AbstractAwsJobWizard;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
+import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.upload.wizard.page.FunctionConfigurationPage;
 import com.amazonaws.eclipse.lambda.upload.wizard.page.TargetFunctionSelectionPage;
 import com.amazonaws.eclipse.lambda.upload.wizard.util.UploadFunctionUtil;
 
-public class UploadFunctionWizard extends Wizard {
+public class UploadFunctionWizard extends AbstractAwsJobWizard {
 
-    private final UploadFunctionWizardDataModel dataModel;
+    private final IProject project;
+    private UploadFunctionWizardDataModel dataModel;
 
-    public UploadFunctionWizard(IProject project,
-            List<String> requestHandlerImplementerClasses,
-            LambdaFunctionProjectMetadata projectMetadata) {
-        dataModel = new UploadFunctionWizardDataModel(project,
-                requestHandlerImplementerClasses, projectMetadata);
-        setNeedsProgressMonitor(true);
+    public UploadFunctionWizard(IProject project) {
+        super("Upload Function to AWS Lambda");
+        this.project = project;
+        initDataModel();
     }
 
     @Override
@@ -51,61 +52,75 @@ public class UploadFunctionWizard extends Wizard {
     }
 
     @Override
-    public boolean performFinish() {
-
-        try {
-            Job uploadJob = new Job("Uploading function code to Lambda") {
-
-                @Override
-                protected IStatus run(IProgressMonitor monitor) {
-
-                    LambdaAnalytics.trackMetrics(dataModel.isCreatingNewFunction(),
-                            dataModel.getRequestHandlerImplementerClasses().size());
-
-                    IProject project = dataModel.getProject();
-
-                    monitor.beginTask("Uploading AWS Lambda Function Project [" +
-                            project.getName() + "]", 100);
-
-                    long startTime = System.currentTimeMillis();
-
-                    try {
-                        UploadFunctionUtil.performFunctionUpload(dataModel, monitor, 100);
-                    } catch (Exception e) {
-                        LambdaPlugin.getDefault().reportException(
-                                "Failed to upload project to Lambda", e);
-                        LambdaAnalytics.trackUploadFailed();
-                        return new Status(Status.ERROR, LambdaPlugin.PLUGIN_ID,
-                                e.getMessage(), e);
-                    }
-
-                    LambdaPlugin.getDefault().getProjectChangeTracker()
-                            .markProjectAsNotDirty(project);
-
-                    LambdaAnalytics.trackUploadSucceeded();
-
-                    LambdaAnalytics.trackUploadTotalTime(System.currentTimeMillis() - startTime);
-                    monitor.done();
-
-                    return Status.OK_STATUS;
-                }
-            };
-
-            uploadJob.setUser(true);
-            uploadJob.schedule();
-
-        } catch (Exception e) {
-            LambdaPlugin.getDefault().reportException(
-                    "Unexpected error during deployment", e.getCause());
-        }
-
+    public boolean performCancel() {
+        LambdaAnalytics.trackUploadCanceled();
         return true;
     }
 
     @Override
-    public boolean performCancel() {
-        LambdaAnalytics.trackUploadCanceled();
-        return true;
+    protected void initDataModel() {
+        // Load valid request handler classes
+        List<String> handlerClasses = new ArrayList<String>();
+        handlerClasses.addAll(UploadFunctionUtil.findValidHandlerClass(project));
+        handlerClasses.addAll(UploadFunctionUtil.findValidStreamHandlerClass(project));
+
+        if (handlerClasses.isEmpty()) {
+            MessageDialog.openError(
+                    Display.getCurrent().getActiveShell(),
+                    "Invalid AWS Lambda Project",
+                    "No Lambda function handler class is found in the project. " +
+                    "You need to have at least one concrete class that implements the " +
+                    "com.amazonaws.services.lambda.runtime.RequestHandler interface.");
+            return;
+        }
+
+        // Load existing lambda project metadata
+        LambdaFunctionProjectMetadata md = FunctionProjectUtil
+                .loadLambdaProjectMetadata(project);
+
+        if (md != null && !md.isValid()) {
+            md = null;
+            LambdaPlugin.getDefault().logInfo(
+                    "Ignoring the existing metadata for project ["
+                            + project.getName()
+                            + "] since the content is invalid.");
+        }
+        this.dataModel = new UploadFunctionWizardDataModel(project,
+                handlerClasses, md);
+    }
+
+    @Override
+    protected IStatus doFinish(IProgressMonitor monitor) {
+        LambdaAnalytics.trackMetrics(dataModel.isCreatingNewFunction(),
+                dataModel.getRequestHandlerImplementerClasses().size());
+
+        monitor.beginTask("Uploading AWS Lambda Function Project [" +
+                project.getName() + "]", 100);
+        long startTime = System.currentTimeMillis();
+
+        try {
+            UploadFunctionUtil.performFunctionUpload(dataModel, monitor, 100);
+        } catch (Exception e) {
+            LambdaPlugin.getDefault().reportException(
+                    "Failed to upload project to Lambda", e);
+            LambdaAnalytics.trackUploadFailed();
+            return Status.OK_STATUS;
+        }
+
+        LambdaPlugin.getDefault().getProjectChangeTracker()
+                .markProjectAsNotDirty(project);
+
+        LambdaAnalytics.trackUploadSucceeded();
+
+        LambdaAnalytics.trackUploadTotalTime(System.currentTimeMillis() - startTime);
+        monitor.done();
+
+        return Status.OK_STATUS;
+    }
+
+    @Override
+    protected String getJobTitle() {
+        return "Uploading function code to Lambda";
     }
 
 }

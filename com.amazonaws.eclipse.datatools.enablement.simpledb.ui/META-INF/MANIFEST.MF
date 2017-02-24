@@ -5,6 +5,9 @@ Bundle-SymbolicName: com.amazonaws.eclipse.datatools.enablement.simpledb.ui;sing
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
+Export-Package: com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection,
+ com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.drivers,
+ com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.explorer
 Require-Bundle: org.eclipse.ui;bundle-version="3.2.0",
  org.eclipse.datatools.connectivity.ui,
  com.amazonaws.eclipse.datatools.enablement.simpledb,
@@ -19,9 +22,6 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.2.0",
  org.eclipse.datatools.sqltools.sqlscrapbook;bundle-version="1.0.0",
  org.eclipse.datatools.sqltools.sqlbuilder;bundle-version="1.0.0",
  org.eclipse.ui.ide;bundle-version="3.4.0"
-Eclipse-LazyStart: true
-Bundle-ActivationPolicy: lazy
-Export-Package: com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection,
- com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.drivers,
- com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.explorer
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-ActivationPolicy: lazy
+Eclipse-LazyStart: true

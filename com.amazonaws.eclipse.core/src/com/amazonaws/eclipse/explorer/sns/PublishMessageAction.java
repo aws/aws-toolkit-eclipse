@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.explorer.sns;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -27,7 +26,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -41,7 +39,7 @@ final class PublishMessageAction extends Action {
     public PublishMessageAction(AmazonSNS sns, Topic topic) {
         this.sns = sns;
         this.topic = topic;
-        
+
         this.setText("Publish Message");
         this.setToolTipText("Publish a message to this topic");
         this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_PUBLISH));
@@ -58,12 +56,11 @@ final class PublishMessageAction extends Action {
             try {
                 sns.publish(new PublishRequest(topicArn, message, subject));
             } catch (Exception e) {
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to publish message: " + e.getMessage(), e);
-                StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.SHOW);
+                AwsToolkitCore.getDefault().reportException("Unable to publish message", e);
             }
         }
     }
-    
+
     private static class NewMessageDialog extends MessageDialog {
         private Text subjectText;
         private Text messageText;

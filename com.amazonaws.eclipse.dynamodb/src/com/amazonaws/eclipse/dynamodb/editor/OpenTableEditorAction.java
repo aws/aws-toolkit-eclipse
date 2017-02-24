@@ -43,7 +43,7 @@ public class OpenTableEditorAction extends Action {
             workbenchPage.openEditor(new TableEditorInput(this.tableName, AwsToolkitCore.getDefault()
                     .getCurrentAccountId()), DynamoDBTableEditor.ID);
         } catch ( PartInitException e ) {
-            AwsToolkitCore.getDefault().logException(e.getMessage(), e);
+            AwsToolkitCore.getDefault().logError(e.getMessage(), e);
         }
     }
 

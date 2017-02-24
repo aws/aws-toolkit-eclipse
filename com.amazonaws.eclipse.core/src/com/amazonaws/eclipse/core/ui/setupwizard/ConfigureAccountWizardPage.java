@@ -179,9 +179,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
             try {
                 persistentPreferenceStore.save();
             } catch (IOException e) {
-                String errorMessage = "Unable to write the account information to disk: " + e.getMessage();
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-                StatusManager.getManager().handle(status, StatusManager.LOG);
+                AwsToolkitCore.getDefault().logError("Unable to write the account information to disk", e);
             }
         }
         AwsToolkitCore.getDefault().getAccountManager().reloadAccountInfo();
@@ -207,10 +205,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
         try {
             credentialsConfig.save();
         } catch (AmazonClientException e) {
-            StatusManager.getManager()
-                    .handle(new Status(
-                            IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                            "Could not write profile information to the credentials file ", e), StatusManager.SHOW);
+            AwsToolkitCore.getDefault().reportException("Could not write profile information to the credentials file", e);
         }
     }
 
@@ -220,9 +215,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
                 try {
                     PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(AwsToolkitCore.EXPLORER_VIEW_ID);
                 } catch (PartInitException e) {
-                    String errorMessage = "Unable to open the AWS Explorer view: " + e.getMessage();
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                    AwsToolkitCore.getDefault().reportException("Unable to open the AWS Explorer view", e);
                 }
             }
         });

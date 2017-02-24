@@ -14,14 +14,29 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard.model;
 
-public enum PredefinedHandlerInputType {
+import java.util.ArrayList;
+import java.util.List;
 
-    S3_EVENT("S3Event", "com.amazonaws.services.lambda.runtime.events.S3Event", "S3 Event", true, "s3-event.put.json"),
-    SNS_EVENT("SNSEvent", "com.amazonaws.services.lambda.runtime.events.SNSEvent", "SNS Event", true, "sns-event.json"),
-    KINESIS_EVENT("KinesisEvent", "com.amazonaws.services.lambda.runtime.events.KinesisEvent", "Kinesis Event", true, "kinesis-event.json"),
-    COGNITO_EVENT("CognitoEvent", "com.amazonaws.services.lambda.runtime.events.CognitoEvent", "Cognito Event", true, "cognito-sync-event.json"),
-    DYNAMODB_EVENT("DynamodbEvent", "com.amazonaws.services.lambda.runtime.events.DynamodbEvent", "DynamoDB Event", true, "dynamodb-update-event.json"),
-    ;
+import com.amazonaws.eclipse.core.model.ComboBoxItemData;
+
+public class PredefinedHandlerInputType implements ComboBoxItemData {
+
+    public static final PredefinedHandlerInputType S3_EVENT = new PredefinedHandlerInputType("S3Event", "com.amazonaws.services.lambda.runtime.events.S3Event", "S3 Event", true, "s3-event.put.json");
+    public static final PredefinedHandlerInputType SNS_EVENT = new PredefinedHandlerInputType("SNSEvent", "com.amazonaws.services.lambda.runtime.events.SNSEvent", "SNS Event", true, "sns-event.json");
+    public static final PredefinedHandlerInputType KINESIS_EVENT = new PredefinedHandlerInputType("KinesisEvent", "com.amazonaws.services.lambda.runtime.events.KinesisEvent", "Kinesis Event", true, "kinesis-event.json");
+    public static final PredefinedHandlerInputType COGNITO_EVENT = new PredefinedHandlerInputType("CognitoEvent", "com.amazonaws.services.lambda.runtime.events.CognitoEvent", "Cognito Event", true, "cognito-sync-event.json");
+    public static final PredefinedHandlerInputType DYNAMODB_EVENT = new PredefinedHandlerInputType("DynamodbEvent", "com.amazonaws.services.lambda.runtime.events.DynamodbEvent", "DynamoDB Event", true, "dynamodb-update-event.json");
+    public static final PredefinedHandlerInputType CUSTOM = new PredefinedHandlerInputType(null, null, "Custom", false, null);
+
+    private static final List<PredefinedHandlerInputType> LIST = new ArrayList<PredefinedHandlerInputType>();
+    static {
+        LIST.add(S3_EVENT);
+        LIST.add(SNS_EVENT);
+        LIST.add(KINESIS_EVENT);
+        LIST.add(COGNITO_EVENT);
+        LIST.add(DYNAMODB_EVENT);
+        LIST.add(CUSTOM);
+    }
 
     private final String className;
     private final String fqcn;
@@ -29,7 +44,7 @@ public enum PredefinedHandlerInputType {
     private final boolean requireSdkDependency;
     private final String sampleInputJsonFile;
 
-    PredefinedHandlerInputType(String className, String fqcn,
+    private PredefinedHandlerInputType(String className, String fqcn,
             String displayName, boolean requireSdkDependency,
             String sampleInputJsonFile) {
 
@@ -40,6 +55,10 @@ public enum PredefinedHandlerInputType {
         this.sampleInputJsonFile = sampleInputJsonFile;
     }
 
+    public static List<PredefinedHandlerInputType> list() {
+        return LIST;
+    }
+
     public String getClassName() {
         return className;
     }
@@ -48,7 +67,7 @@ public enum PredefinedHandlerInputType {
         return fqcn;
     }
 
-    public String getDisplayName() {
+    public String getName() {
         return displayName;
     }
 

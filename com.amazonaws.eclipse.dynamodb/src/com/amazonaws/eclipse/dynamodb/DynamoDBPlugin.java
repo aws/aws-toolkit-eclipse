@@ -21,9 +21,9 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.dynamodb.preferences.TestToolPreferencePage;
@@ -32,7 +32,7 @@ import com.amazonaws.eclipse.dynamodb.testtool.TestToolManager;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class DynamoDBPlugin extends AbstractUIPlugin {
+public class DynamoDBPlugin extends AbstractAwsPlugin {
 
     public static final String IMAGE_ONE = "1";
     public static final String IMAGE_A = "a";

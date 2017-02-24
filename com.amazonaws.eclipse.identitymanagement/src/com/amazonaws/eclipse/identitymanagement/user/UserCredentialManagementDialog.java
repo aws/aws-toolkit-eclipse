@@ -221,7 +221,7 @@ public class UserCredentialManagementDialog extends TitleAreaDialog {
                         refresh();
                         return Status.OK_STATUS;
                     } catch (Exception e) {
-                        return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete the access key: " + e.getMessage(), e);
+                        return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to delete the access key: " + e.getMessage(), e);
                     }
                 }
             }.schedule();
@@ -237,7 +237,7 @@ public class UserCredentialManagementDialog extends TitleAreaDialog {
                         refresh();
                         return Status.OK_STATUS;
                     } catch (Exception e) {
-                        return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to make the access key inactive: " + e.getMessage(), e);
+                        return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to make the access key inactive: " + e.getMessage(), e);
                     }
                 }
             }.schedule();

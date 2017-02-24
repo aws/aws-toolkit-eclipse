@@ -19,9 +19,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.eclipse.core.model.ImportFileDataModel;
+import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
+import com.amazonaws.eclipse.core.model.ProjectNameDataModel;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
-import com.amazonaws.eclipse.lambda.serverless.Serverless;
 import com.amazonaws.eclipse.lambda.serverless.NameUtils;
+import com.amazonaws.eclipse.lambda.serverless.Serverless;
 import com.amazonaws.eclipse.lambda.serverless.blueprint.Blueprint;
 import com.amazonaws.eclipse.lambda.serverless.blueprint.BlueprintProvider;
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessFunction;
@@ -39,24 +42,31 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public class NewServerlessProjectDataModel {
 
     /* These constants must be the same to the Pojo property names */
-    public static final String P_SERVERLESS_FILE_PATH = "serverlessFilePath";
     public static final String P_PACKAGE_PREFIX = "packagePrefix";
     public static final String P_BLUEPRINT_NAME = "blueprintName";
+    public static final String P_USE_BLUEPRINT = "useBlueprint";
+    public static final String P_USE_SERVERLESS_TEMPLATE_FILE = "useServerlessTemplateFile";
 
     /* Function handler section */
-    private String serverlessFilePath;
+    private final ProjectNameDataModel projectNameDataModel = new ProjectNameDataModel();
+    private final MavenConfigurationDataModel mavenConfigurationDataModel = new MavenConfigurationDataModel();
+    private final ImportFileDataModel importFileDataModel = new ImportFileDataModel();
     private String packagePrefix;
     private String blueprintName;
-    private boolean useBlueprint;
+    private boolean useBlueprint = true;
+    private boolean useServerlessTemplateFile = false;
     private boolean needLambdaProxyIntegrationModel = true;
 
     private ServerlessModel serverlessModel;
 
-    public String getServerlessFilePath() {
-        return serverlessFilePath;
+    public ProjectNameDataModel getProjectNameDataModel() {
+        return projectNameDataModel;
     }
-    public void setServerlessFilePath(String serverlessFilePath) {
-        this.serverlessFilePath = serverlessFilePath;
+    public MavenConfigurationDataModel getMavenConfigurationDataModel() {
+        return mavenConfigurationDataModel;
+    }
+    public ImportFileDataModel getImportFileDataModel() {
+        return importFileDataModel;
     }
     public String getPackagePrefix() {
         return packagePrefix;
@@ -77,6 +87,12 @@ public class NewServerlessProjectDataModel {
     }
     public void setUseBlueprint(boolean useBlueprint) {
         this.useBlueprint = useBlueprint;
+    }
+    public boolean isUseServerlessTemplateFile() {
+        return useServerlessTemplateFile;
+    }
+    public void setUseServerlessTemplateFile(boolean useServerlessTemplateFile) {
+        this.useServerlessTemplateFile = useServerlessTemplateFile;
     }
     public boolean isNeedLambdaProxyIntegrationModel() {
         return needLambdaProxyIntegrationModel;
@@ -126,10 +142,10 @@ public class NewServerlessProjectDataModel {
             File serverlessFile = new File(CodeTemplateManager.getInstance()
                     .getCodeTemplateBasedir(), blueprint.getTemplatePath());
             serverlessModel = Serverless.load(serverlessFile);
-            serverlessFilePath = serverlessFile.getAbsolutePath();
+            importFileDataModel.setFilePath(serverlessFile.getAbsolutePath());
             setNeedLambdaProxyIntegrationModel(blueprint.isNeedLambdaProxyIntegrationModel());
         } else {
-            serverlessModel = Serverless.load(serverlessFilePath);
+            serverlessModel = Serverless.load(importFileDataModel.getFilePath());
         }
     }
 

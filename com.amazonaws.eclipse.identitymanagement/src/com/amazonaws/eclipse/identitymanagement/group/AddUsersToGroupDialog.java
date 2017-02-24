@@ -37,6 +37,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.identitymanagement.IdentityManagementPlugin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.AddUserToGroupRequest;
 import com.amazonaws.services.identitymanagement.model.GetGroupRequest;
@@ -136,7 +137,7 @@ public class AddUsersToGroupDialog extends TitleAreaDialog {
                     usersInGroupTable.refresh();
                     return Status.OK_STATUS;
                 } catch (Exception e) {
-                    return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to add user to groups: " + e.getMessage(), e);
+                    return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to add user to groups: " + e.getMessage(), e);
                 }
 
             }

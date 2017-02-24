@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="bin/"/>
+	<classpathentry exported="true" kind="lib" path="lib/aws-java-sdk-core-1.11.89.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/aws-java-sdk-s3-1.11.89.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-module-jaxb-annotations-2.6.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/stax2-api-3.1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-dataformat-xml-2.6.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="icons/"/>
 	<classpathentry exported="true" kind="lib" path="etc/"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
@@ -28,7 +32,6 @@
 	<classpathentry kind="lib" path="lib/aws-java-sdk-mobile-analytics-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-opsworks-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-rds-1.11.21.jar"/>
-	<classpathentry kind="lib" path="lib/aws-java-sdk-s3-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-simpledb-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-sns-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-sqs-1.11.21.jar"/>
@@ -50,6 +53,5 @@
 	<classpathentry kind="lib" path="lib/stax-api-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-api-gateway-1.11.60.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-cloudformation-1.11.60.jar"/>
-	<classpathentry kind="lib" path="lib/aws-java-sdk-core-1.11.60.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

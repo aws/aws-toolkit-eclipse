@@ -63,7 +63,7 @@ public class CloudFrontActions {
                         updateDistributionConfig();
                         if (refreshable != null) refreshable.refreshData();
                     } catch (Exception e) {
-                        return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to update distribution status", e);
+                        return new Status(Status.ERROR, AwsToolkitCore.getDefault().getPluginId(), "Unable to update distribution status", e);
                     }
                     return Status.OK_STATUS;
                 }

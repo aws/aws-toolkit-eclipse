@@ -109,7 +109,7 @@ public class ServiceApiUtils {
             String policyJson = URLDecoder.decode(role.getAssumeRolePolicyDocument(), "UTF-8");
             assumeRolePolicy = Policy.fromJson(policyJson);
         } catch (Exception e) {
-            LambdaPlugin.getDefault().warn(
+            LambdaPlugin.getDefault().logWarning(
                     "Failed to parse assume role policy for ["
                             + role.getRoleName() + "]. "
                             + role.getAssumeRolePolicyDocument(), e);

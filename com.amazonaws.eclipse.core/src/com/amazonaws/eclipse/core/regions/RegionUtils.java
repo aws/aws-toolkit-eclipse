@@ -34,10 +34,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -208,13 +206,7 @@ public class RegionUtils {
                         return region;
                     }
                 } catch ( MalformedURLException e ) {
-                    Status status = new Status(
-                        Status.ERROR,
-                        AwsToolkitCore.PLUGIN_ID,
-                        "Unable to parse service endpoint: " + serviceEndpoint,
-                        e);
-                    StatusManager.getManager()
-                        .handle(status, StatusManager.LOG);
+                    AwsToolkitCore.getDefault().reportException("Unable to parse service endpoint: " + serviceEndpoint, e);
                 }
             }
         }
@@ -266,11 +258,11 @@ public class RegionUtils {
             try {
                 cacheFlags(regionsFile.getParentFile());
             } catch ( Exception e ) {
-                AwsToolkitCore.getDefault().logException(
+                AwsToolkitCore.getDefault().logError(
                         "Couldn't cache flag icons", e);
             }
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException(
+            AwsToolkitCore.getDefault().logError(
                     "Couldn't load regions override", e);
         }
     }
@@ -299,7 +291,7 @@ public class RegionUtils {
                 cacheRegionsFile(regionsFile, s3);
             }
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException(
+            AwsToolkitCore.getDefault().logError(
                     "Failed to cache regions file", e);
         }
     }
@@ -316,11 +308,11 @@ public class RegionUtils {
             try {
                 cacheFlags(regionsFile.getParentFile());
             } catch ( Exception e ) {
-                AwsToolkitCore.getDefault().logException(
+                AwsToolkitCore.getDefault().logError(
                         "Couldn't cache flag icons", e);
             }
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException(
+            AwsToolkitCore.getDefault().logError(
                     "Couldn't read regions file", e);
             // Clear out the regions file so that it will get cached again at
             // next startup
@@ -374,7 +366,7 @@ public class RegionUtils {
             s3.getObject(new GetObjectRequest(REGIONS_METADATA_S3_BUCKET,
                     REGIONS_METADATA_S3_OBJECT), regionsFile);
         } catch (Exception s3Exception) {
-            AwsToolkitCore.getDefault().logException(
+            AwsToolkitCore.getDefault().logError(
                     "Couldn't fetch regions file from s3", s3Exception);
         }
     }

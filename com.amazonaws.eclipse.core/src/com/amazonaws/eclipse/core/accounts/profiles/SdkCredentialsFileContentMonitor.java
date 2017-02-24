@@ -173,7 +173,7 @@ public class SdkCredentialsFileContentMonitor {
         if (debugMode) {
             debugLogger.debug(msg, e);
         } else {
-            AwsToolkitCore.getDefault().logException(msg, e);
+            AwsToolkitCore.getDefault().logError(msg, e);
         }
     }
 }

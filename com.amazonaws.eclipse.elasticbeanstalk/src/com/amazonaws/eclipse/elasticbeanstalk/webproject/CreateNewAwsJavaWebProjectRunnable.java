@@ -48,7 +48,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
@@ -171,10 +170,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
                     installationJob = sdkManager.getInstallationJob();
                     if ( installationJob == null ) {
                         JavaSdkPlugin
-                                .getDefault()
-                                .getLog()
-                                .log(new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID,
-                                        "Unable to check status of AWS SDK for Java download"));
+                                .getDefault().logError("Unable to check status of AWS SDK for Java download", null);
                     }
                 }
             }
@@ -228,7 +224,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
                     } catch (Exception e) {
                         ElasticBeanstalkPlugin
                                 .getDefault()
-                                .logException(
+                                .logError(
                                         "Failed to open project index page in Eclipse editor.",
                                         e);
                     }
@@ -359,7 +355,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             subFolder.createLink(source, 0, null);
         } catch( CoreException ce ) {
             String message = "Unable to configure deployment assembly to map .ebextension directory";
-            AwsToolkitCore.getDefault().logException(message, ce);
+            ElasticBeanstalkPlugin.getDefault().logError(message, ce);
         }
     }
 

@@ -66,22 +66,21 @@ public class AndroidSdkClasspathContainerInitializer extends ClasspathContainerI
         } catch (Exception e) {
             AndroidSdkInstall defaultSdkInstall = AndroidSdkManager.getInstance().getDefaultSdkInstall();
             if ( defaultSdkInstall == null )
-                throw new CoreException(new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID, "No SDKs available"));
+                throw new CoreException(new Status(IStatus.ERROR, JavaSdkPlugin.getDefault().getPluginId(), "No SDKs available"));
 
             AndroidSdkClasspathContainer classpathContainer = new AndroidSdkClasspathContainer(defaultSdkInstall, javaProject.getProject());
             JavaCore.setClasspathContainer(containerPath, new IJavaProject[] {javaProject}, new IClasspathContainer[] {classpathContainer}, null);
             try {
                 defaultSdkInstall.writeMetadataToProject(javaProject);
             } catch (IOException ioe) {
-                StatusManager.getManager().handle(new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, ioe.getMessage(), ioe), StatusManager.LOG);
+                JavaSdkPlugin.getDefault().logWarning(ioe.getMessage(), ioe);
             }
 
             String message = "Unable to initialize previous AWS SDK for Android classpath entries - defaulting to latest version";
-            Status status = new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, message, e);
-            StatusManager.getManager().handle(status, StatusManager.LOG);
+            JavaSdkPlugin.getDefault().logWarning(message, e);
         }
     }
-    
+
     private void copySdkJarToProject(IProject project, AndroidSdkInstall sdkInstall) {
         try {
             File sdkJar = sdkInstall.getSdkJar();
@@ -105,5 +104,5 @@ public class AndroidSdkClasspathContainerInitializer extends ClasspathContainerI
             IStatus status = new Status(IStatus.ERROR, AndroidSDKPlugin.PLUGIN_ID, "Unable to copy AWS SDK for Android jar to project's lib directory", e);
             StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
         }
-    }    
+    }
 }

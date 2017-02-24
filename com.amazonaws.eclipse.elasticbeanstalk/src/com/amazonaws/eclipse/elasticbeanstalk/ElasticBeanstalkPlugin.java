@@ -31,7 +31,6 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.IServerLifecycleListener;
@@ -41,24 +40,22 @@ import org.eclipse.wst.server.core.ServerCore;
 import org.osgi.framework.BundleContext;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.SyncEnvironmentsJob;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.ServerDefaultsUtils;
 import com.amazonaws.eclipse.elasticbeanstalk.solutionstacks.SolutionStacks;
 import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
-import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescription;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsRequest;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeApplicationsResult;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 
 /**
  * The activator class controls the plug-in life cycle
  */
-public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup {
+public class ElasticBeanstalkPlugin extends AbstractAwsPlugin implements IStartup {
 
     public static final String IMG_AWS_BOX = "aws-box";
     public static final String IMG_SERVER = "server";
@@ -318,13 +315,6 @@ public class ElasticBeanstalkPlugin extends AbstractUIPlugin implements IStartup
 
         public void serverRemoved(IServer server) {
         }
-    }
-
-    /**
-     * Convenience method for exception logging.
-     */
-    public void logException(String errorMessage, Throwable e) {
-        getLog().log(new Status(Status.ERROR, PLUGIN_ID, errorMessage, e));
     }
 
 }

@@ -60,7 +60,7 @@ public class CreateStackWizard extends Wizard {
     }
 
     public CreateStackWizard(String stackName, IPath filePath, Mode mode) {
-    	   setNeedsProgressMonitor(false);
+           setNeedsProgressMonitor(false);
            if ( mode == Mode.Update ) {
                setWindowTitle("Update Cloud Formation Stack");
            } else if (mode == Mode.Create) {
@@ -71,7 +71,7 @@ public class CreateStackWizard extends Wizard {
            setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry()
                    .getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
            dataModel = new CreateStackWizardDataModel();
-    	   dataModel.setStackName(stackName);
+           dataModel.setStackName(stackName);
            if (filePath != null) {
                dataModel.setUsePreselectedTemplateFile(true);
                dataModel.setUseTemplateFile(true);
@@ -112,20 +112,20 @@ public class CreateStackWizard extends Wizard {
 
                     return Status.OK_STATUS;
                 } catch ( Exception e ) {
-                    return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Failed to " +
-                    		((dataModel.getMode() == Mode.Create) ? "create" : "update") +
-                    		" stack", e);
+                    return new Status(Status.ERROR, CloudFormationPlugin.PLUGIN_ID, "Failed to " +
+                            ((dataModel.getMode() == Mode.Create) ? "create" : "update") +
+                            " stack", e);
                 }
             }
 
             @Override
             protected void canceling() {
-            	try {
+                try {
                     AmazonCloudFormation cloudFormationClient = AwsToolkitCore.getClientFactory()
                             .getCloudFormationClient();
                     cloudFormationClient.cancelUpdateStack(new CancelUpdateStackRequest().withStackName(dataModel.getStackName()));
                 } catch ( Exception e ) {
-                    AwsToolkitCore.getDefault().logException("Couldn't cancel the stack update", e);
+                    CloudFormationPlugin.getDefault().logError("Couldn't cancel the stack update", e);
                     StatusManager.getManager().handle( new Status(Status.ERROR, CloudFormationPlugin.PLUGIN_ID,
                            "Couldn't cancel the stack update:", e));
                 }

@@ -17,6 +17,8 @@ package com.amazonaws.eclipse.lambda.project.template;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -48,7 +50,7 @@ public class CodeTemplateManager {
         sw.flush();
         return sw.toString();
     }
-    
+
     public Template getTemplate(String templatePath) {
         try {
             return freemarkerCfg.getTemplate(templatePath);
@@ -184,19 +186,23 @@ public class CodeTemplateManager {
 
     public File getCodeTemplateBasedir() {
         Bundle bundle = LambdaPlugin.getDefault().getBundle();
-        URL bundleBaseUrl;
+        File file = null;
         try {
-            bundleBaseUrl = FileLocator.resolve(bundle.getEntry("/"));
+            URL bundleBaseUrl = FileLocator.toFileURL(bundle.getEntry(CODE_TEMPLATE_DIR_BASEDIR));
+            URI bundleBaseUri = new URI(bundleBaseUrl.getProtocol(), bundleBaseUrl.getPath(), null);
+            file = new File(bundleBaseUri);
         } catch (IOException e) {
             throw new RuntimeException("Failed to find plugin bundle root.", e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to find plugin bundle root.", e);
         }
-        return new File(bundleBaseUrl.getFile(), CODE_TEMPLATE_DIR_BASEDIR);
+        return file;
     }
 
     public File getBlueprintConfigFile() {
         return new File(getCodeTemplateBasedir(), BLUEPRINT_CONFIG_PATH);
     }
-    
+
     public File getServerlessReadmeFile() {
         return new File(getCodeTemplateBasedir(), SERVERLESS_README_FILE_PATH);
     }

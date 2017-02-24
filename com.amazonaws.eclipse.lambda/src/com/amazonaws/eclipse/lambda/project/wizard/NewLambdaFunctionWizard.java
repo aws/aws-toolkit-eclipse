@@ -31,19 +31,21 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.page.NewLambdaFunctionWizardPage;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
 
 @SuppressWarnings("restriction")
 public class NewLambdaFunctionWizard extends NewElementWizard implements INewWizard {
 
+    private final LambdaFunctionWizardDataModel dataModel = new LambdaFunctionWizardDataModel();
     private NewLambdaFunctionWizardPage pageOne;
 
     @Override
     public void addPages() {
         super.addPages();
         if (pageOne == null) {
-            pageOne = new NewLambdaFunctionWizardPage();
+            pageOne = new NewLambdaFunctionWizardPage(dataModel);
             pageOne.setWizard(this);
             pageOne.init(getSelection());
         }
@@ -60,7 +62,7 @@ public class NewLambdaFunctionWizard extends NewElementWizard implements INewWiz
             public void run() {
 
                 try {
-                    FunctionProjectUtil.addSourceToProject(currentProject, pageOne.getDataModel());
+                    FunctionProjectUtil.addSourceToProject(currentProject, dataModel.getLambdaFunctionDataModel());
                     refreshProject(currentProject);
 
                 } catch (Exception e) {
@@ -78,7 +80,7 @@ public class NewLambdaFunctionWizard extends NewElementWizard implements INewWiz
                     selectAndReveal(handlerClass); // show in explorer
                     openResource((IFile) handlerClass);
                 } catch (Exception e) {
-                    LambdaPlugin.getDefault().warn(
+                    LambdaPlugin.getDefault().logWarning(
                             "Failed to open the handler class", e);
                 }
             }

@@ -17,181 +17,101 @@ package com.amazonaws.eclipse.sdk.ui.wizard;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.internal.ui.JavaPlugin;
-import org.eclipse.jdt.internal.ui.packageview.PackageExplorerPart;
-import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
-import org.eclipse.jdt.ui.IPackagesViewPart;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.INewWizard;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IWorkbench;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.maven.MavenFactory;
+import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsProjectWizard;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.sdk.ui.FilenameFilters;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
-import com.amazonaws.eclipse.sdk.ui.classpath.AwsSdkClasspathUtils;
+import com.amazonaws.eclipse.sdk.ui.model.NewAwsJavaProjectWizardDataModel;
 
 /**
  * A Project Wizard for creating a new Java project configured to build against the
  * AWS SDK for Java.
  */
-public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWizard {
 
-    private boolean awsSdkInstalled = true;
+public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
 
+    private static final String DEFAULT_GROUP_ID = "com.amazonaws";
+    private static final String DEFAULT_ARTIFACT_ID = "samples";
+
+    private final NewAwsJavaProjectWizardDataModel dataModel = new NewAwsJavaProjectWizardDataModel();
     private NewAwsJavaProjectWizardPageOne pageOne;
-    private NewAwsJavaProjectWizardPageTwo pageTwo;
+    private IProject project;
 
     /**
      * @see org.eclipse.jface.wizard.Wizard#addPages()
      */
     @Override
     public void addPages() {
-        awsSdkInstalled = true;
-
-        JavaSdkManager sdk = JavaSdkManager.getInstance();
-        if (sdk.getDefaultSdkInstall() == null
-                && sdk.getInstallationJob() == null) {
-            awsSdkInstalled = false;
-            addPage(new AwsJavaSdkNotInstalledWizardPage());
-
-        } else {
-            if (pageOne == null)
-                pageOne = new NewAwsJavaProjectWizardPageOne();
-            addPage(pageOne);
-
-            if (pageTwo == null)
-                pageTwo = new NewAwsJavaProjectWizardPageTwo(pageOne);
-            addPage(pageTwo);
-
-            pageOne.init(getSelection(), getActivePart());
-        }
+        if (pageOne == null)
+            pageOne = new NewAwsJavaProjectWizardPageOne(dataModel);
+        addPage(pageOne);
     }
 
     public NewAwsJavaProjectWizard() {
-        this(null, null);
+        super("New AWS Java Project");
+        initDataModel();
     }
 
-    public NewAwsJavaProjectWizard(NewAwsJavaProjectWizardPageOne pageOne, NewAwsJavaProjectWizardPageTwo pageTwo) {
-        setDialogSettings(JavaPlugin.getDefault().getDialogSettings());
-        setWindowTitle("New AWS Java Project");
-        setDefaultPageImageDescriptor(
-                AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
-    }
-
-    /**
-     * @see org.eclipse.jdt.internal.ui.wizards.NewElementWizard#finishPage(org.eclipse.core.runtime.IProgressMonitor)
-     */
     @Override
-    protected void finishPage(IProgressMonitor monitor)
-            throws InterruptedException, CoreException {
-        // Click "OK" to download the SDK
-        if ( !awsSdkInstalled ) {
-            JavaSdkManager.getInstance().initializeSDKInstalls();
-            return;
-        }
-
-        pageTwo.performFinish(monitor);
-
-        monitor.setTaskName("Configuring AWS Java project");
-        Display.getDefault().syncExec(new Runnable() {
-            public void run() {
-                configureNewProject();
-            }
-        });
+    protected void initDataModel() {
+        MavenConfigurationDataModel mavenDataModel = dataModel.getMavenConfigurationDataModel();
+        mavenDataModel.setGroupId(DEFAULT_GROUP_ID);
+        mavenDataModel.setArtifactId(DEFAULT_ARTIFACT_ID);
     }
 
-    private void configureNewProject() {
-        final IJavaProject javaProject = pageTwo.getJavaProject();
-        selectAndReveal(javaProject.getProject());
+    private void addSamplesToProject()
+            throws CoreException, IOException {
 
-        IWorkbenchPart activePart = getActivePart();
-        if (activePart instanceof IPackagesViewPart) {
-            PackageExplorerPart view = PackageExplorerPart.openInActivePerspective();
-            view.tryToReveal(javaProject);
+        String packageName = dataModel.getMavenConfigurationDataModel().getPackageName();
+        AccountInfo accountInfo = dataModel.getAccountInfo();
+        List<SdkSample> samples = dataModel.getSdkSamples();
+
+        IPath srcPath = getSamplesRootFolder(packageName);
+        if (!srcPath.toFile().exists()) {
+            srcPath.toFile().mkdirs();
         }
 
-        addAwsSdkToProject();
+        AccountInfo selectedAccount = accountInfo;
 
-        try {
-            addSamplesToProject();
-        } catch (IOException e) {
-            logError("Unable to add sample source code to the project.", e);
-        } catch (CoreException e) {
-            logError("Unable to add sample source code to the project.", e);
-        }
-
-        try {
-            if (pageOne.getSelectedAccount() == null) {
-                copyEmptyCredentialsFileToProject();
-            }
-        } catch (CoreException e) {
-            logError("Unable to add sthe credentials file to the project.", e);
-        }
-
-        // Finally, refresh the project so that the new files show up
-        try {
-            pageTwo.getJavaProject().getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
-        } catch (CoreException e) {
-            logError("Unable to refresh the created project.", e);
-        }
-    }
-
-    /**
-     * @see org.eclipse.jdt.internal.ui.wizards.NewElementWizard#getCreatedElement()
-     */
-    @Override
-    public IJavaElement getCreatedElement() {
-        return pageTwo.getJavaProject();
-    }
-
-
-    /*
-     * Private Interface
-     */
-
-    private void addAwsSdkToProject() {
-        IJavaProject javaProject = pageTwo.getJavaProject();
-
-        // TODO: What about error handling... should we propagate it up higher?
-        AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(
-                javaProject, pageOne.getSelectedSdkInstall());
-    }
-
-    private void addSamplesToProject() throws CoreException, IOException {
-        IProject project = pageTwo.getJavaProject().getProject();
-        IPath workspaceRoot = project.getWorkspace().getRoot().getRawLocation();
-        IPath srcPath = workspaceRoot.append(project.getFullPath()).append("src");
-
-        AccountInfo selectedAccount = pageOne.getSelectedAccount();
-
-        for (SdkSample sample : pageOne.getSelectedSamples()) {
+        for (SdkSample sample : samples) {
             for (File sampleSourceFile : sample.getPath().toFile().listFiles(new FilenameFilters.JavaSourceFilenameFilter())) {
                 String sampleContent = FileUtils.readFileToString(sampleSourceFile);
 
                 if (selectedAccount != null) {
-                    sampleContent = updateSampleContentWithConfiguredProfile(sampleContent, selectedAccount);
+                    sampleContent = updateSampleContentWithConfiguredProfile(sampleContent, selectedAccount, packageName);
                 }
 
                 IFileStore projectSourceFolderDestination = EFS.getLocalFileSystem().fromLocalFile(
                         srcPath.append(sampleSourceFile.getName()).toFile());
+
                 PrintStream ps = new PrintStream(
                         projectSourceFolderDestination.openOutputStream(
                                 EFS.OVERWRITE, null));
@@ -201,26 +121,29 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
         }
     }
 
-    /**
-     * Copy the empty credentials file from the SDK sample to the created
-     * project.
-     */
-    private void copyEmptyCredentialsFileToProject() throws CoreException {
-        IProject project = pageTwo.getJavaProject().getProject();
-        IPath workspaceRoot = project.getWorkspace().getRoot().getRawLocation();
-        IPath srcPath = workspaceRoot.append(project.getFullPath()).append("src");
-
-        for (SdkSample sample : pageOne.getSelectedSamples()) {
-            for (File sampleSourceFile : sample.getPath().toFile().listFiles(new FilenameFilters.CredentialsFilenameFilter())) {
-                IFileStore projectSourceFolderDestination = EFS.getLocalFileSystem().fromLocalFile(
-                        srcPath.append(sampleSourceFile.getName()).toFile());
-                EFS.getLocalFileSystem().fromLocalFile(sampleSourceFile).copy(
-                        projectSourceFolderDestination, EFS.OVERWRITE, null);
-            }
-        }
+    private Model getModel() {
+        Model model = new Model();
+        model.setModelVersion(MavenFactory.getMavenModelVersion());
+        model.setGroupId(dataModel.getMavenConfigurationDataModel().getGroupId());
+        model.setArtifactId(dataModel.getMavenConfigurationDataModel().getArtifactId());
+        model.setVersion("1.0.0");  // Set a version to make Maven happy, while user doesn't need to set this.
+        List<Dependency> dependencies = new ArrayList<Dependency>();
+        dependencies.add(MavenFactory.getLatestAwsSdkDependency("compile"));
+        dependencies.add(MavenFactory.getAmazonKinesisClientDependency("1.2.1", "compile"));
+        model.setDependencies(dependencies);
+        return model;
     }
 
-    private static String updateSampleContentWithConfiguredProfile(String sampleContent, final AccountInfo selectedAccount) {
+    // Return the package path where all the sample files are in.
+    private IPath getSamplesRootFolder(String packageName) {
+        IPath workspaceRoot = project.getWorkspace().getRoot().getRawLocation();
+        IPath srcPath = workspaceRoot.append(project.getFullPath()).append(MavenFactory.getMavenSourceFolder())
+                .append(packageName.replace('.', '/'));
+        return srcPath;
+    }
+
+
+    private static String updateSampleContentWithConfiguredProfile(String sampleContent, final AccountInfo selectedAccount, final String packageName) {
         final String credFileLocation = AwsToolkitCore.getDefault().getPreferenceStore().getString(
                 PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION);
 
@@ -256,35 +179,57 @@ public class NewAwsJavaProjectWizard extends NewElementWizard implements INewWiz
                 "(~/.aws/credentials)",
                 String.format("(%s)", escapeBackSlashes(credFileLocation)));
 
+        sampleContent = "package " + packageName + ";\n" + sampleContent;
+
         return sampleContent;
-    }
-
-    private IWorkbenchPart getActivePart() {
-        IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (activeWindow != null) {
-            IWorkbenchPage activePage = activeWindow.getActivePage();
-            if (activePage != null) {
-                return activePage.getActivePart();
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public boolean performCancel() {
-        if ( !awsSdkInstalled ) {
-            return true;
-        }
-
-        pageTwo.performCancel();
-        return super.performCancel();
-    }
-
-    private void logError(String errMsg, Throwable t) {
-        AwsToolkitCore.getDefault().logException(errMsg, t);
     }
 
     private static String escapeBackSlashes(String str) {
         return str.replace("\\", "\\\\");
+    }
+
+    @Override
+    protected IStatus doFinish(IProgressMonitor monitor) {
+
+        SubMonitor progress = SubMonitor.convert(monitor, 100);
+        progress.setTaskName(getJobTitle());
+
+        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+        project = root.getProject(dataModel.getProjectNameDataModel().getProjectName());
+        Model mavenModel = getModel();
+
+        try {
+            MavenFactory.createMavenProject(project, mavenModel, progress.newChild(50));
+            progress.worked(50);
+        } catch (Exception e) {
+            return JavaSdkPlugin.getDefault().logError(
+                    "Failed to create AWS Sample Maven Project.", e);
+        }
+        try {
+            addSamplesToProject();
+            progress.worked(50);
+        } catch (Exception e) {
+            return JavaSdkPlugin.getDefault().logError(
+                    "Failed to add samples to AWS Sample Maven Project", e);
+        }
+
+        // Finally, refresh the project so that the new files show up
+        try {
+            project.refreshLocal(IResource.DEPTH_INFINITE, null);
+        } catch (CoreException e) {
+            return JavaSdkPlugin.getDefault().logWarning(
+                    "Unable to refresh the created project.", e);
+        }
+        return Status.OK_STATUS;
+    }
+
+    @Override
+    protected String getJobTitle() {
+        return "Creating AWS Java Project";
+    }
+
+    @Override
+    protected AbstractAwsPlugin getPlugin() {
+        return JavaSdkPlugin.getDefault();
     }
 }

@@ -28,7 +28,6 @@ import java.util.Properties;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
@@ -37,7 +36,6 @@ import org.eclipse.ui.IStartup;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 
@@ -127,9 +125,7 @@ public class Startup implements IStartup {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                     activeWindow.getActivePage().openEditor(input, AwsToolkitCore.OVERVIEW_EDITOR_ID);
                 } catch (PartInitException e) {
-                    String errorMessage = "Unable to open the AWS Toolkit Overview view: " + e.getMessage();
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                    AwsToolkitCore.getDefault().logError("Unable to open the AWS Toolkit Overview view.", e);
                 }
             }
         });
@@ -180,9 +176,7 @@ public class Startup implements IStartup {
                 registeredPlugins.put(key.toString(), value);
             }
         } catch (IOException e) {
-            String errorMessage = "Unable to read currently registered AWS Toolkit components: " + e.getMessage();
-            Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-            StatusManager.getManager().handle(status, StatusManager.LOG);
+            AwsToolkitCore.getDefault().logError("Unable to read currently registered AWS Toolkit components.", e);
         } finally {
             try {inputStream.close();} catch (IOException ioe) {}
         }
@@ -237,9 +231,7 @@ public class Startup implements IStartup {
             outputStream = new FileOutputStream(dataFile);
             properties.store(outputStream, null);
         } catch (IOException e) {
-            String errorMessage = "Unable to record registered components: " + e.getMessage();
-            Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-            StatusManager.getManager().handle(status, StatusManager.LOG);
+            AwsToolkitCore.getDefault().logError("Unable to record registered components.", e);
         } finally {
             try {outputStream.close();} catch (IOException ioe) {}
         }

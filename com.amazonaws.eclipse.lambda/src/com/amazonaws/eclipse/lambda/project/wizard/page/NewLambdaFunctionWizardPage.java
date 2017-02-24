@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard.page;
 
+import org.eclipse.core.databinding.AggregateValidationStatus;
+import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.runtime.IStatus;
@@ -26,23 +28,32 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
-import com.amazonaws.eclipse.lambda.project.wizard.util.LambdaFunctionGroup;
+import com.amazonaws.eclipse.lambda.project.wizard.util.LambdaFunctionComposite;
 
 public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
 
     private final static String PAGE_NAME = "NewLambdaFunctionWizardPage";
 
     private final LambdaFunctionWizardDataModel dataModel;
-    private final LambdaFunctionGroup lambdaFunctionGroup;
+    private final DataBindingContext dataBindingContext;
+    private final AggregateValidationStatus aggregateValidationStatus;
+    private LambdaFunctionComposite lambdaFunctionComposite;
 
-    public NewLambdaFunctionWizardPage() {
+    public NewLambdaFunctionWizardPage(LambdaFunctionWizardDataModel dataModel) {
         super(true, PAGE_NAME);
 
         setTitle("Create a new AWS Lambda function");
         setDescription("Create a new AWS Lambda function in the workspace");
 
-        this.dataModel = new LambdaFunctionWizardDataModel();
-        this.lambdaFunctionGroup = new LambdaFunctionGroup(this, dataModel);
+        this.dataModel = dataModel;
+        this.dataBindingContext = new DataBindingContext();
+        this.aggregateValidationStatus = new AggregateValidationStatus(
+                dataBindingContext, AggregateValidationStatus.MAX_SEVERITY);
+        aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            public void handleChange(ChangeEvent arg0) {
+                populateValidationStatus();
+            }
+        });
     }
 
     public void init(IStructuredSelection selection) {
@@ -53,30 +64,17 @@ public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
 
     private void doStatusUpdate() {
 
-        // status of self-defined controls
-        IStatus handlerInfoStatus = lambdaFunctionGroup == null ?
-                null : lambdaFunctionGroup.getHandlerInfoValidationStatus();
-
-        // status of all used components
-        IStatus[] status= new IStatus[] {
-            fContainerStatus,
-            fPackageStatus,
-            fTypeNameStatus,
-            handlerInfoStatus
-        };
-
         // update data model
-        dataModel.setHandlerPackageName(getPackageText());
-        dataModel.setHandlerClassName(getTypeName());
+        dataModel.getLambdaFunctionDataModel().setPackageName(getPackageText());
+        dataModel.getLambdaFunctionDataModel().setClassName(getTypeName());
 
         // the mode severe status will be displayed and the OK button enabled/disabled.
-        updateStatus(status);
+        updateStatus(getValidationStatus());
     }
 
     @Override
     protected void handleFieldChanged(String fieldName) {
         super.handleFieldChanged(fieldName);
-
         doStatusUpdate();
     }
 
@@ -86,18 +84,7 @@ public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
 
         // Reuse the project name and package control of the system Java New Type wizard
         createProjectPackageClassNameControls(composite);
-
-        lambdaFunctionGroup.init(composite);
-        lambdaFunctionGroup.createLambdaHandlerControl();
-        lambdaFunctionGroup.createSeparator();
-        lambdaFunctionGroup.createHandlerSourcePreview();
-
-        lambdaFunctionGroup.initializeValidators(new IChangeListener() {
-            public void handleChange(ChangeEvent arg0) {
-                doStatusUpdate();
-            }
-        });
-        lambdaFunctionGroup.initializeDefaults();
+        createLambdaFunctionComposite(composite);
         setControl(composite);
 
         doStatusUpdate();
@@ -117,14 +104,51 @@ public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
         createTypeNameControls(containerComposite, nColumns);
     }
 
+    private void createLambdaFunctionComposite(Composite composite) {
+        lambdaFunctionComposite = new LambdaFunctionComposite(
+                this, composite, dataModel.getLambdaFunctionDataModel(), dataBindingContext);
+        lambdaFunctionComposite.createHandlerTypeControl();
+        lambdaFunctionComposite.createInputTypeControl();
+        lambdaFunctionComposite.createOutputTypeControl();
+        lambdaFunctionComposite.createSeparator();
+        lambdaFunctionComposite.createHandlerSourcePreview();
+        lambdaFunctionComposite.initialize();
+    }
+
     @Override
     public void dispose() {
-        lambdaFunctionGroup.dispose();
+        lambdaFunctionComposite.dispose();
         super.dispose();
     }
 
-    public LambdaFunctionWizardDataModel getDataModel() {
-        return dataModel;
+
+    private void populateValidationStatus() {
+        IStatus[] statuses = getValidationStatus();
+
+        for (IStatus status : statuses) {
+            if (status == null) continue;
+            else if (status.getSeverity() == IStatus.OK) {
+                this.setErrorMessage(null);
+                super.setPageComplete(true);
+            } else if (status.getSeverity() == IStatus.ERROR) {
+                setErrorMessage(status.getMessage());
+                super.setPageComplete(false);
+                break;
+            }
+        }
+    }
+
+    private IStatus[] getValidationStatus() {
+        Object value = aggregateValidationStatus.getValue();
+        IStatus aggregateStatus = (IStatus) value;
+
+        // status of all used components
+        return new IStatus[] {
+            fContainerStatus,
+            fPackageStatus,
+            fTypeNameStatus,
+            aggregateStatus
+        };
     }
 
 }

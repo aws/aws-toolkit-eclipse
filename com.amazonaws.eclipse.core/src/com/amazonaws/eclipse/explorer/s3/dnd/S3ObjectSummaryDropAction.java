@@ -46,7 +46,7 @@ public class S3ObjectSummaryDropAction implements IDropActionDelegate {
             try {
                 return run(source, j.getUnderlyingResource());
             } catch ( JavaModelException e ) {
-                AwsToolkitCore.getDefault().logException("Couldn't determine java resource", e);
+                AwsToolkitCore.getDefault().logError("Couldn't determine java resource", e);
                 return false;
             }
         } else {
@@ -132,13 +132,13 @@ public class S3ObjectSummaryDropAction implements IDropActionDelegate {
                     monitor.worked(bytesRead);
                 }
             } catch ( Exception e ) {
-                return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Error downloading file from S3", e);
+                return new Status(Status.ERROR, AwsToolkitCore.getDefault().getPluginId(), "Error downloading file from S3", e);
             } finally {
                 if ( fos != null ) {
                     try {
                         fos.close();
                     } catch ( Exception e ) {
-                        AwsToolkitCore.getDefault().logException("Couldn't close file output stream", e);
+                        AwsToolkitCore.getDefault().logError("Couldn't close file output stream", e);
                     }
                 }
                 monitor.done();
@@ -153,7 +153,7 @@ public class S3ObjectSummaryDropAction implements IDropActionDelegate {
                     try {
                         dropFolder.refreshLocal(1, monitor);
                     } catch ( CoreException e ) {
-                        AwsToolkitCore.getDefault().logException("Couldn't refresh local files", e);
+                        AwsToolkitCore.getDefault().logError("Couldn't refresh local files", e);
                     }
                 }
             });

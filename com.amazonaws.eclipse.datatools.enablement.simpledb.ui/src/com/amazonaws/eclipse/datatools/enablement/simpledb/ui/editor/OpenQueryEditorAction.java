@@ -43,7 +43,7 @@ public class OpenQueryEditorAction extends Action {
             workbenchPage.openEditor(new DomainEditorInput(this.domainName, AwsToolkitCore.getDefault()
                     .getCurrentAccountId()), QueryEditor.ID);
         } catch ( PartInitException e ) {
-            AwsToolkitCore.getDefault().logException(e.getMessage(), e);
+            AwsToolkitCore.getDefault().logError(e.getMessage(), e);
         }
     }
 }

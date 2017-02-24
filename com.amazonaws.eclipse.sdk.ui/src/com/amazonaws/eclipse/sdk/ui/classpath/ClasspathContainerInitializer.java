@@ -24,13 +24,12 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
+import com.amazonaws.eclipse.sdk.ui.JavaSdkManager.JavaSdkInstallFactory;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
 import com.amazonaws.eclipse.sdk.ui.SdkProjectMetadata;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkManager.JavaSdkInstallFactory;
 
 /**
  * An initializer for the Classpath container for the AWS SDK for Java.
@@ -60,19 +59,17 @@ public class ClasspathContainerInitializer extends
         } catch (Exception e) {
             JavaSdkInstall defaultSdkInstall = JavaSdkManager.getInstance().getDefaultSdkInstall();
             if ( defaultSdkInstall == null )
-                throw new CoreException(new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID, "No SDKs available"));
+                throw new CoreException(new Status(IStatus.ERROR, JavaSdkPlugin.getDefault().getPluginId(), "No SDKs available"));
 
             AwsClasspathContainer classpathContainer = new AwsClasspathContainer(defaultSdkInstall);
             JavaCore.setClasspathContainer(containerPath, new IJavaProject[] {javaProject}, new IClasspathContainer[] {classpathContainer}, null);
             try {
                 defaultSdkInstall.writeMetadataToProject(javaProject);
             } catch (IOException ioe) {
-                StatusManager.getManager().handle(new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, ioe.getMessage(), ioe), StatusManager.LOG);
+                JavaSdkPlugin.getDefault().logWarning(ioe.getMessage(), ioe);
             }
 
-            String message = "Unable to initialize previous AWS SDK for Java classpath entries - defaulting to latest version";
-            Status status = new Status(Status.WARNING, JavaSdkPlugin.PLUGIN_ID, message, e);
-            StatusManager.getManager().handle(status, StatusManager.LOG);
+            JavaSdkPlugin.getDefault().logWarning("Unable to initialize previous AWS SDK for Java classpath entries - defaulting to latest version", e);
         }
     }
 }

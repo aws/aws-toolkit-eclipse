@@ -14,13 +14,10 @@
 */
 package com.amazonaws.eclipse.lambda.project.wizard.page;
 
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newControlDecoration;
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLabel;
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newPushButton;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newSashForm;
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
-import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_SERVERLESS_FILE_PATH;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_PACKAGE_PREFIX;
+import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_USE_BLUEPRINT;
+import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_USE_SERVERLESS_TEMPLATE_FILE;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -32,67 +29,62 @@ import org.eclipse.core.databinding.beans.PojoObservables;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
-import org.eclipse.jface.databinding.swt.ISWTObservableValue;
-import org.eclipse.jface.databinding.swt.SWTObservables;
-import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Text;
 
-import com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory;
-import com.amazonaws.eclipse.databinding.ChainValidator;
-import com.amazonaws.eclipse.databinding.DecorationChangeListener;
-import com.amazonaws.eclipse.lambda.project.classpath.LambdaRuntimeClasspathContainer;
-import com.amazonaws.eclipse.lambda.project.classpath.runtimelibrary.LambdaRuntimeLibraryManager;
+import com.amazonaws.eclipse.core.maven.MavenFactory;
+import com.amazonaws.eclipse.core.ui.ImportFileComposite;
+import com.amazonaws.eclipse.core.ui.MavenConfigurationComposite;
+import com.amazonaws.eclipse.core.ui.ProjectNameComposite;
+import com.amazonaws.eclipse.core.validator.PackageNameValidator;
+import com.amazonaws.eclipse.core.widget.RadioButtonComplex;
+import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
-import com.amazonaws.eclipse.lambda.project.wizard.page.validator.ValidPackageNameValidator;
 import com.amazonaws.eclipse.lambda.serverless.blueprint.BlueprintProvider;
 import com.amazonaws.eclipse.lambda.serverless.ui.FormBrowser;
 import com.amazonaws.eclipse.lambda.serverless.validator.ServerlessTemplateFilePathValidator;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
-import com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainer;
 
-public class NewServerlessProjectWizardPageOne extends NewJavaProjectWizardPageOne {
+public class NewServerlessProjectWizardPageOne extends WizardPage {
 
-    private static final String DEFAULT_PACKAGE_NAME = "com.serverless.demo";
+    private static final String PAGE_NAME = NewServerlessProjectWizardPageOne.class.getName();
 
+    private final NewServerlessProjectDataModel dataModel;
     private final DataBindingContext bindingContext;
     private final AggregateValidationStatus aggregateValidationStatus;
-    private ChainValidator<String> serverlessTemplateValidator;
-    private ControlDecoration serverlessTemplateFilePathTextDecoration;
-    private final NewServerlessProjectDataModel dataModel;
 
-    private Text serverlessTemplateFilePathText;
-    private Button browseButton;
-    private Text packagePrefixText;
+    //Composite modules in this page.
+    private ProjectNameComposite projectNameComposite;
+    private MavenConfigurationComposite mavenConfigurationComposite;
+    private TextComplex packageNameComplex;
+    private ImportFileComposite importFileComposite;
 
     private TableViewer blueprintSelectionViewer;
     private FormBrowser descriptionBrowser;
 
-    private Button selectBlueprintButton;
-    private Button selectServerlessTemplateButton;
-    private ISWTObservableValue selectServerlessTemplateButtonObservable;
-
-    private boolean isProjectNameValid;
+    private RadioButtonComplex useBlueprintButtonComplex;
+    private RadioButtonComplex useServerlessTemplateButtonComplex;
+    private ModifyListener mavenModifyListener = new ModifyListener() {
+        public void modifyText(ModifyEvent arg0) {
+            onMavenConfigurationChange();
+        }
+    };
 
     public NewServerlessProjectWizardPageOne(NewServerlessProjectDataModel dataModel) {
+        super(PAGE_NAME);
         setTitle("Create a new Serverless Java project");
         setDescription("You can create a new Serverless Java project either from a Blueprint "
                 + "or an existing Serverless template file.");
@@ -101,59 +93,74 @@ public class NewServerlessProjectWizardPageOne extends NewJavaProjectWizardPageO
         this.bindingContext = new DataBindingContext();
         this.aggregateValidationStatus = new AggregateValidationStatus(
                 bindingContext, AggregateValidationStatus.MAX_SEVERITY);
+        aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            public void handleChange(ChangeEvent arg0) {
+                populateValidationStatus();
+            }
+        });
     }
 
     public void createControl(final Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
 
-        // Reuse the project name control of the system Java project wizard
-        Control nameControl = createNameControl(composite);
-        nameControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
+        createProjectNameComposite(composite);
+        createMavenConfigurationComposite(composite);
         createPackagePrefixTextSection(composite);
-        createSelectBlueprintButtonSection(composite);
+        createUseBlueprintButtonSection(composite);
         createBlueprintsSelectionSection(composite);
-        createSelectServerlessTemplateButtonSection(composite);
+        createUseServerlessTemplateButtonSection(composite);
         createServerlessTemplateImportSection(composite);
-
-        aggregateValidationStatus.addChangeListener(new IChangeListener() {
-            public void handleChange(ChangeEvent arg0) {
-                populateHandlerValidationStatus();
-            }
-        });
 
         initialize();
         setControl(composite);
     }
 
+    protected void createProjectNameComposite(Composite composite) {
+        projectNameComposite = new ProjectNameComposite(
+                composite, bindingContext, dataModel.getProjectNameDataModel());
+    }
+
+    protected void createMavenConfigurationComposite(Composite composite) {
+        mavenConfigurationComposite = new MavenConfigurationComposite(
+                composite, bindingContext, dataModel.getMavenConfigurationDataModel(),
+                mavenModifyListener, mavenModifyListener);
+    }
+
     private void initialize() {
         blueprintSelectionViewer.getTable().select(0);
         onBlueprintSelectionViewerSelectionChange();
-        selectBlueprintButton.setSelection(true);
         onSelectBlueprintButtonSelect();
     }
 
-    private void createSelectBlueprintButtonSection(Composite parent) {
-        selectBlueprintButton = new Button(parent, SWT.RADIO);
-        selectBlueprintButton.setText("Select a Blueprint:");
-        selectBlueprintButton.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                onSelectBlueprintButtonSelect();
-            }
-        });
+    private void createUseBlueprintButtonSection(Composite parent) {
+        useBlueprintButtonComplex = RadioButtonComplex.builder()
+                .composite(parent)
+                .dataBindingContext(bindingContext)
+                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_USE_BLUEPRINT))
+                .labelValue("Select a Blueprint:")
+                .defaultValue(dataModel.isUseBlueprint())
+                .selectionListener(new SelectionAdapter() {
+                    public void widgetSelected(SelectionEvent e) {
+                        onSelectBlueprintButtonSelect();
+                    }
+                })
+                .build();
     }
 
-    private void createSelectServerlessTemplateButtonSection(Composite parent) {
-        selectServerlessTemplateButton = new Button(parent, SWT.RADIO);
-        selectServerlessTemplateButton.setText("Select a Serverless template file:");
-        selectServerlessTemplateButton.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                onSelectServerlessTemplateButtonSelect();
-            }
-        });
-        selectServerlessTemplateButtonObservable = SWTObservables.observeSelection(selectServerlessTemplateButton);
-
+    private void createUseServerlessTemplateButtonSection(Composite parent) {
+        useServerlessTemplateButtonComplex = RadioButtonComplex.builder()
+                .composite(parent)
+                .dataBindingContext(bindingContext)
+                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_USE_SERVERLESS_TEMPLATE_FILE))
+                .labelValue("Select a Serverless template file:")
+                .defaultValue(dataModel.isUseServerlessTemplateFile())
+                .selectionListener(new SelectionAdapter() {
+                    public void widgetSelected(SelectionEvent e) {
+                        onSelectServerlessTemplateButtonSelect();
+                    }
+                })
+                .build();
     }
 
     private void createBlueprintsSelectionSection(Composite parent) {
@@ -187,14 +194,12 @@ public class NewServerlessProjectWizardPageOne extends NewJavaProjectWizardPageO
     private void onSelectBlueprintButtonSelect() {
         setBlueprintSelectionSectionEnabled(true);
         setServerlessTemplateImportSectionEnabled(false);
-        dataModel.setUseBlueprint(true);
         runValidators();
     }
 
     private void onSelectServerlessTemplateButtonSelect() {
         setBlueprintSelectionSectionEnabled(false);
         setServerlessTemplateImportSectionEnabled(true);
-        dataModel.setUseBlueprint(false);
         runValidators();
     }
 
@@ -207,164 +212,48 @@ public class NewServerlessProjectWizardPageOne extends NewJavaProjectWizardPageO
     }
 
     private void createServerlessTemplateImportSection(Composite parent) {
-        Composite group = new Composite(parent, SWT.NONE);
-        GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-        group.setLayoutData(gridData);
-        group.setLayout(new GridLayout(3, false));
-        newLabel(group, "Import:");
-        serverlessTemplateFilePathText = newText(group, "");
-        serverlessTemplateFilePathTextDecoration =
-                WizardWidgetFactory.newControlDecoration(serverlessTemplateFilePathText, "");
-
-        ISWTObservableValue serverlessTemplateFilePathTextObservable =
-                SWTObservables.observeText(serverlessTemplateFilePathText, SWT.Modify);
-        bindingContext.bindValue(serverlessTemplateFilePathTextObservable,
-                PojoObservables.observeValue(dataModel, P_SERVERLESS_FILE_PATH));
-        serverlessTemplateValidator = new ChainValidator<String>(
-                serverlessTemplateFilePathTextObservable,
-                selectServerlessTemplateButtonObservable,
-                new ServerlessTemplateFilePathValidator());
-        bindingContext.addValidationStatusProvider(serverlessTemplateValidator);
-
-        new DecorationChangeListener(serverlessTemplateFilePathTextDecoration,
-                serverlessTemplateValidator.getValidationStatus());
-
-        browseButton = newPushButton(group, "Browse");
-        browseButton.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                FileDialog dialog = new FileDialog(getShell(), SWT.SINGLE);
-                String path = dialog.open();
-                if (path != null) serverlessTemplateFilePathText.setText(path);
-            }
-        });
+        importFileComposite = new ImportFileComposite(
+                parent, bindingContext, dataModel.getImportFileDataModel(), new ServerlessTemplateFilePathValidator());
     }
 
     private void setServerlessTemplateImportSectionEnabled(boolean enabled) {
-        serverlessTemplateFilePathText.setEnabled(enabled);
-        browseButton.setEnabled(enabled);
+        importFileComposite.setEnabled(enabled);
     }
 
     private void createPackagePrefixTextSection(Composite parent) {
         Composite group = new Composite(parent, SWT.NONE);
-        group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         group.setLayout(new GridLayout(2, false));
-        newLabel(group, "Package namespace:");
-        packagePrefixText = newText(group, "");
-        ISWTObservableValue handlerPackageTextObservable = SWTObservables.observeText(packagePrefixText, SWT.Modify);
-        bindingContext.bindValue(handlerPackageTextObservable,
-                PojoObservables.observeValue(dataModel, P_PACKAGE_PREFIX));
-        handlerPackageTextObservable.setValue(DEFAULT_PACKAGE_NAME);
 
-        ControlDecoration handlerPackageTextDecoration = newControlDecoration(packagePrefixText, "");
-
-        // bind validation of package name
-        ChainValidator<String> handlerPackageValidator = new ChainValidator<String>(
-                handlerPackageTextObservable,
-                new ValidPackageNameValidator("Please provide a valid package name for the handler class"));
-        bindingContext.addValidationStatusProvider(handlerPackageValidator);
-        new DecorationChangeListener(handlerPackageTextDecoration,
-                handlerPackageValidator.getValidationStatus());
+        this.packageNameComplex = TextComplex.builder()
+                .composite(group)
+                .dataBindingContext(bindingContext)
+                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_PACKAGE_PREFIX))
+                .validator(new PackageNameValidator("Package name must be provided!"))
+                .labelValue("Package Name:")
+                .defaultValue(dataModel.getPackagePrefix())
+                .build();
     }
 
-    /**
-     * @return returns the default class path entries, which includes all the
-     *         default JRE entries plus the Lambda runtime API.
-     *
-     * TODO The project structure should eventually be Maven.
-     */
-    @Override
-    public IClasspathEntry[] getDefaultClasspathEntries() {
+    private void populateValidationStatus() {
 
-        IClasspathEntry[] classpath = super.getDefaultClasspathEntries();
+        IStatus status = getValidationStatus();
+        if (status == null) return;
 
-        classpath = addJunitLibrary(classpath);
-        classpath = addLambdaRuntimeLibrary(classpath);
-        if (dataModel.requireSdkDependency()) {
-            classpath = addJavaSdkLibrary(classpath);
-        }
-
-        return classpath;
-    }
-
-    private IClasspathEntry[] addLambdaRuntimeLibrary(IClasspathEntry[] classpath) {
-        IClasspathEntry[] augmentedClasspath = new IClasspathEntry[classpath.length + 1];
-        System.arraycopy(classpath, 0, augmentedClasspath, 0, classpath.length);
-
-        augmentedClasspath[classpath.length] = JavaCore.newContainerEntry(
-                new LambdaRuntimeClasspathContainer(
-                        LambdaRuntimeLibraryManager.getInstance().getLatestVersion()
-                        ).getPath());
-
-        return augmentedClasspath;
-    }
-
-    private IClasspathEntry[] addJavaSdkLibrary(IClasspathEntry[] classpath) {
-        IClasspathEntry[] augmentedClasspath = new IClasspathEntry[classpath.length + 1];
-        System.arraycopy(classpath, 0, augmentedClasspath, 0, classpath.length);
-
-        augmentedClasspath[classpath.length] = JavaCore.newContainerEntry(
-                new AwsClasspathContainer(
-                        JavaSdkManager.getInstance().getDefaultSdkInstall()
-                        ).getPath());
-
-        return augmentedClasspath;
-    }
-
-    private IClasspathEntry[] addJunitLibrary(IClasspathEntry[] classpath) {
-        IClasspathEntry[] augmentedClasspath = new IClasspathEntry[classpath.length + 1];
-        System.arraycopy(classpath, 0, augmentedClasspath, 0, classpath.length);
-
-        final String JUNIT_CONTAINER_ID= "org.eclipse.jdt.junit.JUNIT_CONTAINER";
-        augmentedClasspath[classpath.length] = JavaCore.newContainerEntry(
-                new Path(JUNIT_CONTAINER_ID).append("4"));
-
-        return augmentedClasspath;
-    }
-
-    /**
-     * A very hacky way of combining the project name validation with our custom
-     * validation logic.
-     */
-    @Override
-    public void setPageComplete(boolean pageComplete) {
-        isProjectNameValid = pageComplete;
-        if (!pageComplete) {
-            super.setPageComplete(pageComplete);
-        } else {
-            populateHandlerValidationStatus();
-        }
-    }
-
-    @Override
-    public void setMessage(String newMessage, int newType) {
-        super.setMessage(newMessage, newType);
-        populateHandlerValidationStatus();
-    }
-
-    private void populateHandlerValidationStatus() {
-        if (aggregateValidationStatus == null) {
-            return;
-        }
-
-        Object value = aggregateValidationStatus.getValue();
-        if (! (value instanceof IStatus)) return;
-        IStatus handlerInfoStatus = (IStatus) value;
-
-        boolean isHandlerInfoValid = (handlerInfoStatus.getSeverity() == IStatus.OK);
-
-        if (isProjectNameValid && isHandlerInfoValid) {
-            // always call super methods when handling our custom
-            // validation status
-            setErrorMessage(null);
+        if (status.getSeverity() == IStatus.OK) {
+            this.setErrorMessage(null);
             super.setPageComplete(true);
         } else {
-            if (!isProjectNameValid) {
-                setErrorMessage("Enter a valid project name");
-            } else {
-                setErrorMessage(handlerInfoStatus.getMessage());
-            }
+            setErrorMessage(status.getMessage());
             super.setPageComplete(false);
         }
+    }
+
+    private IStatus getValidationStatus() {
+        if (aggregateValidationStatus == null) return null;
+        Object value = aggregateValidationStatus.getValue();
+        if (!(value instanceof IStatus)) return null;
+        return (IStatus)value;
     }
 
     private void runValidators() {
@@ -372,6 +261,14 @@ public class NewServerlessProjectWizardPageOne extends NewJavaProjectWizardPageO
         while (iterator.hasNext()) {
             Binding binding = (Binding)iterator.next();
             binding.updateTargetToModel();
+        }
+    }
+
+    private void onMavenConfigurationChange() {
+        if (packageNameComplex != null) {
+            String groupId = dataModel.getMavenConfigurationDataModel().getGroupId();
+            String artifactId = dataModel.getMavenConfigurationDataModel().getArtifactId();
+            packageNameComplex.setText(MavenFactory.assumePackageName(groupId, artifactId));
         }
     }
 

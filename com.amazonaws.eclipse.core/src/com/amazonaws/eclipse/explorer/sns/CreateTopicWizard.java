@@ -107,7 +107,7 @@ public class CreateTopicWizard extends Wizard {
                 );
 
             } catch (AmazonClientException exception) {
-                AwsToolkitCore.getDefault().logException(
+                AwsToolkitCore.getDefault().logError(
                     "Error setting topic display name",
                     exception
                 );

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -55,7 +54,6 @@ import org.eclipse.ui.forms.IFormColors;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.EditorPart;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -155,8 +153,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
                     }
                 });
             } catch (Exception e) {
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to load topic attributes: " + e.getMessage(), e);
-                StatusManager.getManager().handle(status, StatusManager.LOG);
+                AwsToolkitCore.getDefault().reportException("Unable to load topic attributes", e);
             }
         }
     }
@@ -190,8 +187,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
                     try {
                         getClient().unsubscribe(new UnsubscribeRequest(subscription.getSubscriptionArn()));
                     } catch (Exception e) {
-                        Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete subscription: " + e.getMessage(), e);
-                        StatusManager.getManager().handle(status, StatusManager.LOG);
+                        AwsToolkitCore.getDefault().reportException("Unable to delete subscription", e);
                     }
                 }
 
@@ -377,7 +373,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
     public void refreshData() {
         new LoadSubscriptionsThread().start();
     }
-    
+
     private class LoadSubscriptionsThread extends Thread {
         @Override
         public void run() {
@@ -400,8 +396,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
                     }
                 });
             } catch (Exception e) {
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to list subscriptions: " + e.getMessage(), e);
-                StatusManager.getManager().handle(status, StatusManager.LOG);
+                AwsToolkitCore.getDefault().reportException("Unable to list subscriptions", e);
             }
         }
     }

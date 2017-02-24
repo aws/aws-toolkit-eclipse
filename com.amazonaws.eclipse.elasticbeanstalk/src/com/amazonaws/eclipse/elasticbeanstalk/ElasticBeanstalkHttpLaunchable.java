@@ -26,7 +26,6 @@ import org.eclipse.wst.server.core.model.ServerDelegate;
 import org.eclipse.wst.server.core.util.HttpLaunchable;
 import org.eclipse.wst.server.core.util.WebResource;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.util.StringUtils;
 
@@ -85,7 +84,7 @@ public class ElasticBeanstalkHttpLaunchable extends HttpLaunchable {
                 url = new URL("http://" + environmentCname + getModuleArtifactPath(moduleArtifact));
                 trace("Initializing module artifact URL: " + url.toString());
             } catch (Exception e) {
-                AwsToolkitCore.getDefault().logException("Unable to determine environment URL:" + e.getMessage(), e);
+                ElasticBeanstalkPlugin.getDefault().logError("Unable to determine environment URL:" + e.getMessage(), e);
             }
         }
     }

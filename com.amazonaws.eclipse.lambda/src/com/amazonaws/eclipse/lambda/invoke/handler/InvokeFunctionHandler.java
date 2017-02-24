@@ -210,7 +210,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
                 stream.close();
             }
         } catch (IOException e) {
-            LambdaPlugin.getDefault().warn(
+            LambdaPlugin.getDefault().logWarning(
                     "Failed to close console message stream.", e);
         }
     }

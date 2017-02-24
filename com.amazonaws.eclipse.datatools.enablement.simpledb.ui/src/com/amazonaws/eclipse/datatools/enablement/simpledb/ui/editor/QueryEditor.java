@@ -17,8 +17,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.datatools.sqltools.sqlbuilder.views.source.SQLEditorDocumentProvider;
 import org.eclipse.datatools.sqltools.sqlbuilder.views.source.SQLSourceEditingEnvironment;
 import org.eclipse.datatools.sqltools.sqlbuilder.views.source.SQLSourceViewerConfiguration;
@@ -70,7 +68,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 import org.eclipse.ui.part.EditorPart;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.BrowserUtils;
@@ -387,7 +384,7 @@ public class QueryEditor extends EditorPart {
                 out.close();
 
             } catch (Exception e) {
-                AwsToolkitCore.getDefault().logException("Couldn't save CSV file", e);
+                AwsToolkitCore.getDefault().logError("Couldn't save CSV file", e);
             }
         }
     }
@@ -461,8 +458,7 @@ public class QueryEditor extends EditorPart {
                     select = AwsToolkitCore.getClientFactory(QueryEditor.this.domainEditorInput.getAccountId()).getSimpleDBClient()
                             .select(new SelectRequest(query));
                 } catch ( Exception e ) {
-                    StatusManager.getManager().handle(
-                            new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage()), StatusManager.SHOW);
+                    AwsToolkitCore.getDefault().reportException(e.getMessage(), e);
                     return;
                 }
                 final SelectResult result = select;

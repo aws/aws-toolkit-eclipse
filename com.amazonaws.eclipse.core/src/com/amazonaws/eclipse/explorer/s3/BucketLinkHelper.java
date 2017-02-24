@@ -53,7 +53,7 @@ public class BucketLinkHelper implements ILinkHelper {
             }
 
         } catch ( PartInitException e ) {
-            AwsToolkitCore.getDefault().logException("Unable to open the Amazon S3 bucket editor: ", e);
+            AwsToolkitCore.getDefault().logError("Unable to open the Amazon S3 bucket editor: ", e);
         }
     }
 }

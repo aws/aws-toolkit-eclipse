@@ -19,6 +19,7 @@ import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
+import com.amazonaws.eclipse.lambda.project.wizard.model.PredefinedHandlerInputType;
 
 public final class LambdaAnalytics {
 
@@ -103,10 +104,10 @@ public final class LambdaAnalytics {
     }
 
     public static void trackNewProjectAttributes(LambdaFunctionWizardDataModel dataModel) {
-        String inputType = dataModel.getPredefinedHandlerInputType() == null
-                ? dataModel.getCustomHandlerInputType()
-                : dataModel.getPredefinedHandlerInputType().getFqcn();
-        String outputType = dataModel.getHandlerOutputType();
+        String inputType = dataModel.getLambdaFunctionDataModel().getInputTypeEnum() == PredefinedHandlerInputType.CUSTOM
+                ? dataModel.getLambdaFunctionDataModel().getInputName()
+                : dataModel.getLambdaFunctionDataModel().getInputTypeEnum().getFqcn();
+        String outputType = dataModel.getLambdaFunctionDataModel().getOutputName();
 
         publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD, ATTR_NAME_FUNCTION_INPUT_TYPE, inputType, ATTR_NAME_FUNCTION_OUTPUT_TYPE, outputType);
     }

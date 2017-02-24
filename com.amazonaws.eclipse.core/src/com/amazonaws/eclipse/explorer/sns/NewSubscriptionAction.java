@@ -16,7 +16,6 @@ package com.amazonaws.eclipse.explorer.sns;
 
 import java.util.LinkedHashMap;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -32,7 +31,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
@@ -49,7 +47,7 @@ class NewSubscriptionAction extends Action {
         this.sns = sns;
         this.topic = topic;
         this.refreshable = refreshable;
-        
+
         this.setText("Create Subscription");
         this.setToolTipText("Create a new subscription for this topic");
         this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_ADD));
@@ -150,8 +148,7 @@ class NewSubscriptionAction extends Action {
             try {
                 sns.subscribe(new SubscribeRequest(topic.getTopicArn(), protocol, endpoint));
             } catch (Exception e) {
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to subscribe to topic: " + e.getMessage(), e);
-                StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.SHOW);
+                AwsToolkitCore.getDefault().reportException("Unable to subscribe to topic", e);
             }
 
             if (refreshable != null) refreshable.refreshData();

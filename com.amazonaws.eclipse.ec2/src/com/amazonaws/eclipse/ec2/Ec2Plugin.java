@@ -27,11 +27,11 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
@@ -41,7 +41,7 @@ import com.amazonaws.services.ec2.AmazonEC2;
 /**
  * The entry point to the EC2 plugin.
  */
-public class Ec2Plugin extends AbstractUIPlugin {
+public class Ec2Plugin extends AbstractAwsPlugin {
 
     /** The singleton instance of this plugin */
     private static Ec2Plugin plugin;

@@ -61,6 +61,7 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.cloudformation.CloudFormationUtils;
 import com.amazonaws.eclipse.cloudformation.CloudFormationUtils.StackSummaryConverter;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -392,7 +393,7 @@ class CreateStackWizardFirstPage extends WizardPage {
                         AwsToolkitCore.getClientFactory().getSNSClient()
                                 .createTopic(new CreateTopicRequest().withName(dialog.getTopicName()));
                     } catch ( Exception ex ) {
-                        AwsToolkitCore.getDefault().logException("Failed to create new topic", ex);
+                        CloudFormationPlugin.getDefault().logError("Failed to create new topic", ex);
                     }
                     loadTopics(snsTopicCombo);
                 }

@@ -154,11 +154,7 @@ public class AndroidProjectWizardPage extends WizardPage {
 
                 Job installationJob = sdkManager.getInstallationJob();
                 if ( installationJob == null ) {
-                    JavaSdkPlugin
-                            .getDefault()
-                            .getLog()
-                            .log(new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID,
-                                    "Unable to check status of AWS SDK for Android download"));
+                    JavaSdkPlugin.getDefault().logError("Unable to check status of AWS SDK for Android download", null);
                     return;
                 }
 

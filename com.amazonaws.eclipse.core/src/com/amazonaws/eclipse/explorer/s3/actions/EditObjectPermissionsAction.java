@@ -22,7 +22,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -59,18 +58,16 @@ public class EditObjectPermissionsAction extends Action {
                 protected IStatus run(IProgressMonitor monitor) {
                     try {
                         AccessControlList newAcl = editPermissionsDialog.getAccessControlList();
-                        
+
                         Iterator<S3ObjectSummary> iterator = selectedObjects.iterator();
                         while (iterator.hasNext()) {
                             S3ObjectSummary obj = iterator.next();
                             s3.setObjectAcl(obj.getBucketName(), obj.getKey(), newAcl);
                         }
                     } catch (AmazonClientException ace) {
-                        Status status = new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, 
-                            "Unable to update object ACL: " + ace.getMessage(), ace);
-                        StatusManager.getManager().handle(status, StatusManager.SHOW);
+                        AwsToolkitCore.getDefault().reportException("Unable to update object ACL", ace);
                     }
-                    
+
                     return Status.OK_STATUS;
                 }
             }.schedule();

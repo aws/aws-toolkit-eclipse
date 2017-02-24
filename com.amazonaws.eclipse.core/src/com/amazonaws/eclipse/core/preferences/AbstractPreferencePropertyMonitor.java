@@ -84,7 +84,7 @@ public abstract class AbstractPreferencePropertyMonitor implements IPropertyChan
             try {
                 listener.watchedPropertyChanged();
             } catch ( Exception e ) {
-                AwsToolkitCore.getDefault().logException(
+                AwsToolkitCore.getDefault().logError(
                         "Couldn't notify listener of preferece property change: " + listener.getClass(), e);
             }
         }

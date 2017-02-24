@@ -30,8 +30,6 @@ import org.eclipse.jface.dialogs.ErrorSupportProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.util.Policy;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.statushandlers.StatusManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -43,6 +41,7 @@ import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsP
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.NoOpToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitAnalyticsManagerImpl;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.preferences.regions.DefaultRegionMonitor;
@@ -55,7 +54,7 @@ import com.amazonaws.eclipse.core.ui.setupwizard.InitialSetupUtils;
  * Entry point for functionality provided by the AWS Toolkit Core plugin,
  * including access to AWS account information.
  */
-public class AwsToolkitCore extends AbstractUIPlugin {
+public class AwsToolkitCore extends AbstractAwsPlugin {
 
     /**
      * The singleton instance of this plugin.
@@ -83,9 +82,6 @@ public class AwsToolkitCore extends AbstractUIPlugin {
     // In seconds
     private static final int BASIC_INIT_MAX_WAIT_TIME = 60;
     private static final int FULL_INIT_MAX_WAIT_TIME = 60;
-
-    /** The ID of this plugin */
-    public static final String PLUGIN_ID = "com.amazonaws.eclipse.core";
 
     /** The ID of the main AWS Toolkit preference page */
     public static final String ACCOUNT_PREFERENCE_PAGE_ID =
@@ -403,10 +399,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
             proxyServiceTracker.open();
 
         } catch (Exception e) {
-            StatusManager.getManager().handle(
-                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                            "Internal error when starting the AWS Toolkit plugin.", e),
-                            StatusManager.SHOW);
+            reportException("Internal error when starting the AWS Toolkit plugin.", e);
         }
     }
 
@@ -460,10 +453,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
             toolkitAnalyticsManager.startSession(true);
 
         } catch (Exception e) {
-            StatusManager.getManager().handle(
-                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                            "Internal error when starting the AWS Toolkit plugin.", e),
-                            StatusManager.SHOW);
+            reportException("Internal error when starting the AWS Toolkit plugin.", e);
         }
     }
 
@@ -480,20 +470,14 @@ public class AwsToolkitCore extends AbstractUIPlugin {
             accountManager.getAccountInfoProvider()
                     .refreshProfileAccountInfo(false, false);
         } catch (Exception e) {
-            StatusManager.getManager().handle(
-                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                            "Internal error when scanning legacy AWS account configuration.", e),
-                            StatusManager.SHOW);
+            reportException("Internal error when scanning legacy AWS account configuration.", e);
         }
 
         // Initial setup wizard for account and analytics configuration
         try {
             InitialSetupUtils.runInitialSetupWizard();
         } catch (Exception e) {
-            StatusManager.getManager().handle(
-                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                            "Internal error when running intial setup wizard..", e),
-                            StatusManager.SHOW);
+            reportException( "Internal error when running intial setup wizard.", e);
         }
 
     }
@@ -559,7 +543,7 @@ public class AwsToolkitCore extends AbstractUIPlugin {
                 }
 
             } catch (Exception e) {
-                logException("Failed to initialize analytics manager", e);
+                logError("Failed to initialize analytics manager", e);
             }
 
         } else {
@@ -646,19 +630,5 @@ public class AwsToolkitCore extends AbstractUIPlugin {
         }
 
         return imageRegistry;
-    }
-
-    /**
-     * Convenience method for exception logging.
-     */
-    public void logException(String errorMessage, Throwable e) {
-        getLog().log(new Status(Status.ERROR, PLUGIN_ID, errorMessage, e));
-    }
-
-    /**
-     * Convenience method for logging a debug message at INFO level.
-     */
-    public void logInfo(String debugMessage) {
-        getLog().log(new Status(Status.INFO, PLUGIN_ID, debugMessage, null));
     }
 }

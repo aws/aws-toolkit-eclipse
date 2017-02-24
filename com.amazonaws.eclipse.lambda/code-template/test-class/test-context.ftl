@@ -23,6 +23,8 @@ public class TestContext implements Context {
     private LambdaLogger logger = new TestLogger();
     private int memoryLimitInMB = 128;
     private int remainingTimeInMillis = 15000;
+    private String functionVersion = "EXAMPLE";
+    private String invokedFunctionArn = "EXAMPLE";
 
     @Override
     public String getAwsRequestId() {
@@ -105,6 +107,24 @@ public class TestContext implements Context {
         remainingTimeInMillis = value;
     }
 
+    @Override
+    public String getFunctionVersion() {
+        return functionVersion;
+    }
+
+    public void setFunctionVersion(String value) {
+        functionVersion = value;
+    }
+
+    @Override
+    public String getInvokedFunctionArn() {
+        return invokedFunctionArn;
+    }
+
+    public void setInvokedFunctionArn(String value) {
+        invokedFunctionArn = value;
+    }
+
     /**
      * A simple {@code LambdaLogger} that prints everything to stderr.
      */
@@ -113,6 +133,6 @@ public class TestContext implements Context {
         @Override
         public void log(String message) {
             System.err.println(message);
-        } 
+        }
     }
 }

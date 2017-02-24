@@ -27,7 +27,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
     @Override
     public void initializeDefaultPreferences() {
-        JavaSdkPlugin.getDefault().getPreferenceStore().setDefault(PreferenceConstants.DOWNLOAD_AUTOMATICALLY, true);
+        JavaSdkPlugin.getDefault().getPreferenceStore().setDefault(PreferenceConstants.DOWNLOAD_AUTOMATICALLY, false);
         JavaSdkPlugin
                 .getDefault()
                 .getPreferenceStore()

@@ -97,7 +97,7 @@ public class UserSummary extends Composite {
                             refresh();
                             return Status.OK_STATUS;
                         } catch(Exception e) {
-                            return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete the password: " + e.getMessage(), e);
+                            return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to delete the password: " + e.getMessage(), e);
                         }
                     }
 

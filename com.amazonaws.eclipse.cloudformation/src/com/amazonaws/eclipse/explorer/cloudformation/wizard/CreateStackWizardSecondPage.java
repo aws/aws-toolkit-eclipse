@@ -51,7 +51,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
@@ -255,7 +255,7 @@ public class CreateStackWizardSecondPage extends WizardPage {
                 }
             }
         } else {
-            AwsToolkitCore.getDefault().logException("No parameter map object found for " + param.getParameterKey(),
+            CloudFormationPlugin.getDefault().logError("No parameter map object found for " + param.getParameterKey(),
                     null);
             return;
         }

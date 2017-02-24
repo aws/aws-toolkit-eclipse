@@ -83,7 +83,7 @@
          </command>
      </menuContribution>
    </extension>
-   
+
    <extension point="org.eclipse.ui.commands">
       <command id="com.amazonaws.eclipse.sdk.ui.newAwsJavaProjectCommand"
             name="New AWS Java Project"
@@ -91,5 +91,5 @@
             categoryId="com.amazonaws.commands.category">
       </command>
    </extension>
-   
+
 </plugin>

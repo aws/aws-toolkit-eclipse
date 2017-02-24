@@ -23,8 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FileFieldEditor;
@@ -50,7 +48,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -334,12 +331,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
             return super.performOk();
 
         } catch (Exception e) {
-            StatusManager.getManager().handle(
-                    new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                            "Internal error when saving account preference configurations.",
-                            e),
-                            StatusManager.SHOW);
-
+            AwsToolkitCore.getDefault().reportException("Internal error when saving account preference configurations.", e);
             return false;
         }
 

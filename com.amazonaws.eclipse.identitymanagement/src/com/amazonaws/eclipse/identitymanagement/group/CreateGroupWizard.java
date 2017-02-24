@@ -22,6 +22,7 @@ import org.eclipse.jface.wizard.Wizard;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
+import com.amazonaws.eclipse.identitymanagement.IdentityManagementPlugin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.CreateGroupRequest;
 import com.amazonaws.services.identitymanagement.model.PutGroupPolicyRequest;
@@ -68,7 +69,7 @@ public class CreateGroupWizard extends Wizard {
                     }
 
                 } catch (Exception e) {
-                    return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create the group: " + e.getMessage(), e);
+                    return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to create the group: " + e.getMessage(), e);
                 }
                 return Status.OK_STATUS;
             }

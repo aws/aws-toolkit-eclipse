@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
@@ -40,7 +39,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.navigator.CommonActionProvider;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
@@ -101,8 +99,7 @@ public class SQSActionProvider extends CommonActionProvider {
                     sqs.createQueue(new CreateQueueRequest(createQueueDialog.getQueueName()).withAttributes(attributes));
                     ContentProviderRegistry.refreshAllContentProviders();
                 } catch (Exception e) {
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create SQS Queue", e);
-                    StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+                    AwsToolkitCore.getDefault().reportException("Unable to create SQS Queue", e);
                 }
             }
         }
@@ -116,7 +113,7 @@ public class SQSActionProvider extends CommonActionProvider {
 
         public CreateQueueDialog() {
             super(Display.getDefault().getActiveShell(),
-                "Create New SQS Queue", null, 
+                "Create New SQS Queue", null,
                 "Enter a name for your new SQS Queue, " +
                 "and an optional default message delay.",
                 MessageDialog.INFORMATION, new String[] {"OK", "Cancel"}, 0);
@@ -202,8 +199,7 @@ public class SQSActionProvider extends CommonActionProvider {
                 try {
                     sqs.deleteQueue(new DeleteQueueRequest(queueUrl));
                 } catch (Exception e) {
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete Amazon SQS queue " + queueUrl, e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.SHOW);
+                    AwsToolkitCore.getDefault().reportException("Unable to delete Amazon SQS queue", e);
                 }
             }
 

@@ -12,6 +12,8 @@ public class ServerlessInput {
     private Map<String, String> pathParameters;
     private Map<String, String> stageVariables;
     private String body;
+    private RequestContext requestContext;
+    private Boolean isBase64Encoded;
 
     public String getResource() {
         return resource;
@@ -93,84 +95,80 @@ public class ServerlessInput {
         setBody(body);
         return this;
     }
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((body == null) ? 0 : body.hashCode());
-        result = prime * result + ((headers == null) ? 0 : headers.hashCode());
-        result = prime * result
-                + ((httpMethod == null) ? 0 : httpMethod.hashCode());
-        result = prime * result + ((path == null) ? 0 : path.hashCode());
-        result = prime * result
-                + ((pathParameters == null) ? 0 : pathParameters.hashCode());
-        result = prime
-                * result
-                + ((queryStringParameters == null) ? 0 : queryStringParameters
-                        .hashCode());
-        result = prime * result
-                + ((resource == null) ? 0 : resource.hashCode());
-        result = prime * result
-                + ((stageVariables == null) ? 0 : stageVariables.hashCode());
-        return result;
+
+    public RequestContext getRequestContext() {
+        return requestContext;
     }
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ServerlessInput other = (ServerlessInput) obj;
-        if (body == null) {
-            if (other.body != null)
-                return false;
-        } else if (!body.equals(other.body))
-            return false;
-        if (headers == null) {
-            if (other.headers != null)
-                return false;
-        } else if (!headers.equals(other.headers))
-            return false;
-        if (httpMethod == null) {
-            if (other.httpMethod != null)
-                return false;
-        } else if (!httpMethod.equals(other.httpMethod))
-            return false;
-        if (path == null) {
-            if (other.path != null)
-                return false;
-        } else if (!path.equals(other.path))
-            return false;
-        if (pathParameters == null) {
-            if (other.pathParameters != null)
-                return false;
-        } else if (!pathParameters.equals(other.pathParameters))
-            return false;
-        if (queryStringParameters == null) {
-            if (other.queryStringParameters != null)
-                return false;
-        } else if (!queryStringParameters.equals(other.queryStringParameters))
-            return false;
-        if (resource == null) {
-            if (other.resource != null)
-                return false;
-        } else if (!resource.equals(other.resource))
-            return false;
-        if (stageVariables == null) {
-            if (other.stageVariables != null)
-                return false;
-        } else if (!stageVariables.equals(other.stageVariables))
-            return false;
-        return true;
+
+    public void setRequestContext(RequestContext requestContext) {
+        this.requestContext = requestContext;
     }
-    @Override
-    public String toString() {
-        return "ServerlessInput [resource=" + resource + ", path=" + path
-                + ", httpMethod=" + httpMethod + ", headers=" + headers
-                + ", queryStringParameters=" + queryStringParameters
-                + ", pathParameters=" + pathParameters + ", stageVariables="
-                + stageVariables + ", body=" + body + "]";
+
+    public Boolean getIsBase64Encoded() {
+        return isBase64Encoded;
+    }
+    public void setIsBase64Encoded(Boolean isBase64Encoded) {
+        this.isBase64Encoded = isBase64Encoded;
+    }
+
+    public static class RequestContext {
+        private String accountId;
+        private String resourceId;
+        private String stage;
+        private String requestId;
+        private Map<String, String> identity;
+        private String resourcePath;
+        private String httpMethod;
+        private String apiId;
+
+        public String getAccountId() {
+            return accountId;
+        }
+        public String getResourceId() {
+            return resourceId;
+        }
+        public String getStage() {
+            return stage;
+        }
+        public String getRequestId() {
+            return requestId;
+        }
+        public Map<String, String> getIdentity() {
+            return identity;
+        }
+        public String getResourcePath() {
+            return resourcePath;
+        }
+        public String getHttpMethod() {
+            return httpMethod;
+        }
+        public String getApiId() {
+            return apiId;
+        }
+
+        public void setAccountId(String accountId) {
+            this.accountId = accountId;
+        }
+        public void setResourceId(String resourceId) {
+            this.resourceId = resourceId;
+        }
+        public void setStage(String stage) {
+            this.stage = stage;
+        }
+        public void setRequestId(String requestId) {
+            this.requestId = requestId;
+        }
+        public void setIdentity(Map<String, String> identity) {
+            this.identity = identity;
+        }
+        public void setResourcePath(String resourcePath) {
+            this.resourcePath = resourcePath;
+        }
+        public void setHttpMethod(String httpMethod) {
+            this.httpMethod = httpMethod;
+        }
+        public void setApiId(String apiId) {
+            this.apiId = apiId;
+        }
     }
 }

@@ -35,6 +35,7 @@ import com.amazonaws.auth.policy.Statement.Effect;
 import com.amazonaws.auth.policy.actions.SecurityTokenServiceActions;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
+import com.amazonaws.eclipse.identitymanagement.IdentityManagementPlugin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.AddRoleToInstanceProfileRequest;
 import com.amazonaws.services.identitymanagement.model.CreateInstanceProfileRequest;
@@ -114,7 +115,7 @@ public class CreateRoleWizard extends Wizard {
 
                     return Status.OK_STATUS;
                 } catch (Exception e) {
-                    return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create the role: " + e.getMessage(), e);
+                    return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to create the role: " + e.getMessage(), e);
                 }
             }
         }.schedule();

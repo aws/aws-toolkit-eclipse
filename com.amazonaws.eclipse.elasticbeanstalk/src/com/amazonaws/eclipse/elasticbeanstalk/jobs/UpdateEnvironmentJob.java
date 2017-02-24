@@ -215,7 +215,7 @@ public class UpdateEnvironmentJob extends Job {
                 try {
                     launchable.setHost(getEc2InstanceHostname());
                 } catch (Exception e) {
-                    AwsToolkitCore.getDefault().logException("Failed to set hostname", e);
+                    ElasticBeanstalkPlugin.getDefault().logError("Failed to set hostname", e);
                 }
             } else {
                 launchable.clearHost();
@@ -295,7 +295,7 @@ public class UpdateEnvironmentJob extends Job {
     /**
      * Opens up a remote debugger connection based on the specified launch, host, and port and
      * optionally reports progress through a specified progress monitor.
-     * 
+     *
      * @param monitor
      *            An optional progress monitor if progress reporting is desired.
      * @throws CoreException
@@ -326,7 +326,7 @@ public class UpdateEnvironmentJob extends Job {
 
             debuggerConnector.connect(arguments, monitor, launch);
         } catch (Exception e) {
-            AwsToolkitCore.getDefault().logException("Unable to connect debugger: " + e.getMessage(), e);
+            ElasticBeanstalkPlugin.getDefault().logError("Unable to connect debugger: " + e.getMessage(), e);
         }
     }
 

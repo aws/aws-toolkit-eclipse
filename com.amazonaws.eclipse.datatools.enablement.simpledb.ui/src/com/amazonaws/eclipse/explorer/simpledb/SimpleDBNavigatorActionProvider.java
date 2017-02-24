@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
@@ -37,7 +36,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.navigator.CommonActionProvider;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
@@ -163,8 +161,7 @@ public class SimpleDBNavigatorActionProvider extends CommonActionProvider {
                 sdb.createDomain(new CreateDomainRequest(createDomainDialog.getDomainName()));
                 ContentProviderRegistry.refreshAllContentProviders();
             } catch (Exception e) {
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create domain '" + createDomainDialog.getDomainName() + "'", e);
-                StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+                AwsToolkitCore.getDefault().reportException("Unable to create domain '" + createDomainDialog.getDomainName() + "'", e);
             }
         }
 
@@ -241,8 +238,7 @@ public class SimpleDBNavigatorActionProvider extends CommonActionProvider {
                 try {
                     simpleDB.deleteDomain(new DeleteDomainRequest(domainName));
                 } catch (Exception e) {
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete domain '" + domainName + "'", e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                    AwsToolkitCore.getDefault().logError("Unable to delete domain '" + domainName + "'", e);
                 }
             }
 

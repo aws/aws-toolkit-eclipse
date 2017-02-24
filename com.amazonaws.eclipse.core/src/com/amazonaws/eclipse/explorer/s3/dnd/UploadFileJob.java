@@ -87,7 +87,7 @@ public class UploadFileJob extends Job {
             if ( e == null ) {
                 e = new RuntimeException("Unhandled exception");
             }
-            return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage(), e);
+            return new Status(Status.ERROR, AwsToolkitCore.getDefault().getPluginId(), e.getMessage(), e);
         }
 
         if ( getRefreshRunnable() != null ) {

@@ -16,7 +16,6 @@ package com.amazonaws.eclipse.core.ui.setupwizard;
 
 import java.io.File;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -104,15 +103,13 @@ public class InitialSetupUtils {
             File awsDirectory = new File(userHome, ".aws");
 
             if (!awsDirectory.exists() && awsDirectory.mkdir() == false) {
-                AwsToolkitCore.getDefault().getLog().log(new Status(Status.WARNING, AwsToolkitCore.PLUGIN_ID,
-                        "Unable to create ~/.aws directory to save toolkit initialization file"));
+                AwsToolkitCore.getDefault().logWarning("Unable to create ~/.aws directory to save toolkit initialization file", null);
             } else {
                 File flagFile = new File(awsDirectory, path);
                 flagFile.createNewFile();
             }
         } catch (Exception e) {
-            AwsToolkitCore.getDefault().getLog().log(
-                new Status(Status.WARNING, AwsToolkitCore.PLUGIN_ID, "Unable to save toolkit initialization file", e));
+            AwsToolkitCore.getDefault().logWarning("Unable to save toolkit initialization file", e);
         }
     }
 }

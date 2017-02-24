@@ -36,14 +36,12 @@ import org.eclipse.ui.forms.IFormColors;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.part.EditorPart;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.s3.acls.EditBucketPermissionsDialog;
 import com.amazonaws.eclipse.explorer.s3.acls.EditPermissionsDialog;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.Bucket;
 
 public class BucketEditor extends EditorPart {
@@ -178,12 +176,9 @@ public class BucketEditor extends EditorPart {
                                         @Override
                                         protected IStatus run(IProgressMonitor monitor) {
                                             try {
-                                                AccessControlList newAcl = editPermissionsDialog.getAccessControlList();
                                                 s3.setBucketAcl(b.getName(), editPermissionsDialog.getAccessControlList());
                                             } catch (AmazonClientException ace) {
-                                                Status status = new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                                                    "Unable to update bucket ACL: " + ace.getMessage(), ace);
-                                                StatusManager.getManager().handle(status, StatusManager.SHOW);
+                                                AwsToolkitCore.getDefault().reportException("Unable to update bucket ACL", ace);
                                             }
 
                                             return Status.OK_STATUS;

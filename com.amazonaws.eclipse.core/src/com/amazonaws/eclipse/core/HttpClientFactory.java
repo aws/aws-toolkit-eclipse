@@ -29,7 +29,6 @@ import org.apache.http.params.HttpProtocolParams;
 import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
@@ -85,7 +84,7 @@ public final class HttpClientFactory {
                         }
                     }
                 } catch (URISyntaxException e) {
-                    plugin.getLog().log(new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage(), e));
+                    plugin.logError(e.getMessage(), e);
                 }
             }
         }

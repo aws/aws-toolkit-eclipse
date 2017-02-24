@@ -16,17 +16,11 @@ package com.amazonaws.eclipse.core.accounts.profiles;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.auth.profile.ProfilesConfigFileWriter;
 import com.amazonaws.auth.profile.internal.BasicProfile;
-import com.amazonaws.auth.profile.internal.ProfileKeyConstants;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.AccountCredentialsConfiguration;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
@@ -188,12 +182,8 @@ public class SdkProfilesCredentialsConfiguration extends
                     }
                     credentialsFile.createNewFile();
                 } catch (IOException ioe) {
-                    StatusManager.getManager().handle(
-                            new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
-                                    "Failed to create credentials file at " +
-                                            credentialsFile.getAbsolutePath(),
-                                    ioe),
-                                    StatusManager.SHOW);
+                    AwsToolkitCore.getDefault().reportException("Failed to create credentials file at " +
+                                            credentialsFile.getAbsolutePath(), ioe);
                 }
             }
 

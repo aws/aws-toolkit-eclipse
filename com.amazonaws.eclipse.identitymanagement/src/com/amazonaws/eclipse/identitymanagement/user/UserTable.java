@@ -34,6 +34,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.identitymanagement.AbstractUserTable;
 import com.amazonaws.eclipse.explorer.identitymanagement.EditorInput;
+import com.amazonaws.eclipse.identitymanagement.IdentityManagementPlugin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.AccessKeyMetadata;
 import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyRequest;
@@ -137,7 +138,7 @@ public class UserTable extends AbstractUserTable {
                     try {
                         deleteUser(userName);
                     } catch (Exception e) {
-                        return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete users: " + e.getMessage(), e);
+                        return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to delete users: " + e.getMessage(), e);
                     }
                 }
                 refresh();

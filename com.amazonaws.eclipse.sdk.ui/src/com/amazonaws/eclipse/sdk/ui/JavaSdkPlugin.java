@@ -14,19 +14,15 @@
  */
 package com.amazonaws.eclipse.sdk.ui;
 
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.sdk.ui.preferences.PreferenceConstants;
 
 /**
  * The activator class controls the plug-in life cycle
  */
-public class JavaSdkPlugin extends AbstractUIPlugin {
-
-    /** This plug-in's ID */
-    public static final String PLUGIN_ID = "com.amazonaws.eclipse.sdk.ui";
+public class JavaSdkPlugin extends AbstractAwsPlugin {
 
     /** The shared instance */
     private static JavaSdkPlugin plugin;
@@ -59,16 +55,4 @@ public class JavaSdkPlugin extends AbstractUIPlugin {
     public static JavaSdkPlugin getDefault() {
         return plugin;
     }
-
-    /**
-     * Returns an image descriptor for the image file at the given
-     * plug-in relative path
-     *
-     * @param path the path
-     * @return the image descriptor
-     */
-    public static ImageDescriptor getImageDescriptor(String path) {
-        return imageDescriptorFromPlugin(PLUGIN_ID, path);
-    }
-
 }

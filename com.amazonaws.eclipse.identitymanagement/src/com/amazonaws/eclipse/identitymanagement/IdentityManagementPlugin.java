@@ -14,13 +14,14 @@
  */
 package com.amazonaws.eclipse.identitymanagement;
 
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 
 /**
  * The activator class controls the plug-in life cycle
  */
-public class IdentityManagementPlugin extends AbstractUIPlugin {
+public class IdentityManagementPlugin extends AbstractAwsPlugin {
 
     // The plug-in ID
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.identitymanagement"; //$NON-NLS-1$

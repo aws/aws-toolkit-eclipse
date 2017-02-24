@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
+import com.amazonaws.eclipse.identitymanagement.IdentityManagementPlugin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
 
@@ -89,7 +90,7 @@ public class CreateUserWizard extends Wizard {
                     }
                     return Status.OK_STATUS;
                 } catch (Exception e) {
-                    return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to create users: " + e.getMessage(), e);
+                    return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to create users: " + e.getMessage(), e);
                 }
 
             }

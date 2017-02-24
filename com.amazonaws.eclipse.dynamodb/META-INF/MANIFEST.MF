@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Dynamodb
 Bundle-SymbolicName: com.amazonaws.eclipse.dynamodb;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-ClassPath: .,
+Bundle-ClassPath: com.amazonaws.eclipse.dynamodb,
  bin/
 Bundle-Activator: com.amazonaws.eclipse.dynamodb.DynamoDBPlugin
 Bundle-Vendor: Amazon Web Services

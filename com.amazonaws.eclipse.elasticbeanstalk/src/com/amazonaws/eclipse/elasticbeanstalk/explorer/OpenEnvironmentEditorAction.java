@@ -24,9 +24,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.ui.internal.editor.ServerEditorInput;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 
@@ -55,7 +53,7 @@ public class OpenEnvironmentEditorAction extends Action {
                             "org.eclipse.wst.server.ui.editor");
                 } catch ( Exception e ) {
                     String errorMessage = "Unable to open the server editor: " + e.getMessage();
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
+                    Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, errorMessage, e);
                     StatusManager.getManager().handle(status, StatusManager.SHOW);
                 }
             }

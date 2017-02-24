@@ -14,20 +14,16 @@
  */
 package com.amazonaws.eclipse.lambda;
 
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.statushandlers.StatusManager;
 import org.osgi.framework.BundleContext;
 
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.lambda.project.listener.LambdaProjectChangeTracker;
 
 /**
  * The activator class controls the plug-in life cycle
  */
-public class LambdaPlugin extends AbstractUIPlugin {
+public class LambdaPlugin extends AbstractAwsPlugin {
 
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.lambda";
 
@@ -81,38 +77,6 @@ public class LambdaPlugin extends AbstractUIPlugin {
 
     public LambdaProjectChangeTracker getProjectChangeTracker() {
         return projectChangeTracker;
-    }
-
-    /**
-     * Returns an image descriptor for the image file at the given
-     * plug-in relative path
-     *
-     * @param path the path
-     * @return the image descriptor
-     */
-    public static ImageDescriptor getImageDescriptor(String path) {
-        return imageDescriptorFromPlugin(PLUGIN_ID, path);
-    }
-
-    /**
-     * Convenience method for reporting the exception to StatusManager
-     */
-    public void reportException(String errorMessage, Throwable e) {
-        StatusManager.getManager().handle(
-                new Status(IStatus.ERROR, PLUGIN_ID,
-                        errorMessage, e),
-                        StatusManager.SHOW | StatusManager.LOG);
-    }
-
-    /**
-     * Convenience method for logging a debug message at INFO level.
-     */
-    public void logInfo(String debugMessage) {
-        getLog().log(new Status(Status.INFO, PLUGIN_ID, debugMessage, null));
-    }
-
-    public void warn(String message, Throwable e) {
-        getLog().log(new Status(Status.WARNING, PLUGIN_ID, message, e));
     }
 
     /**

@@ -252,7 +252,7 @@ public class RoleTable extends Composite {
                     try {
                         deleteRole(roleName);
                     } catch (Exception e) {
-                        return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete roles: " + e.getMessage(), e);
+                        return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to delete roles: " + e.getMessage(), e);
                     }
                 }
                 refresh();

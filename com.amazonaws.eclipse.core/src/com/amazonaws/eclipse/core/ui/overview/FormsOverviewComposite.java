@@ -38,14 +38,13 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapData;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
 import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
-import com.amazonaws.eclipse.core.rss.Feed;
-import com.amazonaws.eclipse.core.rss.FeedMessage;
-import com.amazonaws.eclipse.core.rss.RSSFeedParser;
+import com.amazonaws.eclipse.core.util.RssFeed;
+import com.amazonaws.eclipse.core.util.RssFeed.Item;
+import com.amazonaws.eclipse.core.util.RssFeedParser;
 
 /**
  * Main composite displaying the AWS Toolkit for Eclipse overview page. This is
@@ -145,7 +144,7 @@ class FormsOverviewComposite extends Composite {
 
         composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
 
-//        Toolkit.newLabel(composite, "Loading...");
+        Toolkit.newLabel(composite, "Loading...");
 
         new LoadJavaDeveloperBlogJob(composite, overviewToolkit).schedule();
 
@@ -232,7 +231,8 @@ class FormsOverviewComposite extends Composite {
      * Simple Job for asynchronously retreiving a blog feed and updating the UI.
      */
     private final class LoadJavaDeveloperBlogJob extends Job {
-        private static final String JAVA_DEVELOPER_BLOG_RSS_URL = "https://aws.amazon.com/blogs/developer/category/java/";
+        private static final String JAVA_DEVELOPER_BLOG_URL = "https://aws.amazon.com/blogs/developer/category/java/";
+        private static final String JAVA_DEVELOPER_BLOG_RSS_URL = "https://aws.amazon.com/blogs/developer/category/java/feed/";
 
         private Composite composite;
         private Toolkit toolkit;
@@ -246,35 +246,36 @@ class FormsOverviewComposite extends Composite {
 
         @Override
         protected IStatus run(IProgressMonitor monitor) {
-            Display.getDefault().syncExec(new Runnable() {
-                public void run() {
-                    toolkit.newListItem(composite, "AWS Java Developer Blog", JAVA_DEVELOPER_BLOG_RSS_URL, null);
-                    form.reflow(true);
-                }
-            });
-            return Status.OK_STATUS;
-//            try {
-//                RSSFeedParser parser = new RSSFeedParser(JAVA_DEVELOPER_BLOG_RSS_URL);
-//
-//                Feed feed = parser.readFeed();
-//                final List<FeedMessage> mostRecentPosts = feed.getMessages().subList(0, 10);
-//
-//                Display.getDefault().syncExec(new Runnable () {
-//                    public void run() {
-//                        for (Control control : composite.getChildren()) control.dispose();
-//
-//                        for (FeedMessage message : mostRecentPosts) {
-//                            toolkit.newListItem(composite, message.getTitle(), message.getLink(), null);
-//                        }
-//
-//                        form.reflow(true);
-//                    }
-//                });
-//
-//                return Status.OK_STATUS;
-//            } catch (Exception e) {
-//                return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to load AWS Java Developer Blog feed", e);
-//            }
+            try {
+                RssFeedParser parser = new RssFeedParser(JAVA_DEVELOPER_BLOG_RSS_URL);
+
+                RssFeed rssFeed = parser.parse();
+                final List<Item> items = rssFeed == null || rssFeed.getChannel() == null || rssFeed.getChannel().getItems() == null ?
+                        null : rssFeed.getChannel().getItems().subList(0, 10);
+
+                Display.getDefault().syncExec(new Runnable () {
+                    public void run() {
+                        for (Control control : composite.getChildren()) control.dispose();
+
+                        if (items == null || items.isEmpty()) {
+                            toolkit.newListItem(composite, "AWS Java Developer Blog", JAVA_DEVELOPER_BLOG_URL, null);
+
+                        } else {
+                            for (Item message : items) {
+                                toolkit.newListItem(composite,
+                                        message.getTitle(), message.getLink(),
+                                        null);
+                            }
+                        }
+
+                        form.reflow(true);
+                    }
+                });
+
+                return Status.OK_STATUS;
+            } catch (Exception e) {
+                return new Status(Status.ERROR, AwsToolkitCore.getDefault().getPluginId(), "Unable to load AWS Java Developer Blog feed", e);
+            }
         }
     }
 
@@ -316,9 +317,7 @@ class FormsOverviewComposite extends Composite {
 
                     overviewContributionsByPluginId.put(contributorName, overviewContribution);
                 } catch (CoreException e) {
-                    String errorMessage = "Unable to create AWS Toolkit Overview section for: " + contributorName;
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                    AwsToolkitCore.getDefault().logError("Unable to create AWS Toolkit Overview section for: " + contributorName, e);
                 }
             }
         }
@@ -357,10 +356,7 @@ class FormsOverviewComposite extends Composite {
             try {
                 overviewSection.createControls(composite);
             } catch (Exception e) {
-                String errorMessage =
-                    "Unable to create AWS Toolkit Overview section for " + overviewContribution.title;
-                Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-                StatusManager.getManager().handle(status, StatusManager.LOG);
+                AwsToolkitCore.getDefault().logError("Unable to create AWS Toolkit Overview section for " + overviewContribution.title, e);
             }
         }
     }

@@ -9,7 +9,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/commons-io-2.4.0.jar"/>
 	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-ec2-1.11.21.jar"/>
-	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-core-1.11.21.jar"/>
 	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-iam-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-core-1.11.60.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-cloudformation-1.11.60.jar"/>
 	<classpathentry kind="output" path="eclipse-bin"/>
 </classpath>

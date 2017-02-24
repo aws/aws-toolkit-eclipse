@@ -524,7 +524,7 @@ public class TestToolManager {
         try {
             FileUtils.copyFile(tempFile, getLocalManifestFile());
         } catch (IOException exception) {
-            AwsToolkitCore.getDefault().logException(
+            AwsToolkitCore.getDefault().logError(
                 "Error caching manifest file to local disk; do you have "
                 + "write permission to the configured install directory? "
                 + exception.getMessage(),

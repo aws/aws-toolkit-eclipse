@@ -122,7 +122,7 @@ class PasswordPolicyForm extends Composite {
                         refresh();
                         return Status.OK_STATUS;
                     } catch (Exception e) {
-                        return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to add the password policy: " + e.getMessage(), e);
+                        return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to add the password policy: " + e.getMessage(), e);
                     }
 
                 }
@@ -147,7 +147,7 @@ class PasswordPolicyForm extends Composite {
                         refresh();
                         return Status.OK_STATUS;
                     } catch (Exception e) {
-                        return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete the password policy: " + e.getMessage(), e);
+                        return new Status(Status.ERROR, IdentityManagementPlugin.getDefault().getPluginId(), "Unable to delete the password policy: " + e.getMessage(), e);
                     }
 
                 }

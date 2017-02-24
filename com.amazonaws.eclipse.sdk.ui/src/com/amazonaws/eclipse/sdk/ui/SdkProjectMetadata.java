@@ -83,7 +83,7 @@ public class SdkProjectMetadata {
      */
 
     private Properties loadProperties() throws IOException {
-        IPath projectMetadataLocation = project.getWorkingLocation(JavaSdkPlugin.PLUGIN_ID);
+        IPath projectMetadataLocation = project.getWorkingLocation(JavaSdkPlugin.getDefault().getPluginId());
         Properties properties = new Properties();
         IPath sdkProperties = projectMetadataLocation.append(SDK_PROPERTIES_FILE_NAME);
 
@@ -96,7 +96,7 @@ public class SdkProjectMetadata {
     }
 
     private void saveProperties(Properties properties) throws IOException {
-        IPath projectMetadataLocation = project.getWorkingLocation(JavaSdkPlugin.PLUGIN_ID);
+        IPath projectMetadataLocation = project.getWorkingLocation(JavaSdkPlugin.getDefault().getPluginId());
         IPath sdkProperties = projectMetadataLocation.append(SDK_PROPERTIES_FILE_NAME);
         properties.store(new FileOutputStream(sdkProperties.toFile()), null);
     }

@@ -35,6 +35,7 @@ import org.eclipse.ui.navigator.CommonActionProvider;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
@@ -115,9 +116,9 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
 
                     IStatus status = Status.OK_STATUS;
                     if (errors.size() > 0) {
-                        status = new MultiStatus(AwsToolkitCore.PLUGIN_ID, 0, "Unable to terminate environments", null);
+                        status = new MultiStatus(ElasticBeanstalkPlugin.PLUGIN_ID, 0, "Unable to terminate environments", null);
                         for (Exception error : errors) {
-                            ((MultiStatus)status).add(new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to terminate environment", error));
+                            ((MultiStatus)status).add(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Unable to terminate environment", error));
                         }
                     }
 
@@ -165,9 +166,9 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
 
                     IStatus status = Status.OK_STATUS;
                     if (errors.size() > 0) {
-                        status = new MultiStatus(AwsToolkitCore.PLUGIN_ID, 0, "Unable to delete applications", null);
+                        status = new MultiStatus(ElasticBeanstalkPlugin.PLUGIN_ID, 0, "Unable to delete applications", null);
                         for (Exception error : errors) {
-                            ((MultiStatus)status).add(new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete application", error));
+                            ((MultiStatus)status).add(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Unable to delete application", error));
                         }
                     }
 

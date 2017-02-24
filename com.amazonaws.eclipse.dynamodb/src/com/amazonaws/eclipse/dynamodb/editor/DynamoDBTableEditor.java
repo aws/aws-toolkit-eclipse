@@ -551,7 +551,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     out.close();
 
                 } catch (Exception e) {
-                    AwsToolkitCore.getDefault().logException("Couldn't save CSV file", e);
+                    AwsToolkitCore.getDefault().logError("Couldn't save CSV file", e);
                 }
             }
 
@@ -720,8 +720,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     scanResult = AwsToolkitCore.getClientFactory(DynamoDBTableEditor.this.tableEditorInput.getAccountId())
                             .getDynamoDBV2Client().scan(scanRequest);
                 } catch ( Exception e ) {
-                    StatusManager.getManager().handle(
-                            new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage()), StatusManager.SHOW);
+                    DynamoDBPlugin.getDefault().reportException(e.getMessage(), e);
                     return;
                 }
 
@@ -770,8 +769,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     scanResult = AwsToolkitCore.getClientFactory(DynamoDBTableEditor.this.tableEditorInput.getAccountId())
                             .getDynamoDBV2Client().scan(scanRequest);
                 } catch ( Exception e ) {
-                    StatusManager.getManager().handle(
-                            new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage()), StatusManager.SHOW);
+                    DynamoDBPlugin.getDefault().reportException(e.getMessage(), e);
                     return;
                 }
 

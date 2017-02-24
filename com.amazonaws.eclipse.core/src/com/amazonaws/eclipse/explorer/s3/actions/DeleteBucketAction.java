@@ -85,7 +85,7 @@ public class DeleteBucketAction extends Action {
 
                     return Status.OK_STATUS;
                 } catch (Exception e) {
-                    return new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                    return new Status(IStatus.ERROR, AwsToolkitCore.getDefault().getPluginId(),
                         "Unable to delete buckets: " + e.getMessage(), e);
                 }
             }

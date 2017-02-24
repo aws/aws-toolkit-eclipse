@@ -91,7 +91,7 @@ public class DeleteObjectAction extends Action {
 
                     return Status.OK_STATUS;
                 } catch (Exception e) {
-                    return new Status(IStatus.ERROR, AwsToolkitCore.PLUGIN_ID,
+                    return new Status(IStatus.ERROR, AwsToolkitCore.getDefault().getPluginId(),
                         "Unable to delete objects: " + e.getMessage(), e);
                 } finally {
                     monitor.done();

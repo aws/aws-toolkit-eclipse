@@ -427,7 +427,7 @@ public class AWSClientFactory {
                         }
                     }
                 } catch ( URISyntaxException e ) {
-                    plugin.getLog().log(new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, e.getMessage(), e));
+                    plugin.logError(e.getMessage(), e);
                 }
             }
         }

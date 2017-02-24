@@ -161,7 +161,7 @@ public class InvokeFunctionInputDialog extends Dialog {
                 try {
                     jsonFiles = findJsonFiles(project);
                 } catch (CoreException e) {
-                    LambdaPlugin.getDefault().warn(
+                    LambdaPlugin.getDefault().logWarning(
                             "Failed to search for .json files in the project", e);
                 }
 

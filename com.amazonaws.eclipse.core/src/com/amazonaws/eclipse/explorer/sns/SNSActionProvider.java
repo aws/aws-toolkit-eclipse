@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
@@ -28,7 +27,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.navigator.CommonActionProvider;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
@@ -94,8 +92,7 @@ public class SNSActionProvider extends CommonActionProvider {
                 try {
                     sns.deleteTopic(new DeleteTopicRequest(topic.getTopicArn()));
                 } catch (Exception e) {
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, "Unable to delete Amazon SNS topic " + topic.getTopicArn(), e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.SHOW);
+                    AwsToolkitCore.getDefault().reportException("Unable to delete Amazon SNS topic", e);
                 }
             }
 

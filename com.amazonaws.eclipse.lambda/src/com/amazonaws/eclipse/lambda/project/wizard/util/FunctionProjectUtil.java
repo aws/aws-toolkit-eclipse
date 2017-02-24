@@ -26,25 +26,23 @@ import java.util.Properties;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.JavaCore;
 
+import com.amazonaws.eclipse.core.maven.MavenFactory;
+import com.amazonaws.eclipse.core.validator.JavaPackageName;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.template.data.HandlerTestClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerClassTemplateData;
 import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerTestClassTemplateData;
-import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
+import com.amazonaws.eclipse.lambda.project.wizard.model.PredefinedHandlerInputType;
 import com.amazonaws.eclipse.lambda.serverless.NameUtils;
 import com.amazonaws.eclipse.lambda.serverless.blueprint.Blueprint;
 import com.amazonaws.eclipse.lambda.serverless.blueprint.BlueprintProvider;
@@ -62,7 +60,7 @@ public class FunctionProjectUtil {
     private static final String LAMBDA_PROJECT_SETTING_FILE = "com.amazonaws.eclipse.lambda.project";
 
     public static void addSourceToProject(IProject project,
-            LambdaFunctionWizardDataModel dataModel) {
+            LambdaFunctionDataModel dataModel) {
 
         if (dataModel.isUseStreamHandler()) {
             StreamHandlerClassTemplateData streamHandlerClassData = dataModel.collectStreamHandlerTemplateData();
@@ -80,20 +78,18 @@ public class FunctionProjectUtil {
             addHandlerTestClassToProject(project, handlerTestClassData);
             addTestContextToProject(project, handlerTestClassData);
 
-            if (dataModel.getPredefinedHandlerInputType() != null) {
+            if (dataModel.getInputTypeEnum() != PredefinedHandlerInputType.CUSTOM) {
                 addTestUtilsToProject(project, handlerTestClassData);
             }
 
             // Add input json file if the user selects the predefined input type
-            if (dataModel.getPredefinedHandlerInputType() != null) {
-                String jsonFileName = dataModel.getPredefinedHandlerInputType()
+            if (dataModel.getInputTypeEnum() != PredefinedHandlerInputType.CUSTOM) {
+                String jsonFileName = dataModel.getInputTypeEnum()
                         .getSampleInputJsonFile();
                 addSampleInputJsonFileToProject(project,
                         handlerTestClassData.getPackageName(), jsonFileName);
             }
         }
-
-        addTestDirectoryToClasspath(project);
     }
 
     public static void addSourceToProject(IProject project, NewServerlessProjectDataModel dataModel)
@@ -108,7 +104,7 @@ public class FunctionProjectUtil {
             FunctionProjectUtil.addSourceFileToProject(
                     project,
                     NameUtils.SERVERLESS_TEMPLATE_FILE_NAME,
-                    dataModel.getServerlessFilePath());
+                    dataModel.getImportFileDataModel().getFilePath());
         } catch (Exception e) {
             LambdaPlugin.getDefault().reportException(
                     "Failed to add Serverless template file to the new Serverless project",
@@ -371,29 +367,6 @@ public class FunctionProjectUtil {
         }
     }
 
-    private static void addTestDirectoryToClasspath(IProject project) {
-
-        try {
-            IJavaProject javaProj = JavaCore.create(project);
-            IFolder tstFolder = project.getFolder("tst");
-
-            IPackageFragmentRoot tstRoot = javaProj.getPackageFragmentRoot(tstFolder);
-
-            if (javaProj.isOnClasspath(tstRoot)) return;
-
-            IClasspathEntry[] originalCp = javaProj.getRawClasspath();
-            IClasspathEntry[] augmentedCp = new IClasspathEntry[originalCp.length + 1];
-            System.arraycopy(originalCp, 0, augmentedCp, 0, originalCp.length);
-
-            augmentedCp[originalCp.length] = JavaCore.newSourceEntry(tstRoot.getPath());
-            javaProj.setRawClasspath(augmentedCp, null);
-
-        } catch (Exception e) {
-            LambdaPlugin.getDefault().warn(
-                    "Failed to add tst directory to the classpath", e);
-        }
-    }
-
     private static void addServerlessInputModelClassToProject(IProject project,
             ServerlessInputTemplateData templateData) {
         try {
@@ -474,7 +447,7 @@ public class FunctionProjectUtil {
             JavaPackageName packageName, String className, String classContent)
             throws CoreException, FileNotFoundException {
 
-        IPath srcRoot = getProjectDirectory(project, "src");
+        IPath srcRoot = getProjectDirectory(project, MavenFactory.getMavenSourceFolder());
         String fileName = className + ".java";
         addClassToProject(srcRoot, packageName, fileName, classContent);
     }
@@ -483,7 +456,7 @@ public class FunctionProjectUtil {
             JavaPackageName packageName, String className, String classContent)
             throws CoreException, FileNotFoundException {
 
-        IPath tstRoot = getProjectDirectory(project, "tst");
+        IPath tstRoot = getProjectDirectory(project, MavenFactory.getMavenTestFolder());
         String fileName = className + ".java";
         addClassToProject(tstRoot, packageName, fileName, classContent);
     }
@@ -492,7 +465,7 @@ public class FunctionProjectUtil {
             JavaPackageName packageName, String fileName, String fileContent)
             throws FileNotFoundException, CoreException {
 
-        IPath tstRoot = getProjectDirectory(project, "tst");
+        IPath tstRoot = getProjectDirectory(project, MavenFactory.getMavenTestResourceFolder());
         addClassToProject(tstRoot, packageName, fileName, fileContent);
     }
 
@@ -565,7 +538,7 @@ public class FunctionProjectUtil {
             try {
                 out.close();
             } catch (IOException e) {
-                LambdaPlugin.getDefault().warn(
+                LambdaPlugin.getDefault().logWarning(
                         "Failed to close FileOutputStreama " +
                         "after writing project metadata.",
                         e);
@@ -596,7 +569,7 @@ public class FunctionProjectUtil {
             try {
                 in.close();
             } catch (IOException e) {
-                LambdaPlugin.getDefault().warn(
+                LambdaPlugin.getDefault().logWarning(
                         "Failed to close FileInputStream " +
                         "after reading project metadata.",
                         e);
@@ -622,7 +595,7 @@ public class FunctionProjectUtil {
         try {
             project.refreshLocal(IResource.DEPTH_INFINITE, null);
         } catch (CoreException e) {
-            LambdaPlugin.getDefault().warn(
+            LambdaPlugin.getDefault().logWarning(
                     "Failed to refresh project " + project.getName(), e);
         }
     }

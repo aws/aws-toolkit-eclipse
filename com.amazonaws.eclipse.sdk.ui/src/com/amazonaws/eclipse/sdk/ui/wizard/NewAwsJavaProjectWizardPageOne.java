@@ -14,62 +14,76 @@
  */
 package com.amazonaws.eclipse.sdk.ui.wizard;
 
+import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.databinding.AggregateValidationStatus;
+import org.eclipse.core.databinding.DataBindingContext;
+import org.eclipse.core.databinding.observable.ChangeEvent;
+import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.ui.forms.events.ExpansionAdapter;
-import org.eclipse.ui.forms.events.ExpansionEvent;
-import org.eclipse.ui.forms.widgets.ExpandableComposite;
 
-import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
-import com.amazonaws.eclipse.sdk.ui.SdkChangeListener;
-import com.amazonaws.eclipse.sdk.ui.SdkDownloadProgressTrackingComposite;
+import com.amazonaws.eclipse.core.ui.MavenConfigurationComposite;
+import com.amazonaws.eclipse.core.ui.ProjectNameComposite;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
-import com.amazonaws.eclipse.sdk.ui.SdkVersionInfoComposite;
-import com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainer;
+import com.amazonaws.eclipse.sdk.ui.SdkSamplesManager;
+import com.amazonaws.eclipse.sdk.ui.model.NewAwsJavaProjectWizardDataModel;
 
 /**
  * The first page of the AWS New Project Wizard. Allows the user to select:
  * <li> Account credentials
  * <li> A collection of samples to include in the new project
- * <li> A version of the AWS SDK for Java to automatically add to the build path
  */
-class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
+class NewAwsJavaProjectWizardPageOne extends WizardPage {
 
-    private SdkVersionInfoComposite sdkVersionInfoComposite;
-    private SdkSamplesComposite sdkSamplesComposite;
+    private static final String PAGE_NAME = NewAwsJavaProjectWizardPageOne.class.getName();
+
+    private final NewAwsJavaProjectWizardDataModel dataModel;
+    private final DataBindingContext dataBindingContext;
+    private final AggregateValidationStatus aggregateValidationStatus;
+
+    // Composites modules in this page.
+    private ProjectNameComposite projectNameComposite;
     private AccountSelectionComposite accountSelectionComposite;
+    private MavenConfigurationComposite mavenConfigurationComposite;
+    private SdkSamplesComposite sdkSamplesComposite;
 
-    public NewAwsJavaProjectWizardPageOne() {
+    private ScrolledComposite scrolledComp;
+
+    public NewAwsJavaProjectWizardPageOne(NewAwsJavaProjectWizardDataModel dataModel) {
+        super(PAGE_NAME);
         setTitle("Create an AWS Java project");
         setDescription("Create a new AWS Java project in the workspace");
+        this.dataModel = dataModel;
+        this.dataBindingContext = new DataBindingContext();
+        this.aggregateValidationStatus = new AggregateValidationStatus(
+                dataBindingContext, AggregateValidationStatus.MAX_SEVERITY);
+        aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            public void handleChange(ChangeEvent arg0) {
+                populateValidationStatus();
+            }
+        });
     }
 
     private GridLayout initGridLayout(GridLayout layout, boolean margins) {
@@ -85,43 +99,19 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
         return layout;
     }
 
-    /**
-     * Returns a list of Sample projects selected by the user on the wizard page.
-     * @return a list of Sample projects selected by the user on the wizard page.
-     */
-    public List<SdkSample> getSelectedSamples() {
-        if (sdkSamplesComposite == null) {
-            return null;
-        }
-
-        return sdkSamplesComposite.getSelectedSamples();
-    }
-
-    /**
-     * Returns the SDK version set by the user in the wizard page.
-     * @return the SDK version set by the user in the wizard page.
-     */
-    public JavaSdkInstall getSelectedSdkInstall() {
-        return sdkVersionInfoComposite.getCurrentSdk();
-    }
-
-    /**
-     * Returns the account selected by the user in the wizard page.
-     *
-     * @return the account selected by the user in the wizard page.
-     */
-    public AccountInfo getSelectedAccount() {
-        return AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountSelectionComposite.getSelectedAccountId());
-    }
-
-    private ScrolledComposite scrolledComp;
-    private ControlAdapter resizeListener;
-
-    @Override
     public void createControl(final Composite parent) {
 
         initializeDialogUnits(parent);
+        Composite composite  = initCompositePanel(parent);
+        createProjectNameComposite(composite);
+        createMavenConfigurationComposite(composite);
+        createAccountSelectionComposite(composite);
+        createSamplesComposite(composite);
 
+        setControl(scrolledComp);
+    }
+
+    private Composite initCompositePanel(Composite parent) {
         scrolledComp = new ScrolledComposite(parent, SWT.V_SCROLL);
         scrolledComp.setExpandHorizontal(true);
         scrolledComp.setExpandVertical(true);
@@ -134,159 +124,78 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
         composite.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
         scrolledComp.setContent(composite);
 
-        resizeListener = new ControlAdapter() {
+        scrolledComp.addControlListener(new ControlAdapter() {
             @Override
             public void controlResized(ControlEvent e) {
                 Rectangle r = scrolledComp.getClientArea();
                 scrolledComp.setMinSize(composite.computeSize(r.width, SWT.DEFAULT));
             }
-        };
-        scrolledComp.addControlListener(resizeListener);
-
-        Control nameControl = createNameControl(composite);
-        nameControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        nameControl.addListener(SWT.Modify, new Listener() {
-            public void handleEvent(Event event) {
-                if ( !canFlipToNextPage() ) {
-                    setPageComplete(false);
-                }
-            }
         });
 
-        Control accountSelectionControl = createAccountSelectionComposite(composite);
-        accountSelectionControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        // Check to see if we have an SDK. If we don't, we need to wait before
-        // continuing
-        JavaSdkManager sdkManager = JavaSdkManager.getInstance();
-        synchronized ( sdkManager ) {
-            JavaSdkInstall defaultSDKInstall = sdkManager.getDefaultSdkInstall();
-            if ( defaultSDKInstall == null ) {
-                setPageComplete(false);
-
-                Job installationJob = sdkManager.getInstallationJob();
-                if ( installationJob == null ) {
-                    JavaSdkPlugin
-                            .getDefault()
-                            .getLog()
-                            .log(new Status(IStatus.ERROR, JavaSdkPlugin.PLUGIN_ID,
-                                    "Unable to check status of AWS SDK for Java download"));
-                    return;
-                }
-
-                // destroyAfterCompletion=true
-                final Composite pleaseWait = new SdkDownloadProgressTrackingComposite(
-                        composite, true) {
-                    @Override
-                    protected void onDownloadComplete() {
-                        createSDKOptionsControls(composite);
-                        composite.getParent().layout();
-                        composite.getShell().pack(true);
-                        composite.getParent().redraw();
-                        setPageComplete(canFlipToNextPage());
-                    }
-                };
-                pleaseWait.setLayout(initGridLayout(new GridLayout(1, false), true));
-
-            } else {
-                createSDKOptionsControls(composite);
-            }
-        }
-
-        setControl(scrolledComp);
+        return composite;
     }
 
-    /*
-     * This is kind of hacky, but the parent class doesn't give us any other way
-     * to hook into the validation state. We need to do this to make sure that
-     * the customer can't progress to the next page before the SDK has been
-     * bootstrapped.
-     */
-    @Override
-    public void setPageComplete(boolean complete) {
-        super.setPageComplete(complete && sdkVersionInfoComposite != null);
+    protected void createProjectNameComposite(Composite composite) {
+        projectNameComposite = new ProjectNameComposite(
+                composite, dataBindingContext, dataModel.getProjectNameDataModel());
     }
 
-    private void createSDKOptionsControls(final Composite composite) {
+    protected void createSamplesComposite(Composite composite) {
+        Group group = newGroup(composite, "AWS SDK for Java Samples");
+        sdkSamplesComposite = new SdkSamplesComposite(group, dataModel.getSdkSamples());
+    }
 
-        Control samplesComposite = createSamplesComposite(composite);
-        samplesComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        // Create advanced drop-down
-        final ExpandableComposite dropDown = new ExpandableComposite(composite, ExpandableComposite.TWISTIE);
-        dropDown.setText("Advanced Settings");
-
-        final Composite advancedSettingsGroup = new Composite(dropDown, SWT.NONE);
-        advancedSettingsGroup.setLayout(initGridLayout(new GridLayout(1, false), true));
-        advancedSettingsGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        createSdkVersionComposite(advancedSettingsGroup);
-        sdkVersionInfoComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        sdkSamplesComposite.listenForSdkChange(sdkVersionInfoComposite);
-
-        Control jreControl= createJRESelectionControl(advancedSettingsGroup);
-        jreControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        dropDown.setClient(advancedSettingsGroup);
-        GridData g = new GridData(SWT.FILL, SWT.FILL, true, true);
-        g.minimumHeight = 100;
-        dropDown.setLayoutData(g);
-
-        dropDown.addExpansionListener(new ExpansionAdapter() {
+    protected void createAccountSelectionComposite(Composite composite) {
+        Group group = newGroup(composite, "AWS Credentials");
+        accountSelectionComposite = new AccountSelectionComposite(group, SWT.NONE);
+        accountSelectionComposite.addSelectionListener(new SelectionAdapter() {
             @Override
-            public void expansionStateChanged(ExpansionEvent e) {
-                resizeListener.controlResized(null);
+            public void widgetSelected(SelectionEvent e) {
+                dataModel.setAccountInfo(AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(
+                        accountSelectionComposite.getSelectedAccountId()));
             }
         });
+        if (accountSelectionComposite.getSelectedAccountId() != null)
+            dataModel.setAccountInfo(AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(
+                accountSelectionComposite.getSelectedAccountId()));
     }
 
-    protected Control createSdkVersionComposite(Composite composite) {
-
-        Group group = new Group(composite, SWT.NONE);
-        group.setLayout(new GridLayout());
-        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        group.setText("AWS SDK for Java Version");
-        sdkVersionInfoComposite = new SdkVersionInfoComposite(group);
-
-        return sdkVersionInfoComposite;
+    protected void createMavenConfigurationComposite(Composite composite) {
+        Group group = newGroup(composite, "Maven configuration");
+        mavenConfigurationComposite = new MavenConfigurationComposite(group,
+                dataBindingContext, dataModel.getMavenConfigurationDataModel());
     }
 
-    protected Control createSamplesComposite(Composite composite) {
-        Group group = new Group(composite, SWT.NONE);
-        group.setLayout(new GridLayout());
-        GridData g = new GridData(SWT.FILL, SWT.TOP, true, false);
-        g.grabExcessHorizontalSpace = true;
-        group.setLayoutData(g);
-        group.setText("AWS SDK for Java Samples");
+    private void populateValidationStatus() {
+        IStatus status = getValidationStatus();
+        if (status == null) return;
 
-        sdkSamplesComposite = new SdkSamplesComposite(group, JavaSdkManager.getInstance().getDefaultSdkInstall());
-
-        return sdkSamplesComposite;
+        if (status.getSeverity() == IStatus.OK) {
+            this.setErrorMessage(null);
+            super.setPageComplete(true);
+        } else {
+            setErrorMessage(status.getMessage());
+            super.setPageComplete(false);
+        }
     }
 
-    protected Control createAccountSelectionComposite(Composite composite) {
-        Group group = new Group(composite, SWT.NONE);
-        group.setLayout(new GridLayout());
-        GridData g = new GridData(SWT.FILL, SWT.TOP, true, false);
-        g.grabExcessHorizontalSpace = true;
-        group.setLayoutData(g);
-        group.setText("AWS Credentials");
-        accountSelectionComposite = new AccountSelectionComposite(group, SWT.None);
-
-        return accountSelectionComposite;
+    private IStatus getValidationStatus() {
+        if (aggregateValidationStatus == null) return null;
+        Object value = aggregateValidationStatus.getValue();
+        if (!(value instanceof IStatus)) return null;
+        return (IStatus)value;
     }
 
     /**
      * Composite displaying the samples available in an SDK.
      */
-    private static class SdkSamplesComposite extends Composite implements SdkChangeListener {
-        List<Button> buttons = new ArrayList<Button>();
-        JavaSdkInstall sdkInstall;
+    private static class SdkSamplesComposite extends Composite {
+        private final List<SdkSample> sdkSamples;
+        private final List<Button> buttons = new ArrayList<Button>();
 
-        public SdkSamplesComposite(Composite parent, JavaSdkInstall sdkInstall) {
+        public SdkSamplesComposite(Composite parent, List<SdkSample> sdkSamples) {
             super(parent, SWT.NONE);
-            this.sdkInstall = sdkInstall;
-
+            this.sdkSamples = sdkSamples;
             createControls();
         }
 
@@ -296,13 +205,12 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
             }
 
             this.setLayout(new GridLayout());
-            List<SdkSample> samples = sdkInstall.getSamples();
+            List<SdkSample> totalSamples = SdkSamplesManager.getSamples();
 
-            for (SdkSample sample : samples) {
+            for (SdkSample sample : totalSamples) {
                 if (sample.getName() == null
                  || sample.getDescription() == null) {
-                    // Sanity check - skip samples without names and
-                    // descriptions.
+                    // Sanity check - skip samples without names and descriptions.
                     continue;
                 }
 
@@ -315,53 +223,22 @@ class NewAwsJavaProjectWizardPageOne extends NewJavaProjectWizardPageOne {
                 GridData gridData = new GridData(SWT.BEGINNING, SWT.TOP, true, false);
                 gridData.horizontalIndent = 25;
                 label.setLayoutData(gridData);
+                button.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent event) {
+                        onButtonSelected(event);
+                    }
+                });
             }
         }
 
-        public void listenForSdkChange(SdkVersionInfoComposite scl) {
-            scl.registerSdkVersionChangedListener(this);
-        }
-
-        public List<SdkSample> getSelectedSamples() {
-            List<SdkSample> selectedSamples = new ArrayList<SdkSample>();
-
-            // Bail out early if the list of buttons doesn't exist yet
-            if (buttons == null) {
-                return selectedSamples;
+        private void onButtonSelected(SelectionEvent event) {
+            Button sourceButton  = (Button) event.getSource();
+            if (sourceButton.getSelection()) {
+                this.sdkSamples.add((SdkSample)sourceButton.getData());
+            } else {
+                this.sdkSamples.remove((SdkSample)sourceButton.getData());
             }
-
-            for (Button b : buttons) {
-                if (b.isDisposed() || b.getSelection() == false) {
-                    continue;
-                }
-                selectedSamples.add((SdkSample)b.getData());
-            }
-            return selectedSamples;
-        }
-
-        public void sdkChanged(JavaSdkInstall newSdk) {
-            this.sdkInstall = newSdk;
-            this.createControls();
-
-            this.layout(true);
-            this.getParent().layout(true);
-            this.getParent().getParent().layout(true);
         }
     }
-
-    /**
-     * Returns the default class path entries to be added on new projects. By default this is the JRE container as
-     * selected by the user.
-     *
-     * @return returns the default class path entries
-     */
-    @Override
-    public IClasspathEntry[] getDefaultClasspathEntries() {
-        IClasspathEntry[] defaultClasspath = super.getDefaultClasspathEntries();
-        IClasspathEntry[] newClasspath = new IClasspathEntry[defaultClasspath.length + 1];
-        for (int i = 0; i < defaultClasspath.length; i++) { newClasspath[i] = defaultClasspath[i]; }
-        newClasspath[defaultClasspath.length] = JavaCore.newContainerEntry(new AwsClasspathContainer(getSelectedSdkInstall()).getPath());
-        return newClasspath;
-    }
-
 }

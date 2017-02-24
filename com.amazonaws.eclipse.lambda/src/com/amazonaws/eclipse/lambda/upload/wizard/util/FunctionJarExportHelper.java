@@ -101,7 +101,7 @@ public class FunctionJarExportHelper {
             return getSelectedElementsWithoutContainedChildren(launchConfiguration);
 
         } catch (CoreException e) {
-            LambdaPlugin.getDefault().warn(
+            LambdaPlugin.getDefault().logWarning(
                     "Unable to resolve dependencies of project "
                             + project.getName(), e);
 

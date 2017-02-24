@@ -14,45 +14,42 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard;
 
-import static com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil.refreshProject;
-
 import java.io.File;
+import java.net.MalformedURLException;
 
+import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.internal.ui.wizards.NewElementWizard;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.INewWizard;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.statushandlers.StatusManager;
 
+import com.amazonaws.eclipse.core.maven.MavenFactory;
+import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsProjectWizard;
+import com.amazonaws.eclipse.core.util.WorkbenchUtils;
+import com.amazonaws.eclipse.core.validator.JavaPackageName;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.page.NewLambdaJavaFunctionProjectWizardPageOne;
-import com.amazonaws.eclipse.lambda.project.wizard.page.NewLambdaJavaFunctionProjectWizardPageTwo;
-import com.amazonaws.eclipse.lambda.project.wizard.util.BrowserUtil;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
-import com.amazonaws.eclipse.lambda.project.wizard.util.JavaPackageName;
 
-@SuppressWarnings("restriction")
-public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard implements INewWizard {
+public class NewLambdaJavaFunctionProjectWizard extends AbstractAwsProjectWizard {
+
+    private static final String DEFAULT_GROUP_ID = "com.amazonaws.lambda";
+    private static final String DEFAULT_ARTIFACT_ID = "demo";
 
     private final LambdaFunctionWizardDataModel dataModel = new LambdaFunctionWizardDataModel();
     private NewLambdaJavaFunctionProjectWizardPageOne pageOne;
-    private NewLambdaJavaFunctionProjectWizardPageTwo pageTwo;
+
+    private IProject project;
 
     @Override
     public void addPages() {
@@ -60,75 +57,79 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
             pageOne = new NewLambdaJavaFunctionProjectWizardPageOne(dataModel);
         }
         addPage(pageOne);
+    }
 
-        if (pageTwo == null) {
-            pageTwo = new NewLambdaJavaFunctionProjectWizardPageTwo(pageOne);
-        }
-        // We create pageTwo so that we can use the APIs provided by the system wizard.
-        // But in the UI, we hide this page to keep the wizard simple.
+    public NewLambdaJavaFunctionProjectWizard() {
+        super("New AWS Lambda Maven Project");
+        initDataModel();
     }
 
     @Override
-    protected void finishPage(IProgressMonitor monitor)
-            throws InterruptedException, CoreException {
+    protected IStatus doFinish(IProgressMonitor monitor) {
 
         LambdaAnalytics.trackNewProjectAttributes(dataModel);
+        final String projectName = dataModel.getProjectNameDataModel().getProjectName();
+        final Model mavenModel = getModel();
 
-        pageTwo.performFinish(monitor);
+        File readmeFile = null;
 
-        monitor.setTaskName("Configuring AWS Lambda Java project");
+        try {
+            savePreferences(dataModel, LambdaPlugin.getDefault().getPreferenceStore());
 
-        IJavaProject javaProject = pageTwo.getJavaProject();
-        final IProject project = javaProject.getProject();
+            final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+            project = root.getProject(projectName);
 
-        Display.getDefault().syncExec(new Runnable() {
-
-            public void run() {
-
-                File readmeFile = null;
-
-                try {
-                    savePreferences(dataModel, LambdaPlugin.getDefault().getPreferenceStore());
-
-                    FunctionProjectUtil.addSourceToProject(project, dataModel);
-
-                    if (dataModel.isShowReadmeFile()) {
-                        readmeFile = FunctionProjectUtil.addReadmeFileToProject(project, dataModel.collectHandlerTestTemplateData());
-                    }
-
-                    refreshProject(project);
-
-                } catch (Exception e) {
-                    LambdaAnalytics.trackProjectCreationFailed();
-                    StatusManager.getManager().handle(
-                            new Status(IStatus.ERROR, LambdaPlugin.PLUGIN_ID,
-                                    "Failed to create new Lambda project",
-                                    e),
-                                    StatusManager.SHOW);
-                    return;
-                }
-
-                LambdaAnalytics.trackProjectCreationSucceeded();
-
-                try {
-                    IFile handlerClass = findHandlerClassFile(project, dataModel);
-                    selectAndReveal(handlerClass); // show in explorer
-                    openHandlerClassEditor(handlerClass); // show in editor
-                } catch (Exception e) {
-                    LambdaPlugin.getDefault().warn(
-                            "Failed to open the handler class", e);
-                }
-
-                if (readmeFile != null) {
-                    try {
-                        BrowserUtil.openInternalBrowserAsEditor(readmeFile.toURI().toURL());
-                    } catch (Exception e) {
-                        LambdaPlugin.getDefault().warn(
-                                "Failed to open README.html for the new Lambda project", e);
-                    }
-                }
+            try {
+                MavenFactory.createMavenProject(project, mavenModel, monitor);
+            } catch (Exception e) {
+                LambdaPlugin.getDefault().reportException(
+                        "Failed to create AWS Lambda Maven Project.", e);
             }
-        });
+
+            FunctionProjectUtil.addSourceToProject(project, dataModel.getLambdaFunctionDataModel());
+
+            if (dataModel.isShowReadmeFile()) {
+                readmeFile = FunctionProjectUtil.addReadmeFileToProject(project,
+                        dataModel.getLambdaFunctionDataModel().collectHandlerTestTemplateData());
+            }
+
+            FunctionProjectUtil.refreshProject(project);
+
+        } catch (Exception e) {
+            LambdaAnalytics.trackProjectCreationFailed();
+            LambdaPlugin.getDefault().reportException("Failed to create new Lambda project", e);
+        }
+
+        LambdaAnalytics.trackProjectCreationSucceeded();
+
+        IFile handlerClass = findHandlerClassFile(project, dataModel);
+        WorkbenchUtils.selectAndReveal(handlerClass, workbench); // show in explorer
+        WorkbenchUtils.openFileInEditor(handlerClass, workbench); // show in editor
+
+        if (readmeFile != null) {
+            try {
+                WorkbenchUtils.openInternalBrowserAsEditor(readmeFile.toURI().toURL(), workbench);
+            } catch (MalformedURLException e) {
+                LambdaPlugin.getDefault().logWarning(
+                        "Failed to open README.html for the new Lambda project", e);
+            }
+        }
+        return Status.OK_STATUS;
+    }
+
+    private Model getModel() {
+        Model model = new Model();
+        String groupId = dataModel.getMavenConfigurationDataModel().getGroupId();
+        String artifactId = dataModel.getMavenConfigurationDataModel().getArtifactId();
+        model.setModelVersion(MavenFactory.getMavenModelVersion());
+        model.setGroupId(groupId);
+        model.setArtifactId(artifactId);
+        model.setVersion(MavenFactory.getMavenModelVersion());
+        model.addDependency(MavenFactory.getAwsLambdaJavaCoreDependency());
+        model.addDependency(MavenFactory.getAwsLambdaJavaEventsDependency());
+        model.addDependency(MavenFactory.getJunitDependency());
+        model.addDependency(MavenFactory.getLatestAwsSdkDependency("compile"));
+        return model;
     }
 
     @Override
@@ -137,33 +138,33 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
         return true;
     }
 
-    private static IFile findHandlerClassFile(IProject project,
-            LambdaFunctionWizardDataModel dataModel) {
-
-        IPath handlerPath = new Path("src");
-        JavaPackageName handlerPackage = JavaPackageName.parse(dataModel
-                .getHandlerPackageName());
-        for (String component : handlerPackage.getComponents()) {
-            handlerPath = handlerPath.append(component);
-        }
-        handlerPath = handlerPath.append(dataModel.getHandlerClassName()
-                + ".java");
-
-        return project.getFile(handlerPath);
-    }
-
-    private static void openHandlerClassEditor(IFile handlerFile)
-            throws PartInitException {
-
-        IWorkbenchPage page = PlatformUI.getWorkbench()
-                .getActiveWorkbenchWindow().getActivePage();
-
-        IDE.openEditor(page, handlerFile, true);
+    @Override
+    protected void initDataModel() {
+        MavenConfigurationDataModel mavenDataModel = dataModel.getMavenConfigurationDataModel();
+        mavenDataModel.setGroupId(DEFAULT_GROUP_ID);
+        mavenDataModel.setArtifactId(DEFAULT_ARTIFACT_ID);
+        dataModel.setShowReadmeFile(LambdaPlugin.getDefault().getPreferenceStore()
+              .getBoolean(LambdaPlugin.PREF_K_SHOW_README_AFTER_CREATE_NEW_PROJECT));
     }
 
     @Override
-    public IJavaElement getCreatedElement() {
-        return pageTwo.getJavaProject();
+    protected String getJobTitle() {
+        return "Creating AWS Lambda Maven Project";
+    }
+
+    private static IFile findHandlerClassFile(IProject project,
+            LambdaFunctionWizardDataModel dataModel) {
+
+        IPath handlerPath = new Path(MavenFactory.getMavenSourceFolder());
+        JavaPackageName handlerPackage = JavaPackageName.parse(
+                dataModel.getLambdaFunctionDataModel().getPackageName());
+        for (String component : handlerPackage.getComponents()) {
+            handlerPath = handlerPath.append(component);
+        }
+        handlerPath = handlerPath.append(dataModel.getLambdaFunctionDataModel().getClassName()
+                + ".java");
+
+        return project.getFile(handlerPath);
     }
 
     private static void savePreferences(
@@ -172,5 +173,10 @@ public class NewLambdaJavaFunctionProjectWizard extends NewElementWizard impleme
         prefStore.setValue(
                 LambdaPlugin.PREF_K_SHOW_README_AFTER_CREATE_NEW_PROJECT,
                 dataModel.isShowReadmeFile());
+    }
+
+    @Override
+    protected AbstractAwsPlugin getPlugin() {
+        return LambdaPlugin.getDefault();
     }
 }

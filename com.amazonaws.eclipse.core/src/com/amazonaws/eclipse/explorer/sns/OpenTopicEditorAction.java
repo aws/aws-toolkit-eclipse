@@ -14,14 +14,12 @@
  */
 package com.amazonaws.eclipse.explorer.sns;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
@@ -50,9 +48,7 @@ public class OpenTopicEditorAction extends Action {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                     activeWindow.getActivePage().openEditor(input, "com.amazonaws.eclipse.explorer.sns.topicEditor");
                 } catch (PartInitException e) {
-                    String errorMessage = "Unable to open the Amazon SNS topic editor: " + e.getMessage();
-                    Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID, errorMessage, e);
-                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                    AwsToolkitCore.getDefault().reportException("Unable to open the Amazon SNS topic editor", e);
                 }
             }
         });

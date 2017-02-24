@@ -16,11 +16,9 @@ package com.amazonaws.eclipse.core;
 
 import java.net.URL;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 public class BrowserUtils {
 
@@ -43,9 +41,8 @@ public class BrowserUtils {
         try {
             openExternalBrowser(new URL(url));
         } catch (Exception e) {
-            Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
+            AwsToolkitCore.getDefault().reportException(
                     "Unable to open external web browser to '" + url + "': " + e.getMessage(), e);
-            StatusManager.getManager().handle(status, StatusManager.SHOW);
         }
     }
 }

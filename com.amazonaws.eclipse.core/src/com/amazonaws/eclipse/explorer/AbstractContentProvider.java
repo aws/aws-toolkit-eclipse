@@ -141,8 +141,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
                     cachedResponses.put(parentElement, new Object[] { new UnableToConnectNode() });
                 }
 
-                Status status = new Status(Status.WARNING, AwsToolkitCore.PLUGIN_ID, "Error loading explorer data", e);
-                StatusManager.getManager().handle(status, StatusManager.LOG);
+                AwsToolkitCore.getDefault().logWarning("Error loading explorer data", e);
             }
 
             Display.getDefault().syncExec(new RefreshRunnable(viewer, parentElement));
@@ -314,7 +313,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
                                 backgroundJobs.remove(updatedParentElement);
                             }
                         } catch (AmazonClientException e) {
-                            return new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
+                            return new Status(Status.ERROR, AwsToolkitCore.getDefault().getPluginId(),
                                     "Unable to update the content: " + e.getMessage(), e);
                         }
 

@@ -17,11 +17,9 @@ package com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.menu;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.datatools.connectivity.ui.actions.AddProfileViewAction;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 
@@ -37,9 +35,7 @@ public class NewSimpleDBConnectionHandler extends AbstractHandler {
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow());
             new AddProfileViewAction().run();
         } catch (WorkbenchException e) {
-            Status status = new Status(Status.ERROR, AwsToolkitCore.PLUGIN_ID,
-                "Unable to open connection wizard: " + e.getMessage(), e);
-            StatusManager.getManager().handle(status, StatusManager.SHOW);
+            AwsToolkitCore.getDefault().reportException("Unable to open connection wizard", e);
         }
 
         return null;

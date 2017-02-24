@@ -14,33 +14,45 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.amazonaws.eclipse.core.model.ComboBoxItemData;
 import com.amazonaws.eclipse.lambda.UrlConstants;
 
 /**
  * This enum indicates all the Request Handler types provisioned by AWS Lambda. The Handler Type combo box
  * in the "Create a new AWS Lambda Java Project" UI will take use of these values.
  */
-public enum LambdaHandlerType {
-    // The order of the handler types matters that the first handler type in this enum will be chosen
-    // as the default selection for the lambda handler combo.
-    REQUEST_HANDLER("Request Handler", UrlConstants.LAMBDA_REQUEST_HANDLER_DOC_URL),
-    STREAM_REQUEST_HANDLER("Stream Request Handler", UrlConstants.LAMBDA_STREAM_REQUEST_HANDLER_DOC_URL)
-    ;
+public class LambdaHandlerType implements ComboBoxItemData {
+    public static final LambdaHandlerType REQUEST_HANDLER = new LambdaHandlerType("Request Handler", UrlConstants.LAMBDA_REQUEST_HANDLER_DOC_URL);
+    public static final LambdaHandlerType STREAM_REQUEST_HANDLER = new LambdaHandlerType("Stream Request Handler", UrlConstants.LAMBDA_STREAM_REQUEST_HANDLER_DOC_URL);
 
+    private static final List<LambdaHandlerType> LIST = new ArrayList<LambdaHandlerType>();
+    static {
+        LIST.add(REQUEST_HANDLER);
+        LIST.add(STREAM_REQUEST_HANDLER);
+    }
+
+    // Acting as the text in the combo box.
     private final String name;
     private final String docUrl;
 
-    LambdaHandlerType(String name, String docUrl) {
+    private LambdaHandlerType(String name, String docUrl) {
         this.name = name;
         this.docUrl = docUrl;
     }
 
-    public String getName() {
-        return name;
+    public static List<LambdaHandlerType> list() {
+        return LIST;
     }
 
     public String getDocUrl() {
         return docUrl;
+    }
+
+    public String getName() {
+        return name;
     }
 
 }

@@ -22,7 +22,7 @@ import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 
 /**
  * Indentation strategy reacts to newlines by inserting the appropriate amount
@@ -47,7 +47,7 @@ final class TemplateAutoEditStrategy implements IAutoEditStrategy {
                 insertClosingBrace(document, command, "}");
             }
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException("Error in auto edit:", e);
+            CloudFormationPlugin.getDefault().logError("Error in auto edit:", e);
         }
     }
 
@@ -140,7 +140,7 @@ final class TemplateAutoEditStrategy implements IAutoEditStrategy {
             command.shiftsCaret = true;
             command.text = command.text + new String(insertionText);
         } catch ( Exception e ) {
-            AwsToolkitCore.getDefault().logException("Failed to auto-indent", e);
+            CloudFormationPlugin.getDefault().logError("Failed to auto-indent", e);
         }
     }
 
