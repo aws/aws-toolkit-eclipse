@@ -4,7 +4,6 @@ Bundle-Name: AWS Elastic Beanstalk Eclipse Plugin
 Bundle-SymbolicName: com.amazonaws.eclipse.elasticbeanstalk;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: lib/jgit/jgit-1.3.0-aws-git-push.jar,
- bin/,
  .
 Bundle-Activator: com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin
 Bundle-Vendor: Amazon Web Services

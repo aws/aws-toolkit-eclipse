@@ -29,7 +29,7 @@ class Tomcat8SolutionStacks {
      * Tomcat 8, if we fail to retrieve the latest solution-stack name from the
      * DescribeSolutionStacks API.
      */
-    private static final String TOMCAT_8_64BIT_AMAZON_LINUX_v1_0_0 = "64bit Amazon Linux 2014.09 v1.0.0 running Tomcat 7 Java 7";
+    private static final String TOMCAT_8_64BIT_AMAZON_LINUX_v2_5_2 = "64bit Amazon Linux 2016.09 v2.5.2 running Tomcat 8 Java 8";
 
     private static final String SIX_FOUR_BIT_PREFIX = "64bit Amazon Linux ";
     private static final String TOMCAT_8_Java_8_SUFFIX = " running Tomcat 8 Java 8";
@@ -88,7 +88,7 @@ class Tomcat8SolutionStacks {
         }
 
         // returns the hard-coded string constant as fall-back
-        return TOMCAT_8_64BIT_AMAZON_LINUX_v1_0_0;
+        return TOMCAT_8_64BIT_AMAZON_LINUX_v2_5_2;
     }
 
 }

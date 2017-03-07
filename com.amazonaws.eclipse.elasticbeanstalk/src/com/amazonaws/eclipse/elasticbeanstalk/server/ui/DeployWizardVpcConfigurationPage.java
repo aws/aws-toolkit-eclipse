@@ -317,6 +317,7 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
             List<SecurityGroup> securityGroups = ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest()
                     .withFilters(new Filter()
                             .withName("vpc-id").withValues(wizardDataModel.getVpcId()))).getSecurityGroups();
+            securityGroupCombo.removeAll();
             for (SecurityGroup securityGroup : securityGroups) {
                 String securityGroupText = securityGroup.getGroupName() + " -- " + securityGroup.getGroupId();
                 securityGroupCombo.add(securityGroupText);

@@ -3,9 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: IdentityManagement
 Bundle-SymbolicName: com.amazonaws.eclipse.identitymanagement;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-ClassPath: com.amazonaws.eclipse.identitymanagement,
- bin/,
- com.amazonaws.eclipse.identitymanagement
+Bundle-ClassPath: .
 Bundle-Activator: com.amazonaws.eclipse.identitymanagement.IdentityManagementPlugin
 Bundle-Vendor: AMAZONAWS
 Require-Bundle: org.eclipse.ui,
