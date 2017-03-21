@@ -12,84 +12,47 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-/*
- * Copyright 2010-2012 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
 package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.launching.IVMInstall;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jst.j2ee.classpathdep.ClasspathDependencyUtil;
-import org.eclipse.jst.j2ee.classpathdep.UpdateClasspathAttributeUtil;
-import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
-import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelProperties;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.wst.common.componentcore.ComponentCore;
-import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetDataModelProperties;
-import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetProjectCreationDataModelProperties;
-import org.eclipse.wst.common.componentcore.datamodel.properties.IFacetProjectCreationDataModelProperties.FacetDataModelMap;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
-import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
-import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
-import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
-import org.eclipse.wst.common.project.facet.core.runtime.RuntimeManager;
-import org.eclipse.wst.server.core.IRuntime;
-import org.eclipse.wst.server.core.IRuntimeType;
-import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
-import org.eclipse.wst.server.core.ServerCore;
 import org.osgi.framework.Bundle;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.maven.MavenFactory;
+import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
+import com.amazonaws.eclipse.core.validator.JavaPackageName;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkAnalytics;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkInstall;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
-import com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainer;
-import com.amazonaws.eclipse.sdk.ui.classpath.AwsSdkClasspathUtils;
 
 /**
  * Runnable (with progress) that creates a new AWS Java web project, based on
@@ -100,28 +63,7 @@ import com.amazonaws.eclipse.sdk.ui.classpath.AwsSdkClasspathUtils;
  */
 final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress {
 
-    private static final String ELASTIC_BEANSTALK_RUNTIME_ID = "com.amazonaws.eclipse.elasticbeanstalk.jee.runtime";
-    private static final String GENERIC_JEE_RUNTIME_ID = "org.eclipse.jst.server.core.runtimeType";
-
     private final NewAwsJavaWebProjectDataModel dataModel;
-
-    /*
-     * TODO: it would be better to inspect these from the travel log itself
-     * somehow -- right now it's coupled tightly to that file structure.
-     */
-    public static final String LANGUAGES_DIR = "language";
-    public static final Map<String, String> LANGUAGE_DIRS = new HashMap<String, String>();
-    static {
-        LANGUAGE_DIRS.put(NewAwsJavaWebProjectDataModel.JAPANESE, "jp");
-    }
-
-    public static final Map<String, String> LANGUAGE_BUNDLE_PATHS = new HashMap<String, String>();
-    static {
-        LANGUAGE_BUNDLE_PATHS.put(NewAwsJavaWebProjectDataModel.ENGLISH, "hawaii");
-        LANGUAGE_BUNDLE_PATHS.put(NewAwsJavaWebProjectDataModel.JAPANESE, "japan");
-    }
-
-    public static final String BUNDLE_BUCKET = "aws-travellog-sample-data";
 
     private static final IWorkbenchBrowserSupport BROWSER_SUPPORT =
             PlatformUI.getWorkbench().getBrowserSupport();
@@ -137,67 +79,12 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         SubMonitor monitor = SubMonitor.convert(progressMonitor, "Creating new AWS Java web project", 100);
 
         try {
-            IRuntime genericJeeServerRuntime = configureGenericJeeServerRuntime();
-
-            // Create a WTP Dynamic Web project
-            IDataModel newWebProjectDataModel = DataModelFactory.createDataModel(IWebFacetInstallDataModelProperties.class);
-            newWebProjectDataModel.setProperty(IFacetProjectCreationDataModelProperties.FACET_PROJECT_NAME, dataModel.getProjectName());
-            if (genericJeeServerRuntime != null) {
-                newWebProjectDataModel.setProperty(
-                        IFacetProjectCreationDataModelProperties.FACET_RUNTIME,
-                        RuntimeManager.getRuntime(genericJeeServerRuntime.getId()));
-            }
-
-            // Default to a 2.5 web app
-            FacetDataModelMap facetDataModelMap = (FacetDataModelMap)newWebProjectDataModel.getProperty(IFacetProjectCreationDataModelProperties.FACET_DM_MAP);
-            IDataModel facetDataModel = facetDataModelMap.getFacetDataModel(IJ2EEFacetConstants.DYNAMIC_WEB);
-            facetDataModel.setProperty(IFacetDataModelProperties.FACET_VERSION, IJ2EEFacetConstants.DYNAMIC_WEB_25);
-
-            newWebProjectDataModel.getDefaultOperation().execute(monitor.newChild(30), null);
-
-            // Add the AWS SDK for Java
-            IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(dataModel.getProjectName());
+            IProject project = createBeanstalkProject(
+                    dataModel.getMavenConfigurationDataModel(), monitor);
             IJavaProject javaProject = JavaCore.create(project);
-            JavaSdkManager sdkManager = JavaSdkManager.getInstance();
-
-            // When installing the SDK, make sure we're not in the middle of
-            // bootstrapping the environment
-            JavaSdkInstall sdkInstall = null;
-            Job installationJob = null;
-            synchronized ( sdkManager ) {
-                sdkInstall = sdkManager.getDefaultSdkInstall();
-                if ( sdkInstall == null ) {
-                    installationJob = sdkManager.getInstallationJob();
-                    if ( installationJob == null ) {
-                        JavaSdkPlugin
-                                .getDefault().logError("Unable to check status of AWS SDK for Java download", null);
-                    }
-                }
-            }
-
-            if ( sdkInstall == null && installationJob != null ) {
-                installationJob.join();
-            }
-
-            sdkInstall = sdkManager.getDefaultSdkInstall();
-            if ( sdkInstall != null ) {
-                sdkInstall.writeMetadataToProject(javaProject);
-                AwsSdkClasspathUtils.addAwsSdkToProjectClasspath(javaProject, sdkInstall);
-            }
-
+            setDefaultJreToProjectClasspath(javaProject);
             monitor.worked(20);
 
-            // Mark it as a Java EE module dependency
-            // TODO: If the user changes the SDK version (through the properties page) then we'll lose the
-            //       Java EE module dependency classpath entry attribute.
-            Map<IClasspathEntry, IPath> classpathEntriesToRuntimePath = new HashMap<IClasspathEntry, IPath>();
-            IClasspathEntry entry = findSdkClasspathEntry(javaProject);
-            final IPath runtimePath = ClasspathDependencyUtil.getRuntimePath(null, true, ClasspathDependencyUtil.isClassFolderEntry(entry));
-            classpathEntriesToRuntimePath.put(entry, runtimePath);
-            IDataModelOperation addDependencyAttributesOperation = UpdateClasspathAttributeUtil.createAddDependencyAttributesOperation(project.getName(), classpathEntriesToRuntimePath);
-            addDependencyAttributesOperation.execute(monitor.newChild(30), null);
-
-            // Add files to the the project
             addTemplateFiles(project);
             monitor.worked(10);
 
@@ -207,29 +94,31 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             }
             monitor.worked(10);
 
-            // Open the readme.html in an editor browser window.
-            File root = project.getLocation().toFile();
-            final File indexHtml = new File(root, "WebContent/index.html");
+            if (dataModel.getProjectTemplate() == JavaWebProjectTemplate.DEFAULT) {
+                // Open the readme.html in an editor browser window.
+                File root = project.getLocation().toFile();
+                final File indexHtml = new File(root, "src/main/webapp/index.html");
 
-            // Internal browser must be opened within UI thread
-            Display.getDefault().syncExec(new Runnable() {
-                public void run() {
-                    try {
-                        IWebBrowser browser = BROWSER_SUPPORT.createBrowser(
-                                IWorkbenchBrowserSupport.AS_EDITOR,
-                                null,
-                                null,
-                                null);
-                        browser.openURL(indexHtml.toURI().toURL());
-                    } catch (Exception e) {
-                        ElasticBeanstalkPlugin
-                                .getDefault()
-                                .logError(
-                                        "Failed to open project index page in Eclipse editor.",
-                                        e);
+                // Internal browser must be opened within UI thread
+                Display.getDefault().syncExec(new Runnable() {
+                    public void run() {
+                        try {
+                            IWebBrowser browser = BROWSER_SUPPORT.createBrowser(
+                                    IWorkbenchBrowserSupport.AS_EDITOR,
+                                    null,
+                                    null,
+                                    null);
+                            browser.openURL(indexHtml.toURI().toURL());
+                        } catch (Exception e) {
+                            ElasticBeanstalkPlugin
+                                    .getDefault()
+                                    .logError(
+                                            "Failed to open project index page in Eclipse editor.",
+                                            e);
+                        }
                     }
-                }
-            });
+                });
+            }
 
         } catch (Exception e) {
             throw new InvocationTargetException(e);
@@ -238,88 +127,33 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         }
     }
 
-    private IClasspathEntry findSdkClasspathEntry(IJavaProject javaProject) throws JavaModelException {
-        IPath expectedPath = new AwsClasspathContainer(JavaSdkManager.getInstance().getDefaultSdkInstall()).getPath();
-        for (IClasspathEntry entry : javaProject.getRawClasspath()) {
-            if (entry.getPath().equals(expectedPath)) {
-                return entry;
+    public static void setDefaultJreToProjectClasspath(IJavaProject javaProject) throws JavaModelException {
+
+        final String JRE_CONTAINER_ID = "org.eclipse.jdt.launching.JRE_CONTAINER";
+        final String JAVA_CORE_VERSION_1_8 = "1.8";
+
+        IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
+        List<IClasspathEntry> newList = new ArrayList<IClasspathEntry>();
+
+        for (IClasspathEntry entry : rawClasspath) {
+            if (!entry.getPath().toString().startsWith(JRE_CONTAINER_ID)) {
+                newList.add(entry);
             }
         }
 
-        return null;
-    }
+        IPath containerPath = new Path(JavaRuntime.JRE_CONTAINER);
+        IVMInstall ivmInstall = JavaRuntime.getDefaultVMInstall();
+        containerPath.append(ivmInstall.getVMInstallType().getId()).append(
+                ivmInstall.getName());
+        IClasspathEntry ivmEntry = JavaCore.newContainerEntry(containerPath);
 
-    private IRuntime configureGenericJeeServerRuntime() {
-        // Return the existing AWS generic J2EE runtime if it already exists
-        IRuntime runtime = ServerCore.findRuntime(ELASTIC_BEANSTALK_RUNTIME_ID);
-        if (runtime != null) {
-            return runtime;
-        }
+        newList.add(ivmEntry);
 
-        // Otherwise try to create a new one...
-        try {
-            IRuntimeType jeeRuntimeType = ServerCore.findRuntimeType(GENERIC_JEE_RUNTIME_ID);
-            IRuntimeWorkingCopy workingCopy = jeeRuntimeType.createRuntime(ELASTIC_BEANSTALK_RUNTIME_ID, new NullProgressMonitor());
-            workingCopy.setName("AWS Elastic Beanstalk J2EE Runtime");
-
-            Bundle bundle = ElasticBeanstalkPlugin.getDefault().getBundle();
-            URL url = FileLocator.resolve(bundle.getEntry("/"));
-
-            try {
-                File source = new File(url.getFile(), "runtime-lib/j2ee.jar");
-                File dest = new File(ElasticBeanstalkPlugin.getDefault().getStateLocation().toFile(), "runtime-lib/j2ee.jar");
-                if ( !dest.exists() ) {
-                    FileUtils.copyFile(source, dest);
-                }
-                workingCopy.setLocation(new Path(dest.getParentFile().getAbsolutePath()));
-            } catch ( Exception e ) {
-                // If we can't copy the j2ee jar into the workspace, fall back
-                // to using the file in the plugin.
-                workingCopy.setLocation(new Path(url.getFile(), "runtime-lib"));
-            }
-
-            return workingCopy.save(true, new NullProgressMonitor());
-        } catch ( Exception e ) {
-            ElasticBeanstalkPlugin.getDefault().getLog()
-                    .log(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, e.getMessage(), e));
-            return null;
-        }
-    }
-
-    /** Filename filter that filters out all SVN metadata files. */
-    private static final class SvnMetadataFilter implements FileFilter {
-        public boolean accept(File pathname) {
-            return (pathname.toString().contains("/.svn/") == false);
-        }
-    }
-
-    private static class CredentialsUtils {
-        private static final String AWS_CREDENTIALS_URL = "http://aws.amazon.com/security-credentials";
-        private static final String AWS_CREDENTIALS_PROPERTIES_FILE = "AwsCredentials.properties";
-
-        public void addAwsCredentialsFileToProject(final IProject project, String accessKeyId, String secretKey) throws CoreException {
-            Properties credentialProperties = new Properties();
-            credentialProperties.setProperty("accessKey", accessKeyId);
-            credentialProperties.setProperty("secretKey", secretKey);
-
-            IPath srcDirPath = project.getLocation().append("src");
-            final IPath credentialsFilePath = srcDirPath.append(AWS_CREDENTIALS_PROPERTIES_FILE);
-
-            IFileStore credentialPropertiesFile =
-                EFS.getLocalFileSystem().fromLocalFile(credentialsFilePath.toFile());
-            OutputStream os = credentialPropertiesFile.openOutputStream(EFS.NONE, null);
-
-            try {
-                credentialProperties.store(os, "Insert your AWS Credentials from " + AWS_CREDENTIALS_URL);
-            } catch (IOException e) {
-                Status status = new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Unable to write AWS credentials to file", e);
-                throw new CoreException(status);
-            } finally {
-                try {os.close();} catch (Exception e) {}
-            }
-
-            project.refreshLocal(IResource.DEPTH_INFINITE, null);
-        }
+        javaProject.setRawClasspath(
+                newList.toArray(new IClasspathEntry[newList.size()]), null);
+        javaProject.setOption(JavaCore.COMPILER_SOURCE, JAVA_CORE_VERSION_1_8);
+        javaProject.setOption(JavaCore.COMPILER_COMPLIANCE, JAVA_CORE_VERSION_1_8);
+        javaProject.setOption(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JAVA_CORE_VERSION_1_8);
     }
 
     private void addSessionManagerConfigurationFiles(IProject project) throws IOException, CoreException {
@@ -329,8 +163,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
 
         FileUtils.copyDirectory(
                 templateRoot.append("dynamodb-session-manager").toFile(),
-                project.getLocation().toFile(),
-                new SvnMetadataFilter());
+                project.getLocation().toFile());
 
         // Add the user's credentials to context.xml
         File localContextXml = project.getLocation()
@@ -359,36 +192,68 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         }
     }
 
+    private IProject createBeanstalkProject(MavenConfigurationDataModel mavenConfig, IProgressMonitor monitor) throws CoreException, IOException {
+        List<IProject> projects = MavenFactory.createArchetypeProject(
+                "org.apache.maven.archetypes", "maven-archetype-webapp", "1.0",
+                mavenConfig.getGroupId(), mavenConfig.getArtifactId(), mavenConfig.getVersion(), mavenConfig.getPackageName(), monitor);
+        // This archetype only has one project
+        return projects.get(0);
+    }
+
     private void addTemplateFiles(IProject project) throws IOException, CoreException {
+
         final String CREDENTIAL_PROFILE_PLACEHOLDER = "{CREDENTIAL_PROFILE}";
+        final String PACKAGE_NAME_PLACEHOLDER = "{PACKAGE_NAME}";
+
         Bundle bundle = ElasticBeanstalkPlugin.getDefault().getBundle();
         URL url = FileLocator.resolve(bundle.getEntry("/"));
         IPath templateRoot = new Path(url.getFile(), "templates");
 
         AccountInfo currentAccountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(dataModel.getAccountId());
+        File pomFile = project.getFile("pom.xml").getLocation().toFile();
+        MavenConfigurationDataModel mavenConfig = dataModel.getMavenConfigurationDataModel();
 
         switch (dataModel.getProjectTemplate()) {
         case WORKER:
-            File workerServlet = templateRoot.append("worker/src/WorkerServlet.java").toFile();
-            String workerServletContent = replaceStringInFile(workerServlet, CREDENTIAL_PROFILE_PLACEHOLDER, currentAccountInfo.getAccountName());
+            replacePomFile(templateRoot.append("worker/pom.xml").toFile(),
+                    mavenConfig.getGroupId(), mavenConfig.getArtifactId(), mavenConfig.getVersion(), pomFile);
+            String packageName = dataModel.getMavenConfigurationDataModel().getPackageName();
 
+            JavaPackageName javaPackageName = JavaPackageName.parse(packageName);
+            IPath location = project.getFile(MavenFactory.getMavenSourceFolder()).getLocation();
+            for (String component : javaPackageName.getComponents()) {
+                location = location.append(component);
+            }
+
+            FileUtils.copyDirectory(templateRoot.append("worker/src").toFile(),
+                    location.toFile());
+
+            File workerServlet = location.append("WorkerServlet.java").toFile();
+            replaceStringInFile(workerServlet, CREDENTIAL_PROFILE_PLACEHOLDER, currentAccountInfo.getAccountName());
+            replaceStringInFile(workerServlet, PACKAGE_NAME_PLACEHOLDER, packageName);
+            File workerRequest = location.append("WorkRequest.java").toFile();
+            replaceStringInFile(workerRequest, PACKAGE_NAME_PLACEHOLDER, packageName);
+
+            location = project.getFile("src/main/webapp").getLocation();
             FileUtils.copyDirectory(
-                templateRoot.append("worker").toFile(),
-                project.getLocation().toFile(),
-                new SvnMetadataFilter());
-            FileUtils.writeStringToFile(workerServlet, workerServletContent);
+                templateRoot.append("worker/WebContent/").toFile(),
+                location.toFile());
+            File webXml = location.append("WEB-INF/web.xml").toFile();
+            replaceStringInFile(webXml, PACKAGE_NAME_PLACEHOLDER, packageName);
             break;
 
         case DEFAULT:
-            File indexJsp = templateRoot.append("basic/WebContent/index.jsp").toFile();
-            String indexJspContent = replaceStringInFile(indexJsp, CREDENTIAL_PROFILE_PLACEHOLDER, currentAccountInfo.getAccountName());
+            replacePomFile(templateRoot.append("basic/pom.xml").toFile(),
+                    mavenConfig.getGroupId(), mavenConfig.getArtifactId(), mavenConfig.getVersion(), pomFile);
 
+            location = project.getFile("src/main/webapp").getLocation();
             FileUtils.copyDirectory(
-                templateRoot.append("basic").toFile(),
-                project.getLocation().toFile(),
-                new SvnMetadataFilter());
+                templateRoot.append("basic/WebContent").toFile(),
+                location.toFile());
 
-            FileUtils.writeStringToFile(indexJsp, indexJspContent);
+            File indexJsp = location.append("index.jsp").toFile();
+            replaceStringInFile(indexJsp, CREDENTIAL_PROFILE_PLACEHOLDER, currentAccountInfo.getAccountName());
+
             break;
 
         default:
@@ -397,6 +262,18 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         }
 
         project.refreshLocal(IResource.DEPTH_INFINITE, null);
+    }
+
+    private String replacePomFile(File pomTemplate, String groupId, String artifactId, String version, File targetFile) throws IOException {
+        final String GROUP_ID_PLACEHOLDER = "{GROUP_ID}";
+        final String ARTIFACT_ID_PLACEHOLDER = "{ARTIFACT_ID}";
+        final String VERSION_PLACEHOLDER = "{VERSION}";
+        String content = FileUtils.readFileToString(pomTemplate);
+        content = content.replace(GROUP_ID_PLACEHOLDER, groupId)
+                .replace(ARTIFACT_ID_PLACEHOLDER, artifactId)
+                .replace(VERSION_PLACEHOLDER, version);
+        FileUtils.writeStringToFile(targetFile, content);
+        return content;
     }
 
     /** Replace source strings with target string and return the original content of the file. */
@@ -408,4 +285,5 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
 
         return originalContent;
     }
+
 }

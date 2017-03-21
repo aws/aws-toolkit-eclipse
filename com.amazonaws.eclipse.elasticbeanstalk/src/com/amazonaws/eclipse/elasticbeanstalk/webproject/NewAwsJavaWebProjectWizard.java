@@ -24,37 +24,30 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
+import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkAnalytics;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
-import com.amazonaws.eclipse.sdk.ui.JavaSdkManager;
-import com.amazonaws.eclipse.sdk.ui.wizard.AwsJavaSdkNotInstalledWizardPage;
 
 /**
  * Wizard for creating a new WTP Dynamic Web project, pre-configured for use
  * with AWS (Java SDK configuration, security credentials, etc).
  */
 public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
+    private static final String DEFAULT_GROUP_ID = "com.amazonaws.beanstalk";
+    private static final String DEFAULT_ARTIFACT_ID = "webproject";
+    private static final String DEFAULT_VERSION = "1.0.0";
 
     private NewAwsJavaWebProjectDataModel dataModel = new NewAwsJavaWebProjectDataModel();
 
-    private boolean awsSdkInstalled = true;
-
     public NewAwsJavaWebProjectWizard() {
-        // Check if the SDK is installed
-        JavaSdkManager sdk = JavaSdkManager.getInstance();
-        if (sdk.getDefaultSdkInstall() == null
-                && sdk.getInstallationJob() == null) {
-            awsSdkInstalled = false;
-            addPage(new AwsJavaSdkNotInstalledWizardPage());
+        this.addPage(new JavaWebProjectWizardPage(dataModel));
 
-        } else {
-            this.addPage(new JavaWebProjectWizardPage(dataModel));
-
-            setWindowTitle("New AWS Java Web Project");
-            setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(
-                    AwsToolkitCore.IMAGE_AWS_LOGO));
-            setNeedsProgressMonitor(true);
-        }
-
+        setWindowTitle("New AWS Java Web Project");
+        setDefaultPageImageDescriptor(AwsToolkitCore.getDefault()
+                .getImageRegistry()
+                .getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
+        setNeedsProgressMonitor(true);
+        initDataModel();
     }
 
     /* (non-Javadoc)
@@ -62,11 +55,8 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
      */
     @Override
     public boolean performFinish() {
-        if ( !awsSdkInstalled ) {
-            JavaSdkManager.getInstance().initializeSDKInstalls();
-            return true;
-        }
 
+        trackCustomerMetrics();
         try {
             getContainer().run(true, false, new CreateNewAwsJavaWebProjectRunnable(dataModel));
             return true;
@@ -80,5 +70,27 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
     }
 
     public void init(IWorkbench workbench, IStructuredSelection selection) {}
+
+    public void initDataModel() {
+        MavenConfigurationDataModel mavenConfig = dataModel.getMavenConfigurationDataModel();
+        mavenConfig.setGroupId(DEFAULT_GROUP_ID);
+        mavenConfig.setArtifactId(DEFAULT_ARTIFACT_ID);
+        mavenConfig.setVersion(DEFAULT_VERSION);
+    }
+
+    /*
+     * Track user behavior from DataModel to the metrics system.
+     */
+    public void trackCustomerMetrics() {
+        if (dataModel.getProjectTemplate() == JavaWebProjectTemplate.WORKER) {
+            ElasticBeanstalkAnalytics.trackCreateNewWorkerApplication();
+        } else if (dataModel.getProjectTemplate() == JavaWebProjectTemplate.DEFAULT) {
+            if (dataModel.getUseDynamoDBSessionManagement()) {
+                ElasticBeanstalkAnalytics.trackCreateNewWebApplication_DDB();
+            } else {
+                ElasticBeanstalkAnalytics.trackCreateNewWebApplication_NDDB();
+            }
+        }
+    }
 
 }

@@ -3,7 +3,7 @@
   <servlet>
     <display-name>WorkerServlet</display-name>
     <servlet-name>WorkerServlet</servlet-name>
-    <servlet-class>WorkerServlet</servlet-class>
+    <servlet-class>{PACKAGE_NAME}.WorkerServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>WorkerServlet</servlet-name>

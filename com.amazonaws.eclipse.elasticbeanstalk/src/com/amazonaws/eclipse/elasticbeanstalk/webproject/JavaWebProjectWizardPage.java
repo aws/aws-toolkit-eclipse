@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
+import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
+
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.UpdateValueStrategy;
@@ -23,12 +25,7 @@ import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.databinding.observable.value.WritableValue;
-import org.eclipse.core.databinding.validation.IValidator;
-import org.eclipse.core.databinding.validation.ValidationStatus;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -43,10 +40,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.AccountSelectionComposite;
+import com.amazonaws.eclipse.core.ui.MavenConfigurationComposite;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
 
 final class JavaWebProjectWizardPage extends WizardPage {
@@ -54,7 +51,8 @@ final class JavaWebProjectWizardPage extends WizardPage {
     private static final String TOMCAT_SESSION_MANAGER_DOCUMENTATION =
             "http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/java-dg-tomcat-session-manager.html";
 
-    private Text projectNameText;
+    private MavenConfigurationComposite mavenConfigurationComposite;
+
     private Button basicTemplateRadioButton;
     private Button workerTemplateRadioButton;
     private AccountSelectionComposite accountSelectionComposite;
@@ -68,7 +66,6 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
     private Group sessionManagerGroup;
     private Button useDynamoDBSessionManagerCheckBox;
-
 
     JavaWebProjectWizardPage(NewAwsJavaWebProjectDataModel dataModel) {
         super("New AWS Java Web Project Wizard Page");
@@ -103,17 +100,14 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(2, false);
+        GridLayout layout = new GridLayout(1, false);
         layout.verticalSpacing = 10;
         composite.setLayout(layout);
         this.setControl(composite);
 
-        new Label(composite, SWT.NONE).setText("Project name: ");
-        projectNameText = new Text(composite, SWT.BORDER);
-        projectNameText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        createMavenConfigurationComposite(composite);
 
         GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        layoutData.horizontalSpan = 2;
         layoutData.widthHint = getContainerWidth() - 50;
 
         Group group = new Group(composite, SWT.NONE);
@@ -133,6 +127,12 @@ final class JavaWebProjectWizardPage extends WizardPage {
         composite.pack();
     }
 
+    private void createMavenConfigurationComposite(Composite composite) {
+        Group group = newGroup(composite, "Maven configuration");
+        this.mavenConfigurationComposite = new MavenConfigurationComposite(
+                group, bindingContext, dataModel.getMavenConfigurationDataModel(), null, null, true);
+    }
+
     private void createSessionManagerGroup(Composite composite) {
         sessionManagerGroup = new Group(composite, SWT.NONE);
         sessionManagerGroup.setText("Amazon DynamoDB Session Management:");
@@ -140,7 +140,6 @@ final class JavaWebProjectWizardPage extends WizardPage {
         layout.verticalSpacing = 3;
         sessionManagerGroup.setLayout(layout);
         GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        layoutData.horizontalSpan = 2;
         sessionManagerGroup.setLayoutData(layoutData);
 
         useDynamoDBSessionManagerCheckBox = new Button(sessionManagerGroup, SWT.CHECK);
@@ -180,7 +179,6 @@ final class JavaWebProjectWizardPage extends WizardPage {
         layout.verticalSpacing = 3;
         group.setLayout(layout);
         GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        layoutData.horizontalSpan = 2;
         group.setLayoutData(layoutData);
 
         basicTemplateRadioButton = new Button(group, SWT.RADIO);
@@ -231,14 +229,6 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
     @SuppressWarnings("static-access")
     private void bindControls() {
-        UpdateValueStrategy projectNameUpdateStrategy = new UpdateValueStrategy();
-        projectNameUpdateStrategy.setAfterConvertValidator(new NewProjectNameValidator());
-
-        bindingContext.bindValue(
-                SWTObservables.observeText(projectNameText, SWT.Modify),
-                PojoObservables.observeValue(dataModel, dataModel.PROJECT_NAME),
-                projectNameUpdateStrategy, null);
-
         final IObservableValue accountId = new WritableValue();
         accountId.setValue(dataModel.getAccountId());
         accountSelectionComposite.addSelectionListener(new SelectionAdapter() {
@@ -276,29 +266,5 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
     private int getContainerWidth() {
         return this.getContainer().getShell().getSize().x;
-    }
-
-    /**
-     * Simple validator implementation that validates that the associated value
-     * is not empty and does not match an existing project in the workspace.
-     */
-    private static class NewProjectNameValidator implements IValidator {
-        public IStatus validate(Object obj) {
-            String value = (String)obj;
-
-            if (value == null || value.trim().length() == 0) {
-                String errorMessage = "Enter a project name.";
-                return ValidationStatus.info(errorMessage);
-            }
-
-            for (IProject existingProject : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-                if (existingProject.getName().equals(value)) {
-                    String errorMessage = "Project '" + value + "' already exists in the workspace";
-                    return ValidationStatus.error(errorMessage);
-                }
-            }
-
-            return Status.OK_STATUS;
-        }
     }
 }

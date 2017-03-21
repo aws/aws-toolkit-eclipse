@@ -24,10 +24,11 @@ public class MavenConfigurationDataModel {
     public static final String P_GROUP_ID = "groupId";
     public static final String P_ARTIFACT_ID = "artifactId";
     public static final String P_PACKAGE_NAME = "packageName";
+    public static final String P_VERSION = "version";
 
     private String groupId;
     private String artifactId;
-    // TODO we use the default package name for now.
+    private String version;
     private String packageName;
 
     public String getGroupId() {
@@ -42,7 +43,19 @@ public class MavenConfigurationDataModel {
     public void setArtifactId(String artifactId) {
         this.artifactId = artifactId;
     }
+
+    public String getVersion() {
+        return version;
+    }
+    public void setVersion(String version) {
+        this.version = version;
+    }
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
     public String getPackageName() {
-        return MavenFactory.assumePackageName(groupId, artifactId);
+        return packageName != null ? packageName
+                : MavenFactory.assumePackageName(groupId, artifactId);
     }
 }

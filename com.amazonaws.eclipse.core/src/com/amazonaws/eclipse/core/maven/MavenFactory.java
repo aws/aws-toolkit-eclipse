@@ -14,8 +14,10 @@
  */
 package com.amazonaws.eclipse.core.maven;
 
-import java.security.InvalidParameterException;
+import java.util.List;
+import java.util.Properties;
 
+import org.apache.maven.archetype.catalog.Archetype;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IProject;
@@ -72,6 +74,17 @@ public class MavenFactory {
         MavenPlugin.getProjectConfigurationManager().createSimpleProject(
                 project, null, model, MavenFactory.MAVEN_FOLDERS,
                 new ProjectImportConfiguration(), monitor);
+    }
+
+    public static List<IProject> createArchetypeProject(String archetypeGroupId, String archetypeArtifactId, String archetypeVersion,
+            String groupId, String artifactId, String version, String packageName, IProgressMonitor monitor) throws CoreException {
+        Archetype archetype = new Archetype();
+        archetype.setGroupId(archetypeGroupId);
+        archetype.setArtifactId(archetypeArtifactId);
+        archetype.setVersion(archetypeVersion);
+        return MavenPlugin.getProjectConfigurationManager().createArchetypeProjects(null, archetype,
+                groupId, artifactId, version, packageName,
+                new Properties(), new ProjectImportConfiguration(), monitor);
     }
 
     public static String getMavenSourceFolder() {
@@ -173,12 +186,11 @@ public class MavenFactory {
 
     /**
      * Assume package name from the group id and artifact id: concatenating them with a dot '.'.
+     * Return null if the parameter is not valid.
      */
     public static String assumePackageName(String groupId, String artifactId) {
-        if (!StringUtils.isNullOrEmpty(groupId) && !StringUtils.isNullOrEmpty(artifactId)) {
-            return groupId + "." + artifactId;
-        } else {
-            throw new InvalidParameterException("Group id and artifact id must be specified!");
-        }
+
+        return StringUtils.isNullOrEmpty(groupId) || StringUtils.isNullOrEmpty(artifactId)
+                ? null : groupId + "." + artifactId;
     }
 }

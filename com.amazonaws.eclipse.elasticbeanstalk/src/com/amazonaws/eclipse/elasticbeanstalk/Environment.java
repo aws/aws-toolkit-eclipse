@@ -16,8 +16,10 @@ package com.amazonaws.eclipse.elasticbeanstalk;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,9 +52,7 @@ import com.amazonaws.services.elasticbeanstalk.model.ConfigurationSettingsDescri
 import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationSettingsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentResourcesResult;
-import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentsRequest;
 import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
-import com.amazonaws.services.elasticbeanstalk.model.EnvironmentStatus;
 import com.amazonaws.services.elasticbeanstalk.model.Instance;
 
 @SuppressWarnings("restriction")
@@ -646,14 +646,15 @@ public class Environment extends ServerDelegate {
 
     }
 
-    public static String catSubnetList(List<String> subnetList) {
+    public static String catSubnetList(Set<String> subnetList) {
         if (null == subnetList || subnetList.isEmpty()) {
             return "";
         }
-        StringBuilder builder = new StringBuilder(subnetList.get(0));
-        for (int i = 1; i < subnetList.size(); ++i) {
+        Iterator<String> iterator = subnetList.iterator();
+        StringBuilder builder = new StringBuilder(iterator.next());
+        while (iterator.hasNext()) {
             builder.append(",");
-            builder.append(subnetList.get(i));
+            builder.append(iterator.next());
         }
 
         return builder.toString();

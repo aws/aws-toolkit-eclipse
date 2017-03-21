@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
+import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.core.regions.Region;
 
 /**
@@ -25,7 +26,7 @@ import com.amazonaws.eclipse.core.regions.Region;
 class NewAwsJavaWebProjectDataModel {
 
     private String accountId;
-    private String projectName;
+    private MavenConfigurationDataModel mavenConfigurationDataModel = new MavenConfigurationDataModel();
     private JavaWebProjectTemplate projectTemplate;
     private String language;
     private Region region;
@@ -53,12 +54,8 @@ class NewAwsJavaWebProjectDataModel {
         this.accountId = accountId;
     }
 
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
+    public MavenConfigurationDataModel getMavenConfigurationDataModel() {
+        return this.mavenConfigurationDataModel;
     }
 
     public JavaWebProjectTemplate getProjectTemplate() {
@@ -86,10 +83,10 @@ class NewAwsJavaWebProjectDataModel {
     }
 
     public boolean getUseDynamoDBSessionManagement() {
-    	return useDynamoDBSessionManagement;
+        return useDynamoDBSessionManagement;
     }
 
     public void setUseDynamoDBSessionManagement(boolean useDynamoDBSessionManagement) {
-    	this.useDynamoDBSessionManagement = useDynamoDBSessionManagement;
+        this.useDynamoDBSessionManagement = useDynamoDBSessionManagement;
     }
 }

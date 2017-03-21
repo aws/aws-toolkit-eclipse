@@ -30,6 +30,15 @@ public final class ElasticBeanstalkAnalytics {
     private static final String METRIC_NAME_UPLOAD_S3_BUCKET_BYTES_PER_MS = "UploadS3BucketBytesPerMs";
     private static final String METRIC_NAME_APPLICATION_SOURCE_BUNDLE_SIZE = "ApplicationSourceBundleSize";
 
+    /*
+     * Create New project for Eclipse Beanstalk
+     */
+    private static final String EVENT_TYPE_CREATE_NEW_WEB_APPLICATION = "ElasticBeanstalk-NewWebApplication";
+    private static final String ATTRI_NAME_WEB_APPLICATION_TYPE = "ApplicationType";
+    private static final String ATTRI_VALUE_WEB_APPLICATION_DDB = "WebApplication-DDB";
+    private static final String ATTRI_VALUE_WEB_APPLICATION_NDDB = "WebApplication-NDDB";
+    private static final String ATTRI_VALUE_WORKER_APPLICATION = "WorkerApplication";
+
     private static final ToolkitAnalyticsManager ANALYTICS = AwsToolkitCore.getDefault().getAnalyticsManager();
 
     /*
@@ -48,6 +57,31 @@ public final class ElasticBeanstalkAnalytics {
                 METRIC_NAME_UPLOAD_S3_BUCKET_TIME_MS, uploadS3BucketTime,
                 METRIC_NAME_APPLICATION_SOURCE_BUNDLE_SIZE, sourceFileBundleSize,
                 METRIC_NAME_UPLOAD_S3_BUCKET_BYTES_PER_MS);
+    }
+
+    /*
+     * Analytics for ElasticBeanstalk-CreateNewProject
+     */
+
+    public static void trackCreateNewWebApplication_DDB() {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_CREATE_NEW_WEB_APPLICATION)
+                .addAttribute(ATTRI_NAME_WEB_APPLICATION_TYPE, ATTRI_VALUE_WEB_APPLICATION_DDB)
+                .build());
+    }
+
+    public static void trackCreateNewWebApplication_NDDB() {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_CREATE_NEW_WEB_APPLICATION)
+                .addAttribute(ATTRI_NAME_WEB_APPLICATION_TYPE, ATTRI_VALUE_WEB_APPLICATION_NDDB)
+                .build());
+    }
+
+    public static void trackCreateNewWorkerApplication() {
+        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
+                .setEventType(EVENT_TYPE_CREATE_NEW_WEB_APPLICATION)
+                .addAttribute(ATTRI_NAME_WEB_APPLICATION_TYPE, ATTRI_VALUE_WORKER_APPLICATION)
+                .build());
     }
 
 }

@@ -23,6 +23,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
+import com.amazonaws.eclipse.core.validator.PackageNameValidator;
 import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 
@@ -32,21 +33,28 @@ import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 public class MavenConfigurationComposite extends Composite {
     private TextComplex groupIdComplex;
     private TextComplex artifactIdComplex;
+    private TextComplex versionComplex;
+    private TextComplex packageComplex;
 
     public MavenConfigurationComposite(Composite parent, DataBindingContext context, MavenConfigurationDataModel dataModel) {
-        this(parent, context, dataModel, null, null);
+        this(parent, context, dataModel, null, null, false);
     }
 
     public MavenConfigurationComposite(Composite parent, DataBindingContext context, MavenConfigurationDataModel dataModel,
             ModifyListener groupIdModifyListener, ModifyListener artifactIdModifyListener) {
+        this(parent, context, dataModel, groupIdModifyListener, artifactIdModifyListener, false);
+    }
+
+    public MavenConfigurationComposite(Composite parent, DataBindingContext context, MavenConfigurationDataModel dataModel,
+            ModifyListener groupIdModifyListener, ModifyListener artifactIdModifyListener, boolean creatVerionAndPackage) {
         super(parent, SWT.NONE);
         setLayout(new GridLayout(2, false));
         setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        createControl(context, dataModel, groupIdModifyListener, artifactIdModifyListener);
+        createControl(context, dataModel, groupIdModifyListener, artifactIdModifyListener, creatVerionAndPackage);
     }
 
     private void createControl(DataBindingContext context, MavenConfigurationDataModel dataModel,
-            ModifyListener groupIdModifyListener, ModifyListener artifactIdModifyListener) {
+            ModifyListener groupIdModifyListener, ModifyListener artifactIdModifyListener, boolean creatVerionAndPackage) {
 
         groupIdComplex = TextComplex.builder()
                 .composite(this)
@@ -67,5 +75,25 @@ public class MavenConfigurationComposite extends Composite {
                 .labelValue("Artifact ID:")
                 .defaultValue(dataModel.getArtifactId())
                 .build();
+
+        if (creatVerionAndPackage) {
+            versionComplex = TextComplex.builder()
+                    .composite(this)
+                    .dataBindingContext(context)
+                    .pojoObservableValue(PojoObservables.observeValue(dataModel, MavenConfigurationDataModel.P_VERSION))
+                    .validator(new NotEmptyValidator("Version must be provided!"))
+                    .labelValue("Version:")
+                    .defaultValue(dataModel.getVersion())
+                    .build();
+
+            packageComplex = TextComplex.builder()
+                    .composite(this)
+                    .dataBindingContext(context)
+                    .pojoObservableValue(PojoObservables.observeValue(dataModel, MavenConfigurationDataModel.P_PACKAGE_NAME))
+                    .validator(new PackageNameValidator("Package name must be provided!"))
+                    .labelValue("Package name:")
+                    .defaultValue(dataModel.getPackageName())
+                    .build();
+        }
     }
 }

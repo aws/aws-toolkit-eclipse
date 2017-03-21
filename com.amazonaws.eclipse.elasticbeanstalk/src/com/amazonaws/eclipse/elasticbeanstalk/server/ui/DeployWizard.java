@@ -140,10 +140,11 @@ public class DeployWizard extends WizardFragment {
         environment.setServiceRoleName(wizardDataModel.getServiceRoleName());
         environment.setVpcId(wizardDataModel.getVpcId());
 
-        String catSubnets = Environment.catSubnetList(wizardDataModel.getSubnets());
-        environment.setSubnets(catSubnets);
+        String ec2Subnets = Environment.catSubnetList(wizardDataModel.getEc2Subnets());
+        String elbSubnets = Environment.catSubnetList(wizardDataModel.getElbSubnets());
+        environment.setSubnets(ec2Subnets);
         if (ConfigurationOptionConstants.LOAD_BALANCED_ENV.equals(wizardDataModel.getEnvironmentType())) {
-            environment.setElbSubnets(catSubnets);
+            environment.setElbSubnets(elbSubnets);
             environment.setElbScheme(wizardDataModel.getElbScheme());
         }
         environment.setAssociatePublicIpAddress(wizardDataModel.isAssociatePublicIpAddress());

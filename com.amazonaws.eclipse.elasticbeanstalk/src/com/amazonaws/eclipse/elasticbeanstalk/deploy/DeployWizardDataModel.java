@@ -16,7 +16,8 @@ package com.amazonaws.eclipse.elasticbeanstalk.deploy;
 
 import static com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin.trace;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
@@ -92,7 +93,8 @@ public class DeployWizardDataModel {
 
     private boolean useNonDefaultVpc;
     private String vpcId;
-    private List<String> subnets;
+    private final Set<String> ec2Subnets = new HashSet<String>();
+    private final Set<String> elbSubnets = new HashSet<String>();
     private String elbScheme;
     private String securityGroup;
     private boolean associatePublicIpAddress;
@@ -307,12 +309,12 @@ public class DeployWizardDataModel {
         this.useNonDefaultVpc = useNonDefaultVpc;
     }
 
-    public List<String> getSubnets() {
-        return subnets;
+    public Set<String> getEc2Subnets() {
+        return ec2Subnets;
     }
 
-    public void setSubnets(List<String> subnets) {
-        this.subnets = subnets;
+    public Set<String> getElbSubnets() {
+        return elbSubnets;
     }
 
     public String getElbScheme() {

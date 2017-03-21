@@ -15,7 +15,9 @@
 package com.amazonaws.eclipse.elasticbeanstalk.server.ui;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
@@ -24,6 +26,7 @@ import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -148,9 +151,14 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
         }
     }
 
+    private enum CheckboxType {
+        ELB,
+        EC2
+    }
+
     private class VpcWidgetBuilder {
         private final String[] SUBNET_TABLE_TITLES = { "Availability Zone",
-                "Subnet ID", "Cidr Block" };
+                "Subnet ID", "Cidr Block", "ELB", "EC2" };
         private final String[] ELB_SCHEMES = {
                 BeanstalkConstants.ELB_SCHEME_EXTERNAL,
                 BeanstalkConstants.ELB_SCHEME_INTERNAL };
@@ -159,6 +167,8 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
         private Button apiaButton;// Associate Public Ip Address
         private Combo securityGroupCombo;
         private Combo elbSchemeCombo;
+
+        private List<Button> checkboxButtons = new ArrayList<Button>();
 
         // build UI section only, not populating data
         public void buildVpcUiSection(Composite composite) {
@@ -176,17 +186,6 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
             bindAssociatePublicIpAddressButton(apiaButton);
 
             createSubnetSelectionSection(group);
-            subnetsTable.addSelectionListener(new SelectionAdapter() {
-                public void widgetSelected(SelectionEvent event) {
-                    List<String> subnetIDs = new ArrayList<String>();
-                    for (TableItem item : subnetsTable.getSelection()) {
-                        // column 1 is for subnet id
-                        subnetIDs.add(item.getText(1));
-                    }
-                    wizardDataModel.setSubnets(subnetIDs);
-                }
-            });
-
             createSecurityGroupSelection(group);
             securityGroupCombo.addSelectionListener(new SelectionAdapter() {
                 @Override
@@ -197,6 +196,26 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
 
             createElbSchemesSelectionSection(group);
             bindCombo(elbSchemeCombo, DeployWizardDataModel.ELB_SCHEME);
+        }
+
+        private void onCheckboxSelected(String subnetId, CheckboxType type, boolean selected) {
+            Set<String> subnets;
+            switch(type) {
+            case EC2:
+                subnets = wizardDataModel.getEc2Subnets();
+                break;
+            case ELB:
+                subnets = wizardDataModel.getElbSubnets();
+                break;
+            default:
+                subnets = new HashSet<String>();
+            }
+
+            if (selected) {
+                subnets.add(subnetId);
+            } else {
+                subnets.remove(subnetId);
+            }
         }
 
         public void refreshVpcSectionAvailability() {
@@ -273,8 +292,7 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
         }
 
         private void createSubnetsTable(Composite composite) {
-            subnetsTable = new Table(composite, SWT.FULL_SELECTION | SWT.MULTI
-                    | SWT.H_SCROLL | SWT.V_SCROLL);
+            subnetsTable = new Table(composite, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
             subnetsTable.setLinesVisible(true);
             subnetsTable.setHeaderVisible(true);
 
@@ -282,13 +300,13 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
             for (int i = 0; i < SUBNET_TABLE_TITLES.length; ++i) {
                 TableColumn column = new TableColumn(subnetsTable, SWT.NONE);
                 column.setText(SUBNET_TABLE_TITLES[i]);
-                layout.addColumnData(new ColumnWeightData(25));
+                layout.addColumnData(new ColumnWeightData(100));
             }
 
             GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
             data.heightHint = 100;
             data.widthHint = 200;
-            data.horizontalSpan = 3;
+            data.horizontalSpan = 5;
             subnetsTable.setLayoutData(data);
             subnetsTable.setLayout(layout);
         }
@@ -296,8 +314,16 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
         private void onVpcSelectionChanged() {
 
             Vpc selectedVpc = (Vpc)vpcCombo.getData(vpcCombo.getItem(vpcCombo.getSelectionIndex()));
+            // Reset Data Model
             wizardDataModel.setVpcId(selectedVpc.getVpcId());
+            wizardDataModel.getEc2Subnets().clear();
+            wizardDataModel.getElbSubnets().clear();
+
+            // Redraw Subnet table UI
             subnetsTable.removeAll();
+            for (Button button : checkboxButtons) {
+                if (button != null) button.dispose();
+            }
             AmazonEC2 ec2 = AwsToolkitCore.getClientFactory()
                     .getEC2ClientByEndpoint(
                             wizardDataModel.getRegion().getServiceEndpoint(
@@ -308,12 +334,19 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
                                     wizardDataModel.getVpcId()))).getSubnets();
             for (int i = 0; i < subnets.size(); ++i) {
                 TableItem item = new TableItem(subnetsTable, SWT.CENTER);
-                item.setText(0, subnets.get(i).getAvailabilityZone());
-                item.setText(1, subnets.get(i).getSubnetId());
-                item.setText(2, subnets.get(i).getCidrBlock());
-            }
-            subnetsTable.select(0);
+                final Subnet subnet = subnets.get(i);
 
+                item.setText(0, subnet.getAvailabilityZone());
+                item.setText(1, subnet.getSubnetId());
+                item.setText(2, subnet.getCidrBlock());
+
+                checkboxButtons.add(drawCheckboxOnSubnetTable(item, subnet.getSubnetId(), 3, CheckboxType.ELB,
+                        wizardDataModel.isUseNonDefaultVpc() &&
+                        ConfigurationOptionConstants.LOAD_BALANCED_ENV.equals(wizardDataModel.getEnvironmentType())));
+                checkboxButtons.add(drawCheckboxOnSubnetTable(item, subnet.getSubnetId(), 4, CheckboxType.EC2, true));
+            }
+
+            // Redraw security group UI
             List<SecurityGroup> securityGroups = ec2.describeSecurityGroups(new DescribeSecurityGroupsRequest()
                     .withFilters(new Filter()
                             .withName("vpc-id").withValues(wizardDataModel.getVpcId()))).getSecurityGroups();
@@ -331,6 +364,22 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
             SecurityGroup securityGroup = (SecurityGroup) securityGroupCombo.getData(
                     securityGroupCombo.getItem(securityGroupCombo.getSelectionIndex()));
             wizardDataModel.setSecurityGroup(securityGroup.getGroupId());
+        }
+
+        private Button drawCheckboxOnSubnetTable(TableItem item, final String subnetId, int columnIndex, final CheckboxType type, final boolean enabled) {
+            TableEditor editor = new TableEditor(subnetsTable);
+            Button checkbox = new Button(subnetsTable, SWT.CHECK);
+            checkbox.setEnabled(enabled);
+            checkbox.pack();
+            editor.minimumWidth = checkbox.getSize().x;
+            editor.horizontalAlignment = SWT.LEFT;
+            editor.setEditor(checkbox, item, columnIndex);
+            checkbox.addSelectionListener(new SelectionAdapter() {
+                public void widgetSelected(SelectionEvent e) {
+                    onCheckboxSelected(subnetId, type, ((Button)e.getSource()).getSelection());
+                }
+            });
+            return checkbox;
         }
 
         private void bindCombo(Combo combo, String fieldName) {

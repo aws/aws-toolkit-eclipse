@@ -1,3 +1,4 @@
+package {PACKAGE_NAME};
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
