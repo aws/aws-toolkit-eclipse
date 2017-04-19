@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.amazonaws.eclipse.codecommit.feature"
-      label="AWS CodeStar Plugin"
+      label="AWS CodeCommit Plugin"
       version="1.0.0.qualifier"
       provider-name="Amazon Web Services">
 
    <description url="http://aws.amazon.com/eclipse">
-      AWS Debhub Plugin
+      AWS CodeCommit Plugin allows you to create, view, clone, and delete your AWS CodeCommit repositories.
    </description>
 
    <copyright>

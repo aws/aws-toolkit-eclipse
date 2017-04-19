@@ -6,7 +6,7 @@
       provider-name="Amazon Web Services">
 
    <description url="http://aws.amazon.com/eclipse">
-      AWS Debhub Plugin
+      AWS CodeStar Plugin allows you to import your existing AWS CodeStar projects into the Eclipse IDE.
    </description>
 
    <copyright>
