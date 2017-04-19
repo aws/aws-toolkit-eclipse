@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: AWS Toolkit Core
+Bundle-Name: AWS Toolkit Core Plugin
 Bundle-SymbolicName: com.amazonaws.eclipse.core;singleton:=true
 Bundle-Version: 2.3.1.qualifier
 Bundle-ClassPath: lib/activation-1.1.jar,
@@ -51,9 +51,10 @@ Bundle-ClassPath: lib/activation-1.1.jar,
  lib/stax2-api-3.1.4.jar,
  etc/,
  icons/,
- .,
- lib/aws-java-sdk-core-1.11.89.jar,
- lib/aws-java-sdk-s3-1.11.89.jar
+ lib/aws-java-sdk-s3-1.11.89.jar,
+ lib/aws-java-sdk-core-1.11.109.jar,
+ lib/aws-java-sdk-codestar-1.11.120.jar,
+ .
 Bundle-Activator: com.amazonaws.eclipse.core.AwsToolkitCore
 Bundle-Vendor: Amazon Web Services
 Export-Package: com.amazonaws,
@@ -69,6 +70,9 @@ Export-Package: com.amazonaws,
  com.amazonaws.eclipse.core.accounts.preferences,
  com.amazonaws.eclipse.core.accounts.profiles,
  com.amazonaws.eclipse.core.diagnostic.utils,
+ com.amazonaws.eclipse.core.egit,
+ com.amazonaws.eclipse.core.egit.jobs,
+ com.amazonaws.eclipse.core.egit.ui,
  com.amazonaws.eclipse.core.maven,
  com.amazonaws.eclipse.core.mobileanalytics,
  com.amazonaws.eclipse.core.model,
@@ -111,6 +115,8 @@ Export-Package: com.amazonaws,
  com.amazonaws.services.codecommit.model,
  com.amazonaws.services.codedeploy,
  com.amazonaws.services.codedeploy.model,
+ com.amazonaws.services.codestar,
+ com.amazonaws.services.codestar.model,
  com.amazonaws.services.dynamodbv2,
  com.amazonaws.services.dynamodbv2.document,
  com.amazonaws.services.dynamodbv2.document.internal,
@@ -199,6 +205,13 @@ Require-Bundle: org.eclipse.swt,
  org.eclipse.m2e.core.ui;bundle-version="1.5.1",
  org.eclipse.m2e.archetype.common;bundle-version="1.5.1",
  org.eclipse.m2e.maven.runtime;bundle-version="1.5.1",
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.eclipse.egit;bundle-version="3.4.2",
+ org.eclipse.egit.core;bundle-version="3.4.2",
+ org.eclipse.egit.doc;bundle-version="3.4.2",
+ org.eclipse.egit.ui;bundle-version="3.4.2",
+ org.eclipse.jgit;bundle-version="3.4.2",
+ org.eclipse.core.variables;bundle-version="3.2.800",
+ org.eclipse.equinox.security;bundle-version="1.2.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy

@@ -22,7 +22,6 @@
 		</buildCommand>
 	</buildSpec>
 	<natures>
-		<nature>amazon.devtools.brazil.eclipse.BrazilEclipsePlugin.brazilNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.pde.PluginNature</nature>
 	</natures>

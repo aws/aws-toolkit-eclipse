@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-codecommit-1.11.21.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-core-1.11.109.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

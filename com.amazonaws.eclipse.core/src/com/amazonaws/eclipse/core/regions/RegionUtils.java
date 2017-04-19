@@ -52,6 +52,7 @@ public class RegionUtils {
 
     private static final String CLOUDFRONT_DISTRO = "http://vstoolkit.amazonwebservices.com/";
     private static final String REGIONS_FILE_OVERRIDE = RegionUtils.class.getName() + ".fileOverride";
+    public static final String USE_LOCAL_REGION_FILE = RegionUtils.class.getName() + ".useLocalRegionFile";
 
     private static final String REGIONS_METADATA_S3_BUCKET = "aws-vs-toolkit";
     private static final String REGIONS_METADATA_S3_OBJECT = "ServiceEndPoints.xml";
@@ -225,7 +226,7 @@ public class RegionUtils {
 
         if (System.getProperty(REGIONS_FILE_OVERRIDE) != null) {
             loadRegionsFromOverrideFile();
-        } else {
+        } else if (!Boolean.valueOf(System.getProperty(USE_LOCAL_REGION_FILE))) {
             IPath stateLocation = Platform.getStateLocation(AwsToolkitCore
                     .getDefault().getBundle());
             File regionsDir = new File(stateLocation.toFile(), "regions");
@@ -461,5 +462,9 @@ public class RegionUtils {
         InputStream inputStream =
             classLoader.getResourceAsStream(LOCAL_REGION_FILE);
         return parseRegionMetadata(inputStream);
+    }
+
+    public static void useBuiltInRegionFile() {
+        System.setProperty(USE_LOCAL_REGION_FILE, "true");
     }
 }

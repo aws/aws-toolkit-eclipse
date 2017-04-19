@@ -40,7 +40,7 @@ import com.amazonaws.eclipse.databinding.DecorationChangeListener;
  */
 public class TextComplex {
 
-    private Text text;
+    private final Text text;
     private ControlDecoration controlDecoration;
     private ISWTObservableValue swtObservableValue;
     private final IObservableValue enabler = new WritableValue();
@@ -82,6 +82,10 @@ public class TextComplex {
 
     public void setText(String textValue) {
         text.setText(textValue);
+    }
+
+    public Text getText() {
+        return text;
     }
 
     public static TextComplexBuilder builder() {

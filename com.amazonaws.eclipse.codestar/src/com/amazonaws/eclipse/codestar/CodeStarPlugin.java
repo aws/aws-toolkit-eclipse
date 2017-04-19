@@ -1,0 +1,53 @@
+/*
+ * Copyright 2011-2017 Amazon Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *    http://aws.amazon.com/apache2.0
+ *
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.amazonaws.eclipse.codestar;
+
+import org.osgi.framework.BundleContext;
+
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
+
+/**
+ * The activator class controls the plug-in life cycle
+ */
+public class CodeStarPlugin extends AbstractAwsPlugin {
+
+    // The shared instance
+    private static CodeStarPlugin plugin;
+
+    /*
+     * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+     */
+    public void start(BundleContext context) throws Exception {
+        super.start(context);
+        plugin = this;
+    }
+
+    /*
+     * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+     */
+    public void stop(BundleContext context) throws Exception {
+        plugin = null;
+        super.stop(context);
+    }
+
+    /**
+     * Returns the shared instance
+     *
+     * @return the shared instance
+     */
+    public static CodeStarPlugin getDefault() {
+        return plugin;
+    }
+}

@@ -10,13 +10,15 @@ public class RegionUtilsTest {
 
     private static final Pattern[] PATTERNS = {
         // global region endpoint, ex. s3.amazonaws.com
-        Pattern.compile("^(http|https)://\\w+(\\.us-gov)?.amazonaws.com/"),
+        Pattern.compile("^(http|https)://\\w+(\\.us-gov)?.amazonaws.com(/)?$"),
         // s3 irregular regional endpoints
-        Pattern.compile("^(http|https)://s3-(us|eu|ap|sa)-(gov-)?(east|west|south|north|central|northeast|southeast)-(1|2).amazonaws.com/"),
+        Pattern.compile("^(http|https)://s3-(us|eu|ap|sa)-(gov-)?(east|west|south|north|central|northeast|southeast)-(1|2).amazonaws.com(/)?$"),
         // regular region endpoints
-        Pattern.compile("^(http|https)://\\w+\\.(\\w+\\.)?(us|eu|ap|sa)-(gov-)?(east|west|south|north|central|northeast|southeast)-(1|2)\\.amazonaws\\.com/"),
+        Pattern.compile("^(http|https)://\\w+\\.(\\w+\\.)?(ca|us|eu|ap|sa)-(gov-)?(east|west|south|north|central|northeast|southeast)-(1|2)\\.amazonaws\\.com(/)?$"),
         // China region endpoints, currently we only have cn-north-1 region
-        Pattern.compile("^(http|https)://\\w+\\.(\\w+\\.)?cn-north-1.amazonaws.com.cn/")
+        Pattern.compile("^(http|https)://\\w+\\.(\\w+\\.)?cn-north-1.amazonaws.com.cn(/)?$"),
+        // us-gov region endpoints
+        Pattern.compile("^(http|https)://\\w+\\.us-gov(-west-1)?.amazonaws.com(/)?$")
     };
 
     @Test

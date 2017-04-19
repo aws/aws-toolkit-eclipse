@@ -52,7 +52,7 @@ public class MavenFactory {
     private static String AMAZON_KINESIS_CLIENT_GROUP_NAME = "com.amazonaws";
     private static String AMAZON_KINESIS_CLIENT_ARTIFACT_NAME = "amazon-kinesis-client";
     private static String AMAZON_KINESIS_CLIENT_ARTIFACT_TYPE = "jar";
-
+ 
     private static String JUNIT_GROUP_NAME = "junit";
     private static String JUNIT_ARTIFACT_NAME = "junit";
     private static String JUNIT_ARTIFACT_TYPE = "jar";

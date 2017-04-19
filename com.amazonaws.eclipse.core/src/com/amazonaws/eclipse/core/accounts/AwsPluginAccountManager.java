@@ -378,4 +378,11 @@ public final class AwsPluginAccountManager {
     private IPreferenceStore getPreferenceStore() {
         return preferenceStore;
     }
+
+    /**
+     * Returns whether there are valid aws accounts configured
+     */
+    public boolean validAccountsConfigured() {
+        return  getAccountInfo().isValid() || getAllAccountNames().size() > 1;
+    }
 }

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+  <extension point="org.eclipse.ui.editors">
+    <editor
+       class="com.amazonaws.eclipse.codecommit.explorer.RepositoryEditor"
+       default="false"
+       icon="icons/codecommit-service.png"
+       id="com.amazonaws.eclipse.codecommit.explorer.RepositoryEditor"
+       name="AWS CodeCommit Repository">
+    </editor>
+  </extension>
+
+  <!-- Resource navigator content -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+      activeByDefault="true"
+      contentProvider="com.amazonaws.eclipse.codecommit.explorer.CodeCommitContentProvider"
+      id="com.amazonaws.eclipse.explorer.CodeCommitContent"
+      labelProvider="com.amazonaws.eclipse.codecommit.explorer.CodeCommitLabelProvider"
+      name="AWS CodeCommit Resources"
+      priority="normal">
+
+      <triggerPoints>
+        <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+
+      <possibleChildren>
+        <or>
+          <instanceof value="com.amazonaws.eclipse.codecommit.explorer.CodeCommitRootElement" />
+        </or>
+      </possibleChildren>
+
+      <actionProvider class="com.amazonaws.eclipse.codecommit.explorer.CodeCommitActionProvider">
+         <enablement>
+            <or>
+              <instanceof value="com.amazonaws.eclipse.codecommit.explorer.CodeCommitRootElement" />
+              <instanceof value="com.amazonaws.services.codecommit.model.RepositoryNameIdPair" />
+            </or>
+         </enablement>
+      </actionProvider>
+
+    </navigatorContent>
+  </extension>
+
+  <extension point="org.eclipse.ui.preferencePages">
+    <page
+      category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+      class="com.amazonaws.eclipse.codecommit.preferences.CodeCommitPreferencePage"
+      id="com.amazonaws.eclipse.codecommit.preferences.CodeCommitPreferencePage"
+      name="AWS CodeCommit">
+    </page>
+  </extension>
+
+  <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="com.amazonaws.eclipse.codecommit.preferences.PreferenceInitializer" />
+  </extension>
+
+</plugin>

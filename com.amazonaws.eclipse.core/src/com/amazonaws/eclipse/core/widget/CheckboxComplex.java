@@ -22,6 +22,7 @@ import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.ISWTObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
@@ -30,13 +31,14 @@ import org.eclipse.swt.widgets.Composite;
  */
 public class CheckboxComplex {
 
-    private Button checkbox;
+    private final Button checkbox;
     private ISWTObservableValue swtObservableValue;
 
     private CheckboxComplex(
             Composite composite,
             DataBindingContext dataBindingContext,
             IObservableValue pojoObservableValue,
+            SelectionListener selectionListener,
             String labelValue,
             boolean defaultValue,
             int colSpan) {
@@ -44,7 +46,12 @@ public class CheckboxComplex {
         checkbox = newCheckbox(composite, labelValue, colSpan);
         swtObservableValue = SWTObservables.observeSelection(checkbox);
         dataBindingContext.bindValue(swtObservableValue, pojoObservableValue);
+        if (selectionListener != null) checkbox.addSelectionListener(selectionListener);
         swtObservableValue.setValue(defaultValue);
+    }
+
+    public Button getCheckbox() {
+        return checkbox;
     }
 
     public static CheckboxComplexBuilder builder() {
@@ -56,6 +63,7 @@ public class CheckboxComplex {
         private Composite composite;
         private DataBindingContext dataBindingContext;
         private IObservableValue pojoObservableValue;
+        private SelectionListener selectionListener;
         private String labelValue;
         private boolean defaultValue = false;
         private int colSpan = 1;
@@ -63,7 +71,7 @@ public class CheckboxComplex {
         public CheckboxComplex build() {
             validateParameters();
             return new CheckboxComplex(composite, dataBindingContext, pojoObservableValue,
-                    labelValue, defaultValue, colSpan);
+                    selectionListener, labelValue, defaultValue, colSpan);
         }
 
         public CheckboxComplexBuilder composite(Composite composite) {
@@ -78,6 +86,11 @@ public class CheckboxComplex {
 
         public CheckboxComplexBuilder pojoObservableValue(IObservableValue pojoObservableValue) {
             this.pojoObservableValue = pojoObservableValue;
+            return this;
+        }
+
+        public CheckboxComplexBuilder selectionListener(SelectionListener selectionListener) {
+            this.selectionListener = selectionListener;
             return this;
         }
 

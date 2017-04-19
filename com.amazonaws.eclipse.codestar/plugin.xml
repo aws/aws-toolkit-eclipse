@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension point="org.eclipse.ui.importWizards">
+       <category
+            id="com.amazonaws.eclipse.sdk.category"
+            name="AWS">
+      </category>
+      <wizard
+            id="com.amazonaws.eclipse.codestar.wizard.CodeStarProjectCheckoutWizard"
+            name="AWS CodeStar Project"
+            category="com.amazonaws.eclipse.sdk.category"
+            icon="icons/aws-box.gif"
+            class="com.amazonaws.eclipse.codestar.wizard.CodeStarProjectCheckoutWizard">
+      </wizard>
+   </extension>
+
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=java">
+         <command commandId="com.amazonaws.eclipse.codestar.handler.CodeStarProjectCheckoutWizardCommand"
+                  id="com.amazonaws.eclipse.codestar.handler.CodeStarProjectCheckoutWizardMenuItem"
+                  label="Import AWS CodeStar Project...">
+         </command>
+     </menuContribution>
+   </extension>
+
+   <extension point="org.eclipse.ui.commands">
+      <command id="com.amazonaws.eclipse.codestar.handler.CodeStarProjectCheckoutWizardCommand"
+            name="Import AWS CodeStar Project"
+            defaultHandler="com.amazonaws.eclipse.codestar.handler.CodeStarProjectCheckoutHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+   </extension>
+
+</plugin>

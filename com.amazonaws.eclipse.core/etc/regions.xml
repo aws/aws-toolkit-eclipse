@@ -52,6 +52,7 @@
       <service name="Kinesis">https://kinesis.us-east-1.amazonaws.com/</service>
       <service name="Logs">https://logs.us-east-1.amazonaws.com/</service>
       <service name="CodeCommit">https://codecommit.us-east-1.amazonaws.com/</service>
+      <service name="CodeStar">https://codestar.us-east-1.amazonaws.com/</service>
   </services>
   </region>
 
@@ -81,6 +82,7 @@
       <service name="Kinesis">https://kinesis.us-west-2.amazonaws.com/</service>
       <service name="Lambda">https://lambda.us-west-2.amazonaws.com/</service>
       <service name="Logs">https://logs.us-west-2.amazonaws.com/</service>
+      <service name="CodeCommit">https://codecommit.us-west-2.amazonaws.com/</service>
     </services>
   </region>
 
@@ -137,6 +139,8 @@
       <service name="Lambda">https://lambda.eu-west-1.amazonaws.com/</service>
       <service name="Kinesis">https://kinesis.eu-west-1.amazonaws.com/</service>
       <service name="Logs">https://logs.eu-west-1.amazonaws.com/</service>
+      <service name="CodeCommit">https://codecommit.eu-west-1.amazonaws.com/</service>
+
     </services>
   </region>
 

@@ -138,9 +138,7 @@ public class AccountSelectionComposite extends Composite {
      * Returns whether there are valid aws accounts configured
      */
     private boolean validAccountsConfigured() {
-        Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames();
-        return  AwsToolkitCore.getDefault().getAccountInfo().isValid()
-                || accounts.size() > 1;
+        return AwsToolkitCore.getDefault().getAccountManager().validAccountsConfigured();
     }
 
     /**

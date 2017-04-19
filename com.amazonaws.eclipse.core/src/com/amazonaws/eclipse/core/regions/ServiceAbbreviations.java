@@ -37,4 +37,5 @@ public final class ServiceAbbreviations {
     public static final String OPSWORKS        = "OpsWorks";
     public static final String LAMBDA          = "Lambda";
     public static final String CODECOMMIT      = "CodeCommit";
+    public static final String CODESTAR        = "CodeStar";
 }

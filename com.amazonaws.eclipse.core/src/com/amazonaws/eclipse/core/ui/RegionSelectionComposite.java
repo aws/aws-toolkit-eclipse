@@ -27,6 +27,10 @@ public class RegionSelectionComposite extends Composite {
         this(parent, style, null);
     }
 
+    public void addSelectionListener(SelectionListener listener) {
+        this.listeners.add(listener);
+    }
+
     public RegionSelectionComposite(final Composite parent, final int style, final String serviceName) {
         super(parent, style);
 
@@ -61,6 +65,18 @@ public class RegionSelectionComposite extends Composite {
 
     public void setSelectRegion(String regionName) {
         regionSelectionCombo.setText(regionName);
+    }
+
+    public String getSelectedRegion() {
+        return ((Region)regionSelectionCombo.getData(regionSelectionCombo.getText())).getId();
+    }
+
+    public void setSelection(int index) {
+        int itemCount = regionSelectionCombo.getItemCount();
+        if (index < 0 || index > itemCount - 1) {
+            throw new IllegalArgumentException("The index provided is invalid!");
+        }
+        regionSelectionCombo.select(index);
     }
 
 }

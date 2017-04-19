@@ -26,7 +26,6 @@ import org.eclipse.core.net.proxy.IProxyChangeEvent;
 import org.eclipse.core.net.proxy.IProxyChangeListener;
 import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.AmazonWebServiceClient;
@@ -35,6 +34,8 @@ import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.eclipse.core.accounts.AccountInfoChangeListener;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.Region;
@@ -51,6 +52,9 @@ import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.AWSCodeCommitClient;
 import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
 import com.amazonaws.services.codedeploy.AmazonCodeDeployClient;
+import com.amazonaws.services.codestar.AWSCodeStar;
+import com.amazonaws.services.codestar.AWSCodeStarClient;
+import com.amazonaws.services.codestar.AWSCodeStarClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -238,6 +242,10 @@ public class AWSClientFactory {
         return getCodeCommitClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CODECOMMIT));
     }
 
+    public AWSCodeStar getCodeStarClient() {
+        return getCodeStarClientByRegion(RegionUtils.getCurrentRegion().getId());
+    }
+
     /*
      * Endpoint-specific getters return clients that use the endpoint given.
      */
@@ -318,6 +326,40 @@ public class AWSClientFactory {
         return getOrCreateClient(endpoint, AWSCodeCommitClient.class);
     }
 
+    /**
+     * Return a CodeStar client by the specified region. Due to changes in Java SDK,
+     * new service client doesn't have non-parameter constructor. We need to build
+     * CodeStar client by using the ClientBuilder.
+     *
+     * @param regionId - region id for the client, ex. us-esat-1
+     * @return The cached client if already created, otherwise, create a new one.
+     */
+    public AWSCodeStar getCodeStarClientByRegion(String regionId) {
+        Region region = RegionUtils.getRegion(regionId);
+        if (region == null) {
+            return null;
+        }
+        String endpoint = region.getServiceEndpoint(ServiceAbbreviations.CODESTAR);
+        Class<AWSCodeStarClient> clientClass = AWSCodeStarClient.class;
+        synchronized (clientClass) {
+            if ( cachedClients.getClient(endpoint, clientClass) == null ) {
+                cachedClients.cacheClient(endpoint, createCodeStarClient(regionId));
+            }
+        }
+
+        return cachedClients.getClient(endpoint, clientClass);
+    }
+
+    private AWSCodeStar createCodeStarClient(String regionId) {
+        final AccountInfo accountInfo = AwsToolkitCore.getDefault()
+                .getAccountManager().getAccountInfo(accountId);
+        String profileName = accountInfo.getAccountName();
+        return AWSCodeStarClientBuilder.standard()
+                .withCredentials(new ProfileCredentialsProvider(profileName))
+                .withRegion(regionId)
+                .build();
+    }
+
     private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {
         synchronized (clientClass) {
             if ( cachedClients.getClient(endpoint, clientClass) == null ) {
@@ -328,6 +370,7 @@ public class AWSClientFactory {
         return cachedClients.getClient(endpoint, clientClass);
     }
 
+    //TODO To be upgraded to using ClientBuilder
     private <T extends AmazonWebServiceClient> T createClient(String endpoint, Class<T> clientClass) {
         try {
             Constructor<T> constructor = clientClass.getConstructor(AWSCredentials.class, ClientConfiguration.class);

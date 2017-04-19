@@ -11,6 +11,6 @@
 	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-ec2-1.11.21.jar"/>
 	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-iam-1.11.21.jar"/>
 	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-cloudformation-1.11.60.jar"/>
-	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-core-1.11.89.jar"/>
+	<classpathentry kind="lib" path="/com.amazonaws.eclipse.core/lib/aws-java-sdk-core-1.11.109.jar"/>
 	<classpathentry kind="output" path="eclipse-bin"/>
 </classpath>
