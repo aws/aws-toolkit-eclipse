@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+    <extension
+         point="org.eclipse.datatools.connectivity.sqm.core.databaseRecognition">
+      <recognizer
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBDatabaseRecognizer">
+      </recognizer>
+    </extension>
+    <extension point="org.eclipse.datatools.connectivity.connectionProfile">
+        <configurationType
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.configurationType"
+            name="SimpleDB">
+        </configurationType>
+        <connectionProfile category="org.eclipse.datatools.connectivity.db.category"
+            configurationType="com.amazonaws.eclipse.datatools.enablement.simpledb.configurationType"
+            icon="icons/jdbc_16.gif"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.connectionProfile"
+            name="%profile.simpledb.title"
+            pingFactory="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBConnectionFactory"
+            propertiesPersistenceHook="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBPropertiesPersistenceHook" />
+        <connectionFactory
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.connection.SimpleDBConnectionFactory"
+            id="java.sql.Connection"
+            name="%jdbc.connection.name"
+            profile="com.amazonaws.eclipse.datatools.enablement.simpledb.connectionProfile" />
+    </extension>
+    <extension point="org.eclipse.datatools.connectivity.driverExtension">
+        <category parentCategory="org.eclipse.datatools.connectivity.db.driverCategory"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.driverCategory"
+            name="%SIMPLEDB_CATEGORY_NAME" />
+        <driverTemplate createDefault="true" emptyJarListIsOK="true"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.driverTemplate"
+            jarList="."
+            name="%com.amazonaws.eclipse.datatools.enablement.simpledb.driverTemplate"
+            parentCategory="com.amazonaws.eclipse.datatools.enablement.simpledb.driverCategory"
+            valuesProvider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.driver.SimpleDBDriverValuesProvider">
+            <properties>
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.driverClass" name="%driverClass"
+                    value="com.amazonaws.services.simpledb.AmazonSimpleDBClient" required="true"
+                    visible="true" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.vendor" name="%driverVendor"
+                    value="SimpleDB" required="true" visible="false" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.version" name="%driverVersion"
+                    value="1.0" required="true" visible="false" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.username" name="%driverUID"
+                    value="" required="false" visible="true" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.password" name="%driverPWD"
+                    required="false" visible="true" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.URL" name="jdbc:simpledb"
+                    required="false" visible="true" />
+            </properties>
+        </driverTemplate>
+        <!--driverTemplate createDefault="false" emptyJarListIsOK="false"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.other.driverTemplate"
+            jarList=""
+            name="%com.amazonaws.eclipse.datatools.enablement.simpledb.other.driverTemplate"
+            parentCategory="com.amazonaws.eclipse.datatools.enablement.simpledb.driverCategory"
+            valuesProvider="com.amazonaws.eclipse.datatools.enablement.internal.simpledb.driver.SimpleDBDriverValuesProvider">
+            <properties>
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.driverClass" name="%driverClass"
+                    value="" required="true" visible="true" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.vendor" name="%driverVendor"
+                    value="SimpleDB" required="true" visible="false" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.version" name="%driverVersion"
+                    value="1.0" required="true" visible="false" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.username" name="%driverUID"
+                    value="" required="false" visible="true" />
+                <property generated="false"
+                    id="org.eclipse.datatools.connectivity.db.password" name="%driverPWD"
+                    required="false" visible="true" />
+            </properties>
+        </driverTemplate-->
+    </extension>
+    <!--extension point="org.eclipse.datatools.connectivity.sqm.core.catalog"-->
+        <!--catalog
+            version="1.0"
+            product="SimpleDB"
+            provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBCatalogProvider">
+        </catalog-->
+        <!--overrideLoader
+            provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBSchemaLoader"
+            eclass="org.eclipse.datatools.modelbase.sql.schema.Schema"
+            product="SimpleDB"
+            version="1.0" />
+
+        <overrideLoader
+            provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBColumnLoader"
+            eclass="org.eclipse.datatools.modelbase.sql.tables.Column"
+            product="SimpleDB"
+            version="1.0" />
+
+        <overrideLoader
+            provider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.loaders.SimpleDBTableLoader"
+            eclass="org.eclipse.datatools.modelbase.sql.tables.Table"
+            product="SimpleDB"
+            version="1.0" /-->
+
+    <!--/extension-->
+    <!--extension point="org.eclipse.datatools.connectivity.sqm.core.ddlGeneration">
+        <generator
+            class="com.amazonaws.eclipse.datatools.enablement.internal.simpledb.ddl.SimpleDBDdlGenerator"
+            product="SimpleDB"
+            version="1.0">
+        </generator>
+    </extension-->
+
+   <extension
+         point="org.eclipse.datatools.connectivity.sqm.core.databaseDefinition">
+      <definition
+            product="SimpleDB"
+            version="1.0"
+            productDisplayString="%ProductString"
+            versionDisplayString="%VersionString"
+            file="runtime/vendors/SimpleDB_1.0/SimpleDB_1.0.xmi">
+      </definition>
+   </extension>
+
+   <!-- UI Editor extensions -->
+   <extension
+         point="org.eclipse.datatools.sqltools.data.ui.externalTableDataEditor">
+      <externalEditor
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.editor.SDBTextEditor"
+            vendor="SimpleDB"
+            version="1.0">
+      </externalEditor>
+   </extension>
+   <extension
+         point="org.eclipse.datatools.sqltools.data.core.columnDataAccessors">
+      <accessor
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.editor.SimpleDBDataAccessor"
+            dataType="TEXT"
+            vendor="SimpleDB"
+            version="1.0">
+      </accessor>
+   </extension>
+   <extension
+         point="org.eclipse.datatools.sqltools.data.core.columnDataAccessors">
+      <accessor
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.editor.SimpleDBIDDataAccessor"
+            dataType="TEXTID"
+            vendor="SimpleDB"
+            version="1.0">
+      </accessor>
+   </extension>
+
+
+   <!-- Simple DB explorer UI -->
+   <extension point="org.eclipse.datatools.connectivity.connectionProfile">
+        <newWizard
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.NewSimpleDBConnectionProfileWizard"
+            icon="icons/new_db_element.gif"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.NewSimpleDBConnectionProfileWizard"
+            name="%profile.simpledb.wizard.title" description="%profile.simpledb.wizard.description"
+            profile="com.amazonaws.eclipse.datatools.enablement.simpledb.connectionProfile" />
+    </extension>
+
+    <extension point="org.eclipse.ui.propertyPages">
+        <page
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.SimpleDBProfilePropertyPage"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.profileProperties"
+            name="%profile.simpledb.properties" objectClass="org.eclipse.datatools.connectivity.IConnectionProfile">
+            <filter name="org.eclipse.datatools.profile.property.id"
+                value="com.amazonaws.eclipse.datatools.enablement.simpledb.connectionProfile" />
+        </page>
+    </extension>
+
+    <!--
+        extension
+        point="org.eclipse.datatools.connectivity.ui.driverPropertyEditor">
+        <propertyEditor
+        customPropertyDescriptor="org.eclipse.datatools.connectivity.ui.PasswordTextPropertyDescriptor"
+        driverPropertyID="org.eclipse.datatools.connectivity.db.password"
+        driverTemplateID="com.amazonaws.eclipse.datatools.enablement.simpledb.driverTemplate"
+        id="com.amazonaws.eclipse.datatools.enablement.simpledb.driverTemplate.password">
+        </propertyEditor> <propertyEditor
+        customPropertyDescriptor="org.eclipse.datatools.connectivity.ui.PasswordTextPropertyDescriptor"
+        driverPropertyID="org.eclipse.datatools.connectivity.db.password"
+        driverTemplateID="com.amazonaws.eclipse.datatools.enablement.simpledb.other.driverTemplate"
+        id="com.amazonaws.eclipse.datatools.enablement.simpledb.other.driverTemplate.password">
+        </propertyEditor> </extension
+    -->
+
+    <extension point="org.eclipse.datatools.connectivity.ui.driverUIContributor">
+        <driverUIContributor
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.drivers.SimpleDBDriverUIContributor"
+            driverTemplateID="com.amazonaws.eclipse.datatools.enablement.simpledb.driverTemplate"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.drivers.SimpleDBDriverUIContributor">
+        </driverUIContributor>
+    </extension>
+
+    <extension point="org.eclipse.datatools.connectivity.ui.driverUIContributor">
+        <driverUIContributor
+            class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.drivers.SimpleDBOtherDriverUIContributor"
+            driverTemplateID="com.amazonaws.eclipse.datatools.enablement.simpledb.other.driverTemplate"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.connection.drivers.SimpleDBOtherDriverUIContributor">
+        </driverUIContributor>
+    </extension>
+
+    <extension point="org.eclipse.ui.navigator.viewer">
+        <viewerContentBinding
+            viewerId="org.eclipse.datatools.connectivity.DataSourceExplorerNavigator">
+            <includes>
+                <contentExtension
+                    pattern="com.amazonaws.eclipse.datatools.enablement.simpledb.SDBExplorerContent" />
+            </includes>
+        </viewerContentBinding>
+    </extension>
+
+    <extension point="org.eclipse.ui.navigator.navigatorContent">
+        <navigatorContent
+            contentProvider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.explorer.SimpleDBContentProviderExtension"
+            id="com.amazonaws.eclipse.datatools.enablement.simpledb.SDBExplorerContent"
+            labelProvider="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.explorer.SimpleDBLabelProviderExtension"
+            priority="higher" activeByDefault="true"
+            name="Database Explorer SimpleDB Content Extension">
+            <commonSorter
+                id="org.eclipse.datatools.connectivity.sqm.core.internal.ui.services.ExplorerSorterProvider"
+                class="org.eclipse.datatools.connectivity.sqm.core.internal.ui.services.ExplorerSorterProvider">
+            </commonSorter>
+            <actionProvider
+                id="org.eclipse.datatools.connectivity.sqm.server.internal.ui.explorer.providers.SQLModelContentActionProvider"
+                class="org.eclipse.datatools.connectivity.sqm.server.internal.ui.explorer.providers.SQLModelContentActionProvider">
+                <enablement>
+                    <instanceof
+                        value="org.eclipse.datatools.connectivity.sqm.core.internal.ui.explorer.filter.IFilterNode" />
+                </enablement>
+            </actionProvider>
+            <triggerPoints>
+                <or>
+                    <instanceof value="org.eclipse.datatools.modelbase.sql.schema.SQLObject" />
+                    <instanceof
+                        value="org.eclipse.datatools.connectivity.sqm.core.ui.explorer.virtual.IVirtualNode" />
+                    <and>
+                        <instanceof
+                            value="org.eclipse.datatools.connectivity.IConnectionProfile" />
+                        <test
+                            property="org.eclipse.datatools.connectivity.profile.property.factoryID"
+                            value="org.eclipse.datatools.connectivity.sqm.core.connection.ConnectionInfo" />
+                    </and>
+                    <instanceof
+                        value="org.eclipse.datatools.connectivity.sqm.server.internal.ui.explorer.providers.SQLModelContentExtension" />
+                    <instanceof
+                        value="org.eclipse.datatools.connectivity.sqm.server.internal.ui.explorer.loading.LoadingNode" />
+                </or>
+            </triggerPoints>
+            <possibleChildren>
+                <or>
+                    <instanceof value="org.eclipse.datatools.modelbase.sql.schema.SQLObject" />
+                    <instanceof
+                        value="org.eclipse.datatools.connectivity.sqm.core.ui.explorer.virtual.IVirtualNode" />
+                    <instanceof
+                        value="org.eclipse.datatools.connectivity.sqm.server.internal.ui.explorer.providers.SQLModelContentExtension" />
+                </or>
+            </possibleChildren>
+            <override policy="InvokeOnlyIfSuppressedExtAlsoVisibleAndActive"
+                suppressedExtensionId="org.eclipse.datatools.connectivity.db.sqlModelContent">
+            </override>
+        </navigatorContent>
+    </extension>
+
+    <extension point="com.amazonaws.eclipse.core.overview">
+          <overviewSection title="Amazon SimpleDB Management" class="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.SimpleDBOverviewSection"/>
+     </extension>
+
+     <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=simpleDB">
+         <command commandId="com.amazonaws.eclipse.datatools.enablement.simpledb.ui.newSimpleDBConnectionCommand"
+                  id="com.amazonaws.eclipse.datatools.enablement.simpledb.ui.newSimpleDBConnectionMenuItem"
+                  label="Connect to Amazon SimpleDB...">
+         </command>
+         <command commandId="org.eclipse.ui.views.showView"
+                  id="com.amazonaws.eclipse.datatools.enablement.simpledb.ui.showDataSourceExplorerViewMenuItem"
+                  label="Show Data Source Explorer View">
+                  <parameter
+                        name="org.eclipse.ui.views.showView.viewId"
+                        value="org.eclipse.datatools.connectivity.DataSourceExplorerNavigator">
+                  </parameter>
+         </command>
+     </menuContribution>
+   </extension>
+
+   <extension point="org.eclipse.ui.commands">
+      <command id="com.amazonaws.eclipse.datatools.enablement.simpledb.ui.newSimpleDBConnectionCommand"
+            name="Connection to Amazon SimpleDB"
+            defaultHandler="com.amazonaws.eclipse.datatools.enablement.simpledb.internal.ui.menu.NewSimpleDBConnectionHandler"
+            categoryId="com.amazonaws.commands.category">
+      </command>
+   </extension>
+
+    <!-- AWS Resource Navigator: SimpleDB content and labels -->
+    <extension point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.simpledb.SimpleDBContentProvider"
+         id="com.amazonaws.eclipse.explorer.SimpleDBContent"
+         labelProvider="com.amazonaws.eclipse.explorer.simpledb.SimpleDBLabelProvider"
+         name="Amazon SimpleDB"
+         priority="normal">
+        <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+        </triggerPoints>
+        <possibleChildren>
+          <or>
+            <instanceof value="com.amazonaws.eclipse.explorer.simpledb.SimpleDBRootElement"/>
+            <instanceof value="com.amazonaws.eclipse.explorer.simpledb.SimpleDBExplorerNodes$ExplorerNode"/>
+            <instanceof value="com.amazonaws.eclipse.explorer.simpledb.SimpleDBExplorerNodes$DomainNode"/>
+          </or>
+        </possibleChildren>
+        <actionProvider class="com.amazonaws.eclipse.explorer.simpledb.SimpleDBNavigatorActionProvider">
+            <enablement>
+               <or>
+                  <instanceof value="com.amazonaws.eclipse.explorer.simpledb.SimpleDBRootElement"/>
+                  <instanceof value="com.amazonaws.eclipse.explorer.ExplorerNode"/>
+                  <instanceof value="com.amazonaws.eclipse.explorer.simpledb.SimpleDBExplorerNodes$DomainNode"/>
+               </or>
+            </enablement>
+        </actionProvider>
+      </navigatorContent>
+    </extension>
+
+   <!-- Custom query editor / results viewer with editable results table -->
+   <extension point="org.eclipse.ui.editors">
+       <editor
+             class="com.amazonaws.eclipse.datatools.enablement.simpledb.ui.editor.QueryEditor"
+             default="false"
+             icon="icons/table.gif"
+             id="com.amazonaws.eclipse.datatools.enablement.simpledb.ui.editor.queryEditor"
+             name="Amazon SimpleDB Query Results">
+       </editor>
+    </extension>
+
+    <!-- Table Wizard -->
+    <extension point="org.eclipse.ui.navigator.viewer">
+    <viewerActionBinding
+      viewerId="org.eclipse.datatools.connectivity.DataSourceExplorerNavigator">
+      <includes>
+        <actionExtension
+          pattern="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.*" />
+      </includes>
+    </viewerActionBinding>
+  </extension>
+
+  <!-- New Table... action -->
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <actionProvider
+      class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewDomainActionProvider"
+      id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewDomainActionProvider"
+      overrides="org.eclipse.datatools.sqltools.tablewizard.ui.popup.actions.NewTableActionProvider">
+      <enablement>
+        <or>
+          <and>
+            <adapt
+              type="org.eclipse.datatools.connectivity.sqm.core.internal.ui.explorer.virtual.ITableNode" />
+            <test forcePluginActivation="true"
+              property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+              value="SimpleDB">
+            </test>
+          </and>
+        </or>
+      </enablement>
+    </actionProvider>
+  </extension>
+
+  <!-- Delete action -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <actionProvider
+      class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteDomainActionProvider"
+      id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteDomainActionProvider"
+      overrides="org.eclipse.datatools.sqltools.tablewizard.ui.popup.actions.DeleteTableActionProvider">
+      <enablement>
+        <or>
+          <and>
+            <adapt
+              type="org.eclipse.datatools.modelbase.sql.tables.PersistentTable" />
+            <test forcePluginActivation="true"
+              property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+              value="SimpleDB">
+            </test>
+          </and>
+        </or>
+      </enablement>
+    </actionProvider>
+  </extension>
+
+  <extension point="org.eclipse.core.expressions.propertyTesters">
+    <propertyTester
+      class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.SQLNodePropertyTester"
+      id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.propertyTester1"
+      namespace="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions"
+      properties="vendor"
+      type="org.eclipse.datatools.connectivity.sqm.core.ui.explorer.virtual.IVirtualNode">
+    </propertyTester>
+    <propertyTester
+      class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.SQLNodePropertyTester"
+      id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.expressions.propertyTester2"
+      namespace="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions"
+      properties="vendor"
+      type="org.eclipse.datatools.modelbase.sql.schema.SQLObject">
+    </propertyTester>
+  </extension>
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <actionProvider
+      class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.LoadDataActionProvider"
+      dependsOn="org.eclipse.datatools.sqltools.tabledataeditor.actions.popup.DataGroupProvider"
+      id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.load"
+      overrides="org.eclipse.datatools.sqltools.data.internal.load">
+      <enablement>
+        <and>
+          <adapt
+            type="org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject" />
+          <adapt type="org.eclipse.datatools.modelbase.sql.tables.BaseTable" />
+          <test forcePluginActivation="true"
+            property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+            value="SimpleDB">
+          </test>
+        </and>
+      </enablement>
+    </actionProvider>
+  </extension>
+
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <actionProvider
+      class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewAttributeActionProvider"
+      id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.NewAttributeActionProvider">
+      <enablement>
+        <or>
+          <and>
+            <adapt
+              type="org.eclipse.datatools.connectivity.sqm.core.internal.ui.explorer.virtual.IColumnNode" />
+            <test forcePluginActivation="true"
+              property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+              value="SimpleDB">
+            </test>
+          </and>
+        </or>
+      </enablement>
+    </actionProvider>
+    <actionProvider
+      class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteAttributeActionProvider"
+      id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.DeleteAttributeActionProvider">
+      <enablement>
+        <or>
+          <and>
+            <adapt
+              type="org.eclipse.datatools.modelbase.sql.tables.Column" />
+            <test forcePluginActivation="true"
+              property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+              value="SimpleDB">
+            </test>
+          </and>
+        </or>
+      </enablement>
+    </actionProvider>
+  </extension>
+
+  <extension
+         point="org.eclipse.ui.popupMenus">
+         <objectContribution
+             id="org.eclipse.datatools.dbunit.actions.objectContribution1_disabled_for_SDB"
+            objectClass="org.eclipse.datatools.modelbase.sql.schema.SQLObject">
+           <action
+                class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.ExportDBUDataSetAction"
+                enablesFor="0"
+                id="org.eclipse.datatools.dbunit.actions.ExportDBUDataSetAction_disabled_for_SDB"
+                label="%action.label.GenerateDataSet"
+                menubarPath="slot1"
+                overrideActionId="org.eclipse.datatools.dbunit.actions.ExportDBUDataSetAction">
+           </action>
+           <enablement>
+               <and>
+            <or>
+            <adapt type="org.eclipse.datatools.modelbase.sql.schema.Database"/>
+            <adapt type="org.eclipse.datatools.modelbase.sql.schema.Schema"/>
+            <adapt type="org.eclipse.datatools.modelbase.sql.schema.Catalog"/>
+            <adapt type="org.eclipse.datatools.modelbase.sql.tables.Table"/>
+              </or>
+            <test forcePluginActivation="true"
+            property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+            value="SimpleDB">
+          </test>
+          </and>
+           </enablement>
+           <!--visibility>
+            <objectClass name="org.eclipse.datatools.modelbase.sql.tables.Trigger"/>
+           </visibility-->
+     </objectContribution>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <actionProvider
+            class="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.ForwardEngineerActionProvider"
+            id="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.forwardEngineer"
+            overrides="org.eclipse.datatools.sqltools.ddlgen.ui.forwardEngineer.base">
+         <enablement>
+         <and>
+            <or>
+               <instanceof value="org.eclipse.datatools.modelbase.sql.schema.Database"/>
+               <instanceof value="org.eclipse.datatools.modelbase.sql.schema.Schema"/>
+               <instanceof value="org.eclipse.datatools.modelbase.sql.tables.Table"/>
+            </or>
+            <test forcePluginActivation="true"
+        property="com.amazonaws.eclipse.datatools.sqltools.tablewizard.simpledb.ui.popup.actions.vendor"
+        value="SimpleDB">
+      </test>
+         </and>
+         </enablement>
+      </actionProvider>
+   </extension>
+
+   <extension
+         id="com.amazonaws.eclipse.datatools.sqltools.db.simpledb"
+         name="SimpleDB configuration"
+         point="org.eclipse.datatools.sqltools.editor.core.dbConfigurations">
+      <dbConfiguration
+            configurationClass="com.amazonaws.eclipse.datatools.sqltools.db.simpledb.SimpleDBConfiguration"
+            product="SimpleDB"
+            version="1.0">
+      </dbConfiguration>
+   </extension>
+
+</plugin>

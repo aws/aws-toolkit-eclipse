@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="lib/|src/com/amazonaws/eclipse/datatools/enablement/simpledb/|src/com/amazonaws/eclipse/datatools/enablement/|src/com/amazonaws/eclipse/datatools/|src/com/amazonaws/eclipse/|src/com/amazonaws/|src/com/|src/|target/" kind="src" path=""/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="lib" path="lib/hamcrest-core-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/hamcrest-library-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jmock-2.4.0.jar"/>
+	<classpathentry kind="lib" path="lib/jmock-junit3-2.4.0.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

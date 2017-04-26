@@ -1,0 +1,30 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.amazonaws.eclipse</groupId>
+  <artifactId>com.amazonaws.eclipse.bundles</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <parent>
+    <groupId>com.amazonaws.eclipse</groupId>
+    <artifactId>com.amazonaws.eclipse.root</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <modules>
+    <module>com.amazonaws.eclipse.core</module>
+    <module>com.amazonaws.eclipse.sdk.ui</module>
+    <module>com.amazonaws.eclipse.ec2</module>
+    <module>com.amazonaws.eclipse.dynamodb</module>
+    <module>com.amazonaws.eclipse.identitymanagement</module>
+    <module>com.amazonaws.eclipse.cloudformation</module>
+    <module>com.amazonaws.eclipse.codecommit</module>
+    <module>com.amazonaws.eclipse.codedeploy</module>
+    <module>com.amazonaws.eclipse.codestar</module>
+    <module>com.amazonaws.eclipse.elasticbeanstalk</module>
+    <module>com.amazonaws.eclipse.lambda</module>
+    <module>com.amazonaws.eclipse.opsworks</module>
+    <module>com.amazonaws.eclipse.rds</module>
+    <module>com.amazonaws.eclipse.simpledb</module>
+  </modules>
+</project>

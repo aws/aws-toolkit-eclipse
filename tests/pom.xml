@@ -1,0 +1,59 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.amazonaws.eclipse</groupId>
+  <artifactId>com.amazonaws.eclipse.tests</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <parent>
+    <groupId>com.amazonaws.eclipse</groupId>
+    <artifactId>com.amazonaws.eclipse.root</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <modules>
+    <module>com.amazonaws.eclipse.core.tests</module>
+    <module>com.amazonaws.eclipse.elasticbeanstalk.tests</module>
+    <module>com.amazonaws.eclipse.simpledb.tests</module>
+  </modules>
+
+  <build>
+        <plugins>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-surefire-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <useUIHarness>true</useUIHarness>
+                    <useUIThread>false</useUIThread>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>osx</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.eclipse.tycho</groupId>
+                            <artifactId>tycho-surefire-plugin</artifactId>
+                            <version>${tycho.version}</version>
+                            <configuration>
+                                <argLine>-XstartOnFirstThread</argLine>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

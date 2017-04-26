@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>com.amazonaws.eclipse.features</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+    <parent>
+        <groupId>com.amazonaws.eclipse</groupId>
+        <artifactId>com.amazonaws.eclipse.root</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <modules>
+        <module>com.amazonaws.eclipse.core.feature</module>
+        <module>com.amazonaws.eclipse.cloudformation.feature</module>
+        <module>com.amazonaws.eclipse.lambda.feature</module>
+        <module>com.amazonaws.eclipse.codecommit.feature</module>
+        <module>com.amazonaws.eclipse.codedeploy.feature</module>
+        <module>com.amazonaws.eclipse.codestar.feature</module>
+        <module>com.amazonaws.eclipse.elasticbeanstalk.feature</module>
+        <module>com.amazonaws.eclipse.opsworks.feature</module>
+        <module>com.amazonaws.eclipse.rds.feature</module>
+        <module>com.amazonaws.eclipse.simpledb.feature</module>
+    </modules>
+</project>

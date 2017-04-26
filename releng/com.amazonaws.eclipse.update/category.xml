@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.amazonaws.eclipse.core.feature_2.3.1.qualifier.jar" id="com.amazonaws.eclipse.core.feature" version="2.3.1.qualifier">
+      <category name="com.amazonaws.category.management"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.cloudformation.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.cloudformation.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.management"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.lambda.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.lambda.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.deployment"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.codedeploy.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.codedeploy.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.deployment"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.elasticbeanstalk.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.elasticbeanstalk.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.deployment"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.rds.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.rds.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.datatools"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.opsworks.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.opsworks.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.deployment"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.codecommit.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.codecommit.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.development"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.codestar.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.codestar.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.development"/>
+   </feature>
+   <feature url="features/com.amazonaws.eclipse.simpledb.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.simpledb.feature" version="1.0.0.qualifier">
+      <category name="com.amazonaws.category.datatools"/>
+   </feature>
+   <category-def name="com.amazonaws.category.management" label="AWS Core Management Tools"/>
+   <category-def name="com.amazonaws.category.deployment" label="AWS Deployment Tools"/>
+   <category-def name="com.amazonaws.category.datatools" label="Optional - AWS Data Management Tools"/>
+   <category-def name="com.amazonaws.category.development" label="AWS Development Tools"/>
+</site>

@@ -1,6 +1,0 @@
-# com.amazonaws.eclipse.sdk plugins and feature
-plugin@com.amazonaws.eclipse.sdk=SVN,,http://aws-eclipse.svn.sourceforge.net/svnroot,aws-eclipse,plugins/com.amazonaws.eclipse.core
-plugin@com.amazonaws.eclipse.sdk.ui=SVN,,http://aws-eclipse.svn.sourceforge.net/svnroot,aws-eclipse,plugins/com.amazonaws.eclipse.core
-feature@com.amazonaws.eclipse.sdk.feature=SVN,,http://aws-eclipse.svn.sourceforge.net/svnroot,aws-eclipse,features/com.amazonaws.eclipse.core.feature
-
-plugin@com.amazonaws.eclipse.core=SVN,,http://aws-eclipse.svn.sourceforge.net/svnroot,aws-eclipse,plugins/com.amazonaws.eclipse.core
