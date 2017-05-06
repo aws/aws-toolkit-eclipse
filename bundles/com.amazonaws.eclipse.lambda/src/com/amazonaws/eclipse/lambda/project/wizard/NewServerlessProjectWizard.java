@@ -14,6 +14,8 @@
 */
 package com.amazonaws.eclipse.lambda.project.wizard;
 
+import static com.amazonaws.eclipse.core.util.JavaProjectUtils.setDefaultJreToProjectClasspath;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -29,6 +31,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.ui.internal.UpdateMavenProjectJob;
 
 import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
@@ -37,6 +44,7 @@ import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 import com.amazonaws.eclipse.core.validator.JavaPackageName;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.page.NewServerlessProjectWizardPageOne;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
@@ -88,16 +96,18 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
 
         try {
             MavenFactory.createMavenProject(project, mavenModel, monitor);
+            IJavaProject javaProject = JavaCore.create(project);
+            setDefaultJreToProjectClasspath(javaProject, monitor);
         } catch (Exception e) {
             LambdaPlugin.getDefault().reportException(
                     "Failed to create AWS Serverless Maven Project.", e);
         }
 
         try {
-            dataModel.buildServerlessModel();
-            FunctionProjectUtil.addSourceToProject(project, dataModel);
-            readmeFile = FunctionProjectUtil.addServerlessReadmeFileToProject(project, dataModel);
+            FunctionProjectUtil.createServerlessBlueprintProject(project, dataModel);
+            readmeFile = FunctionProjectUtil.emitServerlessReadme(project, dataModel);
             FunctionProjectUtil.refreshProject(project);
+            new UpdateMavenProjectJob(new IProject[]{project}).schedule();
 
         } catch (Exception e) {
             LambdaAnalytics.trackServerlessProjectCreationFailed();
@@ -132,13 +142,6 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
         model.setGroupId(dataModel.getMavenConfigurationDataModel().getGroupId());
         model.setArtifactId(dataModel.getMavenConfigurationDataModel().getArtifactId());
         model.setVersion(MavenFactory.getMavenModelVersion());
-        model.addDependency(MavenFactory.getAwsLambdaJavaCoreDependency());
-        model.addDependency(MavenFactory.getAwsLambdaJavaEventsDependency());
-        model.addDependency(MavenFactory.getJunitDependency());
-        model.addDependency(MavenFactory.getLatestAwsSdkDependency("compile"));
-        DependencyManagement dependencyManagement = new DependencyManagement();
-        dependencyManagement.addDependency(MavenFactory.getLatestAwsBomDependency());
-        model.setDependencyManagement(dependencyManagement);
         return model;
     }
 
@@ -149,7 +152,7 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
         IPath handlerPath = new Path("");
         List<ServerlessHandlerTemplateData> templates = dataModel.getServerlessHandlerTemplateData();
         if (templates == null || templates.isEmpty()) {
-            handlerPath = handlerPath.append(NameUtils.SERVERLESS_TEMPLATE_FILE_NAME);
+            handlerPath = handlerPath.append(CodeTemplateManager.SERVERLESS_BLUEPRINT_SAM_NAME);
         } else {
             ServerlessHandlerTemplateData template = templates.get(0);
             handlerPath = handlerPath.append(MavenFactory.getMavenSourceFolder());

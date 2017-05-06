@@ -215,3 +215,4 @@ Require-Bundle: org.eclipse.swt,
  org.eclipse.equinox.security;bundle-version="1.2.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
+Import-Package: org.eclipse.jdt.launching

@@ -14,11 +14,12 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.webproject;
 
+import static com.amazonaws.eclipse.core.util.JavaProjectUtils.setDefaultJreToProjectClasspath;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -30,12 +31,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.launching.IVMInstall;
-import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
@@ -51,7 +48,6 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.core.validator.JavaPackageName;
-import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkAnalytics;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 
 /**
@@ -82,7 +78,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
             IProject project = createBeanstalkProject(
                     dataModel.getMavenConfigurationDataModel(), monitor);
             IJavaProject javaProject = JavaCore.create(project);
-            setDefaultJreToProjectClasspath(javaProject);
+            setDefaultJreToProjectClasspath(javaProject, monitor);
             monitor.worked(20);
 
             addTemplateFiles(project);
@@ -125,35 +121,6 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         } finally {
             progressMonitor.done();
         }
-    }
-
-    public static void setDefaultJreToProjectClasspath(IJavaProject javaProject) throws JavaModelException {
-
-        final String JRE_CONTAINER_ID = "org.eclipse.jdt.launching.JRE_CONTAINER";
-        final String JAVA_CORE_VERSION_1_8 = "1.8";
-
-        IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-        List<IClasspathEntry> newList = new ArrayList<IClasspathEntry>();
-
-        for (IClasspathEntry entry : rawClasspath) {
-            if (!entry.getPath().toString().startsWith(JRE_CONTAINER_ID)) {
-                newList.add(entry);
-            }
-        }
-
-        IPath containerPath = new Path(JavaRuntime.JRE_CONTAINER);
-        IVMInstall ivmInstall = JavaRuntime.getDefaultVMInstall();
-        containerPath.append(ivmInstall.getVMInstallType().getId()).append(
-                ivmInstall.getName());
-        IClasspathEntry ivmEntry = JavaCore.newContainerEntry(containerPath);
-
-        newList.add(ivmEntry);
-
-        javaProject.setRawClasspath(
-                newList.toArray(new IClasspathEntry[newList.size()]), null);
-        javaProject.setOption(JavaCore.COMPILER_SOURCE, JAVA_CORE_VERSION_1_8);
-        javaProject.setOption(JavaCore.COMPILER_COMPLIANCE, JAVA_CORE_VERSION_1_8);
-        javaProject.setOption(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JAVA_CORE_VERSION_1_8);
     }
 
     private void addSessionManagerConfigurationFiles(IProject project) throws IOException, CoreException {

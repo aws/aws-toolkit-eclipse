@@ -97,19 +97,18 @@ public class DeployUtils {
 
         progressMonitor.worked(15);
 
-
         /*
          * (2) Upload to S3
          */
         String bucketName = dataModel.getBucketName();
         String keyName = zipArchive.getName();
-        AmazonS3 s3Client = AwsToolkitCore.getClientFactory()
-                .getS3ClientByEndpoint("https://s3.amazonaws.com/");
+        AmazonS3 s3Client = AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucketName);
 
         progressMonitor.subTask("Upload ZIP file to S3...");
 
         CodeDeployPlugin.getDefault().logInfo(
                 "Uploading zip file to S3 bucket [" + bucketName + "].");
+
         s3Client.putObject(bucketName, keyName, zipArchive);
         CodeDeployPlugin.getDefault().logInfo(
                 "Upload succeed. [s3://" + bucketName + "/" + keyName + "]");

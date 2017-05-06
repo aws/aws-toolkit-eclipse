@@ -14,127 +14,265 @@
  */
 package com.amazonaws.eclipse.lambda.project.metadata;
 
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/**
+ * Metadata POJO for deploying or invoking Lambda functions. This POJO records the last Lambda function deployment or invoke
+ * information which could be reused for the next time of deployment or invoke.
+ */
 public class LambdaFunctionProjectMetadata {
 
-    private static final String P_LAST_DEPLOYMENT_ENDPOINT = "lastDeploymentEndpoint";
-    private static final String P_LAST_DEPLOYMENT_FUNCTION_NAME = "lastDeploymentFunctionName";
-    private static final String P_LAST_DEPLOYMENT_BUCKET_NAME = "lastDeploymentBucketName";
-    private static final String P_LAST_INVOKE_INPUT = "lastInvokeInput";
-    private static final String P_LAST_INVOKE_SHOW_LIVE_LOG = "lastInvokeShowLiveLog";
+    private String lastDeploymentHandler;
+    private String lastInvokeHandler;
 
-    private String lastDeploymentEndpoint;
-    private String lastDeploymentFunctionName;
-    private String lastDeploymentBucketName;
-    private String lastInvokeInput;
-    private Boolean lastInvokeShowLiveLog;
+    private Map<String, LambdaFunctionMetadata> handlerMetadata;
 
-    public String getLastDeploymentEndpoint() {
-        return lastDeploymentEndpoint;
+    /**
+     * Helper methods for getting and setting last deployment metadata according to {@link #lastDeploymentHandler} field.
+     */
+
+    @JsonIgnore
+    public Region getLastDeploymentRegion() {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        return lastDeploy == null ? null : RegionUtils.getRegion(lastDeploy.getRegionId());
+    }
+
+    public void setLastDeploymentRegion(String regionId) {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        if (lastDeploy != null) {
+            lastDeploy.setRegionId(regionId);
+        }
+    }
+
+    @JsonIgnore
+    public String getLastDeploymentFunctionName() {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        return lastDeploy == null ? null : lastDeploy.getAwsLambdaFunctionName();
+    }
+
+    public void setLastDeploymentFunctionName(String functionName) {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        if (lastDeploy != null) {
+            lastDeploy.setAwsLambdaFunctionName(functionName);
+        }
+    }
+
+    @JsonIgnore
+    public String getLastDeploymentBucketName() {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        return lastDeploy == null ? null : lastDeploy.getAwsS3BucketName();
+    }
+
+    public void setLastDeploymentBucketName(String bucketName) {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        if (lastDeploy != null) {
+            lastDeploy.setAwsS3BucketName(bucketName);
+        }
+    }
+
+    @JsonIgnore
+    public String getLastDeploymentRoleName() {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        return lastDeploy == null ? null : lastDeploy.getAwsIamRoleName();
+    }
+
+    public void setLastDeploymentRoleName(String roleName) {
+        LambdaFunctionDeploymentMetadata lastDeploy = getLastDeployment();
+        if (lastDeploy != null) {
+            lastDeploy.setAwsIamRoleName(roleName);
+        }
     }
 
     /**
-     * @return null if no lambda service endpoint matches the endpoint persisted
-     *         in this metadata
+     * Create the path to the target {@link LambdaFunctionDeploymentMetadata} in the Pojo if it is null and return it.
      */
-    public Region getLastDeploymentRegion() {
-        for (Region region : RegionUtils
-                .getRegionsForService(ServiceAbbreviations.LAMBDA)) {
-            if (region.getServiceEndpoint(ServiceAbbreviations.LAMBDA).equals(
-                    lastDeploymentEndpoint)) {
-                return region;
+    private LambdaFunctionDeploymentMetadata getLastDeployment() {
+        if (handlerMetadata == null) {
+            handlerMetadata = new HashMap<>();
+        }
+        if (lastDeploymentHandler != null) {
+            LambdaFunctionMetadata functionMetadata = handlerMetadata.get(lastDeploymentHandler);
+            if (functionMetadata == null) {
+                functionMetadata = new LambdaFunctionMetadata();
+                handlerMetadata.put(lastDeploymentHandler, functionMetadata);
             }
+            if (functionMetadata.getDeployment() == null) {
+                functionMetadata.setDeployment(new LambdaFunctionDeploymentMetadata());
+            }
+            return functionMetadata.getDeployment();
         }
         return null;
     }
 
-    public void setLastDeploymentEndpoint(String lastDeploymentEndpoint) {
-        this.lastDeploymentEndpoint = lastDeploymentEndpoint;
-    }
+    /**
+     * Helper methods for getting and setting last invoke metadata according to {@link #lastInvokeHandler} field.
+     */
 
-    public String getLastDeploymentFunctionName() {
-        return lastDeploymentFunctionName;
-    }
-
-    public void setLastDeploymentFunctionName(String lastDeploymentFunctionName) {
-        this.lastDeploymentFunctionName = lastDeploymentFunctionName;
-    }
-
-    public String getLastDeploymentBucketName() {
-        return lastDeploymentBucketName;
-    }
-
-    public void setLastDeploymentBucketName(String lastDeploymentBucketName) {
-        this.lastDeploymentBucketName = lastDeploymentBucketName;
-    }
-
+    @JsonIgnore
     public String getLastInvokeInput() {
-        return lastInvokeInput;
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        return lastInvoke == null ? null : lastInvoke.getInvokeInput();
     }
 
-    public void setLastInvokeInput(String lastInvokeInput) {
-        this.lastInvokeInput = lastInvokeInput;
-    }
-
-    public Boolean getLastInvokeShowLiveLog() {
-        return lastInvokeShowLiveLog;
-    }
-
-    public void setLastInvokeShowLiveLog(Boolean lastInvokeShowLiveLog) {
-        this.lastInvokeShowLiveLog = lastInvokeShowLiveLog;
-    }
-
-    public boolean isValid() {
-        return isNotEmpty(lastDeploymentEndpoint)
-                && isNotEmpty(lastDeploymentFunctionName)
-                && isNotEmpty(lastDeploymentBucketName);
-    }
-
-    public Properties toProperties() {
-
-        Properties props = new Properties();
-
-        if (lastDeploymentEndpoint != null) {
-            props.setProperty(P_LAST_DEPLOYMENT_ENDPOINT, lastDeploymentEndpoint);
+    @JsonIgnore
+    public void setLastInvokeInput(String invokeInput) {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        if (lastInvoke != null) {
+            lastInvoke.setInvokeInput(invokeInput);
         }
-        if (lastDeploymentFunctionName != null) {
-            props.setProperty(P_LAST_DEPLOYMENT_FUNCTION_NAME, lastDeploymentFunctionName);
-        }
-        if (lastDeploymentBucketName != null) {
-            props.setProperty(P_LAST_DEPLOYMENT_BUCKET_NAME, lastDeploymentBucketName);
-        }
-        if (lastInvokeInput != null) {
-            props.setProperty(P_LAST_INVOKE_INPUT, lastInvokeInput);
-        }
-        if (lastInvokeShowLiveLog != null) {
-            props.setProperty(P_LAST_INVOKE_SHOW_LIVE_LOG, lastInvokeShowLiveLog.toString());
-        }
-
-        return props;
     }
 
-    public static LambdaFunctionProjectMetadata fromProperties(Properties props) {
-
-        LambdaFunctionProjectMetadata md = new LambdaFunctionProjectMetadata();
-
-        md.setLastDeploymentEndpoint(props.getProperty(P_LAST_DEPLOYMENT_ENDPOINT));
-        md.setLastDeploymentFunctionName(props.getProperty(P_LAST_DEPLOYMENT_FUNCTION_NAME));
-        md.setLastDeploymentBucketName(props.getProperty(P_LAST_DEPLOYMENT_BUCKET_NAME));
-        md.setLastInvokeInput(props.getProperty(P_LAST_INVOKE_INPUT));
-        Boolean showLiveLog = props.getProperty(P_LAST_INVOKE_SHOW_LIVE_LOG) == null ? null :
-            Boolean.valueOf(props.getProperty(P_LAST_INVOKE_SHOW_LIVE_LOG));
-        md.setLastInvokeShowLiveLog(showLiveLog);
-
-        return md;
+    @JsonIgnore
+    public boolean getLastInvokeShowLiveLog() {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        return lastInvoke == null ? true : lastInvoke.isShowLiveLog();
     }
 
-    private static boolean isNotEmpty(String arg) {
-        return arg != null && !arg.isEmpty();
+    @JsonIgnore
+    public void setLastInvokeShowLiveLog(boolean showLiveLog) {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        if (lastInvoke != null) {
+            lastInvoke.setShowLiveLog(showLiveLog);
+        }
+    }
+
+    /**
+     * Create the path to the target {@link LambdaFunctionInvokeMetadata} in the Pojo if it is null and return it.
+     */
+    private LambdaFunctionInvokeMetadata getLastInvoke() {
+        if (handlerMetadata == null) {
+            handlerMetadata = new HashMap<>();
+        }
+        if (lastInvokeHandler != null) {
+            LambdaFunctionMetadata functionMetadata = handlerMetadata.get(lastInvokeHandler);
+            if (functionMetadata == null) {
+                functionMetadata = new LambdaFunctionMetadata();
+                handlerMetadata.put(lastInvokeHandler, functionMetadata);
+            }
+            if (functionMetadata.getInvoke() == null) {
+                functionMetadata.setInvoke(new LambdaFunctionInvokeMetadata());
+            }
+            return functionMetadata.getInvoke();
+        }
+        return null;
+    }
+
+    public String getLastDeploymentHandler() {
+        return lastDeploymentHandler;
+    }
+
+    public void setLastDeploymentHandler(String lastDeploymentHandler) {
+        this.lastDeploymentHandler = lastDeploymentHandler;
+    }
+
+    public Map<String, LambdaFunctionMetadata> getHandlerMetadata() {
+        return handlerMetadata;
+    }
+
+    public void setHandlerMetadata(Map<String, LambdaFunctionMetadata> handlerMetadata) {
+        this.handlerMetadata = handlerMetadata;
+    }
+
+    public String getLastInvokeHandler() {
+        return lastInvokeHandler;
+    }
+
+    public void setLastInvokeHandler(String lastInvokeHandler) {
+        this.lastInvokeHandler = lastInvokeHandler;
+    }
+
+    /**
+     * Cached settings for the operations to a Lambda function.
+     */
+    public static class LambdaFunctionMetadata {
+        // Last deployment metadata
+        private LambdaFunctionDeploymentMetadata deployment;
+        // Last invoke metadata
+        private LambdaFunctionInvokeMetadata invoke;
+
+        public LambdaFunctionDeploymentMetadata getDeployment() {
+            return deployment;
+        }
+        public void setDeployment(LambdaFunctionDeploymentMetadata deployment) {
+            this.deployment = deployment;
+        }
+        public LambdaFunctionInvokeMetadata getInvoke() {
+            return invoke;
+        }
+        public void setInvoke(LambdaFunctionInvokeMetadata invoke) {
+            this.invoke = invoke;
+        }
+    }
+
+    public static class LambdaFunctionDeploymentMetadata {
+        private String regionId;
+        private String awsLambdaFunctionName;
+        private String awsIamRoleName;
+        private String awsS3BucketName;
+        private int memory;
+        private int timeout;
+
+        public String getRegionId() {
+            return regionId;
+        }
+        public void setRegionId(String regionId) {
+            this.regionId = regionId;
+        }
+        public String getAwsLambdaFunctionName() {
+            return awsLambdaFunctionName;
+        }
+        public void setAwsLambdaFunctionName(String awsLambdaFunctionName) {
+            this.awsLambdaFunctionName = awsLambdaFunctionName;
+        }
+        public String getAwsIamRoleName() {
+            return awsIamRoleName;
+        }
+        public void setAwsIamRoleName(String awsIamRoleName) {
+            this.awsIamRoleName = awsIamRoleName;
+        }
+        public String getAwsS3BucketName() {
+            return awsS3BucketName;
+        }
+        public void setAwsS3BucketName(String awsS3BucketName) {
+            this.awsS3BucketName = awsS3BucketName;
+        }
+        public int getMemory() {
+            return memory;
+        }
+        public void setMemory(int memory) {
+            this.memory = memory;
+        }
+        public int getTimeout() {
+            return timeout;
+        }
+        public void setTimeout(int timeout) {
+            this.timeout = timeout;
+        }
+    }
+
+    public static class LambdaFunctionInvokeMetadata {
+        // The test Json file as input
+        private String invokeInput;
+        // Whether show live log in the console.
+        private boolean showLiveLog;
+
+        public String getInvokeInput() {
+            return invokeInput;
+        }
+        public void setInvokeInput(String invokeInput) {
+            this.invokeInput = invokeInput;
+        }
+        public boolean isShowLiveLog() {
+            return showLiveLog;
+        }
+        public void setShowLiveLog(boolean showLiveLog) {
+            this.showLiveLog = showLiveLog;
+        }
     }
 
 }

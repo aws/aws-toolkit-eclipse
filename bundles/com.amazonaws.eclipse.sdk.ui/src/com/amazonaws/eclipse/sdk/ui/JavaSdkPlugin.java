@@ -17,7 +17,6 @@ package com.amazonaws.eclipse.sdk.ui;
 import org.osgi.framework.BundleContext;
 
 import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
-import com.amazonaws.eclipse.sdk.ui.preferences.PreferenceConstants;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -33,10 +32,6 @@ public class JavaSdkPlugin extends AbstractAwsPlugin {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
-
-        if ( getPreferenceStore().getBoolean(PreferenceConstants.DOWNLOAD_AUTOMATICALLY) ) {
-            JavaSdkManager.getInstance().initializeSDKInstalls();
-        }
     }
 
     /**

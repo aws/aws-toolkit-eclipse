@@ -46,7 +46,7 @@ import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.invoke.logs.CloudWatchLogsUtils;
 import com.amazonaws.eclipse.lambda.invoke.ui.InvokeFunctionInputDialog;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
-import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
+import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
 import com.amazonaws.eclipse.lambda.upload.wizard.handler.UploadFunctionToLambdaCommandHandler;
 import com.amazonaws.eclipse.lambda.upload.wizard.util.FunctionJarExportHelper;
 import com.amazonaws.services.lambda.AWSLambda;
@@ -97,10 +97,15 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
     public static void invokeLambdaFunctionProject(IProject project) {
 
-        LambdaFunctionProjectMetadata md = FunctionProjectUtil
-                .loadLambdaProjectMetadata(project);
+        LambdaFunctionProjectMetadata md = null;
+        try {
+            md = ProjectMetadataManager.loadLambdaProjectMetadata(project);
+        } catch (IOException e) {
+            // Log this error but still proceed.
+            LambdaPlugin.getDefault().logError("Failed to read metadata in the project: " + e.getMessage(), e);
+        }
 
-        if (md != null && md.isValid()) {
+        if (md != null) {
             // Invoke related properties are to be populated within inputDialog
             InvokeFunctionInputDialog inputDialog = new InvokeFunctionInputDialog(
                     Display.getCurrent().getActiveShell(), project, md);
@@ -146,15 +151,17 @@ public class InvokeFunctionHandler extends AbstractHandler {
             final LambdaFunctionProjectMetadata metadata,
             final boolean updateFunctionCode) {
 
+        String lastDeploymentFunctionName = metadata.getLastDeploymentFunctionName();
+
         MessageConsole lambdaConsole = getOrCreateLambdaConsoleIfNotExist(
-                metadata.getLastDeploymentFunctionName() + " Lambda Console");
+                lastDeploymentFunctionName + " Lambda Console");
         lambdaConsole.clearConsole();
         ConsolePlugin.getDefault().getConsoleManager().showConsoleView(lambdaConsole);
         final MessageConsoleStream lambdaOutput = lambdaConsole.newMessageStream();
         final MessageConsoleStream lambdaError = lambdaConsole.newMessageStream();
         lambdaError.setColor(new Color(Display.getDefault(), 255, 0, 0));
 
-        new Job("Running " + metadata.getLastDeploymentFunctionName() + " on Lambda...") {
+        new Job("Running " + lastDeploymentFunctionName + " on Lambda...") {
 
             @Override
             protected IStatus run(IProgressMonitor monitor) {
@@ -178,8 +185,8 @@ public class InvokeFunctionHandler extends AbstractHandler {
             MessageConsoleStream lambdaOutput,
             MessageConsoleStream lambdaError) throws IOException {
 
-        AWSLambda lambda = AwsToolkitCore.getClientFactory()
-                .getLambdaClientByEndpoint(metadata.getLastDeploymentEndpoint());
+        AWSLambda lambda = AwsToolkitCore.getClientFactory().getLambdaClientByRegion(
+                metadata.getLastDeploymentRegion().getId());
         String funcName = metadata.getLastDeploymentFunctionName();
         String bucketName = metadata.getLastDeploymentBucketName();
         String invokeInput = metadata.getLastInvokeInput();
@@ -200,7 +207,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
         }
         InvokeResult result = invokeFunction(lambda, invokeInput, funcName, lambdaOutput);
         if (showLiveLog) showLambdaLiveLog(result, lambdaOutput, lambdaError);
-        FunctionProjectUtil.addLambdaProjectMetadata(project, metadata);
+        ProjectMetadataManager.saveLambdaProjectMetadata(project, metadata);
     }
 
     private static void safelyCloseMessageConsoleStreams(MessageConsoleStream... streams) {

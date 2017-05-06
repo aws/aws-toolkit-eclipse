@@ -20,7 +20,6 @@ import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessPro
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_USE_SERVERLESS_TEMPLATE_FILE;
 
 import java.util.Iterator;
-import java.util.Map;
 
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.Binding;
@@ -30,9 +29,11 @@ import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -53,8 +54,8 @@ import com.amazonaws.eclipse.core.ui.ProjectNameComposite;
 import com.amazonaws.eclipse.core.validator.PackageNameValidator;
 import com.amazonaws.eclipse.core.widget.RadioButtonComplex;
 import com.amazonaws.eclipse.core.widget.TextComplex;
+import com.amazonaws.eclipse.lambda.blueprint.BlueprintsProvider;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
-import com.amazonaws.eclipse.lambda.serverless.blueprint.BlueprintProvider;
 import com.amazonaws.eclipse.lambda.serverless.ui.FormBrowser;
 import com.amazonaws.eclipse.lambda.serverless.validator.ServerlessTemplateFilePathValidator;
 
@@ -128,7 +129,6 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
     }
 
     private void initialize() {
-        blueprintSelectionViewer.getTable().select(0);
         onBlueprintSelectionViewerSelectionChange();
         onSelectBlueprintButtonSelect();
     }
@@ -167,28 +167,26 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
         SashForm sashForm = newSashForm(parent, 1, 2);
         blueprintSelectionViewer = new TableViewer(sashForm, SWT.BORDER);
         blueprintSelectionViewer.setContentProvider(new ArrayContentProvider());
-
-        blueprintSelectionViewer.setInput(BlueprintProvider.getInstance().getBlueprintNames());
+        blueprintSelectionViewer.setInput(BlueprintsProvider.getServerlessBlueprintDisplayNames());
+        ISelection selection = new StructuredSelection(dataModel.getBlueprintName());
+        blueprintSelectionViewer.setSelection(selection, true);
         blueprintSelectionViewer.addSelectionChangedListener(new ISelectionChangedListener(){
             public void selectionChanged(SelectionChangedEvent event) {
                 onBlueprintSelectionViewerSelectionChange();
             }
         });
-        createDescriptionIn(sashForm);
+
+        descriptionBrowser = new FormBrowser(SWT.BORDER | SWT.V_SCROLL);
+        descriptionBrowser.setText("");
+        descriptionBrowser.createControl(sashForm);
+        Control c = descriptionBrowser.getControl();
+        GridData gd = new GridData(GridData.FILL_BOTH);
+        c.setLayoutData(gd);
     }
 
     private void setBlueprintSelectionSectionEnabled(boolean enabled) {
         blueprintSelectionViewer.getTable().setEnabled(enabled);
         descriptionBrowser.getControl().setEnabled(enabled);
-    }
-
-    public void createDescriptionIn(Composite composite) {
-        descriptionBrowser = new FormBrowser(SWT.BORDER | SWT.V_SCROLL);
-        descriptionBrowser.setText("");
-        descriptionBrowser.createControl(composite);
-        Control c = descriptionBrowser.getControl();
-        GridData gd = new GridData(GridData.FILL_BOTH);
-        c.setLayoutData(gd);
     }
 
     private void onSelectBlueprintButtonSelect() {
@@ -206,9 +204,8 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
     private void onBlueprintSelectionViewerSelectionChange() {
         IStructuredSelection selection = (IStructuredSelection) blueprintSelectionViewer.getSelection();
         String blueprint = (String)selection.getFirstElement();
-        Map<String, String> descriptions = BlueprintProvider.getInstance().getBlueprintDescriptions();
-        descriptionBrowser.setText(descriptions.get(blueprint));
         dataModel.setBlueprintName(blueprint);
+        descriptionBrowser.setText(dataModel.getSelectedBlueprint().getDescription());
     }
 
     private void createServerlessTemplateImportSection(Composite parent) {

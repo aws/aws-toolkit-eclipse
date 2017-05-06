@@ -2,7 +2,7 @@ package ${packageName};
 
 import java.util.Map;
 
-public class ServerlessInput {
+public class ${serverlessInputClassName} {
 
     private String resource;
     private String path;
@@ -21,7 +21,7 @@ public class ServerlessInput {
     public void setResource(String resource) {
         this.resource = resource;
     }
-    public ServerlessInput withResource(String resource) {
+    public ${serverlessInputClassName} withResource(String resource) {
         setResource(resource);
         return this;
     }
@@ -31,7 +31,7 @@ public class ServerlessInput {
     public void setPath(String path) {
         this.path = path;
     }
-    public ServerlessInput withPath(String path) {
+    public ${serverlessInputClassName} withPath(String path) {
         setPath(path);
         return this;
     }
@@ -41,7 +41,7 @@ public class ServerlessInput {
     public void setHttpMethod(String httpMethod) {
         this.httpMethod = httpMethod;
     }
-    public ServerlessInput withHttpMethod(String httpMethod) {
+    public ${serverlessInputClassName} withHttpMethod(String httpMethod) {
         setHttpMethod(httpMethod);
         return this;
     }
@@ -51,7 +51,7 @@ public class ServerlessInput {
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
-    public ServerlessInput withHeaders(Map<String, String> headers) {
+    public ${serverlessInputClassName} withHeaders(Map<String, String> headers) {
         setHeaders(headers);
         return this;
     }
@@ -61,7 +61,7 @@ public class ServerlessInput {
     public void setQueryStringParameters(Map<String, String> queryStringParameters) {
         this.queryStringParameters = queryStringParameters;
     }
-    public ServerlessInput withQueryStringParameters(Map<String, String> queryStringParameters) {
+    public ${serverlessInputClassName} withQueryStringParameters(Map<String, String> queryStringParameters) {
         setQueryStringParameters(queryStringParameters);
         return this;
     }
@@ -71,7 +71,7 @@ public class ServerlessInput {
     public void setPathParameters(Map<String, String> pathParameters) {
         this.pathParameters = pathParameters;
     }
-    public ServerlessInput withPathParameters(Map<String, String> pathParameters) {
+    public ${serverlessInputClassName} withPathParameters(Map<String, String> pathParameters) {
         setPathParameters(pathParameters);
         return this;
     }
@@ -81,7 +81,7 @@ public class ServerlessInput {
     public void setStageVariables(Map<String, String> stageVariables) {
         this.stageVariables = stageVariables;
     }
-    public ServerlessInput withStageVariables(Map<String, String> stageVariables) {
+    public ${serverlessInputClassName} withStageVariables(Map<String, String> stageVariables) {
         setStageVariables(stageVariables);
         return this;
     }
@@ -91,7 +91,7 @@ public class ServerlessInput {
     public void setBody(String body) {
         this.body = body;
     }
-    public ServerlessInput withBody(String body) {
+    public ${serverlessInputClassName} withBody(String body) {
         setBody(body);
         return this;
     }

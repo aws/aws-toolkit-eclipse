@@ -25,149 +25,174 @@ import org.eclipse.core.runtime.FileLocator;
 import org.osgi.framework.Bundle;
 
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprint;
+import com.amazonaws.eclipse.lambda.blueprint.ServerlessBlueprint;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 
+/**
+ * Class that manages Freemarker code template and Json configuration files.
+ * Use a get*Template method to get a certain Freemarker template.
+ * Use a get*File method to get a certain File.
+ */
 public class CodeTemplateManager {
 
-    private static final String CODE_TEMPLATE_DIR_BASEDIR = "code-template";
-    private static final String BLUEPRINT_CONFIG_PATH = "serverless/blueprint/blueprint.json";
-    private static final String SERVERLESS_README_FILE_PATH = "serverless/README.html";
+    private static final String CODE_TEMPLATE_BASE_DIR = "code-template";
+    private static final String LAMBDA_BLUEPRINTS_BASE_DIR = "lambda";
+    private static final String SERVERLESS_BLUEPRINTS_BASE_DIR = "serverless";
+
+    private static final String LAMBDA_BLUEPRINTS_CONFIG_PATH = String.format("%s/%s", LAMBDA_BLUEPRINTS_BASE_DIR, "blueprints.json");
+    private static final String SERVERLESS_BLUEPRINTS_CONFIG_PATH = String.format("%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, "blueprints.json");
+
+    private static final String LAMBDA_BLUEPRINT_HANDLER_NAME = "handler.java.ftl";
+    private static final String LAMBDA_BLUEPRINT_HANDLER_TEST_NAME = "handler-test.java.ftl";
+    private static final String LAMBDA_BLUEPRINT_POM_NAME = "pom.xml.ftl";
+
+    private static final String LAMBDA_README_FILE_PATH = String.format("%s/%s", LAMBDA_BLUEPRINTS_BASE_DIR, "README.ftl");
+    private static final String SERVERLESS_README_FILE_PATH = String.format("%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, "README.html");
+    private static final String SERVERLESS_INPUT_MODEL_PATH = String.format("%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, "serverless-input.ftl");
+    private static final String SERVERLESS_OUTPUT_MODEL_PATH = String.format("%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, "serverless-output.ftl");
+    private static final String SERVERLESS_HANDLER_CLASS_PATH = String.format("%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, "serverless-handler.ftl");
+
+    public static final String SERVERLESS_BLUEPRINT_SAM_NAME = "serverless.template";
+    private static final String SERVERLESS_BLUEPRINT_POM_NAME = "pom.xml.ftl";
+
+    private static final String TEST_RESOURCES_BASE_DIR = "test-resource";
+    private static final String TEST_CLASSES_BASE_DIR = "test-class";
+
+    private static final String TEST_CONTEXT_FILE_PATH = String.format("%s/%s", TEST_CLASSES_BASE_DIR, "test-context.ftl");
+    private static final String TEST_UTILS_FILE_PATH = String.format("%s/%s", TEST_CLASSES_BASE_DIR, "test-utils.ftl");
 
     private final Configuration freemarkerCfg;
+
+    private static final CodeTemplateManager INSTANCE = new CodeTemplateManager();
 
     private CodeTemplateManager() {
         freemarkerCfg = setupFreemarker();
     }
 
-    public static String processTemplateWithData(Template template,
-            Object templateData) throws TemplateException, IOException {
-        StringWriter sw = new StringWriter();
-        template.process(templateData, sw);
-        sw.flush();
-        return sw.toString();
+    public static CodeTemplateManager getInstance() {
+        return INSTANCE;
     }
 
-    public Template getTemplate(String templatePath) {
-        try {
-            return freemarkerCfg.getTemplate(templatePath);
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load Freemarker template from " + templatePath, e);
+    /**
+     * Helper method to return the populated content rendered by Freemarker to the given
+     * template and template data.
+     */
+    public static String processTemplateWithData(Template template, Object templateData)
+            throws TemplateException, IOException {
+        try (StringWriter stringWriter = new StringWriter()) {
+            template.process(templateData, stringWriter);
+            stringWriter.flush();
+            return stringWriter.toString();
         }
     }
 
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData}
+     */
+    public Template getLambdaHandlerTemplate(LambdaBlueprint blueprint) {
+        return blueprint == null ? null : getTemplate(String.format("%s/%s/%s",
+                LAMBDA_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), LAMBDA_BLUEPRINT_HANDLER_NAME));
+    }
+
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData}
+     */
+    public Template getLambdaHandlerTestTemplate(LambdaBlueprint blueprint) {
+        return blueprint == null ? null : getTemplate(String.format("%s/%s/%s",
+                LAMBDA_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), LAMBDA_BLUEPRINT_HANDLER_TEST_NAME));
+    }
+
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.PomFileTemplateData}
+     */
+    public Template getLambdaBlueprintPomTemplate(LambdaBlueprint blueprint) {
+        return blueprint == null ? null : getTemplate(String.format("%s/%s/%s",
+                LAMBDA_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), LAMBDA_BLUEPRINT_POM_NAME));
+    }
+
+    // Test JSON file could be null for some blueprints
+    public File getLambdaTestJsonFile(LambdaBlueprint blueprint) {
+        return blueprint == null || blueprint.getTestJsonFile() == null ? null :
+            getFile(String.format("%s/%s", TEST_RESOURCES_BASE_DIR, blueprint.getTestJsonFile()));
+    }
+
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData}
+     */
+    public Template getTestContextTemplate() {
+        return getTemplate(TEST_CONTEXT_FILE_PATH);
+    }
+
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData}
+     */
+    public Template getTestUtilsTemplate() {
+        return getTemplate(TEST_UTILS_FILE_PATH);
+    }
+
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData}
+     */
+    public Template getlambdaProjectReadmeTemplate() {
+        return getTemplate(LAMBDA_README_FILE_PATH);
+    }
+
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.serverless.template.ServerlessDataModelTemplateData}
+     */
     public Template getServerlessInputClassTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("serverless/serverless-input.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load Serverless Input class template", e);
-        }
+        return getTemplate(SERVERLESS_INPUT_MODEL_PATH);
     }
 
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.serverless.template.ServerlessDataModelTemplateData}
+     */
     public Template getServerlessOutputClassTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("serverless/serverless-output.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load Serverless Input class template", e);
-        }
+        return getTemplate(SERVERLESS_OUTPUT_MODEL_PATH);
     }
 
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplateData}
+     */
     public Template getServerlessHandlerClassTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("serverless/serverless-handler.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load Serverless Input class template", e);
-        }
+        return getTemplate(SERVERLESS_HANDLER_CLASS_PATH);
     }
 
     /**
-     * Handler class template
+     * Template data model {@link #com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplateData}
      */
-    public Template getHandlerClassTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("handler/handler-class-template.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load handler class template.", e);
-        }
+    public Template getServerlessHandlerClassTemplate(ServerlessBlueprint blueprint, String handlerName) {
+        String templatePath = blueprint.getHandlerTemplatePaths().get(handlerName);
+        return getTemplate(String.format("%s/%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), templatePath));
+    }
+
+    public File getServerlessSamFile(ServerlessBlueprint blueprint) {
+        return getFile(String.format("%s/%s/%s",
+                SERVERLESS_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), SERVERLESS_BLUEPRINT_SAM_NAME));
     }
 
     /**
-     * Stream handler class template
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.PomFileTemplateData}
      */
-    public Template getStreamHandlderClassTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("handler/stream-handler-class-template.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load stream handler class template.", e);
-        }
+    public Template getServerlessPomFile(ServerlessBlueprint blueprint) {
+        return getTemplate(String.format("%s/%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), SERVERLESS_BLUEPRINT_POM_NAME));
     }
 
-    /**
-     * Handler test code template
-     */
-    public Template getHandlerTestClassTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("test-class/handler-test-code-template.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load handler test code template.", e);
-        }
+    public File getServerlessBlueprintsConfigFile() {
+        return getFile(SERVERLESS_BLUEPRINTS_CONFIG_PATH);
     }
 
-    /**
-     * Stream handler test code template
-     */
-    public Template getStreamHandlerTestClassTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("test-class/stream-handler-test-code-template.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load stream handler test code template.", e);
-        }
+    public File getLambdaBlueprintsConfigFile() {
+        return getFile(LAMBDA_BLUEPRINTS_CONFIG_PATH);
     }
 
-    /**
-     * {@code TestContext} class template.
-     */
-    public Template getTestContextTemplate() throws IOException {
-        return freemarkerCfg.getTemplate("test-class/test-context.ftl");
-    }
-
-    /**
-     * {@code TestUtils} class template.
-     */
-    public Template getTestUtilsTemplate() throws IOException {
-        return freemarkerCfg.getTemplate("test-class/test-utils.ftl");
-    }
-
-    /**
-     * Event input json files
-     */
-    public Template getTestInputJsonFileTemplate(String filename) {
-        try {
-            return freemarkerCfg.getTemplate("test-resource/" + filename);
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load handler test code template.", e);
-        }
-    }
-
-    public Template getReadmeHtmlFileTemplate() {
-        try {
-            return freemarkerCfg.getTemplate("README/README.ftl");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to load README.html template.", e);
-        }
+    public File getServerlessReadmeFile() {
+        return getFile(SERVERLESS_README_FILE_PATH);
     }
 
     private Configuration setupFreemarker() {
@@ -184,11 +209,11 @@ public class CodeTemplateManager {
         return cfg;
     }
 
-    public File getCodeTemplateBasedir() {
+    private File getCodeTemplateBasedir() {
         Bundle bundle = LambdaPlugin.getDefault().getBundle();
         File file = null;
         try {
-            URL bundleBaseUrl = FileLocator.toFileURL(bundle.getEntry(CODE_TEMPLATE_DIR_BASEDIR));
+            URL bundleBaseUrl = FileLocator.toFileURL(bundle.getEntry(CODE_TEMPLATE_BASE_DIR));
             URI bundleBaseUri = new URI(bundleBaseUrl.getProtocol(), bundleBaseUrl.getPath(), null);
             file = new File(bundleBaseUri);
         } catch (IOException e) {
@@ -199,17 +224,16 @@ public class CodeTemplateManager {
         return file;
     }
 
-    public File getBlueprintConfigFile() {
-        return new File(getCodeTemplateBasedir(), BLUEPRINT_CONFIG_PATH);
+    private File getFile(String path) {
+        return new File(getCodeTemplateBasedir(), path);
     }
 
-    public File getServerlessReadmeFile() {
-        return new File(getCodeTemplateBasedir(), SERVERLESS_README_FILE_PATH);
+    private Template getTemplate(String templatePath) {
+        try {
+            return freemarkerCfg.getTemplate(templatePath);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load Freemarker template from " + templatePath, e);
+        }
     }
-
-    private static final CodeTemplateManager INSTANCE = new CodeTemplateManager();
-    public static CodeTemplateManager getInstance() {
-        return INSTANCE;
-    }
-
 }

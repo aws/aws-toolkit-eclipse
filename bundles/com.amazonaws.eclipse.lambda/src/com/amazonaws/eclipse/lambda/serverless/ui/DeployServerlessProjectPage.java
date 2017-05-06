@@ -59,6 +59,8 @@ import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
+import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata.RegionConfig;
 import com.amazonaws.eclipse.lambda.project.wizard.model.DeployServerlessProjectDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.page.validator.StackNameValidator;
 import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateS3BucketDialog;
@@ -146,7 +148,7 @@ public class DeployServerlessProjectPage extends WizardPage {
         newFillingLabel(regionGroup,
                 "Select the AWS region where your CloudFormation stack is created:");
 
-        Region initialRegion = null;
+        Region initialRegion = dataModel.getRegion();
 
         regionCombo = newCombo(regionGroup);
         for (Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.CLOUD_FORMATION)) {
@@ -176,12 +178,18 @@ public class DeployServerlessProjectPage extends WizardPage {
     private void onRegionSelectionChange() {
         Region region = (Region)regionCombo.getData(regionCombo.getText());
         dataModel.setRegion(region);
+        dataModel.getMetadata().setLastDeploymentRegionId(region.getId());
 
         onUpdateRegion();
     }
 
     private void onUpdateRegion() {
         refreshBucketsInFunctionRegion();
+
+        String defaultStackName = dataModel.getMetadata().getLastDeploymentStack() == null
+                ? dataModel.getProjectName() + "-devstack"
+                        : dataModel.getMetadata().getLastDeploymentStack();
+        stackNameTextObservable.setValue(defaultStackName);
     }
 
     public void refreshBucketsInFunctionRegion() {
@@ -195,7 +203,8 @@ public class DeployServerlessProjectPage extends WizardPage {
         }
 
         CancelableThread.cancelThread(loadS3BucketsInFunctionRegionThread);
-        loadS3BucketsInFunctionRegionThread = new LoadS3BucketsInFunctionRegionThread(null);
+        String defaultBucket = dataModel.getMetadata().getLastDeploymentBucket();
+        loadS3BucketsInFunctionRegionThread = new LoadS3BucketsInFunctionRegionThread(defaultBucket);
         loadS3BucketsInFunctionRegionThread.start();
     }
 
@@ -279,7 +288,8 @@ public class DeployServerlessProjectPage extends WizardPage {
                 DeployServerlessProjectDataModel.P_STACK_NAME);
         bindingContext.bindValue(stackNameTextObservable,
                 stackNameModelObservable);
-        stackNameTextObservable.setValue(dataModel.getProjectName() + "-devstack");
+        String defaultStackName = dataModel.getStackName() == null ? dataModel.getProjectName() + "-devstack" : dataModel.getStackName();
+        stackNameTextObservable.setValue(defaultStackName);
 
         ControlDecoration handlerPackageTextDecoration = newControlDecoration(stackNameText, "");
 
@@ -322,9 +332,7 @@ public class DeployServerlessProjectPage extends WizardPage {
         public void run() {
 
             long startTime = System.currentTimeMillis();
-            // Using the default global S3 client will not return the correct region for bucket in other regions
-            AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByEndpoint(
-                    RegionUtils.getRegion("us-west-2").getServiceEndpoint(ServiceAbbreviations.S3));
+            AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(dataModel.getRegion().getId());
             final List<Bucket> bucketsInFunctionRegion = S3BucketUtil
                     .listBucketsInRegion(s3, dataModel.getRegion());
             LambdaAnalytics.trackLoadBucketTimeDuration(System

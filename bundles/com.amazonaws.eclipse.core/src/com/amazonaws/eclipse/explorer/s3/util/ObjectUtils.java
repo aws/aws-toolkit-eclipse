@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.explorer.s3.util;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3VersionSummary;
 import com.amazonaws.services.s3.model.VersionListing;
@@ -22,16 +23,12 @@ import com.amazonaws.services.s3.model.VersionListing;
  * Utilities for common Amazon S3 object operations.
  */
 public class ObjectUtils {
-    private final AmazonS3 s3;
 
-    public ObjectUtils(AmazonS3 s3) {
-        this.s3 = s3;
-    }
-    
     /**
-     * Deletes an object along with all object versions, if any exist. 
+     * Deletes an object along with all object versions, if any exist.
      */
     public void deleteObjectAndAllVersions(String bucketName, String key) {
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucketName);
         VersionListing versionListing = null;
         do {
             if (versionListing == null) {
@@ -39,18 +36,19 @@ public class ObjectUtils {
             } else {
                 versionListing = s3.listNextBatchOfVersions(versionListing);
             }
-            
+
             for (S3VersionSummary versionSummary : versionListing.getVersionSummaries()) {
                 s3.deleteVersion(bucketName, key, versionSummary.getVersionId());
             }
-        } while (versionListing.isTruncated()); 
+        } while (versionListing.isTruncated());
     }
-    
-    
+
+
     /**
      * Deletes a bucket along with all contained objects and any object versions if they exist.
      */
     public void deleteBucketAndAllVersions(String bucketName) {
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucketName);
         VersionListing versionListing = null;
         do {
             if (versionListing == null) {
@@ -58,12 +56,12 @@ public class ObjectUtils {
             } else {
                 versionListing = s3.listNextBatchOfVersions(versionListing);
             }
-            
+
             for (S3VersionSummary versionSummary : versionListing.getVersionSummaries()) {
                 s3.deleteVersion(bucketName, versionSummary.getKey(), versionSummary.getVersionId());
             }
         } while (versionListing.isTruncated());
-        
+
         s3.deleteBucket(bucketName);
     }
 }

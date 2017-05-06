@@ -21,11 +21,11 @@ public class RegionUtilsTest {
         Pattern.compile("^(http|https)://\\w+\\.us-gov(-west-1)?.amazonaws.com(/)?$")
     };
 
-//    @Test
-//    public void testRemoteRegionFile() {
-//        List<Region> regions = RegionUtils.loadRegionsFromS3();
-//        assertRegionEndpointsValid(regions);
-//    }
+    @Test
+    public void testRemoteRegionFile() {
+        List<Region> regions = RegionUtils.loadRegionsFromS3();
+        assertRegionEndpointsValid(regions);
+    }
 
     @Test
     public void testLocalRegionFile() {
@@ -39,6 +39,9 @@ public class RegionUtilsTest {
                 continue;
             }
             for (String endpoint : region.getServiceEndpoints().values()) {
+                if (RegionUtils.S3_US_EAST_1_REGIONAL_ENDPOINT.equals(endpoint)) {
+                    continue;
+                }
                 assertEndpointValid(endpoint);
             }
         }

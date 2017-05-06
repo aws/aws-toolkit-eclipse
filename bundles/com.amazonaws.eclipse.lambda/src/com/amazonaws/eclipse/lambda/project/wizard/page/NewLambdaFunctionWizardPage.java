@@ -106,10 +106,8 @@ public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
 
     private void createLambdaFunctionComposite(Composite composite) {
         lambdaFunctionComposite = new LambdaFunctionComposite(
-                this, composite, dataModel.getLambdaFunctionDataModel(), dataBindingContext);
-        lambdaFunctionComposite.createHandlerTypeControl();
+                composite, dataModel.getLambdaFunctionDataModel(), dataBindingContext);
         lambdaFunctionComposite.createInputTypeControl();
-        lambdaFunctionComposite.createOutputTypeControl();
         lambdaFunctionComposite.createSeparator();
         lambdaFunctionComposite.createHandlerSourcePreview();
         lambdaFunctionComposite.initialize();

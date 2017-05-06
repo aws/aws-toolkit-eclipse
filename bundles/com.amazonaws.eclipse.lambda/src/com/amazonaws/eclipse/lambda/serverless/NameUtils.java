@@ -16,7 +16,6 @@ package com.amazonaws.eclipse.lambda.serverless;
 
 public class NameUtils {
 
-    public static final String SERVERLESS_TEMPLATE_FILE_NAME = "serverless.template";
     public static final String SERVERLESS_GENERATED_TEMPLATE_FILE_NAME = "serverless.generated.template";
     public static final String SERVERLESS_INPUT_CLASS_NAME = "ServerlessInput";
     public static final String SERVERLESS_OUTPUT_CLASS_NAME = "ServerlessOutput";
@@ -44,11 +43,11 @@ public class NameUtils {
         }
         return toHandlerPackageName(packagePrefix) + "." + handlerName;
     }
-    
+
     public static String toServerlessInputModelFqcn(String packagePrefix) {
         return toModelPackageName(packagePrefix) + "." + SERVERLESS_INPUT_CLASS_NAME;
     }
-    
+
     public static String toServerlessOutputModelFqcn(String packagePrefix) {
         return toModelPackageName(packagePrefix) + "." + SERVERLESS_OUTPUT_CLASS_NAME;
     }

@@ -34,6 +34,7 @@ import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
+import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
 import com.amazonaws.services.lambda.AWSLambda;
@@ -58,10 +59,7 @@ public class UploadFunctionUtil {
                 dataModel.getProject(), true);
         monitor.worked((int)(totalUnitOfWork * 0.2));
 
-        String endpoint = dataModel.getRegion().getServiceEndpoints()
-                .get(ServiceAbbreviations.LAMBDA);
-        AWSLambda client = AwsToolkitCore.getClientFactory()
-                .getLambdaClientByEndpoint(endpoint);
+        AWSLambda client = AwsToolkitCore.getClientFactory().getLambdaClientByRegion(dataModel.getRegion().getId());
 
         monitor.subTask("Uploading function code to S3...");
         String bucketName = dataModel.getFunctionConfigPageDataModel().getBucketName();
@@ -123,11 +121,13 @@ public class UploadFunctionUtil {
         monitor.worked((int)(totalUnitOfWork * 0.2));
 
         monitor.subTask("Saving project metadata");
-        LambdaFunctionProjectMetadata md = new LambdaFunctionProjectMetadata();
-        md.setLastDeploymentEndpoint(endpoint);
+        LambdaFunctionProjectMetadata md = dataModel.getProjectMetadataBeforeUpload();
+        md.setLastDeploymentHandler(dataModel.getFunctionConfigPageDataModel().getHandler());
+        md.setLastDeploymentRegion(dataModel.getRegion().getId());
         md.setLastDeploymentFunctionName(functionName);
         md.setLastDeploymentBucketName(bucketName);
-        FunctionProjectUtil.addLambdaProjectMetadata(dataModel.getProject(), md);
+        md.setLastDeploymentRoleName(dataModel.getFunctionConfigPageDataModel().getRole().getRoleName());
+        ProjectMetadataManager.saveLambdaProjectMetadata(dataModel.getProject(), md);
         FunctionProjectUtil.refreshProject(dataModel.getProject());
         monitor.worked((int)(totalUnitOfWork * 0.2));
         LambdaPlugin.getDefault().logInfo("Project metadata saved.");

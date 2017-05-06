@@ -2,7 +2,7 @@ package ${packageName};
 
 import java.util.Map;
 
-public class ServerlessOutput {
+public class ${serverlessOutputClassName} {
     private Integer statusCode;
     private Map<String, String> headers;
     private String body;
@@ -15,7 +15,7 @@ public class ServerlessOutput {
         this.statusCode = statusCode;
     }
 
-    public ServerlessOutput withStatusCode(Integer statusCode) {
+    public ${serverlessOutputClassName} withStatusCode(Integer statusCode) {
         setStatusCode(statusCode);
         return this;
     }
@@ -28,7 +28,7 @@ public class ServerlessOutput {
         this.headers = headers;
     }
 
-    public ServerlessOutput withHeaders(Map<String, String> headers) {
+    public ${serverlessOutputClassName} withHeaders(Map<String, String> headers) {
         setHeaders(headers);
         return this;
     }
@@ -41,7 +41,7 @@ public class ServerlessOutput {
         this.body = body;
     }
 
-    public ServerlessOutput withBody(String body) {
+    public ${serverlessOutputClassName} withBody(String body) {
         setBody(body);
         return this;
     }
@@ -65,7 +65,7 @@ public class ServerlessOutput {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        ServerlessOutput other = (ServerlessOutput) obj;
+        ${serverlessOutputClassName} other = (${serverlessOutputClassName}) obj;
         if (body == null) {
             if (other.body != null)
                 return false;
@@ -86,7 +86,7 @@ public class ServerlessOutput {
 
     @Override
     public String toString() {
-        return "ServerlessOutput [statusCode=" + statusCode + ", headers="
+        return "${serverlessOutputClassName} [statusCode=" + statusCode + ", headers="
                 + headers + ", body=" + body + "]";
     }
 }

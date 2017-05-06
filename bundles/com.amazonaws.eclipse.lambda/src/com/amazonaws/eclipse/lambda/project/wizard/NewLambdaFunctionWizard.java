@@ -62,7 +62,7 @@ public class NewLambdaFunctionWizard extends NewElementWizard implements INewWiz
             public void run() {
 
                 try {
-                    FunctionProjectUtil.addSourceToProject(currentProject, dataModel.getLambdaFunctionDataModel());
+                    FunctionProjectUtil.createLambdaHandler(currentProject, dataModel.getLambdaFunctionDataModel());
                     refreshProject(currentProject);
 
                 } catch (Exception e) {

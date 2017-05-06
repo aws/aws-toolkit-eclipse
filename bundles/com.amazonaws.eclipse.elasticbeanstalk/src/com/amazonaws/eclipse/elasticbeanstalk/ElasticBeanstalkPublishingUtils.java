@@ -37,13 +37,10 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.resources.BeanstalkResourceProvider;
 import com.amazonaws.eclipse.elasticbeanstalk.solutionstacks.SolutionStacks;
-import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.eclipse.elasticbeanstalk.util.BeanstalkConstants;
+import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationVersionDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionSetting;
@@ -89,12 +86,11 @@ public class ElasticBeanstalkPublishingUtils {
         this.environment = environment;
 
         AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory(environment.getAccountId());
-        Region environmentRegion = RegionUtils.getRegionByEndpoint(environment.getRegionEndpoint());
 
-        this.beanstalkClient = clientFactory.getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
+        this.beanstalkClient = clientFactory.getElasticBeanstalkClientByRegion(environment.getRegionId());
         this.beanstalkClientExtensions = new ElasticBeanstalkClientExtensions(beanstalkClient);
-        this.iam = clientFactory.getIAMClientByEndpoint(environmentRegion.getServiceEndpoint(ServiceAbbreviations.IAM));
-        this.s3 = clientFactory.getS3ClientByEndpoint(environmentRegion.getServiceEndpoint(ServiceAbbreviations.S3));
+        this.iam = clientFactory.getIAMClientByRegion(environment.getRegionId());
+        this.s3 = clientFactory.getS3ClientByRegion(environment.getRegionId());
     }
 
     public void publishApplicationToElasticBeanstalk(IPath war, String versionLabel, IProgressMonitor monitor)

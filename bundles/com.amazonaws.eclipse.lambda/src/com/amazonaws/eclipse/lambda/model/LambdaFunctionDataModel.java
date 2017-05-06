@@ -14,17 +14,13 @@
  */
 package com.amazonaws.eclipse.lambda.model;
 
-import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType.STREAM_REQUEST_HANDLER;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-import com.amazonaws.eclipse.lambda.project.template.data.HandlerClassTemplateData;
-import com.amazonaws.eclipse.lambda.project.template.data.HandlerTestClassTemplateData;
-import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerClassTemplateData;
-import com.amazonaws.eclipse.lambda.project.template.data.StreamHandlerTestClassTemplateData;
-import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType;
-import com.amazonaws.eclipse.lambda.project.wizard.model.PredefinedHandlerInputType;
+import com.amazonaws.eclipse.lambda.blueprint.BlueprintsProvider;
+import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprint;
+import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprintsConfig;
+import com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData;
 
 /**
  * Data model for Lambda function composite.
@@ -33,76 +29,29 @@ public class LambdaFunctionDataModel {
 
     public static final String P_PACKAGE_NAME = "packageName";
     public static final String P_CLASS_NAME = "className";
-    public static final String P_TYPE = "type";
     public static final String P_INPUT_TYPE = "inputType";
-    public static final String P_INPUT_NAME = "inputName";
-    public static final String P_OUTPUT_NAME = "outputName";
+
+    private static final LambdaBlueprintsConfig BLUEPRINTS_CONFIG = BlueprintsProvider.provideLambdaBlueprints();
 
     private String packageName = "com.amazonaws.lambda.demo";
     private String className = "LambdaFunctionHandler";
-    private String type = LambdaHandlerType.REQUEST_HANDLER.getName();
-    private String inputType = PredefinedHandlerInputType.S3_EVENT.getName();
-    private String inputName = "Object";
-    private String outputName = "Object";
 
-    public HandlerClassTemplateData collectHandlerTemplateData() {
+    private LambdaBlueprint selectedBlueprint = BLUEPRINTS_CONFIG.getBlueprints()
+            .get(BLUEPRINTS_CONFIG.getDefaultBlueprint());
+    private String inputType = selectedBlueprint.getDisplayName();
 
-        HandlerClassTemplateData data = new HandlerClassTemplateData();
+    public LambdaBlueprintTemplateData collectLambdaBlueprintTemplateData() {
 
-        data.setPackageName(getPackageName());
-        data.setHandlerClassName(getClassName());
-        data.setOutputType(getOutputName());
-        PredefinedHandlerInputType type = getInputTypeEnum();
-
-        if (type == null || type == PredefinedHandlerInputType.CUSTOM) {
-            data.setInputType(getInputName());
-        } else {
-            data.addAdditionalImport(type.getFqcn());
-            data.setInputType(type.getClassName());
+        if (getSelectedBlueprint() == null) {
+            throw new RuntimeException("The specified blueprint " + getInputType() + " doesn't exist!");
         }
 
-        return data;
-    }
-
-    public HandlerTestClassTemplateData collectHandlerTestTemplateData() {
-
-        HandlerTestClassTemplateData data = new HandlerTestClassTemplateData();
+        LambdaBlueprintTemplateData data = new LambdaBlueprintTemplateData();
 
         data.setPackageName(getPackageName());
         data.setHandlerClassName(getClassName());
         data.setHandlerTestClassName(getClassName() + "Test");
-        data.setOutputType(getOutputName());
-        PredefinedHandlerInputType type = getInputTypeEnum();
-
-        if (type == null || type == PredefinedHandlerInputType.CUSTOM) {
-            data.setInputType(getInputName());
-        } else {
-            data.addAdditionalImport(type.getFqcn());
-            data.setInputType(type.getClassName());
-            data.setInputJsonFileName(type.getSampleInputJsonFile());
-        }
-
-        return data;
-    }
-
-    public StreamHandlerClassTemplateData collectStreamHandlerTemplateData() {
-
-        StreamHandlerClassTemplateData data = new StreamHandlerClassTemplateData();
-
-        data.setPackageName(getPackageName());
-        data.setHandlerClassName(getClassName());
-
-        return data;
-    }
-
-    public StreamHandlerTestClassTemplateData collectStreamHandlerTestTemplateData() {
-
-        StreamHandlerTestClassTemplateData data = new StreamHandlerTestClassTemplateData();
-
-        data.setPackageName(getPackageName());
-        data.setHandlerClassName(getClassName());
-        data.setHandlerTestClassName(getClassName() + "Test");
-
+        data.setInputJsonFileName(getSelectedBlueprint().getTestJsonFile());
         return data;
     }
 
@@ -136,55 +85,30 @@ public class LambdaFunctionDataModel {
         this.pcs.firePropertyChange(P_CLASS_NAME, oldValue, className);
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        String oldValue = this.type;
-        this.type = type;
-        this.pcs.firePropertyChange(P_TYPE, oldValue, type);
-    }
-
     public String getInputType() {
         return inputType;
-    }
-
-    // Get the underlying enum type for the input type.
-    public PredefinedHandlerInputType getInputTypeEnum() {
-        for (PredefinedHandlerInputType type : PredefinedHandlerInputType.list()) {
-            if (type.getName().equals(inputType)) return type;
-        }
-        return null;
     }
 
     public void setInputType(String inputType) {
         String oldValue = this.getInputType();
         this.inputType = inputType;
+        this.selectedBlueprint = getLambdaBlueprint(inputType);
         this.pcs.firePropertyChange(P_INPUT_TYPE, oldValue, inputType);
     }
 
-    public String getInputName() {
-        return inputName;
+    public LambdaBlueprint getSelectedBlueprint() {
+        return selectedBlueprint;
     }
 
-    public void setInputName(String inputName) {
-        String oldValue = this.getInputName();
-        this.inputName = inputName;
-        this.pcs.firePropertyChange(P_INPUT_NAME, oldValue, inputName);
-    }
-
-    public String getOutputName() {
-        return outputName;
-    }
-
-    public void setOutputName(String outputName) {
-        String oldValue = this.getOutputName();
-        this.outputName = outputName;
-        this.pcs.firePropertyChange(P_OUTPUT_NAME, oldValue, outputName);
-    }
-
-    public boolean isUseStreamHandler() {
-        return STREAM_REQUEST_HANDLER.getName().equals(getType());
+    /**
+     * Return the LambdaBlueprint by display name.
+     */
+    private static LambdaBlueprint getLambdaBlueprint(String displayName) {
+        for (LambdaBlueprint lambdaBlueprint : BLUEPRINTS_CONFIG.getBlueprints().values()) {
+            if (lambdaBlueprint.getDisplayName().equals(displayName)) {
+                return lambdaBlueprint;
+            }
+        }
+        return null;
     }
 }

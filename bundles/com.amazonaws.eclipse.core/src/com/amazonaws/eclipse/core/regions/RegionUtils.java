@@ -41,6 +41,7 @@ import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.HttpClientFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -49,6 +50,8 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
  * Utilities for working with regions.
  */
 public class RegionUtils {
+
+    public static final String S3_US_EAST_1_REGIONAL_ENDPOINT = "https://s3-external-1.amazonaws.com";
 
     private static final String CLOUDFRONT_DISTRO = "http://vstoolkit.amazonwebservices.com/";
     private static final String REGIONS_FILE_OVERRIDE = RegionUtils.class.getName() + ".fileOverride";
@@ -189,6 +192,10 @@ public class RegionUtils {
      *         with a service at the specified endpoint.
      */
     public static Region getRegionByEndpoint(String endpoint) {
+        // The S3_US_EAST_1_REGIONAL_ENDPOINT region is not configured in the regions.xml file.
+        if (S3_US_EAST_1_REGIONAL_ENDPOINT.equals(endpoint)) {
+            return RegionUtils.getRegion(Regions.US_EAST_1.getName());
+        }
         URL targetEndpointUrl = null;
         try {
             targetEndpointUrl = new URL(endpoint);
@@ -355,7 +362,19 @@ public class RegionUtils {
     private static List<Region> parseRegionMetadata(InputStream inputStream) {
         List<Region> list = PARSER.parseRegionMetadata(inputStream);
         list.add(LocalRegion.INSTANCE);
+        replaceS3GlobalEndpointWithRegional(list);
         return list;
+    }
+
+    /*
+     * A hacky way to replace the evil S3 global endpoint with the regional one.
+     */
+    private static void replaceS3GlobalEndpointWithRegional(List<Region> regions) {
+        for (Region region : regions) {
+            if (Regions.US_EAST_1.getName().equals(region.getId())) {
+                region.getServiceEndpoints().put(ServiceAbbreviations.S3, S3_US_EAST_1_REGIONAL_ENDPOINT);
+            }
+        }
     }
 
     /**

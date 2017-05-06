@@ -70,14 +70,8 @@ public class RegionMetadataParser {
                 regions.add(parseRegionElement(element));
             }
         }
-
         return regions;
     }
-
-
-    /*
-     * Private Interface
-     */
 
     private Region parseRegionElement(Element regionElement) {
         String name = getTagValue(REGION_DISPLAY_NAME_TAG, regionElement);

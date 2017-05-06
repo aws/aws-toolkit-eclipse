@@ -311,10 +311,6 @@
             categoryId="com.amazonaws.commands.category">
       </command>
    </extension>
-   <extension
-         point="org.eclipse.ui.startup">
-      <startup></startup>
-   </extension>
 
    <!-- Resource navigator content -->
   <extension point="org.eclipse.ui.navigator.navigatorContent">

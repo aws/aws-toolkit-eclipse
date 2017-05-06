@@ -39,23 +39,6 @@
       </wizard>
    </extension>
 
-   <extension point="org.eclipse.jdt.core.classpathContainerInitializer">
-      <classpathContainerInitializer
-            class="com.amazonaws.eclipse.lambda.project.classpath.LambdaRuntimeClasspathContainerInitializer"
-            id="com.amazonaws.eclipse.lambda.AWS_LAMBDA_JAVA_CLASSPATH_CONTAINER">
-      </classpathContainerInitializer>
-   </extension>
-
-<!--
-   <extension point="org.eclipse.jdt.ui.classpathContainerPage">
-      <classpathContainerPage
-            class="com.amazonaws.eclipse.sdk.ui.classpath.AwsClasspathContainerPage"
-            id="com.amazonaws.eclipse.lambda.AWS_LAMBDA_JAVA_CLASSPATH_CONTAINER"
-            name="AWS Lambda Java Function Runtime">
-      </classpathContainerPage>
-   </extension>
-   -->
-
    <extension point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"/>
@@ -68,19 +51,6 @@
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaFunctionWizard"/>
          <newWizardShortcut id="com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard"/>
       </perspectiveExtension>
-   </extension>
-
-   <extension
-         point="org.eclipse.ui.decorators">
-      <decorator
-            class="com.amazonaws.eclipse.lambda.project.classpath.LambdaRuntimeDecorator"
-            icon="icons/aws-box.gif"
-            id="com.amazonaws.eclipse.lambda.lambdaRuntimeDecorator"
-            label="AWS Lambda Java Runtime Library Decorator"
-            location="BOTTOM_LEFT"
-            objectClass="org.eclipse.jdt.internal.ui.packageview.ClassPathContainer"
-            state="true">
-      </decorator>
    </extension>
 
    <!-- Lambda Java Project Wizard -->

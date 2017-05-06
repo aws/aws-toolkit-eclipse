@@ -15,6 +15,7 @@
 package com.amazonaws.eclipse.lambda.project.wizard.model;
 
 import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
 
 public class DeployServerlessProjectDataModel {
 
@@ -25,9 +26,11 @@ public class DeployServerlessProjectDataModel {
     private String bucketName;
     private String stackName;
     private final String projectName;
-    
-    public DeployServerlessProjectDataModel(String projectName) {
+    private final ServerlessProjectMetadata metadata;
+
+    public DeployServerlessProjectDataModel(String projectName, ServerlessProjectMetadata metadata) {
         this.projectName = projectName;
+        this.metadata = metadata == null ? new ServerlessProjectMetadata() : metadata;
     }
 
     public Region getRegion() {
@@ -56,5 +59,12 @@ public class DeployServerlessProjectDataModel {
 
     public String getProjectName() {
         return projectName;
+    }
+
+    /**
+     * The returned metadata is nonnull
+     */
+    public ServerlessProjectMetadata getMetadata() {
+        return metadata;
     }
 }

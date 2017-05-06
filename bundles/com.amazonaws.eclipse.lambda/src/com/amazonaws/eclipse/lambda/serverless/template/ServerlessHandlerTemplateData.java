@@ -14,6 +14,9 @@
 */
 package com.amazonaws.eclipse.lambda.serverless.template;
 
+/**
+ * Freemarker template data for serverless-handler.ftl
+ */
 public class ServerlessHandlerTemplateData {
 
     private String packageName;

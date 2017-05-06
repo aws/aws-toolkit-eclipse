@@ -16,6 +16,8 @@ package com.amazonaws.eclipse.lambda.project.wizard.page;
 
 import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel.P_SHOW_README_FILE;
 
+import java.io.IOException;
+
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
@@ -35,6 +37,8 @@ import com.amazonaws.eclipse.core.ui.ProjectNameComposite;
 import com.amazonaws.eclipse.core.widget.CheckboxComplex;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.util.LambdaFunctionComposite;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 public class NewLambdaJavaFunctionProjectWizardPageOne extends WizardPage {
 
@@ -103,12 +107,10 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends WizardPage {
 
     protected void createLambdaFunctionComposite(Composite composite) {
         lambdaFunctionComposite = new LambdaFunctionComposite(
-                this, composite, dataModel.getLambdaFunctionDataModel(), dataBindingContext);
+                composite, dataModel.getLambdaFunctionDataModel(), dataBindingContext);
         lambdaFunctionComposite.createPackageNameControl();
         lambdaFunctionComposite.createClassNameControl();
-        lambdaFunctionComposite.createHandlerTypeControl();
         lambdaFunctionComposite.createInputTypeControl();
-        lambdaFunctionComposite.createOutputTypeControl();
         lambdaFunctionComposite.createSeparator();
         lambdaFunctionComposite.createHandlerSourcePreview();
         lambdaFunctionComposite.initialize();

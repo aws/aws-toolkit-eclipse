@@ -38,6 +38,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.databinding.BooleanValidator;
 import com.amazonaws.eclipse.databinding.ChainValidator;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
@@ -249,8 +250,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
 
             public void run() {
                 try {
-                    AmazonS3 client = AwsToolkitCore.getClientFactory()
-                            .getS3ClientByEndpoint("https://s3.amazonaws.com/");
+                    AmazonS3 client = AwsToolkitCore.getClientFactory().getS3Client();
 
                     List<Bucket> allBuckets = client.listBuckets();
                     if (allBuckets.isEmpty()) {

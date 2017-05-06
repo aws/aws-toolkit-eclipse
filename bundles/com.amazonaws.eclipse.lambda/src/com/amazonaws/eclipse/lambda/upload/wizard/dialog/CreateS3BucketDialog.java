@@ -18,7 +18,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
@@ -46,8 +45,7 @@ public class CreateS3BucketDialog extends AbstractInputDialog {
 
     @Override
     protected void performFinish(String input) {
-        String regionEndpoint = region.getServiceEndpoint(ServiceAbbreviations.S3);
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByEndpoint(regionEndpoint);
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(region.getId());
 
         String s3RegionName = null;
         String awsRegionId = region.getId();
@@ -57,8 +55,6 @@ public class CreateS3BucketDialog extends AbstractInputDialog {
             s3RegionName = awsRegionId;
         }
 
-        System.out.println(input);
-        System.out.println(s3RegionName);
         s3.createBucket(new CreateBucketRequest(input, s3RegionName));
 
         createdBucketName = input;

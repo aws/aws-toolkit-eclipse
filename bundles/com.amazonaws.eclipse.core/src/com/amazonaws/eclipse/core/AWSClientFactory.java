@@ -18,9 +18,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.net.proxy.IProxyChangeEvent;
 import org.eclipse.core.net.proxy.IProxyChangeListener;
@@ -30,62 +29,79 @@ import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.client.builder.AwsSyncClientBuilder;
 import com.amazonaws.eclipse.core.accounts.AccountInfoChangeListener;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.Service;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudfront.AmazonCloudFront;
 import com.amazonaws.services.cloudfront.AmazonCloudFrontClient;
+import com.amazonaws.services.cloudfront.AmazonCloudFrontClientBuilder;
 import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.AWSCodeCommitClient;
+import com.amazonaws.services.codecommit.AWSCodeCommitClientBuilder;
 import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
 import com.amazonaws.services.codedeploy.AmazonCodeDeployClient;
+import com.amazonaws.services.codedeploy.AmazonCodeDeployClientBuilder;
 import com.amazonaws.services.codestar.AWSCodeStar;
-import com.amazonaws.services.codestar.AWSCodeStarClient;
 import com.amazonaws.services.codestar.AWSCodeStarClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClient;
+import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClient;
+import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.opsworks.AWSOpsWorks;
 import com.amazonaws.services.opsworks.AWSOpsWorksClient;
+import com.amazonaws.services.opsworks.AWSOpsWorksClientBuilder;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.rds.AmazonRDSClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.simpledb.AmazonSimpleDB;
 import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
+import com.amazonaws.services.simpledb.AmazonSimpleDBClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 
 /**
  * Factory for creating AWS clients.
  */
-@SuppressWarnings("deprecation")
 public class AWSClientFactory {
 
     /**
@@ -94,73 +110,53 @@ public class AWSClientFactory {
      */
     public static final String ACCOUNT_INFO_OVERRIDE_PROPERTY = "com.amazonaws.eclipse.test.AccountInfoOverride";
 
-    /** Manages the cached client objects. */
+    /** Manages the cached client objects by endpoint. */
+    private CachedClients cachedClientsByEndpoint = new CachedClients();
+
+    /** Manages the cached client objects by region. **/
     private CachedClients cachedClients = new CachedClients();
 
     /**
-     * The identifier of the shared account info for accessing the user's
-     * credentials.
-     * <p>
-     * NOTE: we used to pass an AccountInfo object into this class. That used to
-     * work because the preference-store implementation of AccountInfo always
-     * read the value from the external source; the only data enclosed in the
-     * AccountInfo object is the accountId.
+     * The account info for accessing the user's credentials.
      */
-    private final String accountId;
+    private final AccountInfo accountInfo;
 
     /**
      * Constructs a client factory that uses the given account identifier to
      * retrieve its credentials.
      */
     public AWSClientFactory(String accountId) {
-        this.accountId = accountId;
 
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
-        if ( plugin != null ) {
-            plugin.getProxyService().addProxyChangeListener(new IProxyChangeListener() {
-                public void proxyInfoChanged(IProxyChangeEvent event) {
-                    cachedClients.invalidateClients();
-                }
-            });
 
-            plugin.getAccountManager().addAccountInfoChangeListener(new AccountInfoChangeListener() {
+        accountInfo = plugin.getAccountManager().getAccountInfo(accountId);
 
-                public void onAccountInfoChange() {
-                    cachedClients.invalidateClients();
-                }
+        plugin.getProxyService().addProxyChangeListener(new IProxyChangeListener() {
+            public void proxyInfoChanged(IProxyChangeEvent event) {
+                cachedClientsByEndpoint.invalidateClients();
+                cachedClients.invalidateClients();
+            }
+        });
 
-            });
-        }
+        plugin.getAccountManager().addAccountInfoChangeListener(new AccountInfoChangeListener() {
+            public void onAccountInfoChange() {
+                cachedClientsByEndpoint.invalidateClients();
+                cachedClients.invalidateClients();
+            }
+
+        });
     }
 
-    /*
-     * Simple getters return a client configured with the default endpoint for
-     * the currently selected region.
-     */
-
-    public AmazonCloudFront getCloudFrontClient() {
-        return getCloudFrontClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CLOUDFRONT));
-    }
-
-    /**
-     * This is the only static API provided by this class.
-     */
+    // Returns an anonymous S3 client in us-east-1 region for fetching public-read files.
     public static AmazonS3 getAnonymousS3Client() {
-        /*
-         * We hardcode the S3 endpoint here, since this method is used to download the
-         * initial regions.xml file, so we can't necessarily look up an endpoint yet.
-         *
-         * In the future, we should ship some version of the regions.xml file, so that we
-         * always have something available, even the first time the user runs this code.
-         */
-        String serviceEndpoint = "https://s3.amazonaws.com";
+        final String serviceEndpoint = RegionUtils.S3_US_EAST_1_REGIONAL_ENDPOINT;
+        final String serviceRegion = Regions.US_EAST_1.getName();
         ClientConfiguration clientConfiguration = createClientConfiguration(serviceEndpoint);
-        clientConfiguration.setProtocol(Protocol.HTTP);
-        return new AmazonS3Client((AWSCredentials)null, clientConfiguration);
-    }
-
-    public AmazonS3 getS3Client() {
-        return getS3ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.S3));
+        return AmazonS3ClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+                .withEndpointConfiguration(new EndpointConfiguration(serviceEndpoint, serviceRegion))
+                .withClientConfiguration(clientConfiguration)
+                .build();
     }
 
     /**
@@ -168,78 +164,95 @@ public class AWSClientFactory {
      * caching is performed on the region lookup.
      */
     public AmazonS3 getS3ClientForBucket(String bucketName) {
-        String serviceEndpoint = getS3BucketEndpoint(bucketName);
-        return getS3ClientByEndpoint(serviceEndpoint);
+        return getS3ClientByRegion(getS3BucketRegion(bucketName));
     }
 
     /**
      * Returns the endpoint appropriate to the given bucket.
      */
     public String getS3BucketEndpoint(String bucketName) {
-        AmazonS3 globalS3Client = getS3Client();
-        String bucketLocation = globalS3Client.getBucketLocation(bucketName);
-        String region = bucketLocation;
-        if ( bucketLocation == null || bucketLocation.equals("US") ) {
-            region = "us-east-1";
+        return RegionUtils.getRegion(getS3BucketRegion(bucketName))
+                .getServiceEndpoint(ServiceAbbreviations.S3);
+    }
+
+    /**
+     * Returns the standard region the bucket is located.
+     */
+    private String getS3BucketRegion(String bucketName) {
+        AmazonS3 s3Client = getS3Client();
+        String region = s3Client.getBucketLocation(bucketName);
+        if (region == null || region.equals("US") ) {
+            region = Regions.US_EAST_1.getName();
         }
-        String serviceEndpoint = RegionUtils.getRegion(region).getServiceEndpoint(ServiceAbbreviations.S3);
-        return serviceEndpoint;
+        return region;
+    }
+
+    /*
+     * Simple getters return a client configured with the currently selected region.
+     */
+
+    public AmazonS3 getS3Client() {
+        return getS3ClientByRegion(RegionUtils.getCurrentRegion().getId());
+    }
+
+    public AmazonCloudFront getCloudFrontClient() {
+        return getCloudFrontClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonSimpleDB getSimpleDBClient() {
-        return getSimpleDBClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SIMPLEDB));
+        return getSimpleDBClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonRDS getRDSClient() {
-        return getRDSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.RDS));
+        return getRDSClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonSQS getSQSClient() {
-        return getSQSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SQS));
+        return getSQSClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonSNS getSNSClient() {
-        return getSNSClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.SNS));
+        return getSNSClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonDynamoDB getDynamoDBV2Client() {
-        return getDynamoDBV2ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.DYNAMODB));
+        return getDynamoDBClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AWSSecurityTokenService getSecurityTokenServiceClient() {
-        return getSecurityTokenServiceByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.STS));
+        return getSecurityTokenServiceByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AWSElasticBeanstalk getElasticBeanstalkClient() {
-        return getElasticBeanstalkClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.BEANSTALK));
+        return getElasticBeanstalkClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonIdentityManagement getIAMClient() {
-        return getIAMClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.IAM));
+        return getIAMClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonCloudFormation getCloudFormationClient() {
-        return getCloudFormationClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CLOUD_FORMATION));
+        return getCloudFormationClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonEC2 getEC2Client() {
-        return getEC2ClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.EC2));
+        return getEC2ClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AmazonCodeDeploy getCodeDeployClient() {
-        return getCodeDeployClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CODE_DEPLOY));
+        return getCodeDeployClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AWSOpsWorks getOpsWorksClient() {
-        return getOpsWorksClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.OPSWORKS));
+        return getOpsWorksClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AWSLambda getLambdaClient() {
-        return getLambdaClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.LAMBDA));
+        return getLambdaClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AWSCodeCommit getCodeCommitClient() {
-        return getCodeCommitClientByEndpoint(RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CODECOMMIT));
+        return getCodeCommitClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     public AWSCodeStar getCodeStarClient() {
@@ -250,127 +263,244 @@ public class AWSClientFactory {
      * Endpoint-specific getters return clients that use the endpoint given.
      */
 
+    @Deprecated
     public AmazonIdentityManagement getIAMClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonIdentityManagementClient.class);
     }
 
+    @Deprecated
     public AmazonCloudFront getCloudFrontClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonCloudFrontClient.class);
     }
 
-    public AmazonS3 getS3ClientByEndpoint(String endpoint) {
-        return getOrCreateClient(endpoint, AmazonS3Client.class);
-    }
-
+    @Deprecated
     public AmazonEC2 getEC2ClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonEC2Client.class);
     }
 
+    @Deprecated
     public AmazonSimpleDB getSimpleDBClientByEndpoint(final String endpoint) {
         return getOrCreateClient(endpoint, AmazonSimpleDBClient.class);
     }
 
+    @Deprecated
     public AmazonRDS getRDSClientByEndpoint(final String endpoint) {
         return getOrCreateClient(endpoint, AmazonRDSClient.class);
     }
 
+    @Deprecated
     public AmazonSQS getSQSClientByEndpoint(final String endpoint) {
         return getOrCreateClient(endpoint, AmazonSQSClient.class);
     }
 
+    @Deprecated
     public AmazonSNS getSNSClientByEndpoint(final String endpoint) {
         return getOrCreateClient(endpoint, AmazonSNSClient.class);
     }
 
+    @Deprecated
     public AWSElasticBeanstalk getElasticBeanstalkClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSElasticBeanstalkClient.class);
     }
 
+    @Deprecated
     public AmazonElasticLoadBalancing getElasticLoadBalancingClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonElasticLoadBalancingClient.class);
     }
 
+    @Deprecated
     public AmazonAutoScaling getAutoScalingClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonAutoScalingClient.class);
     }
 
+    @Deprecated
     public AmazonDynamoDB getDynamoDBClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonDynamoDBClient.class);
     }
 
+    @Deprecated
     public com.amazonaws.services.dynamodbv2.AmazonDynamoDB getDynamoDBV2ClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient.class);
     }
 
+    @Deprecated
     public AWSSecurityTokenService getSecurityTokenServiceByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSSecurityTokenServiceClient.class);
     }
 
+    @Deprecated
     public AmazonCloudFormation getCloudFormationClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonCloudFormationClient.class);
     }
 
+    @Deprecated
     public AmazonCodeDeploy getCodeDeployClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonCodeDeployClient.class);
     }
 
+    @Deprecated
     public AWSOpsWorks getOpsWorksClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSOpsWorksClient.class);
     }
 
+    @Deprecated
     public AWSLambda getLambdaClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSLambdaClient.class);
     }
 
+    @Deprecated
     public AWSCodeCommit getCodeCommitClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSCodeCommitClient.class);
     }
 
     /**
-     * Return a CodeStar client by the specified region. Due to changes in Java SDK,
-     * new service client doesn't have non-parameter constructor. We need to build
-     * CodeStar client by using the ClientBuilder.
+     * Return an AWS client of the specified region by using the ClientBuilder.
      *
      * @param regionId - region id for the client, ex. us-esat-1
      * @return The cached client if already created, otherwise, create a new one.
+     *         Return null if the specified regionId is invalid.
      */
+
+    public AmazonIdentityManagement getIAMClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.IAM, regionId,
+                AmazonIdentityManagementClientBuilder.standard(), AmazonIdentityManagement.class);
+    }
+
+    public AmazonCloudFront getCloudFrontClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.CLOUDFRONT, regionId,
+                AmazonCloudFrontClientBuilder.standard(), AmazonCloudFront.class);
+    }
+
+    /**
+     * Return regional S3 client other than the global one which is built by the default S3 client builder.
+     */
+    public AmazonS3 getS3ClientByRegion(String regionId) {
+        if (Regions.US_EAST_1.getName().equals(regionId)) {
+            synchronized (AmazonS3.class) {
+                if ( cachedClients.getClient(regionId, AmazonS3.class) == null ) {
+                    cachedClients.cacheClient(regionId, AmazonS3.class, createS3UsEast1RegionalClient());
+                }
+            }
+
+            return cachedClients.getClient(regionId, AmazonS3.class);
+        } else {
+            return getOrCreateClientByRegion(ServiceAbbreviations.S3, regionId, AmazonS3ClientBuilder.standard(),
+                    AmazonS3.class);
+        }
+    }
+
+    public AmazonEC2 getEC2ClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.EC2, regionId,
+                AmazonEC2ClientBuilder.standard(), AmazonEC2.class);
+    }
+
+    public AmazonSimpleDB getSimpleDBClientByRegion(final String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.SIMPLEDB, regionId,
+                AmazonSimpleDBClientBuilder.standard(), AmazonSimpleDB.class);
+    }
+
+    public AmazonRDS getRDSClientByRegion(final String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.RDS, regionId,
+                AmazonRDSClientBuilder.standard(), AmazonRDS.class);
+    }
+
+    public AmazonSQS getSQSClientByRegion(final String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.SQS, regionId,
+                AmazonSQSClientBuilder.standard(), AmazonSQS.class);
+    }
+
+    public AmazonSNS getSNSClientByRegion(final String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.SNS, regionId,
+                AmazonSNSClientBuilder.standard(), AmazonSNS.class);
+    }
+
+    public AWSElasticBeanstalk getElasticBeanstalkClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.BEANSTALK, regionId,
+                AWSElasticBeanstalkClientBuilder.standard(), AWSElasticBeanstalk.class);
+    }
+
+    public AmazonElasticLoadBalancing getElasticLoadBalancingClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.ELB, regionId,
+                AmazonElasticLoadBalancingClientBuilder.standard(), AmazonElasticLoadBalancing.class);
+    }
+
+    public AmazonAutoScaling getAutoScalingClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.AUTOSCALING, regionId,
+                AmazonAutoScalingClientBuilder.standard(), AmazonAutoScaling.class);
+    }
+
+    public AmazonDynamoDB getDynamoDBClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.DYNAMODB, regionId,
+                AmazonDynamoDBClientBuilder.standard(), AmazonDynamoDB.class);
+    }
+
+    public AWSSecurityTokenService getSecurityTokenServiceByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.STS, regionId,
+                AWSSecurityTokenServiceClientBuilder.standard(), AWSSecurityTokenService.class);
+    }
+
+    public AmazonCloudFormation getCloudFormationClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.CLOUD_FORMATION, regionId,
+                AmazonCloudFormationClientBuilder.standard(), AmazonCloudFormation.class);
+    }
+
+    public AmazonCodeDeploy getCodeDeployClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.CODE_DEPLOY, regionId,
+                AmazonCodeDeployClientBuilder.standard(), AmazonCodeDeploy.class);
+    }
+
+    public AWSOpsWorks getOpsWorksClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.OPSWORKS, regionId,
+                AWSOpsWorksClientBuilder.standard(), AWSOpsWorks.class);
+    }
+
+    public AWSLambda getLambdaClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.LAMBDA, regionId,
+                AWSLambdaClientBuilder.standard(), AWSLambda.class);
+    }
+
+    public AWSCodeCommit getCodeCommitClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.CODECOMMIT, regionId,
+                AWSCodeCommitClientBuilder.standard(), AWSCodeCommit.class);
+    }
+
     public AWSCodeStar getCodeStarClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.CODESTAR, regionId,
+                AWSCodeStarClientBuilder.standard(), AWSCodeStar.class);
+    }
+
+    @Deprecated
+    private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {
+        synchronized (clientClass) {
+            if ( cachedClientsByEndpoint.getClient(endpoint, clientClass) == null ) {
+                cachedClientsByEndpoint.cacheClient(endpoint, createClient(endpoint, clientClass));
+            }
+        }
+
+        return cachedClientsByEndpoint.getClient(endpoint, clientClass);
+    }
+
+    private <T> T getOrCreateClientByRegion(String serviceName, String regionId,
+            AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, Class<T> clientClass) {
         Region region = RegionUtils.getRegion(regionId);
         if (region == null) {
             return null;
         }
-        String endpoint = region.getServiceEndpoint(ServiceAbbreviations.CODESTAR);
-        Class<AWSCodeStarClient> clientClass = AWSCodeStarClient.class;
+        String endpoint = region.getServiceEndpoint(serviceName);
+
         synchronized (clientClass) {
-            if ( cachedClients.getClient(endpoint, clientClass) == null ) {
-                cachedClients.cacheClient(endpoint, createCodeStarClient(regionId));
+            if ( cachedClients.getClient(regionId, clientClass) == null ) {
+                cachedClients.cacheClient(regionId, clientClass, createClientByRegion(builder, regionId, endpoint));
             }
         }
 
-        return cachedClients.getClient(endpoint, clientClass);
+        return cachedClients.getClient(regionId, clientClass);
     }
 
-    private AWSCodeStar createCodeStarClient(String regionId) {
-        final AccountInfo accountInfo = AwsToolkitCore.getDefault()
-                .getAccountManager().getAccountInfo(accountId);
-        String profileName = accountInfo.getAccountName();
-        return AWSCodeStarClientBuilder.standard()
-                .withCredentials(new ProfileCredentialsProvider(profileName))
-                .withRegion(regionId)
-                .build();
-    }
-
-    private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {
-        synchronized (clientClass) {
-            if ( cachedClients.getClient(endpoint, clientClass) == null ) {
-                cachedClients.cacheClient(endpoint, createClient(endpoint, clientClass));
-            }
-        }
-
-        return cachedClients.getClient(endpoint, clientClass);
-    }
-
-    //TODO To be upgraded to using ClientBuilder
+    /**
+     * @deprecated for {@link #createClientByRegion(AwsSyncClientBuilder, String, String)}
+     */
+    @Deprecated
     private <T extends AmazonWebServiceClient> T createClient(String endpoint, Class<T> clientClass) {
         try {
             Constructor<T> constructor = clientClass.getConstructor(AWSCredentials.class, ClientConfiguration.class);
@@ -378,9 +508,6 @@ public class AWSClientFactory {
 
             Service service = RegionUtils.getServiceByEndpoint(endpoint);
             config.setSignerOverride(service.getSignerOverride());
-
-            final AccountInfo accountInfo = AwsToolkitCore.getDefault()
-                    .getAccountManager().getAccountInfo(accountId);
 
             AWSCredentials credentials = null;
             if (accountInfo.isUseSessionToken()) {
@@ -416,6 +543,28 @@ public class AWSClientFactory {
         }
     }
 
+    // Low layer method for building a service client by using the client builder.
+    @SuppressWarnings("unchecked")
+    private <T> T createClientByRegion(AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, String region, String endpoint) {
+        Object client = builder
+                .withCredentials(new AWSStaticCredentialsProvider(getAwsCredentials()))
+                .withRegion(region)
+                .withClientConfiguration(createClientConfiguration(endpoint))
+                .build();
+        return (T) client;
+    }
+
+    /**
+     * Return the regional us-east-1 S3 client.
+     */
+    private AmazonS3 createS3UsEast1RegionalClient() {
+        return AmazonS3ClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(getAwsCredentials()))
+                .withClientConfiguration(createClientConfiguration(RegionUtils.S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .withEndpointConfiguration(new EndpointConfiguration(RegionUtils.S3_US_EAST_1_REGIONAL_ENDPOINT, Regions.US_EAST_1.getName()))
+                .build();
+    }
+
     /**
      * Returns the 3-argument form of setEndpoint that is used to override
      * values for sigv4 signing, or null if the specified class does not support
@@ -437,6 +586,21 @@ public class AWSClientFactory {
         }
     }
 
+    private AWSCredentials getAwsCredentials() {
+        AWSCredentials credentials = null;
+
+        if (accountInfo.isUseSessionToken()) {
+            credentials = new BasicSessionCredentials(
+                    accountInfo.getAccessKey(), accountInfo.getSecretKey(),
+                    accountInfo.getSessionToken());
+        } else {
+            credentials = new BasicAWSCredentials(
+                    accountInfo.getAccessKey(), accountInfo.getSecretKey());
+        }
+
+        return credentials;
+    }
+
     private static ClientConfiguration createClientConfiguration(String secureEndpoint) {
         ClientConfiguration config = new ClientConfiguration();
 
@@ -451,7 +615,7 @@ public class AWSClientFactory {
         config.setConnectionTimeout(connectionTimeout);
         config.setSocketTimeout(socketTimeout);
 
-        config.setUserAgent(AwsClientUtils.formatUserAgentString("AWS-Toolkit-For-Eclipse", AwsToolkitCore.getDefault()));
+        config.setUserAgentSuffix(AwsClientUtils.formatUserAgentString("AWS-Toolkit-For-Eclipse", AwsToolkitCore.getDefault()));
 
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
         if ( plugin != null ) {
@@ -479,31 +643,36 @@ public class AWSClientFactory {
 
     /**
      * Responsible for managing the various AWS client objects needed for each service/region combination.
+     * This class is thread safe.
      */
     private static class CachedClients {
 
-        private final Map<Class<?>, Map<String, Object>> cachedClientsByEndpoint = Collections
-                .synchronizedMap(new HashMap<Class<?>, Map<String, Object>>());
+        private final Map<Class<?>, Map<String, Object>> cachedClients = new ConcurrentHashMap<>();
 
         @SuppressWarnings("unchecked")
-        public <T> T getClient(String endpoint, Class<T> clientClass) {
-            if (cachedClientsByEndpoint.get(clientClass) == null) {
+        public synchronized <T> T getClient(String region, Class<T> clientClass) {
+            if (cachedClients.get(clientClass) == null) {
                 return null;
             }
-            return (T)cachedClientsByEndpoint.get(clientClass).get(endpoint);
+            return (T)cachedClients.get(clientClass).get(region);
         }
 
-        public <T> void cacheClient(String endpoint, T client) {
-            if (cachedClientsByEndpoint.get(client.getClass()) == null) {
-                cachedClientsByEndpoint.put(client.getClass(), new HashMap<String, Object>());
+        public synchronized <T> void cacheClient(String region, T client) {
+            cacheClient(region, null, client);
+        }
+
+        public <T> void cacheClient(String region, Class<T> clazz, T client) {
+            Class<?> key = clazz == null ? client.getClass() : clazz;
+            if (cachedClients.get(key) == null) {
+                cachedClients.put(key, new ConcurrentHashMap<String, Object>());
             }
 
-            Map<String, Object> map = cachedClientsByEndpoint.get(client.getClass());
-            map.put(endpoint, client);
+            Map<String, Object> map = cachedClients.get(key);
+            map.put(region, client);
         }
 
         public synchronized void invalidateClients() {
-            cachedClientsByEndpoint.clear();
+            cachedClients.clear();
         }
     }
 }

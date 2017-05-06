@@ -20,7 +20,6 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFilli
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
-import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,6 +60,7 @@ import com.amazonaws.eclipse.databinding.BooleanValidator;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 import com.amazonaws.eclipse.databinding.RangeValidator;
+import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.ServiceApiUtils;
 import com.amazonaws.eclipse.lambda.UrlConstants;

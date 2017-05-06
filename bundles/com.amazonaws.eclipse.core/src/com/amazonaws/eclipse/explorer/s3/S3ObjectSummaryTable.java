@@ -107,8 +107,8 @@ public class S3ObjectSummaryTable extends Composite {
 
     private final String bucketName;
     private final String accountId;
-    private final String s3Endpoint;
-    
+    private final String regionId;
+
     private final Map<TreePath, Object[]> children;
     private final TreeViewer viewer;
 
@@ -306,8 +306,8 @@ public class S3ObjectSummaryTable extends Composite {
         super(composite, style);
 
         this.accountId = accountId;
+        this.regionId = RegionUtils.getRegionByEndpoint(s3Endpoint).getId();
         this.bucketName = bucketName;
-        this.s3Endpoint = s3Endpoint;
         this.children = Collections.synchronizedMap(new HashMap<TreePath, Object[]>());
 
         GridLayout gridLayout = new GridLayout(1, false);
@@ -459,7 +459,7 @@ public class S3ObjectSummaryTable extends Composite {
     }
 
     public synchronized AmazonS3 getS3Client() {
-        return AwsToolkitCore.getClientFactory(accountId).getS3ClientByEndpoint(s3Endpoint);
+        return AwsToolkitCore.getClientFactory(accountId).getS3ClientByRegion(regionId);
     }
 
     protected void createColumns(TreeColumnLayout tableColumnLayout, Tree tree) {

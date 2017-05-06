@@ -14,6 +14,7 @@
   <modules>
     <module>com.amazonaws.eclipse.core.tests</module>
     <module>com.amazonaws.eclipse.elasticbeanstalk.tests</module>
+    <module>com.amazonaws.eclipse.lambda.tests</module>
     <module>com.amazonaws.eclipse.simpledb.tests</module>
   </modules>
 

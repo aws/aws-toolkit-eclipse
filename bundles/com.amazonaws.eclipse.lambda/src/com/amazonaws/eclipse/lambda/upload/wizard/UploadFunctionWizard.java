@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,7 @@ import com.amazonaws.eclipse.core.plugin.AbstractAwsJobWizard;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
-import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
+import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.upload.wizard.page.FunctionConfigurationPage;
 import com.amazonaws.eclipse.lambda.upload.wizard.page.TargetFunctionSelectionPage;
@@ -75,17 +76,17 @@ public class UploadFunctionWizard extends AbstractAwsJobWizard {
         }
 
         // Load existing lambda project metadata
-        LambdaFunctionProjectMetadata md = FunctionProjectUtil
-                .loadLambdaProjectMetadata(project);
-
-        if (md != null && !md.isValid()) {
-            md = null;
+        LambdaFunctionProjectMetadata md = null;
+        try {
+            md = ProjectMetadataManager.loadLambdaProjectMetadata(project);
+        } catch (IOException e) {
             LambdaPlugin.getDefault().logInfo(
-                    "Ignoring the existing metadata for project ["
-                            + project.getName()
-                            + "] since the content is invalid.");
+                  "Ignoring the existing metadata for project ["
+                          + project.getName()
+                          + "] since the content is invalid.");
         }
-        this.dataModel = new UploadFunctionWizardDataModel(project,
+
+        dataModel = new UploadFunctionWizardDataModel(project,
                 handlerClasses, md);
     }
 

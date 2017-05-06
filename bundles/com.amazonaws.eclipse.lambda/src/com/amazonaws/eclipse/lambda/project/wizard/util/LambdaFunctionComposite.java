@@ -18,18 +18,12 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFilli
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
 import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_CLASS_NAME;
-import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_INPUT_NAME;
 import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_INPUT_TYPE;
-import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_OUTPUT_NAME;
 import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_PACKAGE_NAME;
-import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_TYPE;
-import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType.REQUEST_HANDLER;
-import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType.STREAM_REQUEST_HANDLER;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.io.StringWriter;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
@@ -39,14 +33,11 @@ import org.eclipse.jdt.internal.ui.text.SimpleJavaSourceViewerConfiguration;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jdt.ui.text.JavaTextTools;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -62,48 +53,42 @@ import com.amazonaws.eclipse.core.validator.PackageNameValidator;
 import com.amazonaws.eclipse.core.widget.ComboComplex;
 import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
-import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.UrlConstants;
+import com.amazonaws.eclipse.lambda.blueprint.BlueprintsProvider;
+import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprint;
+import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprintsConfig;
 import com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
-import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaHandlerType;
-import com.amazonaws.eclipse.lambda.project.wizard.model.PredefinedHandlerInputType;
+import com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData;
 
 import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 @SuppressWarnings("restriction")
 public class LambdaFunctionComposite {
 
-    private final WizardPage parentWizard;
     private final Composite parentComposite;
     private final LambdaFunctionDataModel dataModel;
+    private final LambdaBlueprintsConfig lambdaBlueprintConfig;
     private final DataBindingContext dataBindingContext;
 
     private TextComplex packageNameComplex;
     private TextComplex classNameComplex;
-    private ComboComplex handlerTypeComplex;
     private ComboComplex inputTypeComplex;
-    private TextComplex inputNameComplex;
-    private TextComplex outputNameComplex;
 
     private Link handlerTypeDescriptionLink;
     private JavaSourceViewer sourcePreview;
     private Document sourcePreviewDocument;
-    private final Template handlerTemplate;
-    private final Template streamHandlerTemplate;
 
     private Group group;
     private Composite inputComposite;
 
-    public LambdaFunctionComposite(WizardPage parentWizard, Composite parentComposite,
+    public LambdaFunctionComposite(Composite parentComposite,
             LambdaFunctionDataModel dataModel, DataBindingContext dataBindingContext) {
-        this.parentWizard = parentWizard;
         this.parentComposite = parentComposite;
         this.dataModel = dataModel;
         this.dataBindingContext = dataBindingContext;
-
-        this.handlerTemplate = CodeTemplateManager.getInstance().getHandlerClassTemplate();
-        this.streamHandlerTemplate = CodeTemplateManager.getInstance().getStreamHandlderClassTemplate();
+        this.lambdaBlueprintConfig = BlueprintsProvider.provideLambdaBlueprints();
 
         createControl();
     }
@@ -119,7 +104,7 @@ public class LambdaFunctionComposite {
                 "which the service will use as the entry point to begin execution.";
         setItalicFont(newLink(group, UrlConstants.webLinkListener,
                 description + " <a href=\"" +
-                UrlConstants.LAMBDA_EXECUTION_ROLE_DOC_URL +
+                UrlConstants.LAMBDA_JAVA_HANDLER_DOC_URL +
                 "\">Learn more</a> about Lambda Java function handler.",
                 1));
 
@@ -155,62 +140,20 @@ public class LambdaFunctionComposite {
                 .build();
     }
 
-    public void createHandlerTypeControl() {
-        this.handlerTypeComplex = ComboComplex.<LambdaHandlerType> builder()
-                .composite(inputComposite)
-                .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_TYPE))
-                .labelValue("Handler Type")
-                .items(LambdaHandlerType.list())
-                .defaultItem(LambdaHandlerType.REQUEST_HANDLER)
-                .selectionListener(new SelectionAdapter() {
-                    @Override
-                    public void widgetSelected(SelectionEvent e) {
-                        onHandlerTypeSelectionChange();
-                    }
-                })
-                .build();
-
-        handlerTypeDescriptionLink = newLink(inputComposite, UrlConstants.webLinkListener, "", 1);
-        setItalicFont(handlerTypeDescriptionLink);
-    }
-
     public void createInputTypeControl() {
-        this.inputTypeComplex = ComboComplex.<PredefinedHandlerInputType> builder()
+        this.inputTypeComplex = ComboComplex.<LambdaBlueprint> builder()
                 .composite(inputComposite)
                 .dataBindingContext(dataBindingContext)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_INPUT_TYPE))
                 .labelValue("Input Type:")
-                .items(PredefinedHandlerInputType.list())
-                .defaultItem(PredefinedHandlerInputType.S3_EVENT)
-                .selectionListener(new SelectionAdapter() {
-                    @Override
-                    public void widgetSelected(SelectionEvent e) {
-                        onPredefinedHandlerInputTypeComboSelectionChange();
-                    }
-                })
+                .items(lambdaBlueprintConfig.getBlueprints().values())
+                .defaultItemName(dataModel.getInputType())
+                .comboColSpan(2)
                 .build();
 
-        this.inputNameComplex = TextComplex.builder()
-                .composite(inputComposite)
-                .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_INPUT_NAME))
-                .validator(new NotEmptyValidator("Please provide a valid input type"))
-                .createLabel(false)
-                .defaultValue(dataModel.getInputName())
-                .build();
-    }
-
-    public void createOutputTypeControl() {
-        this.outputNameComplex = TextComplex.builder()
-                .composite(inputComposite)
-                .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_OUTPUT_NAME))
-                .validator(new NotEmptyValidator("Please provide a valid output type"))
-                .labelValue("Output Type:")
-                .defaultValue(dataModel.getOutputName())
-                .textColSpan(2)
-                .build();
+        handlerTypeDescriptionLink = newLink(inputComposite, UrlConstants.webLinkListener,
+                dataModel.getSelectedBlueprint().getDescription(), 3);
+        setItalicFont(handlerTypeDescriptionLink);
     }
 
     public void createSeparator() {
@@ -220,49 +163,6 @@ public class LambdaFunctionComposite {
 
     public TextComplex getPackageNameComplex() {
         return packageNameComplex;
-    }
-
-    private void onHandlerTypeSelectionChange() {
-        final String handlerType = handlerTypeComplex.getCombo().getText();
-        final Object handlerTypeData = handlerTypeComplex.getCombo().getData(handlerType);
-
-        if (STREAM_REQUEST_HANDLER == handlerTypeData) {
-            inputNameComplex.setEnabled(false);
-            outputNameComplex.setEnabled(false);
-            inputTypeComplex.getCombo().setEnabled(false);
-            handlerTypeDescriptionLink.setText(createHandlerTypeDescriptionLink(STREAM_REQUEST_HANDLER));
-
-        } else if (REQUEST_HANDLER == handlerTypeData) {
-
-            String selectedText = inputTypeComplex.getCombo().getText();
-            Object selectedData = inputTypeComplex.getCombo().getData(selectedText);
-
-            inputNameComplex.setEnabled(selectedData == PredefinedHandlerInputType.CUSTOM);
-            outputNameComplex.setEnabled(true);
-            inputTypeComplex.getCombo().setEnabled(true);
-            handlerTypeDescriptionLink.setText(createHandlerTypeDescriptionLink(REQUEST_HANDLER));
-
-        } else {
-            LambdaHandlerType lambdaHandlerType = (LambdaHandlerType)handlerTypeData;
-            MessageDialog.openInformation(parentWizard.getShell(),
-                    "Unsupported handler type combo selection.",
-                    "The handler type " + handlerType + " is not yet supported in the toolkit! For more information, see "
-                            + lambdaHandlerType.getDocUrl() + ".");
-            handlerTypeComplex.getCombo().select(0);
-            onHandlerTypeSelectionChange();
-        }
-    }
-
-    /** Return the descriptive words for the specific Lambda Handler type. */
-    private String createHandlerTypeDescriptionLink(LambdaHandlerType handlerType) {
-        return "<a href=\"" + handlerType.getDocUrl() + "\">Learn more</a> about handlers.";
-    }
-
-    private void onPredefinedHandlerInputTypeComboSelectionChange() {
-        String selectedText = inputTypeComplex.getCombo().getText();
-        Object selectedData = inputTypeComplex.getCombo().getData(selectedText);
-
-        inputNameComplex.setEnabled(PredefinedHandlerInputType.CUSTOM == selectedData);
     }
 
     public void createHandlerSourcePreview() {
@@ -300,25 +200,22 @@ public class LambdaFunctionComposite {
     }
 
     private void onPropertyChange() {
-        Template template = dataModel.isUseStreamHandler() ? streamHandlerTemplate : handlerTemplate;
-        Object freeMarkerDataModel = dataModel.isUseStreamHandler() ?
-                dataModel.collectStreamHandlerTemplateData() :
-                dataModel.collectHandlerTemplateData();
+        Template template = CodeTemplateManager.getInstance().getLambdaHandlerTemplate(
+                dataModel.getSelectedBlueprint());
+        LambdaBlueprintTemplateData freeMarkerDataModel = dataModel.collectLambdaBlueprintTemplateData();
 
-        StringWriter sw = new StringWriter();
-        try {
-            template.process(freeMarkerDataModel, sw);
-            sw.flush();
-        } catch (Exception e) {
-            LambdaPlugin.getDefault().reportException(
-                    "Failed to generate handler source preview", e);
-        }
-        try {
-            sw.close();
-        } catch (IOException ignored) {
+        if (template == null || freeMarkerDataModel == null) {
+            return;
         }
 
-        String source = sw.toString();
+        handlerTypeDescriptionLink.setText(dataModel.getSelectedBlueprint().getDescription());
+        String source;
+        try {
+            source = CodeTemplateManager.processTemplateWithData(template, freeMarkerDataModel);
+        } catch (TemplateException | IOException e) {
+            throw new RuntimeException("Failed to generate handler source preview", e);
+        }
+
         if (sourcePreviewDocument != null) {
             sourcePreviewDocument.set(source);
         }
@@ -328,8 +225,6 @@ public class LambdaFunctionComposite {
     }
 
     public void initialize() {
-        onHandlerTypeSelectionChange();
-        onPredefinedHandlerInputTypeComboSelectionChange();
         onPropertyChange();
     }
 

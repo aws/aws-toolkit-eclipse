@@ -258,8 +258,7 @@ public class NewAppConfigurationComposite extends Composite {
 
             public void run() {
                 try {
-                    AmazonS3 client = AwsToolkitCore.getClientFactory()
-                            .getS3ClientByEndpoint("https://s3.amazonaws.com/");
+                    AmazonS3 client = AwsToolkitCore.getClientFactory().getS3Client();
 
                     List<Bucket> allBuckets = client.listBuckets();
                     if (allBuckets.isEmpty()) {

@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.core.model;
 
-
 /**
  * Data model to be bound with a ComboBox item.
  */

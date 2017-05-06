@@ -7,8 +7,6 @@ Bundle-ClassPath: .
 Bundle-Activator: com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin
 Bundle-Vendor: Amazon Web Services
 Export-Package: com.amazonaws.eclipse.sdk.ui,
- com.amazonaws.eclipse.sdk.ui.classpath,
- com.amazonaws.eclipse.sdk.ui.preferences,
  com.amazonaws.eclipse.sdk.ui.wizard
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,

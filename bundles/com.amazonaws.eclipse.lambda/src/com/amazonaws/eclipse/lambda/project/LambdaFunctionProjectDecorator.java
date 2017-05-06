@@ -21,7 +21,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
-import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
+import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
 
 /**
  * This class decorates the Project Explorer entry for the AWS Lambda Runtime
@@ -45,9 +45,8 @@ public class LambdaFunctionProjectDecorator implements ILabelDecorator {
 
         if (project != null) {
             try {
-                LambdaFunctionProjectMetadata md = FunctionProjectUtil
-                        .loadLambdaProjectMetadata(project);
-                if (md != null && md.isValid()) {
+                LambdaFunctionProjectMetadata md = ProjectMetadataManager.loadLambdaProjectMetadata(project);
+                if (md != null && md.getLastDeploymentFunctionName() != null) {
                     return text + " [" + md.getLastDeploymentFunctionName() + "]";
                 }
             } catch (Exception e) {

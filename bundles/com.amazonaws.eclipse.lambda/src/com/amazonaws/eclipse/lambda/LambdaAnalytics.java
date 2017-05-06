@@ -19,7 +19,6 @@ import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
-import com.amazonaws.eclipse.lambda.project.wizard.model.PredefinedHandlerInputType;
 
 public final class LambdaAnalytics {
 
@@ -76,7 +75,6 @@ public final class LambdaAnalytics {
     private static final String EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD = "Lambda-DeployServerlessProjectWizard";
 
     private static final String ATTR_NAME_FUNCTION_INPUT_TYPE = "FunctionInputType";
-    private static final String ATTR_NAME_FUNCTION_OUTPUT_TYPE = "FunctionOutputType";
     private static final String ATTR_NAME_BLUEPRINT_NAME = "BlueprintName";
     private static final String ATTR_NAME_IS_IMPORT_TEMPLATE = "IsImportTemplate";
 
@@ -104,12 +102,8 @@ public final class LambdaAnalytics {
     }
 
     public static void trackNewProjectAttributes(LambdaFunctionWizardDataModel dataModel) {
-        String inputType = dataModel.getLambdaFunctionDataModel().getInputTypeEnum() == PredefinedHandlerInputType.CUSTOM
-                ? dataModel.getLambdaFunctionDataModel().getInputName()
-                : dataModel.getLambdaFunctionDataModel().getInputTypeEnum().getFqcn();
-        String outputType = dataModel.getLambdaFunctionDataModel().getOutputName();
-
-        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD, ATTR_NAME_FUNCTION_INPUT_TYPE, inputType, ATTR_NAME_FUNCTION_OUTPUT_TYPE, outputType);
+        publishEventWithAttributes(EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD, ATTR_NAME_FUNCTION_INPUT_TYPE,
+                dataModel.getLambdaFunctionDataModel().getInputType());
     }
 
     /*

@@ -50,7 +50,6 @@ import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetada
 
 public class InvokeFunctionInputDialog extends Dialog {
 
-    private static final boolean DEFAULT_SHOW_LIVE_LOG = false;
     public static final int INVOKE_BUTTON_ID = IDialogConstants.OK_ID;
 
     private static final int PREFERRED_WIDTH = 600;
@@ -71,9 +70,7 @@ public class InvokeFunctionInputDialog extends Dialog {
         super(parentShell);
         this.project = project;
         this.md = md;
-        if (md.getLastInvokeShowLiveLog() == null) {
-            md.setLastInvokeShowLiveLog(DEFAULT_SHOW_LIVE_LOG);
-        }
+        this.md.setLastInvokeHandler(md.getLastDeploymentHandler());
     }
 
     public boolean isInputBoxContentModified() {

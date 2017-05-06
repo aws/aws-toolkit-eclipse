@@ -174,8 +174,7 @@ public class DeployUtils {
          */
         String bucketName = dataModel.getS3ApplicationSource().getBucketName();
         String keyName = dataModel.getS3ApplicationSource().getKeyName();
-        AmazonS3 s3Client = AwsToolkitCore.getClientFactory()
-                .getS3ClientByEndpoint("https://s3.amazonaws.com/");
+        AmazonS3 s3Client = AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucketName);
 
         progressMonitor.subTask("Upload ZIP file to S3...");
 

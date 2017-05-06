@@ -35,3 +35,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.m2e.archetype.common;bundle-version="1.5.1"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
+Export-Package: com.amazonaws.eclipse.lambda.blueprint,
+ com.amazonaws.eclipse.lambda.project.template,
+ com.amazonaws.eclipse.lambda.project.template.data,
+ com.amazonaws.eclipse.lambda.serverless.template,
+ freemarker.template

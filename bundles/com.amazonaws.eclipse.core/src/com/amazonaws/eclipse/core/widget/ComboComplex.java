@@ -16,11 +16,11 @@ package com.amazonaws.eclipse.core.widget;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLabel;
+import static com.amazonaws.util.ValidationUtils.assertNotEmpty;
 import static com.amazonaws.util.ValidationUtils.assertNotNull;
 import static com.amazonaws.util.ValidationUtils.assertStringNotEmpty;
-import static com.amazonaws.util.ValidationUtils.assertNotEmpty;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
@@ -33,24 +33,25 @@ import org.eclipse.swt.widgets.Composite;
 import com.amazonaws.eclipse.core.model.ComboBoxItemData;
 
 /**
- * A complex Combo widget including a Label, DataBinding. The generic type T must be an enum whose
- * toString() method returns the text shown in the combo.
+ * A complex Combo widget including a Label, DataBinding. The generic type T must be a #{@link com.amazonaws.eclipse.core.model.ComboBoxItemData} whose
+ * getName() method returns the text shown in the combo.
  */
 public class ComboComplex<T extends ComboBoxItemData> {
 
     private Combo combo;
     private ISWTObservableValue swtObservableValue;
 
-    public ComboComplex(
+    private ComboComplex(
             Composite composite,
             DataBindingContext dataBindingContext,
             IObservableValue pojoObservableValue,
             String label,
-            List<T> items,
+            Collection<T> items,
             T defaultItem,
-            SelectionListener selectionListener) {
+            SelectionListener selectionListener,
+            int comboColSpan) {
         newLabel(composite, label);
-        combo = newCombo(composite);
+        combo = newCombo(composite, comboColSpan);
         for (T type : items) {
             combo.add(type.getName());
             combo.setData(type.getName(), type);
@@ -78,14 +79,19 @@ public class ComboComplex<T extends ComboBoxItemData> {
         private DataBindingContext dataBindingContext;
         private IObservableValue pojoObservableValue;
         private String labelValue;
-        private List<T> items;
+        private Collection<T> items;
         private T defaultItem;
+        private String defaultItemName;
         private SelectionListener selectionListener;
+        private int comboColSpan = 1;
 
         public ComboComplex<T> build() {
             validateParameters();
+            if (defaultItem == null && defaultItemName != null) {
+                defaultItem = findItemByName(defaultItemName);
+            }
             return new ComboComplex<T>(composite, dataBindingContext, pojoObservableValue,
-                    labelValue, items, defaultItem, selectionListener);
+                    labelValue, items, defaultItem, selectionListener, comboColSpan);
         }
 
         public ComboComplexBuilder<T> composite(Composite composite) {
@@ -108,19 +114,42 @@ public class ComboComplex<T extends ComboBoxItemData> {
             return this;
         }
 
-        public ComboComplexBuilder<T> items(List<T> items) {
+        public ComboComplexBuilder<T> items(Collection<T> items) {
             this.items = items;
             return this;
         }
 
         public ComboComplexBuilder<T> defaultItem(T defaultItem) {
             this.defaultItem = defaultItem;
+            this.defaultItemName = null;
+            return this;
+        }
+
+        public ComboComplexBuilder<T> defaultItemName(String defaultItemName) {
+            this.defaultItemName = defaultItemName;
+            this.defaultItem = null;
             return this;
         }
 
         public ComboComplexBuilder<T> selectionListener(SelectionListener selectionListener) {
             this.selectionListener = selectionListener;
             return this;
+        }
+
+        public ComboComplexBuilder<T> comboColSpan(int comboColSpan) {
+            this.comboColSpan = comboColSpan;
+            return this;
+        }
+
+        private T findItemByName(String itemName) {
+            if (items != null) {
+                for (T item : items) {
+                    if (itemName.equals(item.getName())) {
+                        return item;
+                    }
+                }
+            }
+            return null;
         }
 
         private void validateParameters() {

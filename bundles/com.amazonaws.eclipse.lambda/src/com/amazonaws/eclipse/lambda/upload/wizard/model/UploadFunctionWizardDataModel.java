@@ -80,7 +80,8 @@ public class UploadFunctionWizardDataModel {
             LambdaFunctionProjectMetadata projectMetadataBeforeUpload) {
 
         this.project = project;
-        this.projectMetadataBeforeUpload = projectMetadataBeforeUpload;
+        this.projectMetadataBeforeUpload = projectMetadataBeforeUpload == null ?
+                new LambdaFunctionProjectMetadata() : projectMetadataBeforeUpload;
 
         if (requestHandlerImplementerClasses.isEmpty()) {
             throw new IllegalArgumentException(

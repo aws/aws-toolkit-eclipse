@@ -16,20 +16,25 @@ package com.amazonaws.eclipse.lambda.serverless.wizard;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.wizard.Wizard;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsJobWizard;
 import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.explorer.cloudformation.OpenStackEditorAction;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
+import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.wizard.model.DeployServerlessProjectDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
 import com.amazonaws.eclipse.lambda.serverless.Serverless;
@@ -38,29 +43,58 @@ import com.amazonaws.eclipse.lambda.serverless.ui.DeployServerlessProjectPage;
 import com.amazonaws.eclipse.lambda.upload.wizard.page.S3BucketUtil;
 import com.amazonaws.eclipse.lambda.upload.wizard.util.FunctionJarExportHelper;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
 import com.amazonaws.services.cloudformation.model.Capability;
+import com.amazonaws.services.cloudformation.model.ChangeSetStatus;
 import com.amazonaws.services.cloudformation.model.ChangeSetType;
 import com.amazonaws.services.cloudformation.model.CreateChangeSetRequest;
 import com.amazonaws.services.cloudformation.model.DeleteChangeSetRequest;
+import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
 import com.amazonaws.services.cloudformation.model.DescribeChangeSetRequest;
 import com.amazonaws.services.cloudformation.model.DescribeChangeSetResult;
+import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.ExecuteChangeSetRequest;
+import com.amazonaws.services.cloudformation.model.ListStacksRequest;
+import com.amazonaws.services.cloudformation.model.ListStacksResult;
+import com.amazonaws.services.cloudformation.model.Stack;
+import com.amazonaws.services.cloudformation.model.StackStatus;
+import com.amazonaws.services.cloudformation.model.StackSummary;
 import com.amazonaws.services.cloudformation.model.Tag;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
 
-public class DeployServerlessProjectWizard extends Wizard {
+public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
+
+    // AWS CloudFormation stack statuses for updating the ChangeSet.
+    private static final Set<String> STATUSES_FOR_UPDATE = new HashSet<>(Arrays.asList(
+            StackStatus.CREATE_COMPLETE.toString(),
+            StackStatus.UPDATE_COMPLETE.toString(),
+            StackStatus.UPDATE_ROLLBACK_COMPLETE.toString()));
+
+    // AWS CloudFormation stack statuses for creating a new ChangeSet.
+    private static final Set<String> STATUSES_FOR_CREATE = new HashSet<>(Arrays.asList(
+            StackStatus.REVIEW_IN_PROGRESS.toString(),
+            StackStatus.DELETE_COMPLETE.toString()));
+
+    // AWS CloudFormation stack statuses for waiting and deleting the stack first, then creating a new ChangeSet.
+    private static final Set<String> STATUSES_FOR_DELETE = new HashSet<>(Arrays.asList(
+            StackStatus.ROLLBACK_IN_PROGRESS.toString(),
+            StackStatus.ROLLBACK_COMPLETE.toString(),
+            StackStatus.DELETE_IN_PROGRESS.toString()));
+
     private final IProject project;
     private final String packagePrefix;
-    private final DeployServerlessProjectDataModel dataModel;
+    private DeployServerlessProjectDataModel dataModel;
 
     public DeployServerlessProjectWizard(IProject project, String packagePrefix) {
+        super("Deploy Serverless application to AWS");
         this.project = project;
         this.packagePrefix = packagePrefix;
-        dataModel = new DeployServerlessProjectDataModel(project.getName());
-        setNeedsProgressMonitor(true);
+
+        initDataModel();
     }
 
     @Override
@@ -69,44 +103,31 @@ public class DeployServerlessProjectWizard extends Wizard {
     }
 
     @Override
-    public boolean performFinish() {
-
+    public IStatus doFinish(IProgressMonitor monitor) {
+        monitor.beginTask("Deploying Serverless template to AWS CloudFormation.", 100);
         try {
-            Job deployJob = new Job("Deploying Serverless template to AWS CloudFormation.") {
-
-                @Override
-                protected IStatus run(IProgressMonitor monitor) {
-
-                    monitor.beginTask("Deploying Serverless template to AWS CloudFormation.", 100);
-                    try {
-                        if (deployServerlessTemplate(monitor, 100)) {
-                            new OpenStackEditorAction(
-                                dataModel.getStackName(), dataModel.getRegion(), true).run();
-                        } else {
-                            return Status.CANCEL_STATUS;
-                        }
-                    } catch (Exception e) {
-                        LambdaPlugin.getDefault().reportException(
-                                "Failed to deploy serverless project to AWS CloudFormation.", e);
-                        LambdaAnalytics.trackDeployServerlessProjectFailed();
-                        return new Status(Status.ERROR, LambdaPlugin.PLUGIN_ID,
-                                "Failed to deploy serverless project to AWS CloudFormation.", e);
-                    }
-                    monitor.done();
-                    LambdaAnalytics.trackDeployServerlessProjectSucceeded();
-                    return Status.OK_STATUS;
-                }
-            };
-
-            deployJob.setUser(true);
-            deployJob.schedule();
-
+            saveMetadata();
+            if (deployServerlessTemplate(monitor, 100)) {
+                new OpenStackEditorAction(
+                    dataModel.getStackName(), dataModel.getRegion(), true).run();
+            } else {
+                return Status.CANCEL_STATUS;
+            }
         } catch (Exception e) {
             LambdaPlugin.getDefault().reportException(
-                    "Unexpected error during deployment", e.getCause());
+                    "Failed to deploy serverless project to AWS CloudFormation.", e);
+            LambdaAnalytics.trackDeployServerlessProjectFailed();
+            return new Status(Status.ERROR, LambdaPlugin.PLUGIN_ID,
+                    "Failed to deploy serverless project to AWS CloudFormation.", e);
         }
+        monitor.done();
+        LambdaAnalytics.trackDeployServerlessProjectSucceeded();
+        return Status.OK_STATUS;
+    }
 
-        return true;
+    @Override
+    protected String getJobTitle() {
+        return "Deploying Serverless template to AWS CloudFormation.";
     }
 
     @Override
@@ -129,9 +150,10 @@ public class DeployServerlessProjectWizard extends Wizard {
         Region region = dataModel.getRegion();
         String bucketName = dataModel.getBucketName();
         String lambdaFunctionJarFileKeyName = stackName + "-" + System.currentTimeMillis() + ".zip";
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByEndpoint(
-                dataModel.getRegion().getServiceEndpoint(ServiceAbbreviations.S3));
-        TransferManager tm = new TransferManager(s3);
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(dataModel.getRegion().getId());
+        TransferManager tm = TransferManagerBuilder.standard()
+                .withS3Client(s3)
+                .build();
 
         monitor.subTask("Uploading Lambda function to S3...");
         LambdaAnalytics.trackExportedJarSize(jarFile.length());
@@ -168,32 +190,45 @@ public class DeployServerlessProjectWizard extends Wizard {
             return false;
         }
 
-        AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory()
-                .getCloudFormationClientByEndpoint(region.getServiceEndpoint(ServiceAbbreviations.CLOUD_FORMATION));
+        AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory().getCloudFormationClientByRegion(region.getId());
         monitor.subTask("Creating ChangeSet...");
         String changeSetName = stackName + "-changeset-" + System.currentTimeMillis();
+        ChangeSetType changeSetType = ChangeSetType.CREATE;
+
+        StackSummary stackSummary = getCloudFormationStackSummary(cloudFormation, stackName);
+        Stack stack = stackSummary == null ? null : getCloudFormationStackById(cloudFormation, stackSummary.getStackId());
+
+        if (stack == null || STATUSES_FOR_CREATE.contains(stack.getStackStatus())) {
+            changeSetType = ChangeSetType.CREATE;
+        } else if (STATUSES_FOR_DELETE.contains(stack.getStackStatus())) {
+            String stackId = stack.getStackId();
+            if (stack.getStackStatus().equals(StackStatus.ROLLBACK_IN_PROGRESS.toString())) {
+                stack = waitStackForRollbackComplete(cloudFormation, stackId);
+            }
+            if (stack != null && stack.getStackStatus().equals(StackStatus.ROLLBACK_COMPLETE.toString())) {
+                cloudFormation.deleteStack(new DeleteStackRequest().withStackName(stackName));
+                waitStackForDeleteComplete(cloudFormation, stackId);
+            }
+            if (stack != null && stack.getStackStatus().equals(StackStatus.DELETE_IN_PROGRESS.toString())) {
+                waitStackForDeleteComplete(cloudFormation, stackId);
+            }
+            changeSetType = ChangeSetType.CREATE;
+        } else if (STATUSES_FOR_UPDATE.contains(stack.getStackStatus())) {
+            changeSetType = ChangeSetType.UPDATE;
+        } else {
+            String errorMessage = String.format("The stack's current state of %s is invalid for updating", stack.getStackStatus());
+            LambdaPlugin.getDefault().logError(errorMessage, null);
+            throw new RuntimeException(errorMessage);
+        }
+
         cloudFormation.createChangeSet(new CreateChangeSetRequest()
                 .withTemplateURL(s3.getUrl(bucketName, generatedServerlessTemplateKeyName).toString())
                 .withChangeSetName(changeSetName).withStackName(stackName)
-                .withChangeSetType(ChangeSetType.CREATE)
+                .withChangeSetType(changeSetType)
                 .withCapabilities(Capability.CAPABILITY_IAM)
                 .withTags(new Tag().withKey("ApiGateway").withValue("true")));
 
-        //TODO: add a waiter waitChangeSetCreateComplete and use that instead.
-        DescribeChangeSetResult result = cloudFormation
-                .describeChangeSet(new DescribeChangeSetRequest()
-                        .withChangeSetName(changeSetName).withStackName(
-                                stackName));
-        while (!result.getStatus().equals("CREATE_COMPLETE")) {
-            Thread.sleep(1000L);    // check every 1 second for the creation status
-            result = cloudFormation
-                    .describeChangeSet(new DescribeChangeSetRequest()
-                            .withChangeSetName(changeSetName).withStackName(
-                                    stackName));
-            if (result.getStatus().equals("FAILED")) {
-                throw new RuntimeException("Changeset creation failed! " + result.getDescription() + " Please go to AWS Console to see the detailed error message.");
-            }
-        }
+        waitChangeSetCreateComplete(cloudFormation, stackName, changeSetName);
         if (monitor.isCanceled()) {
             cloudFormation.deleteChangeSet(new DeleteChangeSetRequest().withChangeSetName(changeSetName).withStackName(stackName));
             return false;
@@ -206,5 +241,123 @@ public class DeployServerlessProjectWizard extends Wizard {
                 .withChangeSetName(changeSetName).withStackName(stackName));
         monitor.worked((int)(totalUnitOfWork * 0.2));
         return true;
+    }
+
+    /**
+     * We use {@link AmazonCloudFormation#listStacks(ListStacksRequest)} instead of {@link AmazonCloudFormation#describeStacks(DescribeStacksRequest)}}
+     * because describeStacks API doesn't return deleted Stacks.
+     */
+    private StackSummary getCloudFormationStackSummary(AmazonCloudFormation client, String stackName) {
+
+        String nextToken = null;
+        do {
+            ListStacksResult result = client.listStacks(new ListStacksRequest().withNextToken(nextToken));
+            nextToken = result.getNextToken();
+            for (StackSummary summary : result.getStackSummaries()) {
+                if (summary.getStackName().equals(stackName)) {
+                    return summary;
+                }
+            }
+        } while (nextToken != null);
+
+        return null;
+    }
+
+    /**
+     * Get stack by ID. Note: the parameter must be stack id other than stack name to return the deleted stacks.
+     */
+    private Stack getCloudFormationStackById(AmazonCloudFormation client, String stackId) {
+        try {
+            List<Stack> stacks = client.describeStacks(new DescribeStacksRequest().withStackName(stackId)).getStacks();
+            return stacks.isEmpty() ? null : stacks.get(0);
+        } catch (AmazonCloudFormationException e) {
+            // AmazonCloudFormation throws exception if the specified stack doesn't exist.
+            return null;
+        }
+    }
+
+    private Stack waitStackForNoLongerInProgress(AmazonCloudFormation client, String stackId) {
+        try {
+            Stack currentStack;
+            do {
+                Thread.sleep(3000L);    // check every 3 seconds
+                currentStack = getCloudFormationStackById(client, stackId);
+            } while (currentStack != null && currentStack.getStackStatus().endsWith("IN_PROGRESS"));
+            return currentStack;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed for waiting stack to valid status: " + e.getMessage(), e);
+        }
+    }
+
+    private Stack waitStackForRollbackComplete(AmazonCloudFormation client, String stackId) {
+        Stack stack = waitStackForNoLongerInProgress(client, stackId);
+        // If failed to rollback the stack, throw Runtime Exception.
+        if (stack != null && !stack.getStackStatus().equals(StackStatus.ROLLBACK_COMPLETE.toString())) {
+            String errorMessage = String.format("Failed to rollback the stack: ", stack.getStackStatusReason());
+            LambdaPlugin.getDefault().logError(errorMessage, null);
+            throw new RuntimeException(errorMessage);
+        }
+        return stack;
+    }
+
+    private Stack waitStackForDeleteComplete(AmazonCloudFormation client, String stackId) {
+        Stack stack = waitStackForNoLongerInProgress(client, stackId);
+        // If failed to rollback the stack, throw Runtime Exception.
+        if (stack != null && !stack.getStackStatus().equals(StackStatus.DELETE_COMPLETE.toString())) {
+            String errorMessage = String.format("Failed to delete the stack: ", stack.getStackStatusReason());
+            LambdaPlugin.getDefault().logError(errorMessage, null);
+            throw new RuntimeException(errorMessage);
+        }
+        return stack;
+    }
+
+    private void waitChangeSetCreateComplete(AmazonCloudFormation client, String stackName, String changeSetName) {
+        try {
+
+            DescribeChangeSetResult result;
+            do {
+                Thread.sleep(1000L);
+                result = client.describeChangeSet(new DescribeChangeSetRequest()
+                        .withChangeSetName(changeSetName)
+                        .withStackName(stackName));
+            } while (result.getStatus().equals(ChangeSetStatus.CREATE_IN_PROGRESS.toString())
+                    || result.getStatus().equals(ChangeSetStatus.CREATE_PENDING.toString()));
+
+            if (result.getStatus().equals(ChangeSetStatus.FAILED.toString())) {
+                String errorMessage = "Failed to create CloudFormation change set: " + result.getStatusReason();
+                LambdaPlugin.getDefault().logError(errorMessage, null);
+                throw new RuntimeException(errorMessage, null);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    protected void initDataModel() {
+        ServerlessProjectMetadata metadata = null;
+        try {
+            metadata = ProjectMetadataManager.loadServerlessProjectMetadata(project);
+        } catch (IOException e) {
+            LambdaPlugin.getDefault().logError(e.getMessage(), e);
+        }
+        dataModel = new DeployServerlessProjectDataModel(project.getName(), metadata);
+        if (metadata != null) {
+            dataModel.setRegion(RegionUtils.getRegion(metadata.getLastDeploymentRegionId()));
+            dataModel.setBucketName(metadata.getLastDeploymentBucket());
+            dataModel.setStackName(metadata.getLastDeploymentStack());
+        }
+    }
+
+    private void saveMetadata() {
+        ServerlessProjectMetadata metadata = dataModel.getMetadata();
+        metadata.setLastDeploymentRegionId(dataModel.getRegion().getId());
+        metadata.setLastDeploymentBucket(dataModel.getBucketName());
+        metadata.setLastDeploymentStack(dataModel.getStackName());
+        try {
+            ProjectMetadataManager.saveServerlessProjectMetadata(project, metadata);
+        } catch (IOException e) {
+            LambdaPlugin.getDefault().logError(e.getMessage(), e);
+        }
     }
 }

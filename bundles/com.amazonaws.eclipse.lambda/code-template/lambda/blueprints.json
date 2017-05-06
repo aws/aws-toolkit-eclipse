@@ -1,0 +1,46 @@
+{
+  "version": "2017-04-27",
+  "defaultBlueprint": "s3-get-object",
+  "blueprints": {
+    "hello-world": {
+      "baseDir": "hello-world",
+      "displayName": "Custom",
+      "description": "A hello world Lambda function."
+    },
+    "s3-get-object": {
+      "baseDir": "s3-get-object",
+      "displayName": "S3 Event",
+      "description": "An Amazon S3 trigger that retrieves metadata for the object that has been updated.",
+      "testJsonFile": "s3-event.put.json"
+    },
+    "dynamodb-process-stream": {
+      "baseDir": "dynamodb-process-stream",
+      "displayName": "Dynamodb Event",
+      "description": "An Amazon DynamoDB trigger that logs the updates made to a table.",
+      "testJsonFile": "dynamodb-update-event.json"
+    },
+    "stream-request-handler": {
+      "baseDir": "stream-request-handler",
+      "displayName": "Stream Request Handler",
+      "description": "A Stream Request Handler that capitalizes the input stream. See <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/java-handler-io-type-stream.html\">Stream Request Handler</a> for more information."
+    },
+    "sns-message": {
+      "baseDir": "sns-message",
+      "description": "An Amazon SNS trigger that logs the message pushed to the SNS topic.",
+      "displayName": "SNS Event",
+      "testJsonFile": "sns-event.json"
+    },
+    "kinesis-process-record": {
+      "baseDir": "kinesis-process-record",
+      "description": "An Amazon Kinesis stream processor that logs the data being published.",
+      "displayName": "Kinesis Event",
+      "testJsonFile": "kinesis-event.json"
+    },
+    "cognito-sync-trigger": {
+      "baseDir": "cognito-sync-trigger",
+      "description": "An Amazon Cognito Sync trigger that modifies Cognito datasets based on the incoming event.",
+      "displayName": "Cognito Event",
+      "testJsonFile": "cognito-sync-event.json"
+    }
+  }
+}

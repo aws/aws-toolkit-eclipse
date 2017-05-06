@@ -39,6 +39,8 @@ import org.eclipse.ui.part.EditorPart;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.explorer.s3.acls.EditBucketPermissionsDialog;
 import com.amazonaws.eclipse.explorer.s3.acls.EditPermissionsDialog;
 import com.amazonaws.services.s3.AmazonS3;
@@ -171,7 +173,8 @@ public class BucketEditor extends EditorPart {
                             public void widgetSelected(SelectionEvent e) {
                                 final EditPermissionsDialog editPermissionsDialog = new EditBucketPermissionsDialog(b);
                                 if (editPermissionsDialog.open() == 0) {
-                                    final AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByEndpoint(bucketEditorInput.getRegionEndpoint());
+                                    Region region = RegionUtils.getRegionByEndpoint(bucketEditorInput.getRegionEndpoint());
+                                    final AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(region.getId());
                                     new Job("Updating bucket ACL") {
                                         @Override
                                         protected IStatus run(IProgressMonitor monitor) {

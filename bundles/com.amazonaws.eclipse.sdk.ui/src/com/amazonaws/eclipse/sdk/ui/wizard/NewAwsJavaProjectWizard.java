@@ -36,8 +36,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.IWorkbench;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -50,6 +50,8 @@ import com.amazonaws.eclipse.sdk.ui.FilenameFilters;
 import com.amazonaws.eclipse.sdk.ui.JavaSdkPlugin;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
 import com.amazonaws.eclipse.sdk.ui.model.NewAwsJavaProjectWizardDataModel;
+
+import static com.amazonaws.eclipse.core.util.JavaProjectUtils.setDefaultJreToProjectClasspath;
 
 /**
  * A Project Wizard for creating a new Java project configured to build against the
@@ -200,6 +202,8 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
 
         try {
             MavenFactory.createMavenProject(project, mavenModel, progress.newChild(50));
+            IJavaProject javaProject = JavaCore.create(project);
+            setDefaultJreToProjectClasspath(javaProject, monitor);
             progress.worked(50);
         } catch (Exception e) {
             return JavaSdkPlugin.getDefault().logError(

@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard;
 
+import static com.amazonaws.eclipse.core.util.JavaProjectUtils.setDefaultJreToProjectClasspath;
+
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -27,7 +29,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.m2e.core.ui.internal.UpdateMavenProjectJob;
 
 import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
@@ -81,19 +86,21 @@ public class NewLambdaJavaFunctionProjectWizard extends AbstractAwsProjectWizard
 
             try {
                 MavenFactory.createMavenProject(project, mavenModel, monitor);
+                IJavaProject javaProject = JavaCore.create(project);
+                setDefaultJreToProjectClasspath(javaProject, monitor);
             } catch (Exception e) {
                 LambdaPlugin.getDefault().reportException(
                         "Failed to create AWS Lambda Maven Project.", e);
             }
 
-            FunctionProjectUtil.addSourceToProject(project, dataModel.getLambdaFunctionDataModel());
+            FunctionProjectUtil.createLambdaBlueprintProject(project, dataModel);
 
             if (dataModel.isShowReadmeFile()) {
-                readmeFile = FunctionProjectUtil.addReadmeFileToProject(project,
-                        dataModel.getLambdaFunctionDataModel().collectHandlerTestTemplateData());
+                readmeFile = FunctionProjectUtil.emitLambdaProjectReadme(project, dataModel.getLambdaFunctionDataModel());
             }
 
             FunctionProjectUtil.refreshProject(project);
+            new UpdateMavenProjectJob(new IProject[]{project}).schedule();
 
         } catch (Exception e) {
             LambdaAnalytics.trackProjectCreationFailed();
@@ -117,6 +124,7 @@ public class NewLambdaJavaFunctionProjectWizard extends AbstractAwsProjectWizard
         return Status.OK_STATUS;
     }
 
+    // Use this basic Maven model to create a simple Maven project.
     private Model getModel() {
         Model model = new Model();
         String groupId = dataModel.getMavenConfigurationDataModel().getGroupId();
@@ -125,10 +133,6 @@ public class NewLambdaJavaFunctionProjectWizard extends AbstractAwsProjectWizard
         model.setGroupId(groupId);
         model.setArtifactId(artifactId);
         model.setVersion(MavenFactory.getMavenModelVersion());
-        model.addDependency(MavenFactory.getAwsLambdaJavaCoreDependency());
-        model.addDependency(MavenFactory.getAwsLambdaJavaEventsDependency());
-        model.addDependency(MavenFactory.getJunitDependency());
-        model.addDependency(MavenFactory.getLatestAwsSdkDependency("compile"));
         return model;
     }
 
