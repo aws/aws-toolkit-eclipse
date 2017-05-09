@@ -56,6 +56,7 @@ import com.amazonaws.eclipse.codecommit.wizard.CloneRepositoryWizard;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.core.ui.DeleteResourceConfirmationDialog;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
 import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.model.CreateRepositoryRequest;
@@ -255,7 +256,7 @@ public class CodeCommitActionProvider extends CommonActionProvider {
 
         @Override
         public void run() {
-            Dialog dialog = new DeleteRepositoryConfirmationDialog(Display.getDefault().getActiveShell(), repository.getRepositoryName());
+            Dialog dialog = new DeleteResourceConfirmationDialog(Display.getDefault().getActiveShell(), repository.getRepositoryName(), "repository");
             if (dialog.open() != Window.OK) {
                 CodeCommitAnalytics.trackDeleteRepository(EventResult.CANCELED);
                 return;
@@ -264,8 +265,7 @@ public class CodeCommitActionProvider extends CommonActionProvider {
             Job deleteRepositoriesJob = new Job("Deleting Repository...") {
                 @Override
                 protected IStatus run(IProgressMonitor monitor) {
-                    String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoints().get(ServiceAbbreviations.CODECOMMIT);
-                    AWSCodeCommit codecommit = AwsToolkitCore.getClientFactory().getCodeCommitClientByEndpoint(endpoint);
+                    AWSCodeCommit codecommit = AwsToolkitCore.getClientFactory().getCodeCommitClient();
 
                     IStatus status = Status.OK_STATUS;
 
@@ -284,63 +284,6 @@ public class CodeCommitActionProvider extends CommonActionProvider {
             };
 
             deleteRepositoriesJob.schedule();
-        }
-
-        private static class DeleteRepositoryConfirmationDialog extends TitleAreaDialog {
-            private final String repositoryName;
-
-            public DeleteRepositoryConfirmationDialog(Shell parentShell, String repositoryName) {
-                super(parentShell);
-                this.repositoryName = repositoryName;
-            }
-
-            private Text repositoryNameText;
-
-            @Override
-            public void create() {
-                    super.create();
-                    setTitle("Delete Repository");
-                    setMessage(String.format("Delete the repository %s permanently? This cannot be undone.", repositoryName),
-                            IMessageProvider.WARNING);
-
-                    getButton(IDialogConstants.OK_ID).setEnabled(false);
-            }
-
-            @Override
-            protected Control createDialogArea(Composite parent) {
-                    Composite area = (Composite) super.createDialogArea(parent);
-                    Composite container = new Composite(area, SWT.NONE);
-                    container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-                    GridLayout layout = new GridLayout(1, false);
-                    container.setLayout(layout);
-
-                    createRepositoryNameSection(container);
-
-                    return area;
-            }
-
-            private void createRepositoryNameSection(Composite container) {
-                    new Label(container, SWT.NONE).setText("Type the name of the repository to confirm deletion:");
-
-                    GridData gridData = new GridData();
-                    gridData.grabExcessHorizontalSpace = true;
-                    gridData.horizontalAlignment = SWT.FILL;
-
-                    repositoryNameText = new Text(container, SWT.BORDER);
-                    repositoryNameText.setLayoutData(gridData);
-                    repositoryNameText.addModifyListener(new ModifyListener() {
-                        public void modifyText(ModifyEvent event) {
-                            getButton(IDialogConstants.OK_ID).setEnabled(repositoryName.equals(repositoryNameText.getText()));
-                        }
-                    });
-
-                    new Label(container, SWT.NONE).setText("Are you sure you want to delete this repository permanently?");
-            }
-
-            @Override
-            protected boolean isResizable() {
-                    return true;
-            }
         }
     }
 

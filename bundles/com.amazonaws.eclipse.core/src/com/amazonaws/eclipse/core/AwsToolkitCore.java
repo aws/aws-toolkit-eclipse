@@ -120,7 +120,7 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
     public static final String IMAGE_BUCKET = "bucket";
     public static final String IMAGE_REFRESH = "refresh";
     public static final String IMAGE_DATABASE = "database";
-    public static final String IMAGE_STACK = "database";
+    public static final String IMAGE_STACK = "stack";
     public static final String IMAGE_QUEUE = "queue";
     public static final String IMAGE_TOPIC = "topic";
     public static final String IMAGE_START = "start";
@@ -618,7 +618,8 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
                 IMAGE_KEY,                    "/icons/key.png",
                 IMAGE_ROLE,                   "/icons/role.png",
                 IMAGE_INFORMATION,            "/icons/information.png",
-                IMAGE_DOWNLOAD,               "/icons/download.png"
+                IMAGE_DOWNLOAD,               "/icons/download.png",
+                IMAGE_STACK,                  "/icons/stack.png"
         };
 
         ImageRegistry imageRegistry = super.createImageRegistry();
