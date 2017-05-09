@@ -59,5 +59,5 @@ You must have [EGit](https://www.eclipse.org/egit/) installed to your Eclipse ID
 
 # Getting Help
 
-* You can submit an issue for bug reporting and feature request by using the Github [issues](https://github.com/aws/aws-toolkit-eclipse/issues).
-* You can also join our email list <aws-eclipse-feedback@amazon.com> for sending feedbacks or reporting issues.
+* You can submit issues for bug reports and feature requests by using Github [issues](https://github.com/aws/aws-toolkit-eclipse/issues).
+* You can also send us email at <aws-eclipse-feedback@amazon.com> to send feedback or report issues.
