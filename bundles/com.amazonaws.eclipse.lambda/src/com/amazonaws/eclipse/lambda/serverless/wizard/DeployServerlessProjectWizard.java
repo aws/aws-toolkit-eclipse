@@ -16,6 +16,7 @@ package com.amazonaws.eclipse.lambda.serverless.wizard;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -25,22 +26,21 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsJobWizard;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.explorer.cloudformation.OpenStackEditorAction;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
 import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.wizard.model.DeployServerlessProjectDataModel;
-import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
-import com.amazonaws.eclipse.lambda.serverless.Serverless;
-import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessModel;
 import com.amazonaws.eclipse.lambda.serverless.ui.DeployServerlessProjectPage;
-import com.amazonaws.eclipse.lambda.upload.wizard.page.S3BucketUtil;
+import com.amazonaws.eclipse.lambda.serverless.ui.DeployServerlessProjectPageTwo;
 import com.amazonaws.eclipse.lambda.upload.wizard.util.FunctionJarExportHelper;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.AmazonCloudFormationException;
@@ -56,15 +56,18 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.ExecuteChangeSetRequest;
 import com.amazonaws.services.cloudformation.model.ListStacksRequest;
 import com.amazonaws.services.cloudformation.model.ListStacksResult;
+import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.StackSummary;
 import com.amazonaws.services.cloudformation.model.Tag;
+import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
+import com.amazonaws.util.StringUtils;
 
 public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
 
@@ -85,31 +88,27 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
             StackStatus.ROLLBACK_COMPLETE.toString(),
             StackStatus.DELETE_IN_PROGRESS.toString()));
 
-    private final IProject project;
-    private final String packagePrefix;
     private DeployServerlessProjectDataModel dataModel;
 
-    public DeployServerlessProjectWizard(IProject project, String packagePrefix) {
+    public DeployServerlessProjectWizard(IProject project, Set<String> handlerClasses) {
         super("Deploy Serverless application to AWS");
-        this.project = project;
-        this.packagePrefix = packagePrefix;
-
+        this.dataModel = new DeployServerlessProjectDataModel(project, handlerClasses);
         initDataModel();
     }
 
     @Override
     public void addPages() {
         addPage(new DeployServerlessProjectPage(dataModel));
+        addPage(new DeployServerlessProjectPageTwo(dataModel));
     }
 
     @Override
     public IStatus doFinish(IProgressMonitor monitor) {
         monitor.beginTask("Deploying Serverless template to AWS CloudFormation.", 100);
         try {
-            saveMetadata();
             if (deployServerlessTemplate(monitor, 100)) {
                 new OpenStackEditorAction(
-                    dataModel.getStackName(), dataModel.getRegion(), true).run();
+                    dataModel.getStackDataModel().getStackName(), dataModel.getRegionDataModel().getRegion(), true).run();
             } else {
                 return Status.CANCEL_STATUS;
             }
@@ -137,20 +136,18 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
     }
 
     private boolean deployServerlessTemplate(IProgressMonitor monitor, int totalUnitOfWork) throws IOException, InterruptedException {
-        String stackName = dataModel.getStackName();
+        String stackName = dataModel.getStackDataModel().getStackName();
 
         monitor.subTask("Exporting Lambda functions...");
-        File jarFile = FunctionJarExportHelper.exportProjectToJarFile(
-                project, true);
+        File jarFile = FunctionJarExportHelper.exportProjectToJarFile(dataModel.getProject(), true);
         monitor.worked((int)(totalUnitOfWork * 0.1));
         if (monitor.isCanceled()) {
             return false;
         }
 
-        Region region = dataModel.getRegion();
-        String bucketName = dataModel.getBucketName();
-        String lambdaFunctionJarFileKeyName = stackName + "-" + System.currentTimeMillis() + ".zip";
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(dataModel.getRegion().getId());
+        Region region = dataModel.getRegionDataModel().getRegion();
+        String bucketName = dataModel.getBucketDataModel().getBucketName();
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(region.getId());
         TransferManager tm = TransferManagerBuilder.standard()
                 .withS3Client(s3)
                 .build();
@@ -158,7 +155,7 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
         monitor.subTask("Uploading Lambda function to S3...");
         LambdaAnalytics.trackExportedJarSize(jarFile.length());
         long startTime = System.currentTimeMillis();
-        Upload upload = tm.upload(new PutObjectRequest(bucketName, lambdaFunctionJarFileKeyName, jarFile));
+        Upload upload = tm.upload(new PutObjectRequest(bucketName, dataModel.getLambdaFunctionJarFileKeyName(), jarFile));
         while (!upload.isDone() && !monitor.isCanceled()) {
             Thread.sleep(500L); // Sleep for half a second
         }
@@ -174,17 +171,8 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
         }
 
         monitor.subTask("Uploading Generated Serverless template to S3...");
-        File serverlessTemplateFile = FunctionProjectUtil
-                .getServerlessTemplateFile(project);
-        ServerlessModel model = Serverless.load(serverlessTemplateFile);
-        model = Serverless.cookServerlessModel(model, packagePrefix,
-                S3BucketUtil.createS3Path(bucketName, lambdaFunctionJarFileKeyName));
-
-        String generatedServerlessFilePath = File.createTempFile(
-                "serverless-template", ".json").getAbsolutePath();
-        File serverlessGeneratedTemplateFile = Serverless.write(model, generatedServerlessFilePath);
         String generatedServerlessTemplateKeyName = stackName + "-" + System.currentTimeMillis() + ".template";
-        s3.putObject(bucketName, generatedServerlessTemplateKeyName, serverlessGeneratedTemplateFile);
+        s3.putObject(bucketName, generatedServerlessTemplateKeyName, dataModel.getUpdatedServerlessTemplate());
         monitor.worked((int)(totalUnitOfWork * 0.1));
         if (monitor.isCanceled()) {
             return false;
@@ -226,6 +214,7 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
                 .withChangeSetName(changeSetName).withStackName(stackName)
                 .withChangeSetType(changeSetType)
                 .withCapabilities(Capability.CAPABILITY_IAM)
+                .withParameters(dataModel.getParametersDataModel().getParameters())
                 .withTags(new Tag().withKey("ApiGateway").withValue("true")));
 
         waitChangeSetCreateComplete(cloudFormation, stackName, changeSetName);
@@ -337,25 +326,58 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
     protected void initDataModel() {
         ServerlessProjectMetadata metadata = null;
         try {
-            metadata = ProjectMetadataManager.loadServerlessProjectMetadata(project);
+            metadata = ProjectMetadataManager.loadServerlessProjectMetadata(dataModel.getProject());
         } catch (IOException e) {
             LambdaPlugin.getDefault().logError(e.getMessage(), e);
         }
-        dataModel = new DeployServerlessProjectDataModel(project.getName(), metadata);
+        dataModel.setMetadata(metadata);
+
         if (metadata != null) {
-            dataModel.setRegion(RegionUtils.getRegion(metadata.getLastDeploymentRegionId()));
-            dataModel.setBucketName(metadata.getLastDeploymentBucket());
-            dataModel.setStackName(metadata.getLastDeploymentStack());
+            dataModel.getRegionDataModel().setRegion(RegionUtils.getRegion(metadata.getLastDeploymentRegionId()));
+            dataModel.getBucketDataModel().setBucketName(metadata.getLastDeploymentBucket());
+            dataModel.getStackDataModel().setStackName(metadata.getLastDeploymentStack());
+        }
+
+        if (metadata == null || metadata.getLastDeploymentRegionId() == null) {
+            dataModel.getRegionDataModel().setRegion(
+                    RegionUtils.isServiceSupportedInCurrentRegion(ServiceAbbreviations.CLOUD_FORMATION)
+                            ? RegionUtils.getCurrentRegion()
+                            : RegionUtils.getRegion(LambdaPlugin.DEFAULT_REGION));
+        }
+
+        if (StringUtils.isNullOrEmpty(dataModel.getMetadata().getPackagePrefix())) {
+            dataModel.getMetadata().setPackagePrefix(getPackagePrefix(dataModel.getHandlerClasses()));
+        }
+    }
+
+    //A hacky way to get the package prefix when it is not cached in the metadata.
+    private static String getPackagePrefix(Set<String> handlerClasses) {
+        if (handlerClasses.isEmpty()) {
+            return null;
+        }
+        String sampleClass = handlerClasses.iterator().next();
+        int index = sampleClass.lastIndexOf(".function.");
+        return index == -1 ? null : sampleClass.substring(0, index);
+    }
+
+    @Override
+    protected void beforeExecution() {
+        saveMetadata();
+
+        List<Parameter> params = dataModel.getParametersDataModel().getParameters();
+        for ( TemplateParameter parameter : dataModel.getParametersDataModel().getTemplateParameters() ) {
+            String value = (String) dataModel.getParametersDataModel().getParameterValues().get(parameter.getParameterKey());
+            params.add(new Parameter().withParameterKey(parameter.getParameterKey()).withParameterValue(value == null ? "" : value));
         }
     }
 
     private void saveMetadata() {
         ServerlessProjectMetadata metadata = dataModel.getMetadata();
-        metadata.setLastDeploymentRegionId(dataModel.getRegion().getId());
-        metadata.setLastDeploymentBucket(dataModel.getBucketName());
-        metadata.setLastDeploymentStack(dataModel.getStackName());
+        metadata.setLastDeploymentRegionId(dataModel.getRegionDataModel().getRegion().getId());
+        metadata.setLastDeploymentBucket(dataModel.getBucketDataModel().getBucketName());
+        metadata.setLastDeploymentStack(dataModel.getStackDataModel().getStackName());
         try {
-            ProjectMetadataManager.saveServerlessProjectMetadata(project, metadata);
+            ProjectMetadataManager.saveServerlessProjectMetadata(dataModel.getProject(), metadata);
         } catch (IOException e) {
             LambdaPlugin.getDefault().logError(e.getMessage(), e);
         }

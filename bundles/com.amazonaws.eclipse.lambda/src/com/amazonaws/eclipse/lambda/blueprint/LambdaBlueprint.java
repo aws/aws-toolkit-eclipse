@@ -57,7 +57,7 @@ public class LambdaBlueprint implements ComboBoxItemData {
 
     @JsonIgnore
     @Override
-    public String getName() {
+    public String getComboBoxItemLabel() {
         return getDisplayName();
     }
 }

@@ -14,57 +14,107 @@
 */
 package com.amazonaws.eclipse.lambda.project.wizard.model;
 
-import com.amazonaws.eclipse.core.regions.Region;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.Set;
+
+import org.eclipse.core.resources.IProject;
+
+import com.amazonaws.eclipse.cloudformation.model.ParametersDataModel;
+import com.amazonaws.eclipse.core.model.RegionDataModel;
+import com.amazonaws.eclipse.core.model.SelectOrCreateBucketDataModel;
+import com.amazonaws.eclipse.lambda.model.SelectOrInputStackDataModel;
 import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
 
 public class DeployServerlessProjectDataModel {
 
-    public static final String P_BUCKET_NAME = "bucketName";
-    public static final String P_STACK_NAME = "stackName";
+    private final RegionDataModel regionDataModel = new RegionDataModel();
+    private final SelectOrCreateBucketDataModel bucketDataModel = new SelectOrCreateBucketDataModel();
+    private final SelectOrInputStackDataModel stackDataModel = new SelectOrInputStackDataModel();
+    private final ParametersDataModel parametersDataModel = new ParametersDataModel();
 
-    private Region region;
-    private String bucketName;
-    private String stackName;
+    private final IProject project;
     private final String projectName;
-    private final ServerlessProjectMetadata metadata;
+    private final Set<String> handlerClasses;
 
-    public DeployServerlessProjectDataModel(String projectName, ServerlessProjectMetadata metadata) {
-        this.projectName = projectName;
-        this.metadata = metadata == null ? new ServerlessProjectMetadata() : metadata;
+    private ServerlessProjectMetadata metadata = new ServerlessProjectMetadata();
+
+    private String lambdaFunctionJarFileKeyName;
+    private File updatedServerlessTemplate;
+
+    public DeployServerlessProjectDataModel(IProject project, Set<String> handlerClasses) {
+        this.project = project;
+        this.projectName = project.getName();
+        this.stackDataModel.setDefaultStackNamePrefix(projectName);
+        this.handlerClasses = handlerClasses;
     }
 
-    public Region getRegion() {
-        return region;
+    // Add listeners for property changing.
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        bucketDataModel.addPropertyChangeListener(listener);
+        stackDataModel.addPropertyChangeListener(listener);
     }
 
-    public void setRegion(Region region) {
-        this.region = region;
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        bucketDataModel.removePropertyChangeListener(listener);
+        bucketDataModel.removePropertyChangeListener(listener);
     }
 
-    public String getBucketName() {
-        return bucketName;
+    public RegionDataModel getRegionDataModel() {
+        return this.regionDataModel;
     }
 
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
+    public SelectOrCreateBucketDataModel getBucketDataModel() {
+        return bucketDataModel;
     }
 
-    public String getStackName() {
-        return stackName;
+    public SelectOrInputStackDataModel getStackDataModel() {
+        return stackDataModel;
     }
 
-    public void setStackName(String stackName) {
-        this.stackName = stackName;
+    public ParametersDataModel getParametersDataModel() {
+        return parametersDataModel;
+    }
+
+    public IProject getProject() {
+        return project;
     }
 
     public String getProjectName() {
         return projectName;
     }
 
+    public String getLambdaFunctionJarFileKeyName() {
+        return lambdaFunctionJarFileKeyName;
+    }
+
+    public void setLambdaFunctionJarFileKeyName(String lambdaFunctionJarFileKeyName) {
+        this.lambdaFunctionJarFileKeyName = lambdaFunctionJarFileKeyName;
+    }
+
+    public File getUpdatedServerlessTemplate() {
+        return updatedServerlessTemplate;
+    }
+
+    public void setUpdatedServerlessTemplate(File updatedServerlessTemplate) {
+        this.updatedServerlessTemplate = updatedServerlessTemplate;
+    }
+
+    public Set<String> getHandlerClasses() {
+        return handlerClasses;
+    }
+
+    public void setMetadata(ServerlessProjectMetadata metadata) {
+        this.metadata = metadata == null ? new ServerlessProjectMetadata() : metadata;
+    }
+
     /**
      * The returned metadata is nonnull
      */
     public ServerlessProjectMetadata getMetadata() {
+        if (metadata == null) {
+            metadata = new ServerlessProjectMetadata();
+        }
         return metadata;
     }
 }

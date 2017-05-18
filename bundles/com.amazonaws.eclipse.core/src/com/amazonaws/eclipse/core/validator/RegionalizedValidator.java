@@ -12,12 +12,19 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package com.amazonaws.eclipse.core.model;
+package com.amazonaws.eclipse.core.validator;
+
+import org.eclipse.core.databinding.validation.IValidator;
+
+import com.amazonaws.eclipse.core.regions.Region;
 
 /**
- * Data model to be bound with a ComboBox item.
+ * Validator that asks for a Region when validating data.
  */
-public interface ComboBoxItemData {
-    // The name for this item to be shown in the ComboBox.
-    String getComboBoxItemLabel();
+public abstract class RegionalizedValidator implements IValidator {
+    protected Region region;
+
+    public void setRegion(Region region) {
+        this.region = region;
+    }
 }

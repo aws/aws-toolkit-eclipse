@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.ListStacksRequest;
 import com.amazonaws.services.cloudformation.model.ListStacksResult;
@@ -30,7 +31,20 @@ public class CloudFormationUtils {
      * Iterate all the existing stacks and return the preferred list of elements which could be converted from StackSummary.
      */
     public static <T> List<T> listExistingStacks(StackSummaryConverter<T> converter) {
-        AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory().getCloudFormationClient();
+        return listExistingStacks(RegionUtils.getCurrentRegion().getId(), converter);
+    }
+
+    public static List<StackSummary> listExistingStacks(String regionId) {
+        return listExistingStacks(regionId, new StackSummaryConverter<StackSummary>() {
+            @Override
+            public StackSummary convert(StackSummary stack) {
+                return stack;
+            }
+        });
+    }
+
+    private static <T> List<T> listExistingStacks(String regionId, StackSummaryConverter<T> converter) {
+        AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory().getCloudFormationClientByRegion(regionId);
 
         List<T> newItems = new ArrayList<T>();
         ListStacksRequest request = new ListStacksRequest();

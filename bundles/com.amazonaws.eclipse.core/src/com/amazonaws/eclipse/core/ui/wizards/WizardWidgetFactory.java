@@ -3,6 +3,7 @@ package com.amazonaws.eclipse.core.ui.wizards;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
+import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionListener;
@@ -47,7 +48,7 @@ public class WizardWidgetFactory {
         group.setLayout(new GridLayout(cols, false));
         return group;
     }
-    
+
     public static SashForm newSashForm(Composite parent, int colspan, int cols) {
         SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
         GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -128,6 +129,18 @@ public class WizardWidgetFactory {
         gridData.horizontalSpan = colspan;
         combo.setLayoutData(gridData);
         return combo;
+    }
+
+    public static ComboViewer newComboViewer(Composite parent) {
+        return newComboViewer(parent, 1);
+    }
+
+    public static ComboViewer newComboViewer(Composite parent, int colspan) {
+        ComboViewer comboViewer = new ComboViewer(parent, SWT.DROP_DOWN | SWT.READ_ONLY);
+        GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gridData.horizontalSpan = colspan;
+        comboViewer.getCombo().setLayoutData(gridData);
+        return comboViewer;
     }
 
     public static Button newCheckbox(Composite parent, String text, int colspan) {

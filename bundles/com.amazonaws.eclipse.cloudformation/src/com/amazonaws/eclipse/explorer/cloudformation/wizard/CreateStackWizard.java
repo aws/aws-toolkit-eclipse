@@ -51,7 +51,6 @@ public class CreateStackWizard extends Wizard {
     }
 
     public CreateStackWizard(String stackName, Mode mode) {
-
         this(stackName, null, mode);
     }
 
@@ -183,8 +182,8 @@ public class CreateStackWizard extends Wizard {
             rq.setTimeoutInMinutes(dataModel.getTimeoutMinutes());
         }
         List<Parameter> params = new ArrayList<Parameter>();
-        for ( TemplateParameter parameter : dataModel.getTemplateParameters() ) {
-            String value = (String) dataModel.getParameterValues().get(parameter.getParameterKey());
+        for ( TemplateParameter parameter : dataModel.getParametersDataModel().getTemplateParameters() ) {
+            String value = (String) dataModel.getParametersDataModel().getParameterValues().get(parameter.getParameterKey());
             if ( value != null && value.length() > 0 ) {
                 params.add(new Parameter().withParameterKey(parameter.getParameterKey()).withParameterValue(value));
             }
@@ -199,7 +198,7 @@ public class CreateStackWizard extends Wizard {
     @Override
     public void addPages() {
         addPage(new CreateStackWizardFirstPage(this));
-        addPage(new CreateStackWizardSecondPage(this));
+        addPage(new CreateStackWizardSecondPage(this.getDataModel()));
     }
 
     CreateStackWizardDataModel getDataModel() {

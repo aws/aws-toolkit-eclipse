@@ -15,19 +15,14 @@
 package com.amazonaws.eclipse.explorer.cloudformation.wizard;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
-import org.eclipse.core.databinding.observable.map.WritableMap;
-
-import com.amazonaws.services.cloudformation.model.TemplateParameter;
+import com.amazonaws.eclipse.cloudformation.model.ParametersDataModel;
 
 /**
  * Data model for creating a new stack
  */
 public class CreateStackWizardDataModel {
 
-    private List<TemplateParameter> templateParameters;
     private String stackName;
     private String templateUrl;
     private String templateFile;
@@ -37,25 +32,17 @@ public class CreateStackWizardDataModel {
     private Boolean notifyWithSNS = false;
     private Integer timeoutMinutes;
     private Boolean rollbackOnFailure = true;
-    private WritableMap parameterValues = new WritableMap(String.class, String.class);
     private Collection<String> requiredCapabilities;
     // for use only with file templates, to avoid processing the file twice
     private String templateBody;
-    private Map template;
     private boolean usePreselectedTemplateFile;
     private Mode mode = Mode.Create;
+
+    private final ParametersDataModel parametersDataModel = new ParametersDataModel();
 
     public static enum Mode {
         Create, Update, EstimateCost
     };
-
-    public List<TemplateParameter> getTemplateParameters() {
-        return templateParameters;
-    }
-
-    public void setTemplateParameters(List<TemplateParameter> templateParameters) {
-        this.templateParameters = templateParameters;
-    }
 
     public String getStackName() {
         return stackName;
@@ -129,18 +116,6 @@ public class CreateStackWizardDataModel {
         this.rollbackOnFailure = rollbackOnFailure;
     }
 
-    public WritableMap getParameterValues() {
-        return parameterValues;
-    }
-
-    public Map getTemplate() {
-        return template;
-    }
-
-    public void setTemplate(Map template) {
-        this.template = template;
-    }
-
     public String getTemplateBody() {
         return templateBody;
     }
@@ -171,6 +146,10 @@ public class CreateStackWizardDataModel {
 
     public void setMode(Mode mode) {
         this.mode = mode;
+    }
+
+    public ParametersDataModel getParametersDataModel() {
+        return parametersDataModel;
     }
 
 }

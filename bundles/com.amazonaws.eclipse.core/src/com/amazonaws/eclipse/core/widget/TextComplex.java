@@ -20,6 +20,9 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
 import static com.amazonaws.util.ValidationUtils.assertNotNull;
 import static com.amazonaws.util.ValidationUtils.assertStringNotEmpty;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.databinding.observable.value.WritableValue;
@@ -49,7 +52,7 @@ public class TextComplex {
             Composite composite,
             DataBindingContext dataBindingContext,
             IObservableValue pojoObservableValue,
-            IValidator validator,
+            List<IValidator> validators,
             ModifyListener modifyListener,
             boolean createLabel,
             String labelValue,
@@ -66,7 +69,7 @@ public class TextComplex {
 
         enabler.setValue(true);
         ChainValidator<String> handlerPackageValidator = new ChainValidator<String>(
-                swtObservableValue, enabler, validator);
+                swtObservableValue, enabler, validators);
         dataBindingContext.addValidationStatusProvider(handlerPackageValidator);
         new DecorationChangeListener(controlDecoration,
                 handlerPackageValidator.getValidationStatus());
@@ -97,7 +100,7 @@ public class TextComplex {
         private Composite composite;
         private DataBindingContext dataBindingContext;
         private IObservableValue pojoObservableValue;
-        private IValidator validator;
+        private List<IValidator> validators = new ArrayList<IValidator>();
         private String labelValue;
 
         private ModifyListener modifyListener;
@@ -110,7 +113,7 @@ public class TextComplex {
             validateParameters();
 
             return new TextComplex(
-                    composite, dataBindingContext, pojoObservableValue, validator, modifyListener,
+                    composite, dataBindingContext, pojoObservableValue, validators, modifyListener,
                     createLabel, labelValue, defaultValue, textColSpan, labelColSpan);
         }
 
@@ -129,8 +132,19 @@ public class TextComplex {
             return this;
         }
 
+        @Deprecated
         public TextComplexBuilder validator(IValidator validator) {
-            this.validator = validator;
+            this.validators.add(validator);
+            return this;
+        }
+
+        public TextComplexBuilder addValidator(IValidator validator) {
+            this.validators.add(validator);
+            return this;
+        }
+
+        public TextComplexBuilder addValidators(List<IValidator> validators) {
+            this.validators.addAll(validators);
             return this;
         }
 
@@ -168,7 +182,6 @@ public class TextComplex {
             assertNotNull(composite, "Composite");
             assertNotNull(dataBindingContext, "DataBindingContext");
             assertNotNull(pojoObservableValue, "PojoObservableValue");
-            assertNotNull(validator, "Validator");
             if (createLabel) assertStringNotEmpty(labelValue, "LabelValue");
         }
     }

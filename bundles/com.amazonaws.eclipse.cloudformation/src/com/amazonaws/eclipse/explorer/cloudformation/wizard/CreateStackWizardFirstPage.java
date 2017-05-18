@@ -704,9 +704,9 @@ class CreateStackWizardFirstPage extends WizardPage {
                     try {
                         synchronized ( this ) {
                             if ( !isCanceled() ) {
-                                wizard.getDataModel().setTemplateParameters(templateParams);
+                                wizard.getDataModel().getParametersDataModel().setTemplateParameters(templateParams);
                                 wizard.setNeedsSecondPage(!templateParams.isEmpty());
-                                wizard.getDataModel().setTemplate(templateJson);
+                                wizard.getDataModel().getParametersDataModel().setTemplate(templateJson);
                                 wizard.getDataModel().setRequiredCapabilities(requiredCapabilities);
                                 if ( stack != null ) {
                                     for ( Parameter param : stack.getParameters() ) {
@@ -714,7 +714,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
                                         // This is a pain, but any "noEcho" parameters get returned as asterisks in the service response.
                                         // The customer must fill these values out again, even for a running stack.
-                                        for ( TemplateParameter templateParam : wizard.getDataModel().getTemplateParameters() ) {
+                                        for ( TemplateParameter templateParam : wizard.getDataModel().getParametersDataModel().getTemplateParameters() ) {
                                             if (templateParam.getNoEcho() && templateParam.getParameterKey().equals(param.getParameterKey())) {
                                                 noEcho = true;
                                                 break;
@@ -722,7 +722,7 @@ class CreateStackWizardFirstPage extends WizardPage {
                                         }
 
                                         if ( !noEcho ) {
-                                            wizard.getDataModel().getParameterValues()
+                                            wizard.getDataModel().getParametersDataModel().getParameterValues()
                                                     .put(param.getParameterKey(), param.getParameterValue());
                                         }
                                     }

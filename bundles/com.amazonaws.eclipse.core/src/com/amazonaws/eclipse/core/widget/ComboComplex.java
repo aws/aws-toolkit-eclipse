@@ -53,10 +53,10 @@ public class ComboComplex<T extends ComboBoxItemData> {
         newLabel(composite, label);
         combo = newCombo(composite, comboColSpan);
         for (T type : items) {
-            combo.add(type.getName());
-            combo.setData(type.getName(), type);
+            combo.add(type.getComboBoxItemLabel());
+            combo.setData(type.getComboBoxItemLabel(), type);
         }
-        int defaultIndex = defaultItem == null ? 0 : combo.indexOf(defaultItem.getName());
+        int defaultIndex = defaultItem == null ? 0 : combo.indexOf(defaultItem.getComboBoxItemLabel());
         if (defaultIndex < 0) defaultIndex = 0; // when defaultItem is not in List.
         combo.select(defaultIndex);
 
@@ -144,7 +144,7 @@ public class ComboComplex<T extends ComboBoxItemData> {
         private T findItemByName(String itemName) {
             if (items != null) {
                 for (T item : items) {
-                    if (itemName.equals(item.getName())) {
+                    if (itemName.equals(item.getComboBoxItemLabel())) {
                         return item;
                     }
                 }

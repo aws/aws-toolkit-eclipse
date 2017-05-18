@@ -268,5 +268,4 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
             packageNameComplex.setText(MavenFactory.assumePackageName(groupId, artifactId));
         }
     }
-
 }

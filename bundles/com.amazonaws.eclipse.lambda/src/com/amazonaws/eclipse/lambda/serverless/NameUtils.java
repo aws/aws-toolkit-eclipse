@@ -14,6 +14,8 @@
 */
 package com.amazonaws.eclipse.lambda.serverless;
 
+import com.amazonaws.util.StringUtils;
+
 public class NameUtils {
 
     public static final String SERVERLESS_GENERATED_TEMPLATE_FILE_NAME = "serverless.generated.template";
@@ -36,10 +38,12 @@ public class NameUtils {
         return packagePrefix + ".model";
     }
 
+    // Replace handlerName with it's FQCN: if the handlerName is already FQCN or no package prefix
+    // is specified, return itself.
     public static String toHandlerClassFqcn(String packagePrefix, String handlerName) {
         int lastIndexOfDot = handlerName.lastIndexOf('.');
-        if (lastIndexOfDot != -1) {
-            handlerName = handlerName.substring(lastIndexOfDot + 1);
+        if (lastIndexOfDot != -1 || StringUtils.isNullOrEmpty(packagePrefix)) {
+            return handlerName;
         }
         return toHandlerPackageName(packagePrefix) + "." + handlerName;
     }

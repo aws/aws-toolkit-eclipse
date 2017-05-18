@@ -3,14 +3,12 @@
   "Parameters" : {
     "ArticleBucketName" : {
         "Type" : "String",
-        "Default" : "serverless-blueprint-article-bucket",
-        "Description" : "Name of S3 bucket used to store the article content. If left blank a new bucket will be created.",
+        "Description" : "Name of S3 bucket used to store the article content. If left blank, AWS CloudFormation would manage this resource.",
         "MinLength" : "0"
     },
     "ArticleTableName" : {
         "Type" : "String",
-        "Default" : "serverless-blueprint-article-table",
-        "Description" : "Name of DynamoDB table used to store the article metadata. If left blank a new table will be created.",
+        "Description" : "Name of DynamoDB table used to store the article metadata. If left blank, AWS CloudFormation would manage this resource.",
         "MinLength" : "0"
       },
     "ReadCapacity" : {
@@ -26,6 +24,10 @@
         "MinValue" : 1
     }
   },
+  "Conditions" : {
+    "CreateArticleBucket" : {"Fn::Equals" : [{"Ref" : "ArticleBucketName"}, ""]},
+    "CreateArticleTable" : {"Fn::Equals" : [{"Ref" : "ArticleTableName"}, ""]}
+  },
   "Resources": {
     "GetArticle": {
       "Type": "AWS::Serverless::Function",
@@ -37,8 +39,8 @@
         ],
         "Environment" : {
           "Variables" : {
-            "ARTICLE_TABLE_NAME" : { "Ref" : "ArticleTableName" },
-            "ARTICLE_BUCKET_NAME" : { "Ref" : "ArticleBucketName" }
+            "ARTICLE_TABLE_NAME" : { "Fn::If" : ["CreateArticleTable", {"Ref":"ArticleTable"}, { "Ref" : "ArticleTableName" } ] },
+            "ARTICLE_BUCKET_NAME" : { "Fn::If" : ["CreateArticleBucket", {"Ref":"ArticleBucket"}, { "Ref" : "ArticleBucketName" } ] }
           }
         },
         "Events": {
@@ -62,8 +64,8 @@
         ],
         "Environment" : {
           "Variables" : {
-            "ARTICLE_TABLE_NAME" : { "Ref" : "ArticleTableName" },
-            "ARTICLE_BUCKET_NAME" : { "Ref" : "ArticleBucketName" }
+            "ARTICLE_TABLE_NAME" : { "Fn::If" : ["CreateArticleTable", {"Ref":"ArticleTable"}, { "Ref" : "ArticleTableName" } ] },
+            "ARTICLE_BUCKET_NAME" : { "Fn::If" : ["CreateArticleBucket", {"Ref":"ArticleBucket"}, { "Ref" : "ArticleBucketName" } ] }
           }
         },
         "Events": {
@@ -79,6 +81,7 @@
     },
     "ArticleTable": {
       "Type": "AWS::DynamoDB::Table",
+      "Condition" : "CreateArticleTable",
       "Properties": {
         "AttributeDefinitions": [
           {
@@ -95,15 +98,22 @@
         "ProvisionedThroughput": {
           "ReadCapacityUnits": {"Ref" : "ReadCapacity"},
           "WriteCapacityUnits": {"Ref" : "WriteCapacity"}
-        },
-        "TableName": {"Ref" : "ArticleTableName"}
+        }
       }
     },
     "ArticleBucket": {
       "Type": "AWS::S3::Bucket",
+      "Condition" : "CreateBucketTable",
       "Properties": {
-        "BucketName": {"Ref" : "ArticleBucketName"}
       }
+    }
+  },
+  "Outputs" : {
+    "ArticleTable" : {
+      "Value" : { "Fn::If" : ["CreateArticleTable", {"Ref":"ArticleTable"}, { "Ref" : "ArticleTableName" } ] }
+    },
+    "ArticleBucket" : {
+      "Value" : { "Fn::If" : ["CreateArticleBucket", {"Ref":"ArticleBucket"}, { "Ref" : "ArticleTableName" } ] }
     }
   }
 }

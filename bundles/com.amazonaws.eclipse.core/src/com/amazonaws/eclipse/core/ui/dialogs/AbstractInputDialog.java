@@ -1,3 +1,5 @@
+package com.amazonaws.eclipse.core.ui.dialogs;
+
 /*
  * Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -12,7 +14,6 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package com.amazonaws.eclipse.lambda.upload.wizard.dialog;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -30,7 +31,7 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-abstract class AbstractInputDialog extends TitleAreaDialog {
+public abstract class AbstractInputDialog extends TitleAreaDialog {
 
     private final String title;
     private final String message;

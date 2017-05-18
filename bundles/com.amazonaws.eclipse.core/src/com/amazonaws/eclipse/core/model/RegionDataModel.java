@@ -14,10 +14,26 @@
  */
 package com.amazonaws.eclipse.core.model;
 
-/**
- * Data model to be bound with a ComboBox item.
- */
-public interface ComboBoxItemData {
-    // The name for this item to be shown in the ComboBox.
-    String getComboBoxItemLabel();
+import com.amazonaws.eclipse.core.regions.Region;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class RegionDataModel {
+    public static final String P_REGION = "region";
+
+    @JsonIgnore
+    private Region region;
+
+    public Region getRegion() {
+        return region;
+    }
+
+    public void setRegion(Region region) {
+        this.region = region;
+    }
+
+    @JsonProperty
+    public String getRegionName() {
+        return region.getName();
+    }
 }

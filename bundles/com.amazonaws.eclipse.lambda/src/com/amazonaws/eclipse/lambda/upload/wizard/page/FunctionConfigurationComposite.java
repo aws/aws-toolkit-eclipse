@@ -56,6 +56,8 @@ import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.CancelableThread;
+import com.amazonaws.eclipse.core.ui.dialogs.CreateS3BucketDialog;
+import com.amazonaws.eclipse.core.util.S3BucketUtil;
 import com.amazonaws.eclipse.databinding.BooleanValidator;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
@@ -65,7 +67,6 @@ import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.ServiceApiUtils;
 import com.amazonaws.eclipse.lambda.UrlConstants;
 import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateBasicLambdaRoleDialog;
-import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateS3BucketDialog;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.FunctionConfigPageDataModel;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;

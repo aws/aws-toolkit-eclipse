@@ -17,8 +17,8 @@ package com.amazonaws.eclipse.lambda.upload.wizard.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -30,7 +30,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
@@ -135,18 +134,18 @@ public class UploadFunctionUtil {
         LambdaPlugin.getDefault().logInfo("Upload complete! Funtion arn " + functionArn);
     }
 
-    public static List<String> findValidHandlerClass(IProject project) {
+    public static Set<String> findValidHandlerClass(IProject project) {
         return findAllConcreteSubTypes(project, LAMBDA_REQUEST_HANDLER_INTERFACE);
     }
 
-    public static List<String> findValidStreamHandlerClass(IProject project) {
+    public static Set<String> findValidStreamHandlerClass(IProject project) {
         return findAllConcreteSubTypes(project, LAMBDA_REQUEST_STREAM_HANDLER_INTERFACE);
     }
 
     /**
      * @see #findValidLambdaHandlerClass(IJavaProject, String)
      */
-    private static List<String> findAllConcreteSubTypes(IProject project, final String lambdaHandlerClass) {
+    private static Set<String> findAllConcreteSubTypes(IProject project, final String lambdaHandlerClass) {
 
         boolean isJavaProject = false;
         try {
@@ -161,7 +160,7 @@ public class UploadFunctionUtil {
             IJavaProject javaProject = JavaCore.create(project);
             return findValidLambdaHandlerClass(javaProject, lambdaHandlerClass);
         }
-        return Collections.emptyList();
+        return Collections.emptySet();
     }
 
     /**
@@ -169,16 +168,16 @@ public class UploadFunctionUtil {
      *         project that implement the specified lambda request handler interface, or
      *         null if any error occurred during the search.
      */
-    private static List<String> findValidLambdaHandlerClass(IJavaProject javaProject, final String lambdaHandlerClass) {
+    private static Set<String> findValidLambdaHandlerClass(IJavaProject javaProject, final String lambdaHandlerClass) {
         try {
             IType type = javaProject.findType(lambdaHandlerClass);
             if (type == null) {
-                return Collections.emptyList();
+                return Collections.emptySet();
             }
 
             ITypeHierarchy typeHierarchy = type.newTypeHierarchy(javaProject, null);
 
-            List<String> allHandlerImplementers = new LinkedList<String>();
+            Set<String> allHandlerImplementers = new HashSet<String>();
             IType[] allSubtypes = typeHierarchy.getAllSubtypes(type);
             // filter out abstract class and interfaces
             for (IType subtype : allSubtypes) {
@@ -187,7 +186,6 @@ public class UploadFunctionUtil {
                 }
             }
 
-            Collections.sort(allHandlerImplementers);
             return allHandlerImplementers;
 
         } catch (JavaModelException e) {

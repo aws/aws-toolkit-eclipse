@@ -14,84 +14,71 @@
 */
 package com.amazonaws.eclipse.lambda.serverless.ui;
 
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newControlDecoration;
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFillingLabel;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newText;
 import static com.amazonaws.eclipse.lambda.LambdaAnalytics.trackRegionComboChangeSelection;
 
-import java.util.Iterator;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
+import java.util.Map.Entry;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.databinding.AggregateValidationStatus;
-import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.DataBindingContext;
-import org.eclipse.core.databinding.beans.PojoObservables;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.databinding.observable.value.WritableValue;
+import org.eclipse.core.databinding.validation.IValidator;
+import org.eclipse.core.databinding.validation.ValidationStatus;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.databinding.swt.ISWTObservableValue;
-import org.eclipse.jface.databinding.swt.SWTObservables;
-import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.CancelableThread;
+import com.amazonaws.eclipse.core.ui.RegionComposite;
+import com.amazonaws.eclipse.core.ui.SelectOrCreateBucketComposite;
+import com.amazonaws.eclipse.core.util.S3BucketUtil;
 import com.amazonaws.eclipse.databinding.ChainValidator;
-import com.amazonaws.eclipse.databinding.DecorationChangeListener;
-import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
-import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
-import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata.RegionConfig;
+import com.amazonaws.eclipse.lambda.model.SelectOrInputStackDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.model.DeployServerlessProjectDataModel;
-import com.amazonaws.eclipse.lambda.project.wizard.page.validator.StackNameValidator;
-import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateS3BucketDialog;
-import com.amazonaws.eclipse.lambda.upload.wizard.page.S3BucketUtil;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
+import com.amazonaws.eclipse.lambda.serverless.Serverless;
+import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessFunction;
+import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessModel;
+import com.amazonaws.eclipse.lambda.ui.SelectOrInputStackComposite;
+import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.TemplateParameter;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
 
 public class DeployServerlessProjectPage extends WizardPage {
+    private static final String VALIDATING = "validating";
+    private static final String INVALID = "invalid";
+    private static final String VALID = "valid";
 
     private final DeployServerlessProjectDataModel dataModel;
     private final DataBindingContext bindingContext;
     private final AggregateValidationStatus aggregateValidationStatus;
 
-    // Select region
-    private Combo regionCombo;
+    private RegionComposite regionComposite;
+    private SelectOrCreateBucketComposite bucketComposite;
+    private SelectOrInputStackComposite stackComposite;
 
-    /* S3 bucket */
-    private Combo bucketNameCombo;
-    private ISWTObservableValue bucketNameComboObservable;
-    private IObservableValue bucketNameModelObservable;
-    private IObservableValue bucketNameLoadedObservable = new WritableValue();
-    private LoadS3BucketsInFunctionRegionThread loadS3BucketsInFunctionRegionThread;
-    private Button createBucketButton;
-
-    /* Constants */
-    private static final String NONE_FOUND = "None found";
-
-    /* CloudFormation stack */
-    private Text stackNameText;
-    private ISWTObservableValue stackNameTextObservable;
-    private IObservableValue stackNameModelObservable;
+    private IObservableValue templateValidated = new WritableValue();
+    private ValidateTemplateThread validateTemplateThread;
+    private Exception templateValidationException;
 
     public DeployServerlessProjectPage(DeployServerlessProjectDataModel dataModel) {
         super("ServerlessDeployWizardPage");
@@ -110,10 +97,21 @@ public class DeployServerlessProjectPage extends WizardPage {
         createRegionSection(container);
         createS3BucketSection(container);
         createStackSection(container);
+        createValidationBinding();
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
             public void handleChange(ChangeEvent arg0) {
                 populateHandlerValidationStatus();
+            }
+        });
+
+        dataModel.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                // We skip this event for inputing a new Stack name. We only listener to changes of Bucket, Existing Stack
+                if (!evt.getPropertyName().equals(SelectOrInputStackDataModel.P_NEW_RESOURCE_NAME)) {
+                    onDataModelPropertiesChange();
+                }
             }
         });
 
@@ -141,249 +139,152 @@ public class DeployServerlessProjectPage extends WizardPage {
         }
     }
 
-    private void createRegionSection(Composite composite) {
-        Group regionGroup = newGroup(composite, "Select AWS Region");
+    private void createRegionSection(Composite parent) {
+        Group regionGroup = newGroup(parent, "Select AWS Region for the AWS CloudFormation stack");
         regionGroup.setLayout(new GridLayout(1, false));
-
-        newFillingLabel(regionGroup,
-                "Select the AWS region where your CloudFormation stack is created:");
-
-        Region initialRegion = dataModel.getRegion();
-
-        regionCombo = newCombo(regionGroup);
-        for (Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.CLOUD_FORMATION)) {
-            regionCombo.add(region.getName());
-            regionCombo.setData(region.getName(), region);
-        }
-
-        // Find the default region selection
-        if (initialRegion == null) {
-            if (RegionUtils.isServiceSupportedInCurrentRegion(ServiceAbbreviations.CLOUD_FORMATION) ) {
-                initialRegion = RegionUtils.getCurrentRegion();
-            } else {
-                initialRegion = RegionUtils.getRegion(LambdaPlugin.DEFAULT_REGION);
-            }
-        }
-        regionCombo.setText(initialRegion.getName());
-
-        regionCombo.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                trackRegionComboChangeSelection();
-                onRegionSelectionChange();
-            }
-        });
+        regionComposite = RegionComposite.builder()
+            .parent(regionGroup)
+            .bindingContext(bindingContext)
+            .serviceName(ServiceAbbreviations.CLOUD_FORMATION)
+            .dataModel(dataModel.getRegionDataModel())
+            .labelValue("Select AWS Region:")
+            .addListener(new ISelectionChangedListener() {
+                @Override
+                public void selectionChanged(SelectionChangedEvent event) {
+                    trackRegionComboChangeSelection();
+                    onRegionSelectionChange();
+                }
+            })
+            .build();
     }
 
     private void onRegionSelectionChange() {
-        Region region = (Region)regionCombo.getData(regionCombo.getText());
-        dataModel.setRegion(region);
-        dataModel.getMetadata().setLastDeploymentRegionId(region.getId());
-
-        onUpdateRegion();
-    }
-
-    private void onUpdateRegion() {
-        refreshBucketsInFunctionRegion();
-
-        String defaultStackName = dataModel.getMetadata().getLastDeploymentStack() == null
-                ? dataModel.getProjectName() + "-devstack"
-                        : dataModel.getMetadata().getLastDeploymentStack();
-        stackNameTextObservable.setValue(defaultStackName);
-    }
-
-    public void refreshBucketsInFunctionRegion() {
-        bucketNameLoadedObservable.setValue(false);
-
-        if (bucketNameCombo != null) {
-            bucketNameCombo.setItems(new String[] { "Loading buckets in "
-                    + dataModel.getRegion().getName() });
-            bucketNameCombo.select(0);
-            bucketNameCombo.setEnabled(false);
+        Region currentSelectedRegion = regionComposite.getCurrentSelectedRegion();
+        if (bucketComposite != null) {
+            String defaultBucket = dataModel.getMetadata().getLastDeploymentBucket(currentSelectedRegion.getId());
+            bucketComposite.refreshBucketsInRegion(currentSelectedRegion, defaultBucket);
         }
-
-        CancelableThread.cancelThread(loadS3BucketsInFunctionRegionThread);
-        String defaultBucket = dataModel.getMetadata().getLastDeploymentBucket();
-        loadS3BucketsInFunctionRegionThread = new LoadS3BucketsInFunctionRegionThread(defaultBucket);
-        loadS3BucketsInFunctionRegionThread.start();
+        if (stackComposite != null) {
+            String defaultStackName = dataModel.getMetadata().getLastDeploymentStack();
+            stackComposite.refreshInRegion(currentSelectedRegion, defaultStackName);
+        }
     }
 
     private void createS3BucketSection(Composite parent) {
         Group group = newGroup(parent, "Select or Create S3 Bucket for Your Function Code");
-        group.setLayout(createSectionGroupLayout());
+        group.setLayout(new GridLayout(1, false));
+        bucketComposite = new SelectOrCreateBucketComposite(
+                group, bindingContext, dataModel.getBucketDataModel());
 
-        newLabel(group, "S3 Bucket Name:");
-
-        Composite composite = new Composite(group, SWT.NONE);
-        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gridData.horizontalSpan = 2;
-        composite.setLayoutData(gridData);
-        composite.setLayout(new GridLayout(2, false));
-
-        bucketNameCombo = newCombo(composite, 1);
-        bucketNameCombo.setEnabled(false);
-        bucketNameCombo.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                LambdaAnalytics.trackS3BucketComboSelectionChange();
-            }
-        });
-
-        bucketNameComboObservable = SWTObservables
-                .observeSelection(bucketNameCombo);
-        bucketNameModelObservable = PojoObservables.observeValue(dataModel,
-                DeployServerlessProjectDataModel.P_BUCKET_NAME);
-        bindingContext.bindValue(bucketNameComboObservable,
-                bucketNameModelObservable);
-
-        createBucketButton = new Button(composite, SWT.PUSH);
-        createBucketButton.setText("Create");
-        createBucketButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-
-                LambdaAnalytics.trackClickCreateNewBucketButton();
-
-                CreateS3BucketDialog dialog = new CreateS3BucketDialog(
-                        Display.getCurrent().getActiveShell(), dataModel.getRegion());
-                int returnCode = dialog.open();
-
-                if (returnCode == 0) {
-                    String bucketName = dialog.getCreatedBucketName();
-
-                    if (bucketNameLoadedObservable.getValue().equals(Boolean.TRUE)) {
-                        bucketNameCombo.add(bucketName);
-                        bucketNameCombo.select(bucketNameCombo.getItemCount() - 1);
-
-                    } else {
-                        CancelableThread.cancelThread(loadS3BucketsInFunctionRegionThread);
-                        bucketNameLoadedObservable.setValue(true);
-
-                        bucketNameCombo.setItems(new String[] {bucketName});
-                        bucketNameCombo.setEnabled(true);
-                        bucketNameCombo.select(0);
-                        updateUIDataToModel();
-                    }
-                }
-            }
-        });
     }
 
     private void createStackSection(Composite parent) {
         Group group = newGroup(parent, "Select or Create CloudFormation Stack");
-        group.setLayout(createSectionGroupLayout());
-
-        newLabel(group, "CloudFormation Stack Name:");
-
-        Composite composite = new Composite(group, SWT.NONE);
-        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gridData.horizontalSpan = 2;
-        composite.setLayoutData(gridData);
-        composite.setLayout(new GridLayout(1, false));
-
-        stackNameText = newText(composite);
-        stackNameTextObservable = SWTObservables
-                .observeText(stackNameText, SWT.Modify);
-        stackNameModelObservable = PojoObservables.observeValue(dataModel,
-                DeployServerlessProjectDataModel.P_STACK_NAME);
-        bindingContext.bindValue(stackNameTextObservable,
-                stackNameModelObservable);
-        String defaultStackName = dataModel.getStackName() == null ? dataModel.getProjectName() + "-devstack" : dataModel.getStackName();
-        stackNameTextObservable.setValue(defaultStackName);
-
-        ControlDecoration handlerPackageTextDecoration = newControlDecoration(stackNameText, "");
-
-        // bind validation of stack name
-        ChainValidator<String> stackNameValidator = new ChainValidator<String>(
-                stackNameTextObservable,
-                new StackNameValidator());
-        bindingContext.addValidationStatusProvider(stackNameValidator);
-        new DecorationChangeListener(handlerPackageTextDecoration,
-                stackNameValidator.getValidationStatus());
+        group.setLayout(new GridLayout(1, false));
+        stackComposite = new SelectOrInputStackComposite(
+                group, bindingContext, dataModel.getStackDataModel());
     }
 
-    private GridLayout createSectionGroupLayout() {
-        GridLayout layout = new GridLayout(3, true);
-        layout.marginWidth = 15;
-        return layout;
+    private void createValidationBinding() {
+        templateValidated.setValue(null);
+        bindingContext.addValidationStatusProvider(new ChainValidator<String>(templateValidated, new IValidator() {
+            @Override
+            public IStatus validate(Object value) {
+                if ( value == null ) {
+                    return ValidationStatus.error("No template selected");
+                }
+
+                if ( ((String) value).equals(VALID) ) {
+                    return ValidationStatus.ok();
+                } else if ( ((String) value).equals(VALIDATING) ) {
+                    return ValidationStatus.warning("Validating template...");
+                } else if ( ((String) value).equals(INVALID) ) {
+                    if ( templateValidationException != null ) {
+                        return ValidationStatus.error("Invalid template: " + templateValidationException.getMessage());
+                    } else {
+                        return ValidationStatus.error("No template selected");
+                    }
+                }
+
+                return ValidationStatus.ok();
+            }
+        }));
     }
 
-    private static Label newLabel(Composite parent, String text) {
-        Label label = new Label(parent, SWT.NONE);
-        label.setText(text);
-        return label;
+    private void onDataModelPropertiesChange() {
+        CancelableThread.cancelThread(validateTemplateThread);
+        validateTemplateThread = new ValidateTemplateThread();
+        validateTemplateThread.start();
     }
 
-    private final class LoadS3BucketsInFunctionRegionThread extends
-            CancelableThread {
+    // The IObservable value could only be updated in the UI thread.
+    private void updateTemplateValidatedStatus(final CancelableThread motherThread, final String newStatus) {
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (motherThread) {
+                    if (!motherThread.isCanceled()) {
+                        templateValidated.setValue(newStatus);
+                    }
+                }
+            }
+        });
+    }
 
-        private final String defaultBucket;
-
-        /**
-         * @param defaultBucket
-         *            the bucket that should be selected by default after all
-         *            buckets are loaded.
-         */
-        LoadS3BucketsInFunctionRegionThread(String defaultBucket) {
-            this.defaultBucket = defaultBucket;
-        }
+    /**
+     * Cancelable thread to validate a template and update the validation
+     * status.
+     */
+    private final class ValidateTemplateThread extends CancelableThread {
 
         @Override
         public void run() {
 
-            long startTime = System.currentTimeMillis();
-            AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(dataModel.getRegion().getId());
-            final List<Bucket> bucketsInFunctionRegion = S3BucketUtil
-                    .listBucketsInRegion(s3, dataModel.getRegion());
-            LambdaAnalytics.trackLoadBucketTimeDuration(System
-                    .currentTimeMillis() - startTime);
+            try {
+                updateTemplateValidatedStatus(this, VALIDATING);
 
-            Display.getDefault().asyncExec(new Runnable() {
+                // Update serverless template upon provided bucket name
+                String lambdaFunctionJarFileKeyName = dataModel.getStackDataModel().getStackName() + "-" + System.currentTimeMillis() + ".zip";
+                File serverlessTemplateFile = FunctionProjectUtil.getServerlessTemplateFile(dataModel.getProject());
+                ServerlessModel model = Serverless.load(serverlessTemplateFile);
 
-                public void run() {
-                    try {
-                        synchronized (LoadS3BucketsInFunctionRegionThread.this) {
-                            if (!isCanceled()) {
-                                if (bucketsInFunctionRegion.isEmpty()) {
-                                    bucketNameCombo
-                                            .setItems(new String[] { NONE_FOUND });
-                                    bucketNameLoadedObservable.setValue(false);
-                                } else {
-                                    bucketNameCombo.removeAll();
-                                    for (Bucket bucket : bucketsInFunctionRegion) {
-                                        bucketNameCombo.add(bucket.getName());
-                                    }
-                                    bucketNameCombo.setEnabled(true);
-                                    bucketNameCombo
-                                            .select(findDefaultBucket(bucketsInFunctionRegion));
-                                    updateUIDataToModel();
+                model = Serverless.cookServerlessModel(model, dataModel.getMetadata().getPackagePrefix(),
+                        S3BucketUtil.createS3Path(dataModel.getBucketDataModel().getBucketName(), lambdaFunctionJarFileKeyName));
 
-                                    bucketNameLoadedObservable.setValue(true);
-                                }
-                            }
-                        }
-                    } finally {
-                        setRunning(false);
-                    }
-                }
-            });
+                validateHandlersExist(model);
+
+                String generatedServerlessFilePath = File.createTempFile(
+                        "serverless-template", ".json").getAbsolutePath();
+                File serverlessGeneratedTemplateFile = Serverless.write(model, generatedServerlessFilePath);
+                serverlessGeneratedTemplateFile.deleteOnExit();
+                dataModel.setLambdaFunctionJarFileKeyName(lambdaFunctionJarFileKeyName);
+                dataModel.setUpdatedServerlessTemplate(serverlessGeneratedTemplateFile);
+
+                // Validate the updated serverless template
+                AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory().getCloudFormationClientByRegion(
+                        dataModel.getRegionDataModel().getRegion().getId());
+                List<TemplateParameter> templateParameters = cloudFormation.validateTemplate(new ValidateTemplateRequest()
+                        .withTemplateBody(IOUtils.toString(new FileInputStream(serverlessGeneratedTemplateFile))))
+                        .getParameters();
+                dataModel.getParametersDataModel().setTemplateParameters(templateParameters);
+
+                updateTemplateValidatedStatus(this, VALID);
+            } catch (Exception e) {
+                templateValidationException = e;
+                updateTemplateValidatedStatus(this, INVALID);
+                LambdaPlugin.getDefault().logError(e.getMessage(), e);
+            }
         }
 
-        private int findDefaultBucket(List<Bucket> buckets) {
-            for (int i = 0; i < buckets.size(); i++) {
-                if (buckets.get(i).getName().equals(this.defaultBucket)) {
-                    return i;
+        // Validate the Lambda handlers defined in the serverless template exist in the project.
+        private void validateHandlersExist(ServerlessModel model) {
+            for (Entry<String, ServerlessFunction> handler : model.getServerlessFunctions().entrySet()) {
+                if (!dataModel.getHandlerClasses().contains(handler.getValue().getHandler())) {
+                    throw new IllegalArgumentException(String.format(
+                            "The configured handler class %s for Lambda handler %s doesn't exist!",
+                            handler.getValue().getHandler(), handler.getKey()));
                 }
             }
-            return 0;
-        }
-    }
-
-    public void updateUIDataToModel() {
-        Iterator<?> iterator = bindingContext.getBindings().iterator();
-        while (iterator.hasNext()) {
-            Binding binding = (Binding) iterator.next();
-            binding.updateTargetToModel();
         }
     }
 }

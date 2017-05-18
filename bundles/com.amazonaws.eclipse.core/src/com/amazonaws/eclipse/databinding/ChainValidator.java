@@ -44,18 +44,22 @@ public class ChainValidator<T> extends MultiValidator {
     }
 
     public ChainValidator(IObservableValue model, IObservableValue enabler, IValidator... validators) {
+        this(model, enabler, Arrays.asList(validators));
+    }
+
+    public ChainValidator(IObservableValue model, IObservableValue enabler, List<IValidator> validators) {
         this.model = model;
         this.enabler = enabler;
-        this.validators = Arrays.asList(validators);
+        this.validators = validators;
     }
 
     @Override
     protected IStatus validate() {
         @SuppressWarnings("unchecked")
-        T value = (T)model.getValue();
+        T value = (T) model.getValue();
 
         if (enabler != null) {
-            boolean isEnabled = enabler.getValue() != null && (Boolean)enabler.getValue();
+            boolean isEnabled = enabler.getValue() != null && (Boolean) enabler.getValue();
             if (!isEnabled) return ValidationStatus.ok();
         }
 
@@ -66,6 +70,4 @@ public class ChainValidator<T> extends MultiValidator {
 
         return ValidationStatus.ok();
     }
-    
-    
 }

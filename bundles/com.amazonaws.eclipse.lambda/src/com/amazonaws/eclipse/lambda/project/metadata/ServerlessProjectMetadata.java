@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * for the corresponding Serverless project which could be reused for the next time of deployment.
  */
 public class ServerlessProjectMetadata {
+    // Lambda handler package prefix
+    private String packagePrefix;
     // Region ID for last deployment
     private String lastDeploymentRegionId;
     // Configurations for last deployment to a specific region
@@ -42,9 +44,23 @@ public class ServerlessProjectMetadata {
         this.regionConfig = regionConfig;
     }
 
+    public String getPackagePrefix() {
+        return packagePrefix;
+    }
+
+    public void setPackagePrefix(String packagePrefix) {
+        this.packagePrefix = packagePrefix;
+    }
+
     @JsonIgnore
     public String getLastDeploymentBucket() {
         RegionConfig regionConfig = getDefaultRegionConfig();
+        return regionConfig == null ? null : regionConfig.getBucket();
+    }
+
+    @JsonIgnore
+    public String getLastDeploymentBucket(String regionId) {
+        RegionConfig regionConfig = getRegionConfig(regionId);
         return regionConfig == null ? null : regionConfig.getBucket();
     }
 
@@ -59,6 +75,12 @@ public class ServerlessProjectMetadata {
     @JsonIgnore
     public String getLastDeploymentStack() {
         RegionConfig regionConfig = getDefaultRegionConfig();
+        return regionConfig == null ? null : regionConfig.getStack();
+    }
+
+    @JsonIgnore
+    public String getLastDeploymentStack(String regionId) {
+        RegionConfig regionConfig = getRegionConfig(regionId);
         return regionConfig == null ? null : regionConfig.getStack();
     }
 
@@ -87,6 +109,14 @@ public class ServerlessProjectMetadata {
             return defaultRegionConfig;
         }
         return null;
+    }
+
+    @JsonIgnore
+    private RegionConfig getRegionConfig(String regionId) {
+        if (regionConfig == null) {
+            regionConfig = new HashMap<>();
+        }
+        return regionId == null ? null : regionConfig.get(regionId);
     }
 
     public static class RegionConfig {

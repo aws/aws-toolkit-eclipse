@@ -31,8 +31,8 @@ import com.amazonaws.eclipse.lambda.serverless.NameUtils;
 import com.amazonaws.eclipse.lambda.serverless.Serverless;
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessFunction;
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessModel;
-import com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplateData;
 import com.amazonaws.eclipse.lambda.serverless.template.ServerlessDataModelTemplateData;
+import com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplateData;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 

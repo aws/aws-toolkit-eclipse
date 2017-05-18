@@ -25,7 +25,6 @@ import com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard;
 
 public class NewServerlessProjectHandler extends AbstractHandler{
 
-    @SuppressWarnings("restriction")
     public Object execute(ExecutionEvent event) throws ExecutionException {
         NewServerlessProjectWizard newWizard = new NewServerlessProjectWizard();
         newWizard.init(PlatformUI.getWorkbench(), null);

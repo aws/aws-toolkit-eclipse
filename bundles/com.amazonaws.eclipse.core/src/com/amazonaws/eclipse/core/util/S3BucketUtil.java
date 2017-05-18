@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package com.amazonaws.eclipse.lambda.upload.wizard.page;
+package com.amazonaws.eclipse.core.util;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -20,8 +20,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
 
@@ -48,7 +48,7 @@ public class S3BucketUtil {
                             result.add(bucket);
                         }
                     } catch (Exception e) {
-                        LambdaPlugin.getDefault().logInfo("Exception thrown when checking bucket " + bucket.getName() +
+                        AwsToolkitCore.getDefault().logInfo("Exception thrown when checking bucket " + bucket.getName() +
                             " with message: " + e.getMessage());
                     } finally {
                         latch.countDown();
@@ -65,7 +65,7 @@ public class S3BucketUtil {
 
         return result;
     }
-    
+
     public static String createS3Path(String bucketName, String keyName) {
         return String.format("s3://%s/%s", bucketName, keyName);
     }

@@ -80,6 +80,7 @@ Export-Package: com.amazonaws,
  com.amazonaws.eclipse.core.preferences,
  com.amazonaws.eclipse.core.regions,
  com.amazonaws.eclipse.core.ui,
+ com.amazonaws.eclipse.core.ui.dialogs,
  com.amazonaws.eclipse.core.ui.menu,
  com.amazonaws.eclipse.core.ui.overview,
  com.amazonaws.eclipse.core.ui.preferences,
@@ -212,7 +213,8 @@ Require-Bundle: org.eclipse.swt,
  org.eclipse.egit.ui;bundle-version="3.4.2",
  org.eclipse.jgit;bundle-version="3.4.2",
  org.eclipse.core.variables;bundle-version="3.2.800",
- org.eclipse.equinox.security;bundle-version="1.2.0"
+ org.eclipse.equinox.security;bundle-version="1.2.0",
+ org.eclipse.core.databinding.property
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.jdt.launching

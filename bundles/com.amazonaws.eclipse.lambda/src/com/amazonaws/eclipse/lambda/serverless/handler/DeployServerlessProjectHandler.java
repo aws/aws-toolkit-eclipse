@@ -14,7 +14,8 @@
 */
 package com.amazonaws.eclipse.lambda.serverless.handler;
 
-import java.util.List;
+import java.io.File;
+import java.util.Set;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -29,6 +30,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
 import com.amazonaws.eclipse.lambda.serverless.wizard.DeployServerlessProjectWizard;
 import com.amazonaws.eclipse.lambda.upload.wizard.util.UploadFunctionUtil;
 
@@ -59,10 +61,10 @@ public class DeployServerlessProjectHandler extends AbstractHandler {
 
         return null;
     }
-    
+
     public static void doDeployServerlessTemplate(IProject project) {
-        List<String> handlerClasses = UploadFunctionUtil.findValidHandlerClass(project);
-        if (handlerClasses.isEmpty()) {
+        Set<String> handlerClasses = UploadFunctionUtil.findValidHandlerClass(project);
+        if (handlerClasses == null || handlerClasses.isEmpty()) {
             MessageDialog.openError(
                     Display.getCurrent().getActiveShell(),
                     "Invalid AWS Lambda Project",
@@ -71,24 +73,16 @@ public class DeployServerlessProjectHandler extends AbstractHandler {
                     "com.amazonaws.services.lambda.runtime.RequestHandler interface.");
             return;
         }
-        String packagePrefix = getPackagePrefix(handlerClasses);
-        if (packagePrefix == null) {
-            MessageDialog.openError(Display.getCurrent().getActiveShell(),
-                    "Invalid Serverless Project",
-                    "The Serverless project function structure is not valid.");
-            return;
+        File serverlessTemplate = FunctionProjectUtil.getServerlessTemplateFile(project);
+        if (!serverlessTemplate.exists() || !serverlessTemplate.isFile()) {
+            MessageDialog.openError(
+                    Display.getCurrent().getActiveShell(),
+                    "Invalid AWS Serverless Project",
+                    "No serverless.template file found in your project root.");
         }
         WizardDialog wizardDialog = new WizardDialog(
                 Display.getCurrent().getActiveShell(),
-                new DeployServerlessProjectWizard(project, packagePrefix));
+                new DeployServerlessProjectWizard(project, handlerClasses));
         wizardDialog.open();
-    }
-
-    //TODO: this is hacky to get the package prefix. we should store the prefix to metadata and load from there.
-    //      Or, we can customize the original temlate file and store this data there to load from the template file.
-    private static String getPackagePrefix(List<String> fqcnClasses) {
-        String sampleClass = fqcnClasses.get(0);
-        int index = sampleClass.indexOf(".function.");
-        return index == -1 ? null : sampleClass.substring(0, index);
     }
 }

@@ -15,6 +15,10 @@ import org.eclipse.swt.widgets.Label;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 
+/**
+ * @deprecated for {@link RegionComposite}
+ */
+@Deprecated
 public class RegionSelectionComposite extends Composite {
 
     private String serviceName;

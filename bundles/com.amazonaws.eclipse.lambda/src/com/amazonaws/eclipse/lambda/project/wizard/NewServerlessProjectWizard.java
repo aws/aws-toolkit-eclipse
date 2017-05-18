@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -33,8 +32,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.ui.internal.UpdateMavenProjectJob;
 
 import com.amazonaws.eclipse.core.maven.MavenFactory;
@@ -44,11 +41,12 @@ import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 import com.amazonaws.eclipse.core.validator.JavaPackageName;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
+import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.page.NewServerlessProjectWizardPageOne;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
-import com.amazonaws.eclipse.lambda.serverless.NameUtils;
 import com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplateData;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -115,6 +113,7 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
         }
 
         LambdaAnalytics.trackServerlessProjectCreationSucceeded();
+        saveMetadata();
 
         try {
             IFile handlerClass = findHandlerClassFile(project, dataModel);
@@ -170,6 +169,16 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
         dataModel.getMavenConfigurationDataModel().setGroupId(DEFAULT_GROUP_ID);
         dataModel.getMavenConfigurationDataModel().setArtifactId(DEFAULT_ARTIFACT_ID);
         dataModel.setPackagePrefix(DEFAULT_PACKAGE_NAME);
+    }
+
+    private void saveMetadata() {
+        ServerlessProjectMetadata metadata = new ServerlessProjectMetadata();
+        metadata.setPackagePrefix(dataModel.getPackagePrefix());
+        try {
+            ProjectMetadataManager.saveServerlessProjectMetadata(project, metadata);
+        } catch (IOException e) {
+            LambdaPlugin.getDefault().logError(e.getMessage(), e);
+        }
     }
 
     @Override
