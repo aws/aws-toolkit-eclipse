@@ -20,6 +20,15 @@
                 "HelloWorld": "hello-world.ftl"
             },
             "needLambdaProxyIntegrationModel" : false
+        },
+        "rekognition": {
+            "baseDir": "rekognition",
+            "displayName": "rekognition",
+            "description": "This is a Blueprint for tagging images triggered by Amazon S3.",
+            "handlerTemplatePaths": {
+                "TagImage": "tag-image.ftl"
+            },
+            "needLambdaProxyIntegrationModel" : false
         }
     }
 }

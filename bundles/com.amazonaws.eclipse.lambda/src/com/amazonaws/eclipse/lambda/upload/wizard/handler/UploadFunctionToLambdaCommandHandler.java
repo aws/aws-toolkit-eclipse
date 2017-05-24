@@ -23,8 +23,10 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.upload.wizard.UploadFunctionWizard;
@@ -60,6 +62,11 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
     }
 
     public static void doUploadFunctionProjectToLambda(IProject project) {
+
+        if (!WorkbenchUtils.openSaveFilesDialog(PlatformUI.getWorkbench())) {
+            return;
+        }
+
         WizardDialog wizardDialog = new WizardDialog(
                 Display.getCurrent().getActiveShell(),
                 new UploadFunctionWizard(project));

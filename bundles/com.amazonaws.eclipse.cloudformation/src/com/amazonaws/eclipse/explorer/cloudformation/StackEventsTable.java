@@ -55,7 +55,7 @@ public class StackEventsTable extends Composite {
     private final class StackEventsContentProvider implements ITreePathContentProvider {
 
         private StackEvent[] events;
-        
+
         public void dispose() {}
 
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
@@ -99,7 +99,7 @@ public class StackEventsTable extends Composite {
 
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof StackEvent == false) return "";
-            
+
             StackEvent stackEvent = (StackEvent)element;
             switch (columnIndex) {
                 case 0: return stackEvent.getTimestamp().toString();
@@ -109,7 +109,7 @@ public class StackEventsTable extends Composite {
                 case 4: return stackEvent.getPhysicalResourceId();
                 case 5: return stackEvent.getResourceStatusReason();
             }
-            
+
             return element.toString();
         }
 
@@ -120,7 +120,7 @@ public class StackEventsTable extends Composite {
         this.stackEditorInput = stackEditorInput;
 
         this.setLayout(new GridLayout());
-        
+
         Composite composite = toolkit.createComposite(this);
         composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
@@ -130,17 +130,17 @@ public class StackEventsTable extends Composite {
         StackEventsContentProvider contentProvider = new StackEventsContentProvider();
         StackEventsLabelProvider labelProvider = new StackEventsLabelProvider();
 
-        viewer = new TreeViewer(composite, SWT.BORDER | SWT.MULTI);
+        viewer = new TreeViewer(composite, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
         viewer.getTree().setLinesVisible(true);
         viewer.getTree().setHeaderVisible(true);
         viewer.setLabelProvider(labelProvider);
         viewer.setContentProvider(contentProvider);
 
         createColumns(tableColumnLayout, viewer.getTree());
-        
+
         refresh();
     }
-    
+
     public void refresh() {
         new LoadStackEventsThread().start();
     }
@@ -167,7 +167,7 @@ public class StackEventsTable extends Composite {
         AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory(stackEditorInput.getAccountId());
         return clientFactory.getCloudFormationClientByEndpoint(stackEditorInput.getRegionEndpoint());
     }
-    
+
     private class LoadStackEventsThread extends Thread {
         @Override
         public void run() {
@@ -178,10 +178,10 @@ public class StackEventsTable extends Composite {
                 do {
                     if (result != null) request.setNextToken(result.getNextToken());
                     result = getClient().describeStackEvents(request);
-    
+
                     stackEvents.addAll(result.getStackEvents());
                 } while (result.getNextToken() != null);
-                
+
                 Display.getDefault().asyncExec(new Runnable() {
                     public void run() {
                         viewer.setInput(stackEvents.toArray(new StackEvent[stackEvents.size()]));

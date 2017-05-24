@@ -114,7 +114,7 @@ public class StackEditor extends EditorPart {
     @Override
     public void createPartControl(Composite parent) {
         FormToolkit toolkit = new FormToolkit(Display.getDefault());
-        ScrolledForm form = new ScrolledForm(parent, SWT.V_SCROLL);
+        ScrolledForm form = new ScrolledForm(parent, SWT.V_SCROLL | SWT.H_SCROLL);
         form.setExpandHorizontal(true);
         form.setExpandVertical(true);
         form.setBackground(toolkit.getColors().getBackground());

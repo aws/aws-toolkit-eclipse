@@ -546,11 +546,16 @@ public class AWSClientFactory {
     // Low layer method for building a service client by using the client builder.
     @SuppressWarnings("unchecked")
     private <T> T createClientByRegion(AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, String region, String endpoint) {
+        if (region.equals("local")) {
+            builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, region));
+        } else {
+            builder.withRegion(region);
+        }
         Object client = builder
                 .withCredentials(new AWSStaticCredentialsProvider(getAwsCredentials()))
-                .withRegion(region)
                 .withClientConfiguration(createClientConfiguration(endpoint))
                 .build();
+
         return (T) client;
     }
 

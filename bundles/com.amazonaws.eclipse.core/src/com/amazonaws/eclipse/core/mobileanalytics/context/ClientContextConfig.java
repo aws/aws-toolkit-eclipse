@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.core.mobileanalytics.context;
 
+import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE;
 import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_ID_PROD;
 import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_ID_TEST;
 import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_TITLE_PROD;
@@ -22,11 +23,12 @@ import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBI
 
 import java.util.Locale;
 import java.util.UUID;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.osgi.service.prefs.BackingStoreException;
 
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -46,7 +48,6 @@ public class ClientContextConfig {
     private final String envPlatformName;
     private final String envPlatformVersion;
     private final String envLocale;
-    // unique per installation; persisted in preference store
     private final String clientId;
 
     public static final ClientContextConfig PROD_CONFIG = new ClientContextConfig(
@@ -137,34 +138,37 @@ public class ClientContextConfig {
     }
 
     private static String _getOrGenerateClientId() {
-        // This is an instance scope PreferenceStore which should be replaced with an installation scope store.
-        IPreferenceStore store = AwsToolkitCore.getDefault().getPreferenceStore();
-        String clientId = store.getString(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY);
+        // This is the Java preferences scope
+        Preferences awsToolkitNode = Preferences.userRoot().node(JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE);
+        String clientId = awsToolkitNode.get(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, null);
 
-        IEclipsePreferences eclipsePreferences = new ConfigurationScope().getNode(
+        if (!StringUtils.isNullOrEmpty(clientId)) {
+            return clientId;
+        }
+
+        // This is an installation scope PreferenceStore.
+        IEclipsePreferences eclipsePreferences = ConfigurationScope.INSTANCE.getNode(
                 AwsToolkitCore.getDefault().getBundle().getSymbolicName());
-        String installationScopeClientId = eclipsePreferences.get(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, null);
+        clientId = eclipsePreferences.get(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, null);
 
-        if (!StringUtils.isNullOrEmpty(installationScopeClientId)) {
-            if (!installationScopeClientId.equals(clientId)) {
-                store.setValue(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, installationScopeClientId);
-            }
-            return installationScopeClientId;
+        if (StringUtils.isNullOrEmpty(clientId)) {
+            // This is an instance scope PreferenceStore.
+            IPreferenceStore store = AwsToolkitCore.getDefault().getPreferenceStore();
+            clientId = store.getString(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY);
         }
 
         if (StringUtils.isNullOrEmpty(clientId)) {
             // Generate a GUID as the client id and persist it in the preference store
             clientId = UUID.randomUUID().toString();
-            // For backward compatibility, we still store the new client id to the instance scope preference store.
-            store.setValue(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, clientId);
         }
-        eclipsePreferences.put(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, clientId);
+
+        awsToolkitNode.put(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, clientId);
+
         try {
-            eclipsePreferences.flush();
+            awsToolkitNode.flush();
         } catch (BackingStoreException e) {
             // Silently fails if exception occurs when flushing the client id.
         }
         return clientId;
     }
-
 }

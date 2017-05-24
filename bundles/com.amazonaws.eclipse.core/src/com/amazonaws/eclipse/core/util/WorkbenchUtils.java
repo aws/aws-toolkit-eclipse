@@ -15,10 +15,15 @@
 package com.amazonaws.eclipse.core.util;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -74,6 +79,37 @@ public class WorkbenchUtils {
                 }
             }
         });
+    }
+
+    /**
+     * Return true if no dirty files or all the dirty files are saved through the pop-up dialog, false otherwise.
+     */
+    public static boolean openSaveFilesDialog(IWorkbench workbench) {
+        IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+
+        List<IEditorPart> dirtyEditors = new ArrayList<IEditorPart>();
+        for (IWorkbenchWindow window : windows) {
+            IWorkbenchPage[] pages = window.getPages();
+
+            for (IWorkbenchPage page : pages) {
+                IEditorPart[] editors = page.getDirtyEditors();
+                dirtyEditors.addAll(Arrays.asList(editors));
+            }
+        }
+
+        if (!dirtyEditors.isEmpty()) {
+            boolean proceed = MessageDialog.openConfirm(
+                    Display.getCurrent().getActiveShell(),
+                    "Unsaved Changes",
+                    "Save all unsaved files and proceed?");
+            if (proceed) {
+                for (IEditorPart part : dirtyEditors) {
+                    part.doSave(null);
+                }
+            }
+            return proceed;
+        }
+        return true;
     }
 
 }
