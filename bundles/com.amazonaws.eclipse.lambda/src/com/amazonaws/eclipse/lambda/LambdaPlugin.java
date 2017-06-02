@@ -14,6 +14,9 @@
  */
 package com.amazonaws.eclipse.lambda;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.BundleContext;
 
@@ -28,6 +31,15 @@ public class LambdaPlugin extends AbstractAwsPlugin {
     public static final String PLUGIN_ID = "com.amazonaws.eclipse.lambda";
 
     public static final String DEFAULT_REGION = "us-east-1";
+    public static final String IMAGE_LAMBDA = "lambda-service";
+    public static final String IMAGE_FUNCTION = "function";
+
+    private static final Map<String, String> IMAGE_REGISTRY_MAP = new HashMap<>();
+
+    static {
+        IMAGE_REGISTRY_MAP.put(IMAGE_LAMBDA, "/icons/lambda-service.png");
+        IMAGE_REGISTRY_MAP.put(IMAGE_FUNCTION, "/icons/function.png");
+    }
 
     /*
      * Preference store keys
@@ -86,5 +98,10 @@ public class LambdaPlugin extends AbstractAwsPlugin {
         if (Platform.inDebugMode()) {
             System.out.println(message);
         }
+    }
+
+    @Override
+    protected Map<String, String> getImageRegistryMap() {
+        return IMAGE_REGISTRY_MAP;
     }
 }

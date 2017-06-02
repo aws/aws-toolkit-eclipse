@@ -88,6 +88,7 @@ public class DeployServerlessProjectHandler extends AbstractHandler {
                     Display.getCurrent().getActiveShell(),
                     "Invalid AWS Serverless Project",
                     "No serverless.template file found in your project root.");
+            return;
         }
         WizardDialog wizardDialog = new WizardDialog(
                 Display.getCurrent().getActiveShell(),

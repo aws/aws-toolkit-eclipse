@@ -14,8 +14,14 @@
  */
 package com.amazonaws.eclipse.core.plugin;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.statushandlers.StatusManager;
 
@@ -69,4 +75,17 @@ public abstract class AbstractAwsPlugin extends AbstractUIPlugin {
         return status;
     }
 
+    @Override
+    protected ImageRegistry createImageRegistry() {
+        ImageRegistry imageRegistry = super.createImageRegistry();
+        for (Entry<String, String> entry : getImageRegistryMap().entrySet()) {
+            imageRegistry.put(entry.getKey(), ImageDescriptor.createFromFile(getClass(), entry.getValue()));
+        }
+        return imageRegistry;
+    }
+
+    // Subclass plugin should override this method if their image registry is not empty.
+    protected Map<String, String> getImageRegistryMap() {
+        return Collections.emptyMap();
+    }
 }

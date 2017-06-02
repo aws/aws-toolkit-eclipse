@@ -53,7 +53,7 @@ import com.amazonaws.eclipse.core.validator.PackageNameValidator;
 import com.amazonaws.eclipse.core.widget.ComboComplex;
 import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
-import com.amazonaws.eclipse.lambda.UrlConstants;
+import com.amazonaws.eclipse.lambda.LambdaConstants;
 import com.amazonaws.eclipse.lambda.blueprint.BlueprintsProvider;
 import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprint;
 import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprintsConfig;
@@ -102,9 +102,9 @@ public class LambdaFunctionComposite {
         String description =
                 "Each Lambda function must specify a handler class " +
                 "which the service will use as the entry point to begin execution.";
-        setItalicFont(newLink(group, UrlConstants.webLinkListener,
+        setItalicFont(newLink(group, LambdaConstants.webLinkListener,
                 description + " <a href=\"" +
-                UrlConstants.LAMBDA_JAVA_HANDLER_DOC_URL +
+                LambdaConstants.LAMBDA_JAVA_HANDLER_DOC_URL +
                 "\">Learn more</a> about Lambda Java function handler.",
                 1));
 
@@ -151,7 +151,7 @@ public class LambdaFunctionComposite {
                 .comboColSpan(2)
                 .build();
 
-        handlerTypeDescriptionLink = newLink(inputComposite, UrlConstants.webLinkListener,
+        handlerTypeDescriptionLink = newLink(inputComposite, LambdaConstants.webLinkListener,
                 dataModel.getSelectedBlueprint().getDescription(), 3);
         setItalicFont(handlerTypeDescriptionLink);
     }

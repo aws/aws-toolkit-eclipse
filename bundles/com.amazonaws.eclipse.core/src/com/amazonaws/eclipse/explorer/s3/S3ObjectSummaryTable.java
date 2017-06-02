@@ -72,11 +72,10 @@ import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.PluginTransferData;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.explorer.s3.actions.DeleteObjectAction;
 import com.amazonaws.eclipse.explorer.s3.actions.EditObjectPermissionsAction;
+import com.amazonaws.eclipse.explorer.s3.actions.EditObjectTagsAction;
 import com.amazonaws.eclipse.explorer.s3.actions.GeneratePresignedUrlAction;
 import com.amazonaws.eclipse.explorer.s3.dnd.KeySelectionDialog;
 import com.amazonaws.eclipse.explorer.s3.dnd.S3ObjectSummaryDropAction;
@@ -580,6 +579,7 @@ public class S3ObjectSummaryTable extends Composite {
                 manager.add(new DeleteObjectAction(S3ObjectSummaryTable.this));
                 manager.add(new Separator());
                 manager.add(new EditObjectPermissionsAction(S3ObjectSummaryTable.this));
+                manager.add(new EditObjectTagsAction(S3ObjectSummaryTable.this));
                 manager.add(new Separator());
                 manager.add(new GeneratePresignedUrlAction(S3ObjectSummaryTable.this));
             }

@@ -78,6 +78,8 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientB
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClient;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.logs.AWSLogs;
+import com.amazonaws.services.logs.AWSLogsClientBuilder;
 import com.amazonaws.services.opsworks.AWSOpsWorks;
 import com.amazonaws.services.opsworks.AWSOpsWorksClient;
 import com.amazonaws.services.opsworks.AWSOpsWorksClientBuilder;
@@ -257,6 +259,10 @@ public class AWSClientFactory {
 
     public AWSCodeStar getCodeStarClient() {
         return getCodeStarClientByRegion(RegionUtils.getCurrentRegion().getId());
+    }
+
+    public AWSLogs getLogsClient() {
+        return getLogsClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     /*
@@ -469,6 +475,11 @@ public class AWSClientFactory {
                 AWSCodeStarClientBuilder.standard(), AWSCodeStar.class);
     }
 
+    public AWSLogs getLogsClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.LOGS, regionId,
+                AWSLogsClientBuilder.standard(), AWSLogs.class);
+    }
+
     @Deprecated
     private <T extends AmazonWebServiceClient> T getOrCreateClient(String endpoint, Class<T> clientClass) {
         synchronized (clientClass) {
@@ -620,7 +631,7 @@ public class AWSClientFactory {
         config.setConnectionTimeout(connectionTimeout);
         config.setSocketTimeout(socketTimeout);
 
-        config.setUserAgentSuffix(AwsClientUtils.formatUserAgentString("AWS-Toolkit-For-Eclipse", AwsToolkitCore.getDefault()));
+        config.setUserAgentPrefix(AwsClientUtils.formatUserAgentString("AWS-Toolkit-For-Eclipse", AwsToolkitCore.getDefault()));
 
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
         if ( plugin != null ) {

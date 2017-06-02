@@ -22,6 +22,8 @@ import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.MessageDialogWithToggle;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
@@ -33,6 +35,7 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 
 /**
  * The IWorkbench.getActiveWorkbenchWindow must be invoked in the UI thread. Otherwise, null will be returned.
@@ -98,16 +101,28 @@ public class WorkbenchUtils {
         }
 
         if (!dirtyEditors.isEmpty()) {
-            boolean proceed = MessageDialog.openConfirm(
+
+            boolean saveFilesAndProceed = MessageDialogWithToggle.ALWAYS.equals(
+                    AwsToolkitCore.getDefault().getPreferenceStore().getString(PreferenceConstants.P_SAVE_FILES_AND_PROCEED));
+            if (!saveFilesAndProceed) {
+                MessageDialogWithToggle dialog = MessageDialogWithToggle.openOkCancelConfirm(
                     Display.getCurrent().getActiveShell(),
-                    "Unsaved Changes",
-                    "Save all unsaved files and proceed?");
-            if (proceed) {
+                    "Save files?",
+                    "Save all unsaved files and proceed?",
+                    "Always save files and proceed",
+                    false,
+                    AwsToolkitCore.getDefault().getPreferenceStore(),
+                    PreferenceConstants.P_SAVE_FILES_AND_PROCEED);
+
+                saveFilesAndProceed = Window.OK == dialog.getReturnCode();
+            }
+
+            if (saveFilesAndProceed) {
                 for (IEditorPart part : dirtyEditors) {
                     part.doSave(null);
                 }
             }
-            return proceed;
+            return saveFilesAndProceed;
         }
         return true;
     }

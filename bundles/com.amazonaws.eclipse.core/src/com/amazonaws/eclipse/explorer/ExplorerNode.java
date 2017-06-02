@@ -19,6 +19,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.graphics.Image;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 
 public class ExplorerNode extends PlatformObject {
 
@@ -26,7 +27,6 @@ public class ExplorerNode extends PlatformObject {
     private final String name;
     private Image image;
     private IAction openAction;
-
 
     public ExplorerNode(String name) {
         this.name = name;
@@ -79,8 +79,12 @@ public class ExplorerNode extends PlatformObject {
     public String toString() {
         return "ExplorerNode: " + name;
     }
-    
+
     protected static Image loadImage(final String imageId) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(imageId);
+        return loadImage(AwsToolkitCore.getDefault(), imageId);
+    }
+
+    protected static Image loadImage(AbstractAwsPlugin plugin, final String imageId) {
+        return plugin.getImageRegistry().get(imageId);
     }
 }

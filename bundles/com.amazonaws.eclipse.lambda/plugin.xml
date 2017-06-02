@@ -2,6 +2,47 @@
 <?eclipse version="3.2"?>
 <plugin>
 
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+    <navigatorContent
+         activeByDefault="true"
+         contentProvider="com.amazonaws.eclipse.explorer.lambda.LambdaContentProvider"
+         id="com.amazonaws.eclipse.explorer.LambdaContent"
+         labelProvider="com.amazonaws.eclipse.explorer.lambda.LambdaLabelProvider"
+         name="AWS Lambda"
+         priority="normal">
+      <triggerPoints>
+          <instanceof value="com.amazonaws.eclipse.explorer.AWSResourcesRootElement" />
+      </triggerPoints>
+      <!--
+          The set of possible children is the elements that will
+        trigger the right-click popup menu, as well as our drag and drop
+        sources / targets.
+       -->
+      <possibleChildren>
+        <or>
+            <instanceof value="com.amazonaws.eclipse.explorer.lambda.LambdaContentProvider$LambdaRootElement" />
+        </or>
+      </possibleChildren>
+      <actionProvider class="com.amazonaws.eclipse.explorer.lambda.LambdaActionProvider">
+         <enablement>
+            <or>
+               <instanceof value="com.amazonaws.eclipse.explorer.lambda.LambdaContentProvider$LambdaRootElement"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.lambda.LambdaContentProvider$FunctionNode"/>
+            </or>
+         </enablement>
+      </actionProvider>
+    </navigatorContent>
+  </extension>
+
+  <extension point="org.eclipse.ui.editors">
+     <editor class="com.amazonaws.eclipse.explorer.lambda.FunctionEditor"
+             default="false"
+             icon="icons/function.png"
+             id="com.amazonaws.eclipse.explorer.lambda.FunctionEditor"
+             name="AWS Lambda Function Editor">
+     </editor>
+  </extension>
+
    <extension point="org.eclipse.ui.newWizards">
       <wizard
             canFinishEarly="false"
@@ -9,7 +50,7 @@
             class="com.amazonaws.eclipse.lambda.project.wizard.NewLambdaJavaFunctionProjectWizard"
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             hasPages="true"
-            icon="icons/aws-box.gif"
+            icon="icons/lambda-service.png"
             id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaJavaFunctionProjectWizard"
             name="AWS Lambda Java Project"
             preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
@@ -21,7 +62,7 @@
             class="com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard"
             finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
             hasPages="true"
-            icon="icons/aws-box.gif"
+            icon="icons/lambda-service.png"
             id="com.amazonaws.eclipse.lambda.project.wizard.NewServerlessProjectWizard"
             name="AWS Serverless Java Project"
             preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
@@ -32,7 +73,7 @@
             category="com.amazonaws.eclipse.sdk.category"
             class="com.amazonaws.eclipse.lambda.project.wizard.NewLambdaFunctionWizard"
             hasPages="true"
-            icon="icons/aws-box.gif"
+            icon="icons/function.png"
             id="com.amazonaws.eclipse.lambda.project.wizard.newLambdaFunctionWizard"
             name="AWS Lambda Function"
             project="false">
@@ -162,7 +203,7 @@
                 label="AWS Lambda"
                 path="additions"
                 id="com.amazonaws.eclipse.lambda.editor.contextMenu"
-                icon="icons/aws-box.gif">
+                icon="icons/lambda-service.png">
                 <separator name="group" />
             </menu>
             <action class="com.amazonaws.eclipse.lambda.upload.wizard.editoraction.RunOnLambdaAction"

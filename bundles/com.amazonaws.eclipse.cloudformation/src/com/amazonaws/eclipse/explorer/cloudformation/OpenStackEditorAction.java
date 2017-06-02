@@ -38,10 +38,6 @@ public class OpenStackEditorAction extends Action {
         this(stackId, null, false);
     }
 
-    public OpenStackEditorAction(String stackId, Region region) {
-        this(stackId, region, false);
-    }
-
     public OpenStackEditorAction(String stackId, Region region, boolean autoRefresh) {
         this.setText("Open in Stack Editor");
         this.stackId = stackId;
@@ -56,7 +52,7 @@ public class OpenStackEditorAction extends Action {
         String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
 
         final IEditorInput input = new StackEditorInput(stackId, endpoint, accountId, autoRefresh);
-        
+
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
                 try {

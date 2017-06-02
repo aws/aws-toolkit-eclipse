@@ -21,10 +21,20 @@ public abstract class AbstractAwsResourceEditorInput implements IEditorInput {
 
     private final String regionEndpoint;
     private final String accountId;
+    private final String regionId;
 
+    /**
+     * @deprecated over {@link #AbstractAwsResourceEditorInput(String, String, String)}
+     */
+    @Deprecated
     public AbstractAwsResourceEditorInput(String regionEndpoint, String accountId) {
+        this(regionEndpoint, accountId, null);
+    }
+
+    public AbstractAwsResourceEditorInput(String regionEndpoint, String accountId, String regionId) {
         this.regionEndpoint = regionEndpoint;
         this.accountId = accountId;
+        this.regionId = regionId;
     }
 
     public String getRegionEndpoint() {
@@ -33,6 +43,10 @@ public abstract class AbstractAwsResourceEditorInput implements IEditorInput {
 
     public String getAccountId() {
         return accountId;
+    }
+
+    public String getRegionId() {
+        return regionId;
     }
 
     public Object getAdapter(Class adapter) {

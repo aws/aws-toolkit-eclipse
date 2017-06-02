@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/aws-java-sdk-lambda-1.11.130.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/aws-java-sdk-s3-1.11.89.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-module-jaxb-annotations-2.6.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/stax2-api-3.1.4.jar"/>
@@ -25,7 +26,6 @@
 	<classpathentry kind="lib" path="lib/aws-java-sdk-iam-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-importexport-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-kms-1.11.21.jar"/>
-	<classpathentry kind="lib" path="lib/aws-java-sdk-lambda-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-logs-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-mobile-analytics-1.11.21.jar"/>
 	<classpathentry kind="lib" path="lib/aws-java-sdk-opsworks-1.11.21.jar"/>

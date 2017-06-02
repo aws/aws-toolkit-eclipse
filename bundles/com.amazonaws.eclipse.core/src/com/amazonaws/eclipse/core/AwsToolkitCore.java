@@ -107,6 +107,8 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
 
     public static final String IMAGE_REMOVE = "remove";
     public static final String IMAGE_ADD = "add";
+    public static final String IMAGE_EDIT = "edit";
+    public static final String IMAGE_SAVE = "save";
     public static final String IMAGE_AWS_TOOLKIT_TITLE = "aws-toolkit-title";
     public static final String IMAGE_EXTERNAL_LINK = "external-link";
     public static final String IMAGE_WRENCH = "wrench";
@@ -590,6 +592,8 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
 
                 IMAGE_ADD,                    "/icons/add.png",
                 IMAGE_REMOVE,                 "/icons/remove.gif",
+                IMAGE_EDIT,                   "/icons/edit.png",
+                IMAGE_SAVE,                   "/icons/save.png",
                 IMAGE_REFRESH,                "/icons/refresh.png",
                 IMAGE_BUCKET,                 "/icons/bucket.png",
                 IMAGE_AWS_LOGO,               "/icons/logo_aws.png",

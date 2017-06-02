@@ -22,6 +22,9 @@ import com.amazonaws.eclipse.core.ui.preferences.ObfuscatingStringFieldEditor;
  */
 public class PreferenceConstants {
 
+    /* Preference store key for whether to save all the files before any deployment. */
+    public static final String P_SAVE_FILES_AND_PROCEED = "saveFilesAndProceed";
+
     /* Preference keys that are used as suffix for a specific accountId */
 
     /** Preference key for a user's AWS user ID. */

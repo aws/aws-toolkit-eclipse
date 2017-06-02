@@ -4,7 +4,8 @@ Bundle-Name: AWS Lambda Plugin
 Bundle-SymbolicName: com.amazonaws.eclipse.lambda;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: lib/freemarker.jar,
- .
+ .,
+ icons/
 Bundle-Activator: com.amazonaws.eclipse.lambda.LambdaPlugin
 Bundle-Vendor: Amazon Web Services
 Require-Bundle: org.eclipse.ui,
@@ -40,3 +41,4 @@ Export-Package: com.amazonaws.eclipse.lambda.blueprint,
  com.amazonaws.eclipse.lambda.project.template.data,
  com.amazonaws.eclipse.lambda.serverless.template,
  freemarker.template
+Import-Package: org.eclipse.ui.navigator

@@ -65,7 +65,7 @@ import com.amazonaws.eclipse.databinding.RangeValidator;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.ServiceApiUtils;
-import com.amazonaws.eclipse.lambda.UrlConstants;
+import com.amazonaws.eclipse.lambda.LambdaConstants;
 import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateBasicLambdaRoleDialog;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.FunctionConfigPageDataModel;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
@@ -231,9 +231,9 @@ public class FunctionConfigurationComposite extends Composite {
 
         setItalicFont(newLink(
                 group,
-                UrlConstants.webLinkListener,
+                LambdaConstants.webLinkListener,
                 "Select the IAM role that AWS Lambda can assume to execute the function on your behalf. <a href=\""
-                        + UrlConstants.LAMBDA_EXECUTION_ROLE_DOC_URL
+                        + LambdaConstants.LAMBDA_EXECUTION_ROLE_DOC_URL
                         + "\">Learn more</a> about Lambda execution roles.", 3));
 
         newLabel(group, "IAM Role:");
