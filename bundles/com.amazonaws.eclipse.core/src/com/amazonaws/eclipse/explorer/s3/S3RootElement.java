@@ -14,20 +14,18 @@
  */
 package com.amazonaws.eclipse.explorer.s3;
 
-import org.eclipse.core.runtime.PlatformObject;
-
 /**
  * Root element for S3 resources in the resource explorer
  */
-public class S3RootElement extends PlatformObject {
+public class S3RootElement {
 
     public static final S3RootElement ROOT_ELEMENT = new S3RootElement();
-    
+
     private S3RootElement() { }
-    
+
     @Override
-    public Object getAdapter(Class adapter) {
-        return null;
+    public String toString() {
+    	return "Amazon S3";
     }
 
 }

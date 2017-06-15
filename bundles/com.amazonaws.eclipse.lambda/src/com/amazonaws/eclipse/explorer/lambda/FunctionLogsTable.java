@@ -124,7 +124,8 @@ public class FunctionLogsTable extends Composite {
             switch (columnIndex) {
                 case 0: return logStream.getLogStreamName();
                 case 1: return CloudWatchLogsUtils.longTimeToHumanReadible(logStream.getCreationTime());
-                case 2: return logStream.getStoredBytes().toString();
+                case 2: return CloudWatchLogsUtils.longTimeToHumanReadible(logStream.getLastEventTimestamp());
+                case 3: return logStream.getStoredBytes().toString();
             }
 
             return element.toString();
@@ -199,6 +200,7 @@ public class FunctionLogsTable extends Composite {
     private void createColumns(TreeColumnLayout columnLayout, Tree tree) {
         createColumn(tree, columnLayout, "Log Streams");
         createColumn(tree, columnLayout, "Creation Time");
+        createColumn(tree, columnLayout, "Last Event Time");
         createColumn(tree, columnLayout, "Stored Bytes");
     }
 

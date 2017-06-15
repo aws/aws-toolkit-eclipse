@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?>
+<target name="com.amazonaws.eclipse.luna" sequenceNumber="5">
+  <locations>
+    <location includeAllPlatforms="false" includeConfigurePhase="false"
+      includeMode="planner" includeSource="true" type="InstallableUnit">
+      <unit id="org.eclipse.jst.server_sdk.feature.feature.group"
+        version="3.4.101.v201501191930" />
+      <unit id="org.eclipse.wst.web_sdk.feature.feature.group"
+        version="3.6.3.v201501312139" />
+      <unit id="org.eclipse.wst.server_adapters.sdk.feature.feature.group"
+        version="3.2.300.v201410241731" />
+      <unit id="org.eclipse.wst.common.fproj.sdk.feature.group"
+        version="3.6.1.v201409111448" />
+      <unit id="org.eclipse.jst.web_sdk.feature.feature.group"
+        version="3.6.3.v201502041526" />
+      <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group"
+        version="3.6.3.v201501141810" />
+      <unit id="org.eclipse.jst.server_adapters.ext.sdk.feature.feature.group"
+        version="3.3.302.v201501040116" />
+      <repository location="http://download.eclipse.org/webtools/repository/luna/" />
+    </location>
+    <location includeAllPlatforms="false" includeConfigurePhase="false"
+      includeMode="planner" includeSource="true" type="InstallableUnit">
+      <unit id="org.eclipse.m2e.feature.feature.group" version="1.5.1.20150109-1820" />
+      <unit id="org.eclipse.datatools.enablement.sdk.feature.feature.group"
+        version="1.12.0.v201406061321-7IAB-FE9JgeWjZZhMd-z0vb1ifD4" />
+      <unit id="org.eclipse.mylyn_feature.feature.group" version="3.14.2.v20150217-2341" />
+      <unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.1.0.20140611-1646" />
+      <unit id="org.eclipse.egit.feature.group" version="3.4.2.201412180340-r" />
+      <unit id="org.eclipse.m2e.sdk.feature.feature.group" version="1.5.1.20150109-1820" />
+      <unit id="org.eclipse.egit.mylyn.feature.group" version="3.4.2.201412180340-r" />
+      <unit id="org.eclipse.datatools.sdk.feature.feature.group"
+        version="1.12.0.v201406061321-7PB21FEpPZQXdcX0z-_yMM0Hfz0w" />
+      <unit id="org.eclipse.sdk.feature.group" version="4.4.2.v20150204-1700" />
+      <unit id="org.eclipse.jdt.feature.group" version="3.10.1.v20150204-1700" />
+      <repository location="http://download.eclipse.org/releases/luna/" />
+    </location>
+  </locations>
+</target>

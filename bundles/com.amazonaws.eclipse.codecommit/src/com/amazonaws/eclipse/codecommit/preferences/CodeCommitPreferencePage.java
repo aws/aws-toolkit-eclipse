@@ -41,6 +41,7 @@ import com.amazonaws.eclipse.codecommit.credentials.GitCredentialsManager;
 import com.amazonaws.eclipse.codecommit.model.CodeCommitPreferencePageDataModel;
 import com.amazonaws.eclipse.codecommit.widgets.GitCredentialsComposite;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.preferences.AwsToolkitPreferencePage;
 import com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory;
 import com.amazonaws.eclipse.core.validator.NoopValidator;
@@ -141,6 +142,9 @@ public class CodeCommitPreferencePage extends AwsToolkitPreferencePage implement
             gitCredentialsComposite.populateGitCredential(
                     "", "");
         }
+        String userAccount = AwsToolkitCore.getDefault().getAccountManager().getAllAccountIds().get(profile);
+        dataModel.getGitCredentialsDataModel().setUserAccount(userAccount);
+        dataModel.getGitCredentialsDataModel().setRegionId(RegionUtils.getCurrentRegion().getId());
     }
 
     @Override

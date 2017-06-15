@@ -64,20 +64,14 @@ public class UploadDropAssistant extends CommonDropAdapterAssistant {
 
         final Bucket bucket = (Bucket) aTarget;
 
-        File f = getFileToDrop(aDropAdapter.getCurrentTransfer());
+        File[] filesToUpload = getFileToDrop(aDropAdapter.getCurrentTransfer());
 
-        if ( f == null || !f.exists() )
+        if (filesToUpload == null || filesToUpload.length == 0)
             return Status.CANCEL_STATUS;
-
-        KeySelectionDialog dialog = new KeySelectionDialog(aDropTargetEvent.display.getActiveShell(), f);
-        if ( dialog.open() != 0 ) {
-            return Status.CANCEL_STATUS;
-        }
-        final String keyName = dialog.getKeyName();
 
         final TransferManager transferManager = new TransferManager(AwsToolkitCore.getClientFactory().getS3ClientForBucket(bucket.getName()));
-            UploadFileJob uploadFileJob = new UploadFileJob("Uploading " + f.getAbsolutePath().toString(),
-                    bucket.getName(), f, keyName, transferManager);
+        UploadFilesJob uploadFileJob = new UploadFilesJob(String.format("Upload files to bucket %s", bucket.getName()),
+                    bucket.getName(), filesToUpload, transferManager);
 
         uploadFileJob.setRefreshRunnable(new Runnable() {
 
@@ -106,18 +100,21 @@ public class UploadDropAssistant extends CommonDropAdapterAssistant {
         return Status.OK_STATUS;
     }
 
-    public static File getFileToDrop(TransferData transfer) {
-        File f = null;
+    public static File[] getFileToDrop(TransferData transfer) {
         if ( LocalSelectionTransfer.getTransfer().isSupportedType(transfer) ) {
             IStructuredSelection selection = (IStructuredSelection) LocalSelectionTransfer.getTransfer().nativeToJava(
                     transfer);
             IResource resource = (IResource) selection.getFirstElement();
-            f = resource.getLocation().toFile();
+            return new File[] {resource.getLocation().toFile()};
         } else if ( FileTransfer.getInstance().isSupportedType(transfer) ) {
             String[] files = (String[]) FileTransfer.getInstance().nativeToJava(transfer);
-            f = new File(files[0]);
+            File[] filesToDrop = new File[files.length];
+            for (int i = 0; i < files.length; ++i) {
+                filesToDrop[i] = new File(files[i]);
+            }
+            return filesToDrop;
         }
-        return f;
+        return null;
     }
 
 }

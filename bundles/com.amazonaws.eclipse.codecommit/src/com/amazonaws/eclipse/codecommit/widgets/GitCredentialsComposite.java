@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
@@ -38,7 +40,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.ui.dialogs.SaveAsDialog;
 
+import com.amazonaws.eclipse.codecommit.CodeCommitConstants;
 import com.amazonaws.eclipse.codecommit.credentials.GitCredential;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.model.GitCredentialsDataModel;
@@ -46,17 +50,40 @@ import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.core.widget.CheckboxComplex;
 import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.model.AmazonIdentityManagementException;
+import com.amazonaws.services.identitymanagement.model.AttachUserPolicyRequest;
+import com.amazonaws.services.identitymanagement.model.CreateServiceSpecificCredentialRequest;
+import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
+import com.amazonaws.services.identitymanagement.model.LimitExceededException;
+import com.amazonaws.services.identitymanagement.model.ListUsersRequest;
+import com.amazonaws.services.identitymanagement.model.ListUsersResult;
+import com.amazonaws.services.identitymanagement.model.ServiceSpecificCredential;
+import com.amazonaws.services.identitymanagement.model.User;
+import com.amazonaws.util.StringUtils;
 
 /**
  * A complex composite for configuring Git credentials.
  */
 public class GitCredentialsComposite extends Composite {
+    private static final String AUTO_CREATE_GIT_CREDENTIALS_TILTE = "Auto-create Git credentials";
+    private static final String IAM_USER_PREFIX = "EclipseToolkit-CodeCommitUser";
     private static final String GIT_CREDENTIALS_DOC =
             "http://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-gc.html#setting-up-gc-iam";
+    private static final String CREATE_SERVICE_SPECIFIC_CREDENTIALS_DOC =
+            "http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateServiceSpecificCredential.html";
+
+    private final DataBindingContext dataBindingContext;
+    private final GitCredentialsDataModel dataModel;
+
     private TextComplex usernameComplex;
     private TextComplex passwordComplex;
     private CheckboxComplex showPasswordComplex;
     private Button browseButton;
+    private Button createGitCredentialsButton;
+
+    private IValidator usernameValidator;
+    private IValidator passwordValidator;
 
     public GitCredentialsComposite(Composite parent, DataBindingContext dataBindingContext, GitCredentialsDataModel dataModel) {
         this(parent, dataBindingContext, dataModel, null, null);
@@ -67,7 +94,11 @@ public class GitCredentialsComposite extends Composite {
         super(parent, SWT.NONE);
         setLayout(new GridLayout(2, false));
         setLayoutData(new GridData(GridData.FILL_BOTH));
-        createControl(dataBindingContext, dataModel, usernameValidator, passwordValidator);
+        this.dataModel = dataModel;
+        this.dataBindingContext = dataBindingContext;
+        this.usernameValidator = usernameValidator;
+        this.passwordValidator = passwordValidator;
+        createControl();
     }
 
     public void populateGitCredential(String username, String password) {
@@ -75,17 +106,23 @@ public class GitCredentialsComposite extends Composite {
         passwordComplex.setText(password);
     }
 
-    private void createControl(DataBindingContext context, GitCredentialsDataModel dataModel,
-            IValidator usernameValidator, IValidator passwordValidator) {
+    private void createControl() {
+        createUsernamePasswordSection();
+        createButtonCompositeSection();
+        onShowPasswordCheckboxSelection();
+    }
 
+    private void createUsernamePasswordSection() {
         newLink(this, new WebLinkListener(), String.format(
                 "You can manually copy and paste Git credentials for AWS CodeCommit below. "
                 + "Alternately, you can import them from a downloaded .csv file. To learn how to generate Git credentials, see "
-                + "<a href=\"%s\">Create Git Credentials for HTTPS Connections to AWS CodeCommit</a>.", GIT_CREDENTIALS_DOC), 2);
+                + "<a href=\"%s\">Create Git Credentials for HTTPS Connections to AWS CodeCommit</a>. You can also authorize the AWS "
+                + "Toolkit for Eclipse to create a new set of Git credentials under the current selected account. see "
+                + "<a href=\"%s\">CreateServiceSpecificCredential</a> for more information.", GIT_CREDENTIALS_DOC, CREATE_SERVICE_SPECIFIC_CREDENTIALS_DOC), 2);
 
         usernameComplex = TextComplex.builder()
                 .composite(this)
-                .dataBindingContext(context)
+                .dataBindingContext(dataBindingContext)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_USERNAME))
                 .validator(usernameValidator == null ? new NotEmptyValidator("User name must be provided!") : usernameValidator)
                 .labelValue("User name:")
@@ -94,16 +131,24 @@ public class GitCredentialsComposite extends Composite {
 
         passwordComplex = TextComplex.builder()
                 .composite(this)
-                .dataBindingContext(context)
+                .dataBindingContext(dataBindingContext)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_PASSWORD))
                 .validator(passwordValidator == null ? new NotEmptyValidator("Password must be provided!") : passwordValidator)
                 .labelValue("Password: ")
                 .defaultValue(dataModel.getPassword())
                 .build();
+    }
+
+    private void createButtonCompositeSection() {
+        Composite buttonComposite = new Composite(this, SWT.NONE);
+        buttonComposite.setLayout(new GridLayout(3, false));
+        GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gridData.horizontalSpan = 2;
+        buttonComposite.setLayoutData(gridData);
 
         showPasswordComplex = CheckboxComplex.builder()
-                .composite(this)
-                .dataBindingContext(context)
+                .composite(buttonComposite)
+                .dataBindingContext(dataBindingContext)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_SHOW_PASSWORD))
                 .labelValue("Show password")
                 .selectionListener(new SelectionAdapter() {
@@ -115,19 +160,74 @@ public class GitCredentialsComposite extends Composite {
                 .defaultValue(dataModel.isShowPassword())
                 .build();
 
-        browseButton = newPushButton(this, "Import from csv file");
+        browseButton = newPushButton(buttonComposite, "Import from csv file");
         browseButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
         browseButton.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.SINGLE);
                 String path = dialog.open();
-                if (path == null) return;
+                if (path == null) {
+                    return;
+                }
                 GitCredential gitCredential = loadGitCredential(new File(path));
-                usernameComplex.setText(gitCredential.getUsername());
-                passwordComplex.setText(gitCredential.getPassword());
+                populateGitCredential(gitCredential.getUsername(), gitCredential.getPassword());
             }
         });
-        onShowPasswordCheckboxSelection();
+
+        createGitCredentialsButton = newPushButton(buttonComposite, "Create Git credentials");
+        createGitCredentialsButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+        createGitCredentialsButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                AmazonIdentityManagement iam = dataModel.getIamClient();
+                String profileName = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(dataModel.getUserAccount()).getAccountName();
+                try {
+                    String userName = iam.getUser().getUser().getUserName();
+                    if (StringUtils.isNullOrEmpty(userName)) {
+                        if (!MessageDialog.openConfirm(getShell(), AUTO_CREATE_GIT_CREDENTIALS_TILTE,
+                                String.format("Your profile is using root AWS credentials. AWS CodeCommit requires specific CodeCommit credentials from an IAM user. "
+                                + "The toolkit can create an IAM user with CodeCommit credentials and associate the credentials with the %s Toolit profile.\n\n"
+                                + "Proceed to try and create an IAM user with credentials and associate with the %s Toolkit profile?", profileName, profileName))) {
+                            return;
+                        }
+                        userName = createNewIamUser().getUserName();
+                    }
+
+                    ServiceSpecificCredential credential = iam.createServiceSpecificCredential(new CreateServiceSpecificCredentialRequest()
+                            .withUserName(userName).withServiceName(CodeCommitConstants.CODECOMMIT_SERVICE_NAME))
+                            .getServiceSpecificCredential();
+                    populateGitCredential(credential.getServiceUserName(), credential.getServicePassword());
+                } catch (LimitExceededException lee) {
+                    MessageDialog.openWarning(getShell(), AUTO_CREATE_GIT_CREDENTIALS_TILTE, "You may already have created the maximum number of sets of Git credentials for AWS CodeCommit(two). "
+                            + "Log into the AWS Management Console to download the credentials or obtain them from your administrator, and then import to the toolkit.");
+                } catch (Exception ex) {
+                    MessageDialog.openError(getShell(), AUTO_CREATE_GIT_CREDENTIALS_TILTE, "Error: " + ex.getMessage());
+                }
+            }
+        });
+    }
+
+    // Create a new IAM user attched with the default policy, AWSCodeCommitPowerUser
+    private User createNewIamUser() {
+        AmazonIdentityManagement iam = dataModel.getIamClient();
+        Set<String> userSet = new HashSet<String>();
+        ListUsersResult result = new ListUsersResult();
+        do {
+            result = iam.listUsers(new ListUsersRequest().withMarker(result.getMarker()));
+            for (User user : result.getUsers()) {
+                userSet.add(user.getUserName());
+            }
+        } while (result.isTruncated());
+
+        String newIamUserName = IAM_USER_PREFIX;
+        for (int i = 1; userSet.contains(newIamUserName); ++i) {
+            newIamUserName = IAM_USER_PREFIX + "-" + i;
+        }
+        User newUser = iam.createUser(new CreateUserRequest().withUserName(newIamUserName)).getUser();
+        iam.attachUserPolicy(new AttachUserPolicyRequest()
+                .withUserName(newIamUserName)
+                .withPolicyArn("arn:aws:iam::aws:policy/AWSCodeCommitPowerUser"));
+        return newUser;
     }
 
     private void onShowPasswordCheckboxSelection() {

@@ -156,7 +156,7 @@ public class RepositoryEditor extends EditorPart {
         Button checkoutButton = toolkit.createButton(composite, "Check out", SWT.PUSH);
         checkoutButton.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                CloneRepositoryAction.executeCloneAction(client, repositoryName);
+                CloneRepositoryAction.executeCloneAction(repositoryEditorInput.getAccountId(), repositoryEditorInput.getRegionId(), repositoryName);
             }
         });
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="org.eclipse.sdk" version="0.0.0"/>
+   <feature id="org.eclipse.jdt" version="0.0.0"/>
+   <feature id="org.eclipse.m2e.feature" version="0.0.0"/>
+   <feature id="org.eclipse.m2e.sdk.feature" version="0.0.0"/>
+   <feature id="org.eclipse.mylyn.commons" version="0.0.0"/>
+   <feature id="org.eclipse.datatools.sdk.feature" version="0.0.0"/>
+   <feature id="org.eclipse.datatools.enablement.sdk.feature" version="0.0.0"/>
+   <feature id="org.eclipse.egit" version="0.0.0"/>
+   <feature id="org.eclipse.jst.web_sdk.feature" version="0.0.0"/>
+   <feature id="org.eclipse.jst.server_sdk.feature" version="0.0.0"/>
+   <feature id="org.eclipse.jst.common.fproj.enablement.jdt.sdk" version="0.0.0"/>
+   <feature id="org.eclipse.wst.common.fproj.sdk" version="0.0.0"/>
+   <feature id="org.eclipse.wst.web_sdk.feature" version="0.0.0"/>
+   <feature id="org.eclipse.wst.server_adapters.sdk.feature" version="0.0.0"/>
+   <bundle id="com.amazonaws.eclipse.javasdk" version="1.11.130"/>
+</site>

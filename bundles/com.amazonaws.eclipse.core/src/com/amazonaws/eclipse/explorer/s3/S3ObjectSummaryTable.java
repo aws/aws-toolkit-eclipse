@@ -80,7 +80,7 @@ import com.amazonaws.eclipse.explorer.s3.actions.GeneratePresignedUrlAction;
 import com.amazonaws.eclipse.explorer.s3.dnd.KeySelectionDialog;
 import com.amazonaws.eclipse.explorer.s3.dnd.S3ObjectSummaryDropAction;
 import com.amazonaws.eclipse.explorer.s3.dnd.UploadDropAssistant;
-import com.amazonaws.eclipse.explorer.s3.dnd.UploadFileJob;
+import com.amazonaws.eclipse.explorer.s3.dnd.UploadFilesJob;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
@@ -321,7 +321,7 @@ public class S3ObjectSummaryTable extends Composite {
         Composite headingComp = toolkit.createComposite(sectionComp, SWT.None);
         headingComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         headingComp.setLayout(new GridLayout());
-        Label label = toolkit.createLabel(headingComp, "Object listing");
+        Label label = toolkit.createLabel(headingComp, "Object listing: drag and drop local files to the table view to upload to S3 bucket");
         label.setFont(JFaceResources.getHeaderFont());
         label.setForeground(toolkit.getColors().getColor(IFormColors.TITLE));
 
@@ -426,7 +426,11 @@ public class S3ObjectSummaryTable extends Composite {
         dropTarget.addDropListener(new DropTargetAdapter() {
             @Override
             public void drop(DropTargetEvent event) {
-                File f = UploadDropAssistant.getFileToDrop(event.currentDataType);
+                File[] files = UploadDropAssistant.getFileToDrop(event.currentDataType);
+
+                if (files == null || files.length == 0) {
+                    return;
+                }
 
                 String prefix = "";
                 if ( event.item instanceof TreeItem ) {
@@ -437,16 +441,10 @@ public class S3ObjectSummaryTable extends Composite {
                     }
                 }
 
-                KeySelectionDialog dialog = new KeySelectionDialog(viewer.getTree().getDisplay().getActiveShell(), prefix, f);
-                if ( dialog.open() != 0 ) {
-                    return;
-                }
-
-                final String keyName = dialog.getKeyName();
                 final TransferManager transferManager = new TransferManager(getS3Client());
 
-                UploadFileJob uploadFileJob = new UploadFileJob("Uploading " + f.getAbsolutePath().toString(), bucketName, f, keyName,
-                        transferManager);
+                UploadFilesJob uploadFileJob = new UploadFilesJob(String.format("Upload files to bucket %s", bucketName),
+                        bucketName, files, transferManager);
                 uploadFileJob.setRefreshRunnable(new Runnable() {
                     public void run() {
                         refresh(null);

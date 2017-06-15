@@ -14,6 +14,10 @@
  */
 package com.amazonaws.eclipse.core.model;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+
 public class GitCredentialsDataModel {
 
     public static final String P_USERNAME = "username";
@@ -23,6 +27,9 @@ public class GitCredentialsDataModel {
     private String username;
     private String password;
     private boolean showPassword;
+
+    private String userAccount = AwsToolkitCore.getDefault().getCurrentAccountId();
+    private String regionId = RegionUtils.getCurrentRegion().getId();
 
     public String getUsername() {
         return username;
@@ -42,5 +49,24 @@ public class GitCredentialsDataModel {
     public void setShowPassword(boolean showPassword) {
         this.showPassword = showPassword;
     }
+    public String getUserAccount() {
+        return userAccount;
+    }
+    public void setUserAccount(String userAccount) {
+        this.userAccount = userAccount;
+    }
+    public String getRegionId() {
+        return regionId;
+    }
+    public void setRegionId(String regionId) {
+        this.regionId = regionId;
+    }
 
+    public AmazonIdentityManagement getIamClient() {
+        if (userAccount != null && regionId != null) {
+            return AwsToolkitCore.getClientFactory(userAccount)
+                    .getIAMClientByRegion(regionId);
+        }
+        return null;
+    }
 }

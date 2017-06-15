@@ -31,10 +31,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.wst.server.ui;bundle-version="1.1.0",
  org.eclipse.core.net;bundle-version="1.2.0",
  org.eclipse.ui.forms;bundle-version="3.3.0",
- org.eclipse.jst.j2ee.ejb;bundle-version="1.1.0",
  org.eclipse.ui.navigator;bundle-version="3.2.0",
  com.jcraft.jsch;bundle-version="0.1.41",
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.jdt.core,

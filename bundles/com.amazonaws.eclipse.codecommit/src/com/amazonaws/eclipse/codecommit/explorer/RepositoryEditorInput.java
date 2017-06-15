@@ -24,8 +24,8 @@ public class RepositoryEditorInput extends AbstractAwsResourceEditorInput {
 
     private final RepositoryNameIdPair repository;
 
-    public RepositoryEditorInput(RepositoryNameIdPair repository, String regionEndpoint, String accountId) {
-        super(regionEndpoint, accountId);
+    public RepositoryEditorInput(RepositoryNameIdPair repository, String regionEndpoint, String accountId, String regionId) {
+        super(regionEndpoint, accountId, regionId);
         this.repository = repository;
     }
 

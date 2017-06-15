@@ -269,6 +269,9 @@ public class CodeStarProjectCheckoutPage extends WizardPage {
             gitCredentialsComposite.populateGitCredential(
                     "", "");
         }
+
+        dataModel.getGitCredentialsDataModel().setUserAccount(dataModel.getAccountId());
+        dataModel.getGitCredentialsDataModel().setRegionId(dataModel.getProjectRegionId());
     }
 
     private Map<String, DescribeProjectResult> getCodeStarProjects() {

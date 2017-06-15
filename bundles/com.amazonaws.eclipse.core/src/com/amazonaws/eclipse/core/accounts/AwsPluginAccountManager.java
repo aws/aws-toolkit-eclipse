@@ -298,6 +298,25 @@ public final class AwsPluginAccountManager {
     }
 
     /**
+     * Returns a map from profile names to account names in the toolkit.
+     */
+    public Map<String, String> getAllAccountIds() {
+        Map<String, AccountInfo> allAccountInfo = getAllAccountInfo();
+        if (allAccountInfo == null) {
+            return Collections.<String, String>emptyMap();
+        }
+
+        Map<String, String> allAccountIds = new LinkedHashMap<String, String>();
+        for (Entry<String, AccountInfo> entry : allAccountInfo.entrySet()) {
+            allAccountIds.put(
+                    entry.getValue().getAccountName(),
+                    entry.getKey()
+                    );
+        }
+        return allAccountIds;
+    }
+
+    /**
      * Returns a map of all the accounts configured in the toolkit. This method
      * returns all the legacy pref-store-based accounts if none of the profile
      * accounts could be found. This method returns an empty map when it failed

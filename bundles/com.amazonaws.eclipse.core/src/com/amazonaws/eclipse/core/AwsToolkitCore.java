@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.core;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,7 +31,9 @@ import org.eclipse.jface.dialogs.ErrorSupportProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.util.Policy;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;

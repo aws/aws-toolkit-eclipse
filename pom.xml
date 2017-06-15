@@ -5,28 +5,40 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <modules>
-    <module>bundles</module>
-    <module>features</module>
-    <module>tests</module>
-    <module>releng</module>
-  </modules>
+  <prerequisites>
+    <maven>3.0</maven>
+  </prerequisites>
 
   <properties>
     <tycho.version>1.0.0</tycho.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <luna.repo.url>http://download.eclipse.org/releases/luna</luna.repo.url>
+    <eclipse.target>mars</eclipse.target>
+    <java-sdk-bundle-version>1.11.130</java-sdk-bundle-version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 
   <repositories>
     <repository>
-      <id>luna</id>
-      <url>${luna.repo.url}</url>
-      <layout>p2</layout>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
     </repository>
   </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.amazonaws.eclipse</groupId>
+      <artifactId>com.amazonaws.eclipse.javasdk</artifactId>
+      <version>${java-sdk-bundle-version}</version>
+    </dependency>
+  </dependencies>
 
   <build>
     <plugins>
@@ -35,6 +47,17 @@
         <artifactId>tycho-maven-plugin</artifactId>
         <version>${tycho.version}</version>
         <extensions>true</extensions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-compiler-plugin</artifactId>
+        <version>${tycho.version}</version>
+        <configuration>
+          <!-- We should turn on this flag and resolve all the warning issues! -->
+          <showWarnings>false</showWarnings>
+          <!-- <compilerArgument>-warn:+discouraged,+forbidden,-unavoidableGenericProblems,-warningToken</compilerArgument> -->
+        </configuration>
       </plugin>
 
       <plugin>
@@ -51,36 +74,191 @@
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho.version}</version>
         <configuration>
+          <pomDependencies>consider</pomDependencies>
           <environments>
             <environment>
-              <os>linux</os>
-              <ws>gtk</ws>
-              <arch>x86</arch>
+              <os>linux</os> <ws>gtk</ws> <arch>x86</arch>
             </environment>
             <environment>
-              <os>linux</os>
-              <ws>gtk</ws>
-              <arch>x86_64</arch>
+              <os>linux</os> <ws>gtk</ws> <arch>x86_64</arch>
             </environment>
             <environment>
-              <os>win32</os>
-              <ws>win32</ws>
-              <arch>x86</arch>
+              <os>win32</os> <ws>win32</ws> <arch>x86</arch>
             </environment>
             <environment>
-              <os>win32</os>
-              <ws>win32</ws>
-              <arch>x86_64</arch>
+              <os>win32</os> <ws>win32</ws> <arch>x86_64</arch>
             </environment>
             <environment>
-              <os>macosx</os>
-              <ws>cocoa</ws>
-              <arch>x86_64</arch>
+              <os>macosx</os> <ws>cocoa</ws> <arch>x86_64</arch>
             </environment>
           </environments>
         </configuration>
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>install-third-party-bundles</id>
+      <modules>
+        <module>thirdparty</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>build-eclipse-devide</id>
+      <modules>
+        <!-- Use Luna as default target platform. -->
+        <module>releng/com.amazonaws.eclipse.luna</module>
+        <module>releng/com.amazonaws.eclipse.devide</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>target-platform-configuration</artifactId>
+            <configuration>
+              <target>
+                <artifact>
+                  <groupId>com.amazonaws.eclipse</groupId>
+                  <artifactId>com.amazonaws.eclipse.luna</artifactId>
+                  <version>4.4.0-SNAPSHOT</version>
+                </artifact>
+              </target>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>build-eclipse-luna</id>
+      <activation>
+        <!-- Default profile unless another profile in the same POM is activated. -->
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>bundles</module>
+        <module>features</module>
+        <module>tests</module>
+        <module>releng/com.amazonaws.eclipse.luna</module>
+        <module>releng/com.amazonaws.eclipse.update</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>target-platform-configuration</artifactId>
+            <configuration>
+              <target>
+                <artifact>
+                  <groupId>com.amazonaws.eclipse</groupId>
+                  <artifactId>com.amazonaws.eclipse.luna</artifactId>
+                  <version>4.4.0-SNAPSHOT</version>
+                </artifact>
+              </target>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>build-eclipse-mars</id>
+      <activation>
+        <property>
+          <name>eclipse.target</name> <value>mars</value>
+        </property>
+      </activation>
+      <modules>
+        <module>bundles</module>
+        <module>features</module>
+        <module>tests</module>
+        <module>releng/com.amazonaws.eclipse.mars</module>
+        <module>releng/com.amazonaws.eclipse.update</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>target-platform-configuration</artifactId>
+            <configuration>
+              <target>
+                <artifact>
+                  <groupId>com.amazonaws.eclipse</groupId>
+                  <artifactId>com.amazonaws.eclipse.mars</artifactId>
+                  <version>4.5.0-SNAPSHOT</version>
+                </artifact>
+              </target>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>build-eclipse-neon</id>
+      <activation>
+        <property>
+          <name>eclipse.target</name> <value>neon</value>
+        </property>
+      </activation>
+      <modules>
+        <module>bundles</module>
+        <module>features</module>
+        <module>tests</module>
+        <module>releng/com.amazonaws.eclipse.neon</module>
+        <module>releng/com.amazonaws.eclipse.update</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>target-platform-configuration</artifactId>
+            <configuration>
+              <target>
+                <artifact>
+                  <groupId>com.amazonaws.eclipse</groupId>
+                  <artifactId>com.amazonaws.eclipse.neon</artifactId>
+                  <version>4.6.0-SNAPSHOT</version>
+                </artifact>
+              </target>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>build-eclipse-oxygen</id>
+      <activation>
+        <property>
+          <name>eclipse.target</name> <value>oxygen</value>
+        </property>
+      </activation>
+      <modules>
+        <module>bundles</module>
+        <module>features</module>
+        <module>tests</module>
+        <module>releng/com.amazonaws.eclipse.oxygen</module>
+        <module>releng/com.amazonaws.eclipse.update</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>target-platform-configuration</artifactId>
+            <configuration>
+              <target>
+                <artifact>
+                  <groupId>com.amazonaws.eclipse</groupId>
+                  <artifactId>com.amazonaws.eclipse.oxygen</artifactId>
+                  <version>4.7.0-SNAPSHOT</version>
+                </artifact>
+              </target>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

@@ -229,13 +229,13 @@ public class CodeCommitActionProvider extends CommonActionProvider {
 
         @Override
         public void run() {
-            executeCloneAction(null, repository.getRepositoryName());
+            executeCloneAction(null, null, repository.getRepositoryName());
         }
 
-        public static void executeCloneAction(AWSCodeCommit client, String repositoryName) {
+        public static void executeCloneAction(String accountId, String regionId, String repositoryName) {
             try {
                 WizardDialog dialog = new WizardDialog(Display.getDefault().getActiveShell(),
-                        new CloneRepositoryWizard(client, repositoryName));
+                        new CloneRepositoryWizard(accountId, regionId, repositoryName));
                 dialog.open();
             } catch (URISyntaxException e) {
                 CodeCommitPlugin.getDefault().reportException(e.getMessage(), e);
@@ -299,8 +299,9 @@ public class CodeCommitActionProvider extends CommonActionProvider {
         public void run() {
             String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CODECOMMIT);
             String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
+            String regionId = RegionUtils.getCurrentRegion().getId();
 
-            final IEditorInput input = new RepositoryEditorInput(repository, endpoint, accountId);
+            final IEditorInput input = new RepositoryEditorInput(repository, endpoint, accountId, regionId);
 
             Display.getDefault().asyncExec(new Runnable() {
                 public void run() {

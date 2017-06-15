@@ -361,4 +361,11 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
          install-size="0"
          version="0.0.0"/>
 
+   <plugin
+         id="com.amazonaws.eclipse.javasdk"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>

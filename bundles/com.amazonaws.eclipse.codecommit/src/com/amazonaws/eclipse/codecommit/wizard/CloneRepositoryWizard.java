@@ -43,12 +43,12 @@ import com.amazonaws.eclipse.core.egit.ui.CloneDestinationPage;
 import com.amazonaws.eclipse.core.egit.ui.SourceBranchPage;
 import com.amazonaws.eclipse.core.maven.MavenUtils;
 import com.amazonaws.eclipse.core.model.GitCredentialsDataModel;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.model.GetRepositoryRequest;
 import com.amazonaws.services.codecommit.model.RepositoryMetadata;
 
-@SuppressWarnings("restriction")
 public class CloneRepositoryWizard extends Wizard implements IImportWizard {
     protected IWorkbench workbench;
 
@@ -65,12 +65,17 @@ public class CloneRepositoryWizard extends Wizard implements IImportWizard {
 
     private GitRepositoryInfo gitRepositoryInfo;
 
-    public CloneRepositoryWizard(AWSCodeCommit client, String repositoryName) throws URISyntaxException {
+    public CloneRepositoryWizard(String accountId, String regionId, String repositoryName) throws URISyntaxException {
         super();
-        if (client == null) client = CodeCommitPlugin.getCurrentCodeCommitClient();
-        this.client = client;
+        if (accountId == null) {
+            accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
+        }
+        if (regionId == null) {
+            regionId = RegionUtils.getCurrentRegion().getId();
+        }
+        this.client = AwsToolkitCore.getClientFactory(accountId).getCodeCommitClientByRegion(regionId);
         this.repositoryName = repositoryName;
-        this.currentProfile = AwsToolkitCore.getDefault().getAccountInfo().getAccountName();
+        this.currentProfile = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountId).getAccountName();
 
         setWindowTitle("Clone AWS CodeCommit Repository");
         setNeedsProgressMonitor(true);
@@ -79,6 +84,8 @@ public class CloneRepositoryWizard extends Wizard implements IImportWizard {
             dataModel.setUsername(credential.getUsername());
             dataModel.setPassword(credential.getPassword());
         }
+        dataModel.setUserAccount(accountId);
+        dataModel.setRegionId(regionId);
     }
 
     public void init(IWorkbench workbench, IStructuredSelection selection) {

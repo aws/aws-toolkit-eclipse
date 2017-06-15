@@ -51,8 +51,7 @@ import com.amazonaws.eclipse.core.util.WorkbenchUtils;
  * Wizard for importing an existing CodeStar project.
  */
 @SuppressWarnings({ "restriction" })
-public class CodeStarProjectCheckoutWizard extends Wizard implements
-        IImportWizard {
+public class CodeStarProjectCheckoutWizard extends Wizard implements IImportWizard {
 
     protected IWorkbench workbench;
     protected CodeStarProjectCheckoutWizardDataModel dataModel;
@@ -74,6 +73,10 @@ public class CodeStarProjectCheckoutWizard extends Wizard implements
      * open up the CodeStarProjectCheckoutPage.
      */
     public CodeStarProjectCheckoutWizard() {
+        super();
+        setWindowTitle(UIConstants.CODESTAR_PROJECT_CHECKOUT_WIZARD_TITLE);
+        setDefaultPageImageDescriptor(
+                AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
         setNeedsProgressMonitor(true);
 
         dataModel = new CodeStarProjectCheckoutWizardDataModel();
@@ -81,8 +84,6 @@ public class CodeStarProjectCheckoutWizard extends Wizard implements
 
         sourceBranchPage = createSourceBranchPage();
         cloneDestinationPage = createCloneDestinationPage();
-
-        setWindowTitle(UIConstants.CODESTAR_PROJECT_CHECKOUT_WIZARD_TITLE);
     }
 
     public void init(IWorkbench workbench, IStructuredSelection arg1) {
