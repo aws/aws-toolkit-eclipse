@@ -34,11 +34,11 @@ public class ServerlessModel {
     private Map<String, TypeProperties> additionalResources;
 
     // Unrecognized template properties
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new HashMap<>();
 
     public Map<String, ServerlessFunction> getServerlessFunctions() {
         if (serverlessFunctions == null) {
-            serverlessFunctions = new HashMap<String, ServerlessFunction>();
+            serverlessFunctions = new HashMap<>();
         }
         return serverlessFunctions;
     }
@@ -73,7 +73,7 @@ public class ServerlessModel {
     }
     public Map<String, TypeProperties> getAdditionalResources() {
         if (additionalResources == null) {
-            additionalResources = new HashMap<String, TypeProperties>();
+            additionalResources = new HashMap<>();
         }
         return additionalResources;
     }

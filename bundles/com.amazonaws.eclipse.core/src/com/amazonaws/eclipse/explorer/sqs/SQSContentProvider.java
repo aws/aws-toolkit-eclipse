@@ -53,6 +53,7 @@ public class SQSContentProvider extends AbstractContentProvider {
         }
     }
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof SQSRootElement);
@@ -70,7 +71,7 @@ public class SQSContentProvider extends AbstractContentProvider {
                 public Object[] loadData() {
                     AmazonSQS sqs = AwsToolkitCore.getClientFactory().getSQSClient();
 
-                    List<QueueNode> queueNodes = new ArrayList<QueueNode>();
+                    List<QueueNode> queueNodes = new ArrayList<>();
                     for (String queueUrl : sqs.listQueues().getQueueUrls()) {
                         queueNodes.add(new QueueNode(queueUrl));
                     }

@@ -101,10 +101,12 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage {
 
     private class LoadIamRolesCallback implements LoadResourcesCallback<Role> {
 
+        @Override
         public void onSuccess(List<Role> roles) {
             createRoleComboBoxControls(roles);
         }
 
+        @Override
         public void onInsufficientPermissions() {
             if (!hasInsufficientIamPermissionDialogBeenShown) {
                 hasInsufficientIamPermissionDialogBeenShown = true;
@@ -125,6 +127,7 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage {
         // probably throw an error dialog up. It may be that our logic for determining a service error
         // is a permissions failure has gotten stale and needs to be updated. Not entirely sure what the
         // experience for this should look like, hence the todo
+        @Override
         public void onFailure() {
             onInsufficientPermissions();
         }
@@ -301,7 +304,7 @@ public class DeployWizardRoleSelectionPage extends AbstractDeployWizardPage {
          * @return List of strings containing all role names that are appropriate for this role type
          */
         private List<String> transformRoleList(List<Role> roles) {
-            List<String> stringRoles = new ArrayList<String>(roles.size() + 1);
+            List<String> stringRoles = new ArrayList<>(roles.size() + 1);
             stringRoles.add(defaultRole);
             for (Role role : roles) {
                 if (!isDefaultRole(role) && hasRequiredTrustEntity(role)) {

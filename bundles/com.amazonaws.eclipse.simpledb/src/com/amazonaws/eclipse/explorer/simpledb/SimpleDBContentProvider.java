@@ -39,6 +39,7 @@ public class SimpleDBContentProvider extends AbstractContentProvider implements 
         return instance;
     }
 
+    @Override
     public boolean hasChildren(final Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof SimpleDBRootElement);
@@ -57,7 +58,7 @@ public class SimpleDBContentProvider extends AbstractContentProvider implements 
                     AmazonSimpleDB client = AwsToolkitCore.getClientFactory().getSimpleDBClient();
 
                     // Translate the domain names to objects so we can work with them more easily
-                    List<DomainNode> domainNodes = new ArrayList<DomainNode>();
+                    List<DomainNode> domainNodes = new ArrayList<>();
                     for (String domainName : client.listDomains().getDomainNames()) {
                         domainNodes.add(new DomainNode(domainName));
                     }

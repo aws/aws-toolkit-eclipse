@@ -25,42 +25,42 @@ import java.util.List;
  */
 public class ShellCommandException extends IOException {
 
-	/** default serial version id */
-	private static final long serialVersionUID = 1L;
+    /** default serial version id */
+    private static final long serialVersionUID = 1L;
 
-	/** The results of trying to execute the shell command */
-	private final List<ShellCommandResults> results;
+    /** The results of trying to execute the shell command */
+    private final List<ShellCommandResults> results;
 
-	/**
-	 * Creates a new ShellCommandException with the specified message and
-	 * description of the shell command results.
-	 * 
-	 * @param message
-	 *            A summary of the shell command failure.
-	 * @param results
-	 *            The results from attempts to execute the command.
-	 */
-	public ShellCommandException(String message, List<ShellCommandResults> results) {
-		super(message);
-		this.results = results;
-	}
+    /**
+     * Creates a new ShellCommandException with the specified message and
+     * description of the shell command results.
+     * 
+     * @param message
+     *            A summary of the shell command failure.
+     * @param results
+     *            The results from attempts to execute the command.
+     */
+    public ShellCommandException(String message, List<ShellCommandResults> results) {
+        super(message);
+        this.results = results;
+    }
 
-	/**
-	 * The results of all attempts to execute the associated command.
-	 * 
-	 * @return The results of all attempts to execute the associated command.
-	 */
-	public List<ShellCommandResults> getShellCommandResults() {
-		return results;
-	}
+    /**
+     * The results of all attempts to execute the associated command.
+     * 
+     * @return The results of all attempts to execute the associated command.
+     */
+    public List<ShellCommandResults> getShellCommandResults() {
+        return results;
+    }
 
-	/**
-	 * Returns the number of times the associated command was attempted.
-	 * 
-	 * @return The number of times the associated command was attempted.
-	 */
-	public int getNumberOfAttempts() {
-		return results.size();
-	}
+    /**
+     * Returns the number of times the associated command was attempted.
+     * 
+     * @return The number of times the associated command was attempted.
+     */
+    public int getNumberOfAttempts() {
+        return results.size();
+    }
 
 }

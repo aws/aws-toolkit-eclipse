@@ -56,6 +56,7 @@ public class InstanceView extends ViewPart implements IRefreshable, SelectionTab
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
      */
+    @Override
     public void refreshData() {
         if (selectionTable != null) {
             selectionTable.refreshInstances();
@@ -124,6 +125,7 @@ public class InstanceView extends ViewPart implements IRefreshable, SelectionTab
     /**
      * Passing the focus request to the viewer's control.
      */
+    @Override
     public void setFocus() {
         selectionTable.setFocus();
     }
@@ -136,6 +138,7 @@ public class InstanceView extends ViewPart implements IRefreshable, SelectionTab
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener#finishedLoadingData()
      */
+    @Override
     public void finishedLoadingData(int noOfInstances) {
         statusBar.finishedLoadingData(noOfInstances);
     }
@@ -143,6 +146,7 @@ public class InstanceView extends ViewPart implements IRefreshable, SelectionTab
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.SelectionTable.SelectionTableListener#loadingData()
      */
+    @Override
     public void loadingData() {
         statusBar.loadingData();
     }

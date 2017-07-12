@@ -120,6 +120,7 @@ public class CloudFrontActions {
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_GREEN_CIRCLE));
         }
 
+        @Override
         public boolean isEnablingDistribution() {
             return true;
         }
@@ -133,6 +134,7 @@ public class CloudFrontActions {
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_RED_CIRCLE));
         }
 
+        @Override
         public boolean isEnablingDistribution() {
             return false;
         }
@@ -146,6 +148,7 @@ public class CloudFrontActions {
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_GREEN_CIRCLE));
         }
 
+        @Override
         public boolean isEnablingDistribution() {
             return true;
         }
@@ -159,6 +162,7 @@ public class CloudFrontActions {
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_RED_CIRCLE));
         }
 
+        @Override
         public boolean isEnablingDistribution() {
             return false;
         }

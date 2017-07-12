@@ -52,6 +52,7 @@ public class TextBuilder extends AbstractWidgetBuilder<TextBuilder> {
         return this;
     }
 
+    @Override
     public Text build(final Composite parent) {
         Text text = new Text(parent, getStyle());
 

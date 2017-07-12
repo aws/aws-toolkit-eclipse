@@ -23,14 +23,17 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public abstract class AbstractTableContentProvider implements IStructuredContentProvider {
 
+    @Override
     public void dispose() {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
     }
 
+    @Override
     public Object[] getElements(final Object inputElement) {
         return null;
     }

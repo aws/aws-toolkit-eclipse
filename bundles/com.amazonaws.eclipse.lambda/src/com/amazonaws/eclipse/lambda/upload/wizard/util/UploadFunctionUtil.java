@@ -177,7 +177,7 @@ public class UploadFunctionUtil {
 
             ITypeHierarchy typeHierarchy = type.newTypeHierarchy(javaProject, null);
 
-            Set<String> allHandlerImplementers = new HashSet<String>();
+            Set<String> allHandlerImplementers = new HashSet<>();
             IType[] allSubtypes = typeHierarchy.getAllSubtypes(type);
             // filter out abstract class and interfaces
             for (IType subtype : allSubtypes) {

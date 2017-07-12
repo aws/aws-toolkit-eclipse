@@ -50,6 +50,7 @@ public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
         this.aggregateValidationStatus = new AggregateValidationStatus(
                 dataBindingContext, AggregateValidationStatus.MAX_SEVERITY);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 populateValidationStatus();
             }
@@ -78,6 +79,7 @@ public class NewLambdaFunctionWizardPage extends NewTypeWizardPage {
         doStatusUpdate();
     }
 
+    @Override
     public void createControl(final Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));

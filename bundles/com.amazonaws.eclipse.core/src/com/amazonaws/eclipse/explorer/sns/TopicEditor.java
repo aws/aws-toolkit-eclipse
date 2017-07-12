@@ -138,6 +138,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
                 final Map<String, String> attributes = getClient().getTopicAttributes(request).getAttributes();
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         ownerLabel.setText(getValue(attributes,"Owner"));
                         pendingSubscriptionsLabel.setText(getValue(attributes, "SubscriptionsPending"));
@@ -220,8 +221,10 @@ public class TopicEditor extends EditorPart implements IRefreshable {
 
         private Subscription[] subscriptions;
 
+        @Override
         public void dispose() {}
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof List) {
                 subscriptions = ((List<Subscription>)newInput).toArray(new Subscription[0]);
@@ -230,18 +233,22 @@ public class TopicEditor extends EditorPart implements IRefreshable {
             }
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return subscriptions;
         }
 
+        @Override
         public Object[] getChildren(TreePath parentPath) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(TreePath path) {
             return false;
         }
 
+        @Override
         public TreePath[] getParents(Object element) {
             return null;
         }
@@ -249,18 +256,24 @@ public class TopicEditor extends EditorPart implements IRefreshable {
 
     private final class SubscriptionLabelProvider implements ITableLabelProvider {
 
+        @Override
         public void dispose() {}
+        @Override
         public void addListener(ILabelProviderListener listener) {}
+        @Override
         public void removeListener(ILabelProviderListener listener) {}
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof Subscription == false) return "???";
 
@@ -341,6 +354,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
         MenuManager menuManager = new MenuManager();
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 manager.add(new NewSubscriptionAction(getClient(), topicEditorInput.getTopic(), refreshable));
                 manager.add(new UnsubscribeAction());
@@ -370,6 +384,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
         return column;
     }
 
+    @Override
     public void refreshData() {
         new LoadSubscriptionsThread().start();
     }
@@ -383,7 +398,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
                 String topicArn = topicEditorInput.getTopic().getTopicArn();
                 String nextToken = null;
                 ListSubscriptionsByTopicResult subscriptionsByTopic = null;
-                final List<Subscription> subscriptions = new LinkedList<Subscription>();
+                final List<Subscription> subscriptions = new LinkedList<>();
                 do {
                     if (subscriptionsByTopic != null) nextToken = subscriptionsByTopic.getNextToken();
                     subscriptionsByTopic = sns.listSubscriptionsByTopic(new ListSubscriptionsByTopicRequest(topicArn, nextToken));
@@ -391,6 +406,7 @@ public class TopicEditor extends EditorPart implements IRefreshable {
                 } while (subscriptionsByTopic.getNextToken() != null);
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         viewer.setInput(subscriptions);
                     }

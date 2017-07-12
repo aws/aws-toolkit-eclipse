@@ -166,6 +166,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
     private void updateTitleLabel(final String message) {
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 if (!titleLabel.isDisposed()) {
                     titleLabel.setText(message);
@@ -177,6 +178,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
     private void updateLatestEventLabel(final String message) {
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 if (!latestEventMessageText.isDisposed()) {
                     latestEventMessageText.setText(message);
@@ -223,6 +225,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
 
                     if (DeploymentStatus.Succeeded.toString().equals(deploymentStatus)) {
                         Display.getDefault().syncExec(new Runnable() {
+                            @Override
                             public void run() {
                                 progressIndicator.done();
                                 updateTitleLabel("Deployment complete");
@@ -230,6 +233,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
                         });
                     } else {
                         Display.getDefault().syncExec(new Runnable() {
+                            @Override
                             public void run() {
                                 progressIndicator.showError();
                                 updateTitleLabel("Deployment didn't finish successfully.");
@@ -270,6 +274,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
     private void loadAndStartUpdatingDeploymentInstancesAsync() {
         new Thread(new Runnable() {
 
+            @Override
             public void run() {
 
                 // A short pause before requesting deployment status
@@ -300,6 +305,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
                             new InstanceSummary[instances.size()]);
 
                     Display.getDefault().syncExec(new Runnable() {
+                        @Override
                         public void run() {
                             instancesTableViewer.setInput(instanceSummaries);
                             instancesTableViewer.refresh();
@@ -358,6 +364,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
 
                 if (pendingInstances > 0) {
                     Display.getDefault().syncExec(new Runnable() {
+                        @Override
                         public void run() {
                             if ( !instancesTableViewer.getTable().isDisposed() ) {
                                 instancesTableViewer.refresh();
@@ -472,6 +479,7 @@ public class DeploymentProgressTrackerDialog extends Dialog {
         instancesTableViewer.setContentProvider(ArrayContentProvider.getInstance());
 
         instancesTableViewer.addDoubleClickListener(new IDoubleClickListener() {
+            @Override
             public void doubleClick(DoubleClickEvent event) {
                 StructuredSelection selection = (StructuredSelection) event.getSelection();
                 Object element = selection.getFirstElement();

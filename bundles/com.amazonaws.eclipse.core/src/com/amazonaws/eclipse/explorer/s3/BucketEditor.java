@@ -159,6 +159,7 @@ public class BucketEditor extends EditorPart {
             protected void updateComposite(final ScrolledForm form, final FormToolkit toolkit, final Bucket b) {
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         for ( Control c : parent.getChildren() ) {
                             c.dispose();
@@ -170,6 +171,7 @@ public class BucketEditor extends EditorPart {
                         toolkit.createLabel(parent, b.getCreationDate().toString());
                         Button editBucketAclButton = toolkit.createButton(parent, "Edit Bucket ACL", SWT.PUSH);
                         editBucketAclButton.addSelectionListener(new SelectionListener() {
+                            @Override
                             public void widgetSelected(SelectionEvent e) {
                                 final EditPermissionsDialog editPermissionsDialog = new EditBucketPermissionsDialog(b);
                                 if (editPermissionsDialog.open() == 0) {
@@ -190,6 +192,7 @@ public class BucketEditor extends EditorPart {
                                 }
                             }
 
+                            @Override
                             public void widgetDefaultSelected(SelectionEvent e) {}
                         });
 

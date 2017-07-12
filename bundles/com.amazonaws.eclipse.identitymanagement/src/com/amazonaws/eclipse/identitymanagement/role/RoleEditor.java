@@ -158,6 +158,7 @@ public class RoleEditor extends EditorPart implements IRefreshable  {
         }
     }
 
+    @Override
     public void refreshData() {
         roleTable.refresh();
     }

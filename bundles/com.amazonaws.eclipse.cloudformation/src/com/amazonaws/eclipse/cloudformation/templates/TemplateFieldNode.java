@@ -15,14 +15,10 @@
 package com.amazonaws.eclipse.cloudformation.templates;
 
 public class TemplateFieldNode extends TemplateNode {
-    private String text;
-    
+    private final String text;
+
     public TemplateFieldNode(String text) {
         this.text = text;
-    }
-
-    public boolean isField() {
-        return true;
     }
 
     public String getText() {

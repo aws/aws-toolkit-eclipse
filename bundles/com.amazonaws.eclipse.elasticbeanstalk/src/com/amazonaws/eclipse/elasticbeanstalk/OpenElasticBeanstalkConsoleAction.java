@@ -24,10 +24,13 @@ import com.amazonaws.eclipse.core.BrowserUtils;
 public class OpenElasticBeanstalkConsoleAction implements IObjectActionDelegate {
     private static final String ELASTIC_BEANSTALK_CONSOLE_URL = "https://console.aws.amazon.com/elasticbeanstalk";
 
+    @Override
     public void run(IAction action) {
         BrowserUtils.openExternalBrowser(ELASTIC_BEANSTALK_CONSOLE_URL);
     }
 
+    @Override
     public void selectionChanged(IAction action, ISelection selection) {}
+    @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {}
 }

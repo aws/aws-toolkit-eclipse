@@ -106,6 +106,7 @@ public class UpdatePasswordDialog extends TitleAreaDialog {
         toolkit.createLabel(composite, "Confirm Password:");
         passwordText.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent e) {
                 validate();
             }
@@ -115,6 +116,7 @@ public class UpdatePasswordDialog extends TitleAreaDialog {
         gridDataFactory.copy().span(2, SWT.DEFAULT).applyTo(confirmPasswordText);
         confirmPasswordText.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent e) {
                 validate();
             }

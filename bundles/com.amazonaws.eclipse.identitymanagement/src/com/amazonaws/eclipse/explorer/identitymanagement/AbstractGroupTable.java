@@ -107,23 +107,29 @@ public abstract class AbstractGroupTable extends Composite {
 
     private class GroupTableLabelProvider implements ITableLabelProvider {
 
+        @Override
         public void addListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public void removeListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof Group == false)
                 return "";
@@ -154,6 +160,7 @@ public abstract class AbstractGroupTable extends Composite {
             try {
                 listGroups();
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         if (groups != null) {
                         viewer.setInput(groups.toArray(new Group[groups.size()]));

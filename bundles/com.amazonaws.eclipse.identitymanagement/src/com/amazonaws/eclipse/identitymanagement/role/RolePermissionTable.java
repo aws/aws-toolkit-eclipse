@@ -42,6 +42,7 @@ public class RolePermissionTable extends AbstractPolicyTable {
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if (viewer.getTable().getSelectionCount() > 0) {
                     manager.add(new removePolicyAction());
@@ -114,6 +115,7 @@ public class RolePermissionTable extends AbstractPolicyTable {
         iam.deleteRolePolicy(new DeleteRolePolicyRequest().withRoleName(role.getRoleName()).withPolicyName(policyName));
     }
 
+    @Override
     protected void getPolicyNames() {
         if (role != null) {
             policyNames = iam.listRolePolicies(new ListRolePoliciesRequest().withRoleName(role.getRoleName())).getPolicyNames();

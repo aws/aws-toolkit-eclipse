@@ -23,12 +23,13 @@ import org.eclipse.core.commands.ExecutionException;
  * Command Handler to open AWS Toolkit Overview Editor.
  */
 public class DisplayAwsOverviewEditorCmdHandler extends AbstractHandler {
-	
-	/* 
-	 * @see org.eclipse.core.commands.IHandler#execute(ExecutionEvent)
-	 */	
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		Startup.displayAwsToolkitOverviewEditor();
-		return null;
-	}
+    
+    /* 
+     * @see org.eclipse.core.commands.IHandler#execute(ExecutionEvent)
+     */    
+    @Override
+    public Object execute(ExecutionEvent event) throws ExecutionException {
+        Startup.displayAwsToolkitOverviewEditor();
+        return null;
+    }
 }

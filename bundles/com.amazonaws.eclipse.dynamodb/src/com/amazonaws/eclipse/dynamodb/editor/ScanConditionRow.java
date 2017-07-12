@@ -74,7 +74,7 @@ final class ScanConditionRow extends Composite {
     private int dataType = S;
     private ComparisonOperator comparisonOperator = ComparisonOperator.EQ;
 
-    private final List<Control> conditionallyShownControls = new ArrayList<Control>();
+    private final List<Control> conditionallyShownControls = new ArrayList<>();
 
     private boolean enabled = true;
     private boolean valid = false;
@@ -116,7 +116,7 @@ final class ScanConditionRow extends Composite {
                 condition.withAttributeValueList(new AttributeValue().withS(comparisonValue.getSS().get(0)),
                         new AttributeValue().withS(comparisonValue.getSS().get(1)));
             } else if ( comparisonOperator.equals(ComparisonOperator.IN) ) {
-                List<AttributeValue> attributeValues = new LinkedList<AttributeValue>();
+                List<AttributeValue> attributeValues = new LinkedList<>();
                 for ( String value : comparisonValue.getSS() ) {
                     attributeValues.add(new AttributeValue().withS(value));
                 }
@@ -135,7 +135,7 @@ final class ScanConditionRow extends Composite {
                 condition.withAttributeValueList(new AttributeValue().withN(comparisonValue.getNS().get(0)),
                         new AttributeValue().withN(comparisonValue.getNS().get(1)));
             } else if ( comparisonOperator.equals(ComparisonOperator.IN) ) {
-                List<AttributeValue> attributeValues = new LinkedList<AttributeValue>();
+                List<AttributeValue> attributeValues = new LinkedList<>();
                 for ( String value : comparisonValue.getNS() ) {
                     attributeValues.add(new AttributeValue().withN(value));
                 }
@@ -204,6 +204,7 @@ final class ScanConditionRow extends Composite {
         attributeNameText.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
         attributeNameText.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent e) {
                 attributeName = attributeNameText.getText();
                 validate();
@@ -229,6 +230,7 @@ final class ScanConditionRow extends Composite {
 
         singleValueEditor = new Text(this, SWT.BORDER);
         singleValueEditor.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 setAttribute(comparisonValue, Arrays.asList(singleValueEditor.getText()),
                         dataTypeCombo.getSelectionIndex() == STRING ? S : N);
@@ -262,6 +264,7 @@ final class ScanConditionRow extends Composite {
         betweenTextOne = new Text(this, SWT.BORDER);
         GridDataFactory.fillDefaults().grab(true, false).applyTo(betweenTextOne);
         ModifyListener betweenModifyListener = new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 setAttribute(comparisonValue, Arrays.asList(betweenTextOne.getText(), betweenTextTwo.getText()),
                         dataTypeCombo.getSelectionIndex() == STRING ? SS : NS);
@@ -348,7 +351,7 @@ final class ScanConditionRow extends Composite {
         listValueEditor.setText("");
         singleValueEditor.setText("");
 
-        List<Control> toHide = new LinkedList<Control>();
+        List<Control> toHide = new LinkedList<>();
         toHide.addAll(conditionallyShownControls);
         toHide.add(dataTypeCombo);
         for ( Control c : toHide ) {
@@ -356,7 +359,7 @@ final class ScanConditionRow extends Composite {
             GridDataFactory.createFrom((GridData) c.getLayoutData()).exclude(true).applyTo(c);
         }
         
-        Collection<Control> toShow = new LinkedList<Control>();               
+        Collection<Control> toShow = new LinkedList<>();               
         switch (comparisonOperator) {
         case BEGINS_WITH:
             toShow.add(singleValueEditor);
@@ -475,9 +478,10 @@ final class ScanConditionRow extends Composite {
      */
     final class StringContentProposalProvider implements IContentProposalProvider {
 
+        @Override
         public IContentProposal[] getProposals(String contents, int position) {
             synchronized (knownAttributes) {
-                List<ContentProposal> list = new ArrayList<ContentProposal>();
+                List<ContentProposal> list = new ArrayList<>();
                 String target = contents.trim().toLowerCase();
                 for ( String name : knownAttributes ) {
                     if ( name.toLowerCase().startsWith(target) ) {

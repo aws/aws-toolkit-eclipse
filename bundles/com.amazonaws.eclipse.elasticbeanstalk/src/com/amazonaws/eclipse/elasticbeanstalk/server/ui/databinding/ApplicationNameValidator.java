@@ -31,6 +31,7 @@ public class ApplicationNameValidator implements IValidator {
     private static final MinMaxLengthValidator lengthValidator = new MinMaxLengthValidator("Application Name",
             MIN_LENGTH, MAX_LENGTH);
 
+    @Override
     public IStatus validate(Object value) {
 
         IStatus status = lengthValidator.validate(value);

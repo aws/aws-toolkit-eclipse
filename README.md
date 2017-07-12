@@ -44,9 +44,13 @@ To contribute to the AWS Toolkit for Eclipse, you need to have at least these re
 
 1. Checkout the source code: ```git clone https://github.com/aws/aws-toolkit-eclipse```
 2. Step into the target folder: ```cd aws-toolkit-eclipse```
-3. Build and test with Maven: ```mvn clean verify```
+3. Install the third-party dependencies and build the target platform: ```sh setup.sh```
+3. Build and test with Maven using Luna platform: ```mvn clean verify```
+4. Build and test with Maven using Mars platform: ```mvn -Pbuild-eclipse-mars clean verify```
+4. Build and test with Maven using Neon platform: ```mvn -Pbuild-eclipse-neon clean verify```
+4. Build and test with Maven using Oxygen platform: ```mvn -Pbuild-eclipse-oxygen clean verify```
 
-## Import into Eclipse
+## Import into Eclipse and Set up Development Environment
 
 You must have [EGit](https://www.eclipse.org/egit/) installed to your Eclipse IDE.
 
@@ -56,6 +60,17 @@ You must have [EGit](https://www.eclipse.org/egit/) installed to your Eclipse ID
 4. Select *master* branch, and specify the destination directory in the next two pages, and choose *Next*.
 5. Select *Import existing Eclipse projects*, and then choose *Next*.
 6. Select *Search for nested projects*, you would see all the plugin projects and feature projects etc. Select the projects you are interested in or all the projects, and then choose *Finish*.
+
+Now you have imported all the plugin projects into Eclipse, but you need to set up the target platform since the plugins have dependencies which are not the standard OSGi bundles.
+
+1. Open the terminal and step into the root folder of the repository.
+2. Run the *setup.sh* script if you havn't created the target platform: ```sh setup.sh```.
+3. Back to Eclipse, open *Preferences* page, choose ```Plug-in Development -> Target Platform```
+4. In the *Target Platform* page, choose ```Add -> Next -> Add -> Software Site -> Add -> Local``` to select the target repository you just built. This repository is located at ```aws-toolkit-eclipse/releng/com.amazonaws.eclipse.devide/target/repository```.
+5. Type a name for this repository, say *aws devide*, and choose ```Finish```. Select ```Uncategorized``` and choose ```Finish```
+6. Type a name for this target platform, say *AWS Target Platform*, and choose ```OK```. Use this new target platform, and you would be able to run the AWS plugins under this target platform.
+
+**Notice: If you imported the *com.amazonaws.eclipse.javasdk* project into your Eclipse workspace when you are checking in the repo, you need to close that project as it  overrides the *Java SDK* bundle in the target platform.**
 
 # Getting Help
 

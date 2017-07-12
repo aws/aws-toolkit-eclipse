@@ -239,7 +239,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
         final IObservableSet controlValues = new WritableSet();
         controlValues.addAll(modelValues);
 
-        final List<Button> checkboxButtons = new ArrayList<Button>();
+        final List<Button> checkboxButtons = new ArrayList<>();
         int i = 0;
         Button lastButton = null;
 
@@ -285,6 +285,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
          */
         controlValues.addSetChangeListener(new ISetChangeListener() {
 
+            @Override
             public void handleSetChange(SetChangeEvent event) {
                 for ( Button button : checkboxButtons ) {
                     boolean checked = false;
@@ -357,7 +358,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
                 new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE));
         modelv.addChangeListener(new DirtyMarker());
 
-        ChainValidator<String> validationStatusProvider = new ChainValidator<String>(widget,
+        ChainValidator<String> validationStatusProvider = new ChainValidator<>(widget,
                 new ConfigurationSettingValidator(option));
         bindingContext.addValidationStatusProvider(validationStatusProvider);
         ControlDecoration decoration = new ControlDecoration(text, SWT.TOP | SWT.LEFT);
@@ -403,14 +404,17 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
         public DirtyMarker() {
         }
 
+        @Override
         public void modifyText(ModifyEvent e) {
             markDirty();
         }
 
+        @Override
         public void widgetSelected(SelectionEvent e) {
             markDirty();
         }
 
+        @Override
         public void widgetDefaultSelected(SelectionEvent e) {
             markDirty();
         }
@@ -419,6 +423,7 @@ public class EnvironmentConfigEditorSection extends ServerEditorSection {
             EnvironmentConfigEditorSection.this.parentEditor.markDirty();
         }
 
+        @Override
         public void handleChange(ChangeEvent event) {
             markDirty();
         }

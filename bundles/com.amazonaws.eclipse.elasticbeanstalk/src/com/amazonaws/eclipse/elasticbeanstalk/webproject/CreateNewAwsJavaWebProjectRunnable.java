@@ -71,6 +71,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
     /* (non-Javadoc)
      * @see org.eclipse.jface.operation.IRunnableWithProgress#run(org.eclipse.core.runtime.IProgressMonitor)
      */
+    @Override
     public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
         SubMonitor monitor = SubMonitor.convert(progressMonitor, "Creating new AWS Java web project", 100);
 
@@ -97,6 +98,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
 
                 // Internal browser must be opened within UI thread
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         try {
                             IWebBrowser browser = BROWSER_SUPPORT.createBrowser(

@@ -20,19 +20,19 @@ package com.amazonaws.eclipse.ec2.preferences;
  */
 public class PreferenceConstants {
 
-	/** Preference key for the path to the PuTTY executable on Windows. */
-	public static final String P_PUTTY_EXECUTABLE = "puttyExecutable";
+    /** Preference key for the path to the PuTTY executable on Windows. */
+    public static final String P_PUTTY_EXECUTABLE = "puttyExecutable";
 
-	/** Preference key for the path to the terminal executable. */
-	public static final String P_TERMINAL_EXECUTABLE = "terminalExecutable";
-	
-	/** Preference key for the path to the ssh executable. */
-	public static final String P_SSH_CLIENT = "sshExecutable";
+    /** Preference key for the path to the terminal executable. */
+    public static final String P_TERMINAL_EXECUTABLE = "terminalExecutable";
+    
+    /** Preference key for the path to the ssh executable. */
+    public static final String P_SSH_CLIENT = "sshExecutable";
 
-	/** Preference key for additional SSH command line options. */
-	public static final String P_SSH_OPTIONS = "sshOptions";
-	
-	/** Preference key for the SSH user to log in as */
-	public static final String P_SSH_USER = "sshUser";
+    /** Preference key for additional SSH command line options. */
+    public static final String P_SSH_OPTIONS = "sshOptions";
+    
+    /** Preference key for the SSH user to log in as */
+    public static final String P_SSH_USER = "sshUser";
 
 }

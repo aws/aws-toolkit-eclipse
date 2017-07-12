@@ -49,6 +49,7 @@ public class EditGroupNameDialog extends MessageDialog {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(text);
         text.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent e) {
                 newGroupName = text.getText();
                 validate();

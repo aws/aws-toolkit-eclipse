@@ -47,12 +47,14 @@ public class GitCredentialsConfigurationPage extends WizardPage {
         this.aggregateValidationStatus = new AggregateValidationStatus(
                 dataBindingContext, AggregateValidationStatus.MAX_SEVERITY);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 populateValidationStatus();
             }
         });
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));

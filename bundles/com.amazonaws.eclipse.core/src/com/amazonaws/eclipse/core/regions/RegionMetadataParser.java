@@ -62,7 +62,7 @@ public class RegionMetadataParser {
         }
 
         NodeList regionNodes = document.getElementsByTagName(REGION_TAG);
-        List<Region> regions = new ArrayList<Region>();
+        List<Region> regions = new ArrayList<>();
         for (int i = 0; i < regionNodes.getLength(); i++) {
             Node node = regionNodes.item(i);
             if (node.getNodeType() == Node.ELEMENT_NODE) {

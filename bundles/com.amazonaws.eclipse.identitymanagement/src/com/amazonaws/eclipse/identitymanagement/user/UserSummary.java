@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.statushandlers.StatusManager;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.identitymanagement.IdentityManagementPlugin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.DeleteLoginProfileRequest;
@@ -87,6 +86,7 @@ public class UserSummary extends Composite {
         removePasswordButton = toolkit.createButton(this, "Remove Password", SWT.PUSH);
         removePasswordButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                  new Job("Remove password") {
 
@@ -104,6 +104,7 @@ public class UserSummary extends Composite {
                  }.schedule();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -113,20 +114,24 @@ public class UserSummary extends Composite {
         updatePassowrdButton.setEnabled(false);
         updatePassowrdButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 new UpdatePasswordDialog(iam, UserSummary.this, Display.getCurrent().getActiveShell(), toolkit, user, hasPassword).open();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
 
         manageAccessKeysButton = toolkit.createButton(this, "Manage Access Keys", SWT.PUSH);
         manageAccessKeysButton.addSelectionListener((new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 new UserCredentialManagementDialog(iam, Display.getCurrent().getActiveShell(), user.getUserName()).open();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         }));
@@ -161,6 +166,7 @@ public class UserSummary extends Composite {
             try {
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
 
                         if (user != null) {

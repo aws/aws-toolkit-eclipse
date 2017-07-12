@@ -21,7 +21,6 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -31,7 +30,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
@@ -40,6 +38,7 @@ import com.amazonaws.eclipse.lambda.upload.wizard.util.UploadFunctionUtil;
 
 public class DeployServerlessProjectHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)
                 .getActivePage().getSelection();

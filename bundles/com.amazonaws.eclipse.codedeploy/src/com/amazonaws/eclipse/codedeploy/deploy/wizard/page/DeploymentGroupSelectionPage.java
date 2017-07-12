@@ -95,6 +95,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
         initializeValidators();
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
@@ -111,6 +112,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
         setPageComplete(false);
     }
 
+    @Override
     public void onEnterPage() {
     }
 
@@ -120,6 +122,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
         // Bind the validation status to the wizard page message
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false) return;
@@ -273,7 +276,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
 
         @Override
         public void run() {
-            final List<String> appNames = new ArrayList<String>();
+            final List<String> appNames = new ArrayList<>();
             try {
                 appNames.addAll(ServiceAPIUtils.getAllApplicationNames(codeDeployClient));
                 Collections.sort(appNames);
@@ -287,6 +290,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadApplicationsThread.this) {
@@ -341,7 +345,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
 
         @Override
         public void run() {
-            final List<String> deployGroupNames = new ArrayList<String>();
+            final List<String> deployGroupNames = new ArrayList<>();
             try {
                 String appName = dataModel.getApplicationName();
                 deployGroupNames.addAll(ServiceAPIUtils
@@ -358,6 +362,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadDeploymentGroupsThread.this) {

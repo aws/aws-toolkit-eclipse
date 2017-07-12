@@ -121,14 +121,17 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
 
     private class LoadVpcsCallback implements LoadResourcesCallback<Vpc> {
 
+        @Override
         public void onSuccess(List<Vpc> vpcs) {
             createVpcConfigurationSection(vpcs);
         }
 
+        @Override
         public void onFailure() {
             onInsufficientPermissions();
         }
 
+        @Override
         public void onInsufficientPermissions() {
             // currently do nothing, and let the caller handle the failure.
         }
@@ -168,7 +171,7 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
         private Combo securityGroupCombo;
         private Combo elbSchemeCombo;
 
-        private List<Button> checkboxButtons = new ArrayList<Button>();
+        private List<Button> checkboxButtons = new ArrayList<>();
 
         // build UI section only, not populating data
         public void buildVpcUiSection(Composite composite) {
@@ -177,6 +180,7 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
 
             createVpcSelectionSection(group);
             vpcCombo.addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     onVpcSelectionChanged();
                 }
@@ -208,7 +212,7 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
                 subnets = wizardDataModel.getElbSubnets();
                 break;
             default:
-                subnets = new HashSet<String>();
+                subnets = new HashSet<>();
             }
 
             if (selected) {
@@ -375,6 +379,7 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
             editor.horizontalAlignment = SWT.LEFT;
             editor.setEditor(checkbox, item, columnIndex);
             checkbox.addSelectionListener(new SelectionAdapter() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     onCheckboxSelected(subnetId, type, ((Button)e.getSource()).getSelection());
                 }
@@ -391,7 +396,7 @@ public class DeployWizardVpcConfigurationPage extends AbstractDeployWizardPage {
         }
 
         private List<String> transformVpcList(List<Vpc> vpcs) {
-            List<String> stringVpcs = new ArrayList<String>(vpcs.size());
+            List<String> stringVpcs = new ArrayList<>(vpcs.size());
             for (Vpc vpc : vpcs) {
                 String vpcTextPrefix = getVpcName(vpc);
                 if (!StringUtils.isNullOrEmpty(vpcTextPrefix)) {

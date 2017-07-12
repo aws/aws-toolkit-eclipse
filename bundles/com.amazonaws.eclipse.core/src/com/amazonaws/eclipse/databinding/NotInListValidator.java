@@ -38,6 +38,7 @@ public class NotInListValidator<T> implements IValidator {
         this.message = message;
     }
 
+    @Override
     public IStatus validate(Object object) {
         @SuppressWarnings("unchecked")
         T value = (T)object;

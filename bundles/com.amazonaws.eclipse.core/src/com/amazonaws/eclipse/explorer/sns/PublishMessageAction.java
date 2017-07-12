@@ -107,6 +107,7 @@ final class PublishMessageAction extends Action {
             subjectText = new Text(composite, SWT.BORDER);
             subjectText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
             subjectText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     updateControls();
                 }
@@ -120,6 +121,7 @@ final class PublishMessageAction extends Action {
             gridData.heightHint = 100;
             messageText.setLayoutData(gridData);
             messageText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     updateControls();
                 }

@@ -33,6 +33,7 @@ public class NotEmptyValidator implements IValidator {
     /* (non-Javadoc)
      * @see org.eclipse.core.databinding.validation.IValidator#validate(java.lang.Object)
      */
+    @Override
     public IStatus validate(Object value) {
         if (value instanceof String == false) {
             throw new RuntimeException("Only string validation is supported.");

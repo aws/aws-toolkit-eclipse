@@ -90,6 +90,7 @@ public class DeployServerlessProjectPage extends WizardPage {
                 bindingContext, AggregateValidationStatus.MAX_SEVERITY);
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite container = new Composite(parent, SWT.NONE);
         container.setLayout(new GridLayout(1, false));
@@ -100,6 +101,7 @@ public class DeployServerlessProjectPage extends WizardPage {
         createValidationBinding();
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 populateHandlerValidationStatus();
             }

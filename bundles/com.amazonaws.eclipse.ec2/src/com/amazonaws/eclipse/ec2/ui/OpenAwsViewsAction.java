@@ -33,58 +33,58 @@ import com.amazonaws.eclipse.ec2.Ec2Plugin;
  */
 public class OpenAwsViewsAction extends Action {
 
-	/**
-	 * The list of view IDs that this action should open.
-	 */
-	private static final String[] VIEW_IDS_TO_OPEN = new String[] {
-		"com.amazonaws.eclipse.ec2.ui.views.AmiBrowserView",
-		"com.amazonaws.eclipse.ec2.ui.views.InstanceView",
-		"com.amazonaws.eclipse.ec2.ui.views.ElasticBlockStorageView", 
-		"com.amazonaws.eclipse.ec2.views.SecurityGroupView",
-	};
-	
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#run()
-	 */
-	@Override
-	public void run() {
-		try {
-			minimizeWelcomeView();
-			openAllAwsToolkitViews();
-		} catch (CoreException e) {
-			Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
-					"Unable to open AWS views: " + e.getMessage(), e);
-			StatusManager.getManager().handle(status, StatusManager.LOG);
-		}
-	}
+    /**
+     * The list of view IDs that this action should open.
+     */
+    private static final String[] VIEW_IDS_TO_OPEN = new String[] {
+        "com.amazonaws.eclipse.ec2.ui.views.AmiBrowserView",
+        "com.amazonaws.eclipse.ec2.ui.views.InstanceView",
+        "com.amazonaws.eclipse.ec2.ui.views.ElasticBlockStorageView", 
+        "com.amazonaws.eclipse.ec2.views.SecurityGroupView",
+    };
+    
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#run()
+     */
+    @Override
+    public void run() {
+        try {
+            minimizeWelcomeView();
+            openAllAwsToolkitViews();
+        } catch (CoreException e) {
+            Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
+                    "Unable to open AWS views: " + e.getMessage(), e);
+            StatusManager.getManager().handle(status, StatusManager.LOG);
+        }
+    }
 
-	/**
-	 * Minimizes the welcome/intro view if it's open and maximized.
-	 */
-	private void minimizeWelcomeView() {
-		IWorkbenchPage workbenchPage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		IWorkbenchPart activePart = workbenchPage.getActivePart();
-		
-		IIntroPart introPart = (IIntroPart)activePart.getAdapter(IIntroPart.class);
-		if (introPart != null) {
-			IWorkbenchPartReference reference = workbenchPage.getActivePartReference();
-			if (workbenchPage.getPartState(reference) == IWorkbenchPage.STATE_MAXIMIZED) {
-				workbenchPage.toggleZoom(reference);
-			}
-		}
-	}
-	
-	/**
-	 * Opens all of AWS Toolkit views.
-	 * 
-	 * @throws PartInitException
-	 */
-	private void openAllAwsToolkitViews() throws PartInitException {
-		IWorkbenchPage workbenchPage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		for (String viewId : VIEW_IDS_TO_OPEN) {
-			workbenchPage.showView(viewId);
-		}
-	}
+    /**
+     * Minimizes the welcome/intro view if it's open and maximized.
+     */
+    private void minimizeWelcomeView() {
+        IWorkbenchPage workbenchPage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        IWorkbenchPart activePart = workbenchPage.getActivePart();
+        
+        IIntroPart introPart = (IIntroPart)activePart.getAdapter(IIntroPart.class);
+        if (introPart != null) {
+            IWorkbenchPartReference reference = workbenchPage.getActivePartReference();
+            if (workbenchPage.getPartState(reference) == IWorkbenchPage.STATE_MAXIMIZED) {
+                workbenchPage.toggleZoom(reference);
+            }
+        }
+    }
+    
+    /**
+     * Opens all of AWS Toolkit views.
+     * 
+     * @throws PartInitException
+     */
+    private void openAllAwsToolkitViews() throws PartInitException {
+        IWorkbenchPage workbenchPage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        for (String viewId : VIEW_IDS_TO_OPEN) {
+            workbenchPage.showView(viewId);
+        }
+    }
 
 }

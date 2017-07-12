@@ -100,7 +100,7 @@ public class FunctionEnvVarsTable extends Composite {
     private void onSaveEnvVars() {
         try {
             AWSLambda lambda = functionEditorInput.getLambdaClient();
-            Map<String, String> envVarsMap = new HashMap<String, String>();
+            Map<String, String> envVarsMap = new HashMap<>();
             for (Pair pair : envVarsDataModel.getPairSet()) {
                 envVarsMap.put(pair.getKey(), pair.getValue());
             }

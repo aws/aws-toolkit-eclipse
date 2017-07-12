@@ -25,10 +25,11 @@ import org.eclipse.ui.PlatformUI;
  */
 public class HelpLinkListener implements Listener {
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-	 */
-	public void handleEvent(Event event) {
-		PlatformUI.getWorkbench().getHelpSystem().displayHelpResource(event.text);
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+     */
+    @Override
+    public void handleEvent(Event event) {
+        PlatformUI.getWorkbench().getHelpSystem().displayHelpResource(event.text);
+    }
 }

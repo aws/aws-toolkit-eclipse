@@ -60,8 +60,9 @@ public class DeleteObjectAction extends Action {
         new Job("Deleting Objects") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
-                final Collection<S3ObjectSummary> selectedObjects = new ArrayList<S3ObjectSummary>();
+                final Collection<S3ObjectSummary> selectedObjects = new ArrayList<>();
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         selectedObjects.addAll(table.getSelectedObjects());
                     }
@@ -76,6 +77,7 @@ public class DeleteObjectAction extends Action {
                     }
 
                     Display.getDefault().asyncExec(new Runnable() {
+                        @Override
                         public void run() {
                             String prefix = null;
                             if (selectedObjects.size() == 1) {

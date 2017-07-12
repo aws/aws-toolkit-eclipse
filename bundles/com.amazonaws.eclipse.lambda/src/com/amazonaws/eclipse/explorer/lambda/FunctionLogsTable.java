@@ -69,8 +69,10 @@ public class FunctionLogsTable extends Composite {
 
         private LogStream[] logStreams;
 
+        @Override
         public void dispose() {}
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof LogStream[]) {
                 logStreams = (LogStream[])newInput;
@@ -79,18 +81,22 @@ public class FunctionLogsTable extends Composite {
             }
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return logStreams;
         }
 
+        @Override
         public Object[] getChildren(TreePath parentPath) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(TreePath path) {
             return false;
         }
 
+        @Override
         public TreePath[] getParents(Object element) {
             return new TreePath[0];
         }
@@ -166,7 +172,7 @@ public class FunctionLogsTable extends Composite {
 
     private List<LogStream> getSelectedObjects() {
         IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
-        List<LogStream> streams = new LinkedList<LogStream>();
+        List<LogStream> streams = new LinkedList<>();
         Iterator<?> iterator = selection.iterator();
         while (iterator.hasNext()) {
             Object next = iterator.next();
@@ -181,6 +187,7 @@ public class FunctionLogsTable extends Composite {
         MenuManager menuMgr = new MenuManager("#PopupMenu");
         menuMgr.setRemoveAllWhenShown(true);
         menuMgr.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 manager.add(new ShowLogEventsAction());
             }
@@ -231,6 +238,7 @@ public class FunctionLogsTable extends Composite {
                 final List<LogStream> logStreams = CloudWatchLogsUtils.listLogStreams(logsClient, logGroupName);
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         viewer.setInput(logStreams.toArray(new LogStream[logStreams.size()]));
                     }

@@ -28,14 +28,17 @@ public final class BucketEditorInput extends AbstractAwsResourceEditorInput {
         this.bucketName = bucketName;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon S3 Bucket Editor - " + bucketName;
     }
 
+    @Override
     public String getName() {
         return bucketName;
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_BUCKET);
     }

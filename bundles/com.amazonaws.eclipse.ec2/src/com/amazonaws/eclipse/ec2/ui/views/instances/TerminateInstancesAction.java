@@ -34,8 +34,9 @@ final class TerminateInstancesAction extends Action {
         this.instanceSelectionTable = instanceSelectionTable;
     }
 
+    @Override
     public void run() {
-    	MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
+        MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
 
         messageBox.setText("Terminate selected instances?");
         messageBox.setMessage("If you continue, you won't be able to access these instances again.");
@@ -43,7 +44,7 @@ final class TerminateInstancesAction extends Action {
         // Bail out if the user cancels...
         if (messageBox.open() == SWT.CANCEL) return;
 
-    	new TerminateInstancesThread(this.instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
+        new TerminateInstancesThread(this.instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
     }
     
     @Override

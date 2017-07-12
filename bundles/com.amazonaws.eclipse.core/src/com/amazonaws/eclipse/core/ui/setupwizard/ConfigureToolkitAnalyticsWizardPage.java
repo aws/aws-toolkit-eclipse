@@ -36,6 +36,7 @@ final class ConfigureToolkitAnalyticsWizardPage extends WizardPage {
         setDescription("Help us improve AWS Toolkit by enabling analytics data collection?");
     }
 
+    @Override
     public void createControl(Composite parent) {
 
         Composite composite = new Composite(parent, SWT.NONE);

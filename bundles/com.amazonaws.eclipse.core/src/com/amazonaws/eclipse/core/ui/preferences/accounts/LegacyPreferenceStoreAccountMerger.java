@@ -37,8 +37,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.internal.Profile;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.AccountInfoImpl;
@@ -105,6 +103,7 @@ public class LegacyPreferenceStoreAccountMerger {
                  */
                 Display.getDefault().asyncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         String MESSAGE = "The following legacy account configurations are detected in the system. " +
                                 "The AWS Toolkit now uses the credentials file to persist the credential configurations. " +
@@ -134,6 +133,7 @@ public class LegacyPreferenceStoreAccountMerger {
                  */
                 Display.getDefault().asyncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         String MESSAGE = "The following legacy account configurations are detected in the system. " +
                                 "The AWS Toolkit now uses the credentials file to persist the credential configurations. " +
@@ -194,7 +194,7 @@ public class LegacyPreferenceStoreAccountMerger {
     private static void saveAccountsIntoCredentialsFile(File destination,
                                                         Collection<AccountInfo> legacyAccounts,
                                                         Map<String, String> profileNameOverrides) {
-        final List<String> legacyAccountIds = new LinkedList<String>();
+        final List<String> legacyAccountIds = new LinkedList<>();
 
         for (AccountInfo legacyAccount : legacyAccounts) {
             String legacyAccountName = legacyAccount.getAccountName();
@@ -235,7 +235,7 @@ public class LegacyPreferenceStoreAccountMerger {
                 PreferenceConstants.P_CREDENTIAL_PROFILE_ACCOUNT_IDS).split(
                 PreferenceConstants.ACCOUNT_ID_SEPARATOR_REGEX);
 
-        List<String> newProfileAccountIds = new LinkedList<String>(Arrays.asList(existingProfileAccountIds));
+        List<String> newProfileAccountIds = new LinkedList<>(Arrays.asList(existingProfileAccountIds));
         newProfileAccountIds.addAll(legacyAccountIds);
 
         String newProfileAccountIdsString = StringUtils.join(PreferenceConstants.ACCOUNT_ID_SEPARATOR,
@@ -261,12 +261,12 @@ public class LegacyPreferenceStoreAccountMerger {
      *         new profile name.
      */
     private static Map<String, String> checkDuplicateProfileName(Collection<AccountInfo> legacyAccounts, Collection<AccountInfo> existingProfileAccounts) {
-        Set<String> exisitingProfileNames = new HashSet<String>();
+        Set<String> exisitingProfileNames = new HashSet<>();
         for (AccountInfo existingProfileAccount : existingProfileAccounts) {
             exisitingProfileNames.add(existingProfileAccount.getAccountName());
         }
 
-        Map<String, String> profileNameOverrides = new LinkedHashMap<String, String>();
+        Map<String, String> profileNameOverrides = new LinkedHashMap<>();
         for (AccountInfo legacyAccount : legacyAccounts) {
             if (exisitingProfileNames.contains(legacyAccount.getAccountName())) {
                 String newProfileName = generateNewProfileName(exisitingProfileNames, legacyAccount.getAccountName());

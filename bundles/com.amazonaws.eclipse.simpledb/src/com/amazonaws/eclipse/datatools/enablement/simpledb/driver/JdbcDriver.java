@@ -56,6 +56,7 @@ public class JdbcDriver implements Driver {
     /* (non-Javadoc)
      * @see java.sql.Driver#acceptsURL(java.lang.String)
      */
+    @Override
     public boolean acceptsURL(final String url) throws SQLException {
         return false;
     }
@@ -68,6 +69,7 @@ public class JdbcDriver implements Driver {
      * @return {@link JdbcConnection}
      * @throws SQLException
      */
+    @Override
     public Connection connect(final String url, final Properties info) throws SQLException {
         String access = info.getProperty("user"); //$NON-NLS-1$
         String secret = info.getProperty("password"); //$NON-NLS-1$
@@ -162,22 +164,27 @@ public class JdbcDriver implements Driver {
         }
     }
 
+    @Override
     public int getMajorVersion() {
         return 1;
     }
 
+    @Override
     public int getMinorVersion() {
         return 0;
     }
 
+    @Override
     public DriverPropertyInfo[] getPropertyInfo(final String url, final Properties info) throws SQLException {
         return new DriverPropertyInfo[0];
     }
 
+    @Override
     public boolean jdbcCompliant() {
         return false;
     }
 
+    @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         return null;
     }

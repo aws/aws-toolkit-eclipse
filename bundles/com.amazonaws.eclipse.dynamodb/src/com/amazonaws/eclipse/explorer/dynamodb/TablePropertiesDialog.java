@@ -116,6 +116,7 @@ public class TablePropertiesDialog extends MessageDialog {
         readCapacityText = newTextField(comp);
         readCapacityText.setText(readCapacity.toString());
         readCapacityText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 try {
                     readCapacity = Long.parseLong(readCapacityText.getText());
@@ -130,6 +131,7 @@ public class TablePropertiesDialog extends MessageDialog {
         writeCapacityText = newTextField(comp);
         writeCapacityText.setText(writeCapacity.toString());
         writeCapacityText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 try {
                     writeCapacity = Long.parseLong(writeCapacityText.getText());
@@ -283,23 +285,29 @@ public class TablePropertiesDialog extends MessageDialog {
         }
 
         protected final class IndexTableLabelProvider implements ITableLabelProvider {
+            @Override
             public void addListener(ILabelProviderListener listener) {
             }
 
+            @Override
             public void removeListener(ILabelProviderListener listener) {
             }
 
+            @Override
             public void dispose() {
             }
 
+            @Override
             public boolean isLabelProperty(Object element, String property) {
                 return false;
             }
 
+            @Override
             public Image getColumnImage(Object element, int columnIndex) {
                 return null;
             }
 
+            @Override
             public String getColumnText(Object element, int columnIndex) {
                 if (element instanceof LocalSecondaryIndexDescription == false)
                     return "";

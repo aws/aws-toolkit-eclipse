@@ -147,7 +147,7 @@ public class FunctionJarExportHelper {
         IRuntimeClasspathEntry[] entries= JavaRuntime.computeUnresolvedRuntimeClasspath(configuration);
         entries= JavaRuntime.resolveRuntimeClasspath(entries, configuration);
 
-        ArrayList<IPath> userEntries= new ArrayList<IPath>(entries.length);
+        ArrayList<IPath> userEntries= new ArrayList<>(entries.length);
         for (int i= 0; i < entries.length; i++) {
             if (entries[i].getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
 
@@ -169,7 +169,7 @@ public class FunctionJarExportHelper {
      * @return all package fragment roots corresponding to each classpath entry start the search at project with projectName
      */
     private static IPackageFragmentRoot[] getRequiredPackageFragmentRoots(IPath[] classpathEntries, final String projectName) {
-        HashSet<IPackageFragmentRoot> result= new HashSet<IPackageFragmentRoot>();
+        HashSet<IPackageFragmentRoot> result= new HashSet<>();
 
         IJavaProject[] searchOrder= getProjectSearchOrder(projectName);
 
@@ -188,7 +188,7 @@ public class FunctionJarExportHelper {
 
     private static IJavaProject[] getProjectSearchOrder(String projectName) {
 
-        ArrayList<String> projectNames= new ArrayList<String>();
+        ArrayList<String> projectNames= new ArrayList<>();
         projectNames.add(projectName);
 
         int nextProject= 0;
@@ -211,7 +211,7 @@ public class FunctionJarExportHelper {
             nextProject+= 1;
         }
 
-        ArrayList<IJavaProject> result= new ArrayList<IJavaProject>();
+        ArrayList<IJavaProject> result= new ArrayList<>();
         for (int i= 0, size= projectNames.size(); i < size; i++) {
             String name= projectNames.get(i);
             IJavaProject project= getJavaProject(name);
@@ -248,7 +248,7 @@ public class FunctionJarExportHelper {
     }
 
     private static IPackageFragmentRoot[] findRootsInProject(IPath entry, IJavaProject project) {
-        ArrayList<IPackageFragmentRoot> result= new ArrayList<IPackageFragmentRoot>();
+        ArrayList<IPackageFragmentRoot> result= new ArrayList<>();
 
         try {
             IPackageFragmentRoot[] roots= project.getPackageFragmentRoots();

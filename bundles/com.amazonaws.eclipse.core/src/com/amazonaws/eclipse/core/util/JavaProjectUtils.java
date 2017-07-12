@@ -44,7 +44,7 @@ public class JavaProjectUtils {
     public static void setDefaultJreToProjectClasspath(IJavaProject javaProject, IProgressMonitor monitor)
             throws JavaModelException {
 
-        List<IClasspathEntry> classpathEntry = new ArrayList<IClasspathEntry>();
+        List<IClasspathEntry> classpathEntry = new ArrayList<>();
 
         for (IClasspathEntry entry : javaProject.getRawClasspath()) {
             if (!entry.getPath().toString().startsWith(JavaRuntime.JRE_CONTAINER)) {

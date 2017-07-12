@@ -29,6 +29,7 @@ public class NoInvalidNameCharactersValidator implements IValidator {
         this.message = message;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
         if (s.contains(" ")) return ValidationStatus.info(message);

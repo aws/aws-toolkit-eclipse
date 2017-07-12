@@ -110,6 +110,7 @@ public class AddMessageAction extends Action {
 
             final Button delayCheckButton = new Button(composite2, SWT.CHECK);
             delayCheckButton.addSelectionListener(new SelectionListener() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     if (delayCheckButton.getSelection()) {
                         messageDelay = messageDelaySpinner.getSelection();
@@ -118,6 +119,7 @@ public class AddMessageAction extends Action {
                     }
                 }
 
+                @Override
                 public void widgetDefaultSelected(SelectionEvent e) {}
             });
             delayCheckButton.setSelection(false);
@@ -132,14 +134,17 @@ public class AddMessageAction extends Action {
             messageDelaySpinner.setPageIncrement(60);
             messageDelaySpinner.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
             messageDelaySpinner.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     delayCheckButton.setSelection(true);
                     messageDelay = messageDelaySpinner.getSelection();
                 }
             });
             messageDelaySpinner.addFocusListener(new FocusListener() {
+                @Override
                 public void focusLost(FocusEvent e) {}
 
+                @Override
                 public void focusGained(FocusEvent e) {
                     delayCheckButton.setSelection(true);
                 }

@@ -61,7 +61,7 @@ public class UploadFunctionWizard extends AbstractAwsJobWizard {
     @Override
     protected void initDataModel() {
         // Load valid request handler classes
-        List<String> handlerClasses = new ArrayList<String>();
+        List<String> handlerClasses = new ArrayList<>();
         handlerClasses.addAll(UploadFunctionUtil.findValidHandlerClass(project));
         handlerClasses.addAll(UploadFunctionUtil.findValidStreamHandlerClass(project));
 

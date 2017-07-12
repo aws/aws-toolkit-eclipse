@@ -69,6 +69,7 @@ public class DeploymentConfigEditorSection extends ServerEditorSection {
         incrementalDeploymentCheckbox.setSelection(environment.getIncrementalDeployment());
 
         incrementalDeploymentCheckbox.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 execute(new AbstractOperation("Incremental Deployments") {
 
@@ -97,6 +98,7 @@ public class DeploymentConfigEditorSection extends ServerEditorSection {
                 });
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });

@@ -148,7 +148,7 @@ public class ExportTemplateDialog extends MessageDialog {
 
         WritableSet inUseNames = new WritableSet();
         inUseNames.addAll(existingTemplateNames);
-        ChainValidator<String> validator = new ChainValidator<String>(newTemplateName, isCreatingNew,
+        ChainValidator<String> validator = new ChainValidator<>(newTemplateName, isCreatingNew,
                 new NotEmptyValidator("Template name cannot be empty"), new NotInListValidator<String>(inUseNames,
                         "Template name already in use"));
         bindingContext.addValidationStatusProvider(validator);
@@ -173,6 +173,7 @@ public class ExportTemplateDialog extends MessageDialog {
         super.createButtonsForButtonBar(parent);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if ( value instanceof IStatus == false )

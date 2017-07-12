@@ -54,6 +54,7 @@ public class IdentityManagementContentProvider extends AbstractContentProvider {
         }
     }
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement || element instanceof IdentityManagementRootElement);
     }
@@ -65,7 +66,7 @@ public class IdentityManagementContentProvider extends AbstractContentProvider {
         }
 
         if (parentElement instanceof IdentityManagementRootElement) {
-            List<ExplorerNode> iamNodes = new ArrayList<ExplorerNode>();
+            List<ExplorerNode> iamNodes = new ArrayList<>();
             ExplorerNode userNode = new UserNode();
             iamNodes.add(userNode);
             ExplorerNode groupNode = new GroupNode();

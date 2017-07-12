@@ -29,7 +29,7 @@ import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.Environment
  */
 public class LoadBalancingConfigEditorSection extends HumanReadableConfigEditorSection {
 
-    private static final Map<String, String> humanReadableNames = new HashMap<String, String>();
+    private static final Map<String, String> humanReadableNames = new HashMap<>();
     static {
         humanReadableNames.put("LoadBalancerHTTPPort", "HTTP Port");
         humanReadableNames.put("LoadBalancerHTTPSPort", "HTTPS Port");

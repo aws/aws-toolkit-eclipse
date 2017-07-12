@@ -12,23 +12,23 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.explorer.cloudformation;
-
+package com.amazonaws.eclipse.cloudformation.actions;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
+import com.amazonaws.eclipse.explorer.cloudformation.JsonFormatter;
 
 /**
  * Formats a CloudFormation template document. The document must be valid JSON
  * in order for it to be formatted.
  */
-public class FormatTemplateAction extends TemplateEditorAction implements IObjectActionDelegate {
+public class FormatTemplateAction extends TemplateEditorBaseAction {
 
+    @Override
     public void run(IAction action) {
         try {
             String documentText = templateDocument.get(0, templateDocument.getLength());

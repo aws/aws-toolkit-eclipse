@@ -45,6 +45,7 @@ public class CantConnectDialog extends MessageDialog {
         link.setHref("https://aws.amazon.com/elasticbeanstalk/");
         link.setUnderlined(true);
         link.addHyperlinkListener(new HyperlinkAdapter() {
+            @Override
             public void linkActivated(HyperlinkEvent e) {
                 BrowserUtils.openExternalBrowser(link.getHref().toString());
             }

@@ -70,7 +70,7 @@ class InstanceTypesParser {
      * descriptions.
      */
     public List<InstanceType> parseInstanceTypes() {
-        LinkedList<InstanceType> instanceTypes = new LinkedList<InstanceType>();
+        LinkedList<InstanceType> instanceTypes = new LinkedList<>();
         NodeList instanceTypeNodeList = doc.getElementsByTagName(INSTANCE_TYPE);
         for (int i = 0; i < instanceTypeNodeList.getLength(); i++) {
             Node instanceTypeNode = instanceTypeNodeList.item(i);

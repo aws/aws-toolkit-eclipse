@@ -108,6 +108,7 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
         gridData.widthHint = 150;
         text.setLayoutData(gridData);
         text.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 if (amiSelectionTable != null)
                     amiSelectionTable.filterImages(text.getText());
@@ -115,6 +116,7 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
         });
 
         text.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
                 if (e.detail != SWT.CANCEL && amiSelectionTable != null) {
                     amiSelectionTable.filterImages(text.getText());
@@ -148,6 +150,7 @@ public class FilteredAmiSelectionTable extends Composite implements IRefreshable
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.core.ui.IRefreshable#refreshData()
      */
+    @Override
     public void refreshData() {
         amiSelectionTable.getRefreshAction().run();
     }

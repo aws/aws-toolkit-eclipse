@@ -36,7 +36,7 @@ public class PlatformEnvironmentDataModel {
 
     /* Eclipse plugin bundles */
     private String eclipsePlatformVersion;
-    private List<Bundle> installedBundles = new LinkedList<Bundle>();
+    private List<Bundle> installedBundles = new LinkedList<>();
 
     public String getOsName() {
         return osName;
@@ -95,7 +95,7 @@ public class PlatformEnvironmentDataModel {
     }
 
     public List<Bundle> getInstalledBundles() {
-        return new LinkedList<Bundle>(installedBundles);
+        return new LinkedList<>(installedBundles);
     }
 
     public void addInstalledBundle(Bundle bundle) {

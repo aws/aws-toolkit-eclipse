@@ -34,6 +34,7 @@ public class RangeValidator implements IValidator {
         this.maxValue = maxValue;
     }
 
+    @Override
     public IStatus validate(Object value) {
         Long s = (Long) value;
         if (s == null || s < minValue || s > maxValue)

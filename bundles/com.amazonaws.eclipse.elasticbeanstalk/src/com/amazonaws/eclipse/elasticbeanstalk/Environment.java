@@ -86,7 +86,7 @@ public class Environment extends ServerDelegate {
     private static final String PROPERTY_SECURITY_GROUP           = "securityGroup";
     private static final String PROPERTY_ASSOCIATE_PUBLIC_IP_ADDRESS = "associatePublicIpAddress";
 
-    private static Map<String, EnvironmentDescription> map = new HashMap<String, EnvironmentDescription>();
+    private static Map<String, EnvironmentDescription> map = new HashMap<>();
 
     @Override
     public void setDefaults(IProgressMonitor monitor) {
@@ -573,7 +573,7 @@ public class Environment extends ServerDelegate {
      */
     public List<ConfigurationSettingsDescription> getCurrentSettings() {
         if (doesEnvironmentExistInBeanstalk() == false) {
-            return new ArrayList<ConfigurationSettingsDescription>();
+            return new ArrayList<>();
         }
 
         AWSElasticBeanstalk beanstalk = getClient();
@@ -626,7 +626,7 @@ public class Environment extends ServerDelegate {
         DescribeEnvironmentResourcesResult describeEnvironmentResources = client
                 .describeEnvironmentResources(new DescribeEnvironmentResourcesRequest()
                         .withEnvironmentName(getEnvironmentName()));
-        List<String> instanceIds = new ArrayList<String>(describeEnvironmentResources.getEnvironmentResources()
+        List<String> instanceIds = new ArrayList<>(describeEnvironmentResources.getEnvironmentResources()
                 .getInstances().size());
         for ( Instance i : describeEnvironmentResources.getEnvironmentResources().getInstances() ) {
             instanceIds.add(i.getId());

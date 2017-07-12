@@ -38,6 +38,7 @@ public class ManagementPerspectiveFactory implements IPerspectiveFactory {
     private static final String JDT_PACKAGE_EXPLORER_VIEW_ID = "org.eclipse.jdt.ui.PackageExplorer";
 
 
+    @Override
     public void createInitialLayout(IPageLayout layout) {
         IFolderLayout left = layout.createFolder(LEFT_FOLDER_ID, IPageLayout.LEFT, 0.30f, layout.getEditorArea());
         left.addView("com.amazonaws.eclipse.explorer.view");

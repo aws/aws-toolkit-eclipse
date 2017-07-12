@@ -54,10 +54,10 @@ public class AccountInfoProvider {
      * Loading from the credentials file is an expensive operation, so we want
      * to cache all the loaded AccountInfo objects.
      */
-    Map<String, AccountInfo> profileAccountInfoCache = new LinkedHashMap<String, AccountInfo>();
+    Map<String, AccountInfo> profileAccountInfoCache = new LinkedHashMap<>();
 
     /** All the registered AccountInfoChangeListener */
-    List<AccountInfoChangeListener> listeners = new LinkedList<AccountInfoChangeListener>();
+    List<AccountInfoChangeListener> listeners = new LinkedList<>();
 
     /**
      * Initialize the provider with the given preference store instance.
@@ -100,7 +100,7 @@ public class AccountInfoProvider {
      *         object.
      */
     public Map<String, AccountInfo> getAllLegacyPreferenceStoreAccontInfo() {
-        Map<String, AccountInfo> preferenceStoreAccounts = new LinkedHashMap<String, AccountInfo>();
+        Map<String, AccountInfo> preferenceStoreAccounts = new LinkedHashMap<>();
 
         // Global accounts
         preferenceStoreAccounts.putAll(loadPreferenceStoreAccountsByRegion(null));
@@ -153,7 +153,7 @@ public class AccountInfoProvider {
      * This method needs to be called whenever we reload profile credentials.
      */
     public void updateProfileAccountMetadataInPreferenceStore(Collection<AccountInfo> accounts) {
-        List<String> accountIds = new LinkedList<String>();
+        List<String> accountIds = new LinkedList<>();
         for (AccountInfo accountInfo : accounts) {
             accountIds.add(accountInfo.getInternalAccountId());
         }
@@ -273,7 +273,7 @@ public class AccountInfoProvider {
      * @return Key - profile name;  Value - account id
      */
     private Map<String, String> getExistingProfileAccountIds() {
-        Map<String, String> exisitingProfileAccounts = new HashMap<String, String>();
+        Map<String, String> exisitingProfileAccounts = new HashMap<>();
 
         // Ids of all the profile accounts currently configured in the toolkit
         String[] profileAccountIds = prefStore.getString(
@@ -309,7 +309,7 @@ public class AccountInfoProvider {
         String[] accountIds = prefStore.getString(p_regionalAccountIds)
                 .split(PreferenceConstants.ACCOUNT_ID_SEPARATOR_REGEX);
 
-        Map<String, AccountInfo> accounts = new LinkedHashMap<String, AccountInfo>();
+        Map<String, AccountInfo> accounts = new LinkedHashMap<>();
 
         for ( String accountId : accountIds ) {
             if (accountId.length() > 0) {

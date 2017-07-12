@@ -39,6 +39,7 @@ public class GroupForUserTable extends AbstractGroupTable {
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if (viewer.getTable().getSelectionCount() > 0) {
 

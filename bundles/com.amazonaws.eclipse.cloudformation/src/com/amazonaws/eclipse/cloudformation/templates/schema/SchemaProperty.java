@@ -79,7 +79,7 @@ public class SchemaProperty {
     }
 
     public void addChildSchema(String name, Schema schema) {
-        if (childSchemas == null) childSchemas = new HashMap<String, Schema>();
+        if (childSchemas == null) childSchemas = new HashMap<>();
         
         childSchemas.put(name, schema);
     }
@@ -100,6 +100,7 @@ public class SchemaProperty {
         this.schema = schema;
     }
     
+    @Override
     public String toString() {
         return "(" + type + "): " + description;
     }

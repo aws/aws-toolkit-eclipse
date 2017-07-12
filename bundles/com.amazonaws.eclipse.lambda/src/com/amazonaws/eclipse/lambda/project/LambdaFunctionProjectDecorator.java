@@ -29,11 +29,13 @@ import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
  */
 public class LambdaFunctionProjectDecorator implements ILabelDecorator {
 
+    @Override
     public Image decorateImage(Image image, Object element) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public String decorateText(String text, Object element) {
 
         IProject project = null;
@@ -57,18 +59,22 @@ public class LambdaFunctionProjectDecorator implements ILabelDecorator {
         return null;
     }
 
+    @Override
     public void dispose() {
         // no-op
     }
 
+    @Override
     public boolean isLabelProperty(Object element, String property) {
         return true;
     }
 
+    @Override
     public void addListener(ILabelProviderListener listener) {
         // no-op
     }
 
+    @Override
     public void removeListener(ILabelProviderListener listener) {
         // no-op
     }

@@ -53,31 +53,31 @@ public class LaunchWizard extends Wizard {
         this(null);
     }
 
-	/**
-	 * Creates a new launch wizard to launch the specified AMI.
-	 *
-	 * @param image
-	 *            The AMI this launch wizard will launch.
-	 */
-	public LaunchWizard(Image image) {
-		this.image = image;
+    /**
+     * Creates a new launch wizard to launch the specified AMI.
+     *
+     * @param image
+     *            The AMI this launch wizard will launch.
+     */
+    public LaunchWizard(Image image) {
+        this.image = image;
 
-		if (image == null) {
-		    amiSelectionWizardPage = new AmiSelectionWizardPage();
-		    this.addPage(amiSelectionWizardPage);
-		}
+        if (image == null) {
+            amiSelectionWizardPage = new AmiSelectionWizardPage();
+            this.addPage(amiSelectionWizardPage);
+        }
 
-		launchOptionsWizardPage = new LaunchWizardPage(image);
+        launchOptionsWizardPage = new LaunchWizardPage(image);
 
-		this.addPage(launchOptionsWizardPage);
-		this.setNeedsProgressMonitor(true);
-		this.setWindowTitle("Launch Amazon EC2 Instances");
+        this.addPage(launchOptionsWizardPage);
+        this.setNeedsProgressMonitor(true);
+        this.setWindowTitle("Launch Amazon EC2 Instances");
 
         /*
          * TODO: Grab a better image for the wizard...
          */
-		this.setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
-	}
+        this.setDefaultPageImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
+    }
 
     /**
      * Returns the Amazon Machine Image this launch wizard is launching. This
@@ -86,67 +86,67 @@ public class LaunchWizard extends Wizard {
      *
      * @return The Amazon Machine Image this launch wizard is launching.
      */
-	public Image getImageToLaunch() {
-	    if (image != null) return image;
+    public Image getImageToLaunch() {
+        if (image != null) return image;
 
-	    return amiSelectionWizardPage.getSelectedAmi();
-	}
+        return amiSelectionWizardPage.getSelectedAmi();
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#performFinish()
-	 */
-	@Override
-	public boolean performFinish() {
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.wizard.Wizard#performFinish()
+     */
+    @Override
+    public boolean performFinish() {
 
-		/*
-		 * TODO: performFinish executes in the UI thread. It might be nice to
-		 * run this in a separate thread in case of network issues, but it's
-		 * probably not the most critical piece to get out of the UI thread.
-		 */
+        /*
+         * TODO: performFinish executes in the UI thread. It might be nice to
+         * run this in a separate thread in case of network issues, but it's
+         * probably not the most critical piece to get out of the UI thread.
+         */
 
-		String keyPairName = launchOptionsWizardPage.getKeyPairName();
+        String keyPairName = launchOptionsWizardPage.getKeyPairName();
 
-		Ec2InstanceLauncher launcher = new Ec2InstanceLauncher(getImageToLaunch().getImageId(), keyPairName);
-		launcher.setNumberOfInstances(launchOptionsWizardPage.getNumberOfInstances());
-		launcher.setAvailabilityZone(launchOptionsWizardPage.getAvailabilityZone());
-		launcher.setInstanceType(launchOptionsWizardPage.getInstanceTypeId());
-		launcher.setUserData(launchOptionsWizardPage.getUserData());
-		launcher.setSecurityGroup(launchOptionsWizardPage.getSecurityGroup());
-		launcher.setInstanceProfileArn(launchOptionsWizardPage.getInstanceProfileArn());
+        Ec2InstanceLauncher launcher = new Ec2InstanceLauncher(getImageToLaunch().getImageId(), keyPairName);
+        launcher.setNumberOfInstances(launchOptionsWizardPage.getNumberOfInstances());
+        launcher.setAvailabilityZone(launchOptionsWizardPage.getAvailabilityZone());
+        launcher.setInstanceType(launchOptionsWizardPage.getInstanceTypeId());
+        launcher.setUserData(launchOptionsWizardPage.getUserData());
+        launcher.setSecurityGroup(launchOptionsWizardPage.getSecurityGroup());
+        launcher.setInstanceProfileArn(launchOptionsWizardPage.getInstanceProfileArn());
 
-		try {
-			launcher.launch();
-			activateInstanceView();
-		} catch (Exception e) {
-			String message = "Unable to launch instances: " + e.getMessage();
-			Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID, message, e);
-			StatusManager.getManager().handle(status, StatusManager.LOG);
+        try {
+            launcher.launch();
+            activateInstanceView();
+        } catch (Exception e) {
+            String message = "Unable to launch instances: " + e.getMessage();
+            Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID, message, e);
+            StatusManager.getManager().handle(status, StatusManager.LOG);
 
-			MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_ERROR | SWT.OK);
-			messageBox.setMessage(message);
-			messageBox.setText("Launch Error");
-			messageBox.open();
+            MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_ERROR | SWT.OK);
+            messageBox.setMessage(message);
+            messageBox.setText("Launch Error");
+            messageBox.open();
 
-			return false;
-		}
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	private void activateInstanceView() {
-		try {
-			IViewPart viewPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
-									.findView("com.amazonaws.eclipse.ec2.ui.views.InstanceView");
-			if (viewPart != null) {
-				InstanceView instanceView = (InstanceView)viewPart;
-				instanceView.refreshData();
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().activate(instanceView);
-			}
-		} catch (Exception e) {
-			Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
-					"Unable to activate instance view: " + e.getMessage(), e);
-			StatusManager.getManager().handle(status, StatusManager.LOG);
-		}
-	}
+    private void activateInstanceView() {
+        try {
+            IViewPart viewPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+                                    .findView("com.amazonaws.eclipse.ec2.ui.views.InstanceView");
+            if (viewPart != null) {
+                InstanceView instanceView = (InstanceView)viewPart;
+                instanceView.refreshData();
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().activate(instanceView);
+            }
+        } catch (Exception e) {
+            Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
+                    "Unable to activate instance view: " + e.getMessage(), e);
+            StatusManager.getManager().handle(status, StatusManager.LOG);
+        }
+    }
 
 }

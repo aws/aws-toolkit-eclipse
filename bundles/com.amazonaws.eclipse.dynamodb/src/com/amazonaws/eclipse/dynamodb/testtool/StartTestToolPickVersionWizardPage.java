@@ -72,6 +72,7 @@ public class StartTestToolPickVersionWizardPage extends WizardPage {
      *
      * @param parent    the parent composite to attach the control to
      */
+    @Override
     public void createControl(final Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(composite);
@@ -111,6 +112,7 @@ public class StartTestToolPickVersionWizardPage extends WizardPage {
                 AggregateValidationStatus.MAX_SEVERITY);
 
         aggregator.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(final ChangeEvent event) {
                 Object value = aggregator.getValue();
                 if (!(value instanceof IStatus)) {
@@ -128,6 +130,7 @@ public class StartTestToolPickVersionWizardPage extends WizardPage {
      * chosen.
      */
     private static class TestToolVersionValidator implements IValidator {
+        @Override
         public IStatus validate(final Object value) {
             if (!(value instanceof TestToolVersion)) {
                 return ValidationStatus.error("No version selected");

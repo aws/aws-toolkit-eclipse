@@ -55,6 +55,7 @@ public class TerminateEnvironmentJob extends Job {
 
         final DialogHolder dialogHolder = new DialogHolder();
         Display.getDefault().syncExec(new Runnable() {            
+            @Override
             public void run() {
                 MessageDialog dialog = new MessageDialog(Display.getDefault().getActiveShell(),
                         "Confirm environment termination", AwsToolkitCore.getDefault().getImageRegistry()

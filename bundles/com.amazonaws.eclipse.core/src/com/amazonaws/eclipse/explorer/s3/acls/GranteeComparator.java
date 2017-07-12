@@ -25,6 +25,7 @@ import com.amazonaws.services.s3.model.GroupGrantee;
  * Users), and any non-group Grantees are sorted by ID.
  */
 final class GranteeComparator implements Comparator<Grantee> {
+    @Override
     public int compare(Grantee g1, Grantee g2) {
         if (g1.getIdentifier().equals(g2.getIdentifier())) return 0;
 

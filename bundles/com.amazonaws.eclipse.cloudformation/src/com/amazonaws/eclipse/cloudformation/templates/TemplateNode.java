@@ -14,13 +14,22 @@
  */
 package com.amazonaws.eclipse.cloudformation.templates;
 
-import com.fasterxml.jackson.core.JsonLocation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Stack;
 
+import com.amazonaws.eclipse.cloudformation.templates.TemplateNodePath.PathNode;
+import com.fasterxml.jackson.core.JsonLocation;
 
 /**
  * Abstract base class representing a generic JSON node in a Template document.
  */
 public abstract class TemplateNode {
+
+    public static final String ROOT_PATH = "ROOT";
+    public static final String PATH_SEPARATOR = "/";
+
     private TemplateNode parent;
     private JsonLocation startLocation;
     private JsonLocation endLocation;
@@ -34,32 +43,46 @@ public abstract class TemplateNode {
     }
 
     public String getPath() {
-        String path = "";
+        List<PathNode> subPaths = getSubPaths();
+        StringBuilder builder = new StringBuilder();
+        for (PathNode subPath : subPaths) {
+            builder.append(subPath.getReadiblePath() + TemplateNode.PATH_SEPARATOR);
+        }
+        return builder.toString();
+    }
+
+    public List<PathNode> getSubPaths() {
+        Stack<PathNode> stack = new Stack<>();
         TemplateNode node = parent;
         while (node != null) {
-            if (node.isField()) {
-                path = ((TemplateFieldNode)node).getText() + "/" + path;
+            if (node instanceof TemplateFieldNode) {
+                String fieldName = ((TemplateFieldNode) node).getText();
+                stack.push(new PathNode(fieldName));
+            } else if (node instanceof TemplateIndexNode) {
+                int index = ((TemplateIndexNode) node).getIndex();
+                stack.push(new PathNode(index));
+            } else if (node instanceof TemplateObjectNode) {
+                TemplateObjectNode objectNode = (TemplateObjectNode) node;
+                TemplateNode typeNode = objectNode.get("Type");
+                if (typeNode != null && typeNode instanceof TemplateValueNode) {
+                    String type = ((TemplateValueNode) typeNode).getText();
+                    node = node.getParent();
+                    if (node == null) {
+                        break;
+                    }
+                    if (!(node instanceof TemplateFieldNode)) {
+                        continue;
+                    }
+                    String fieldName = ((TemplateFieldNode) node).getText();
+                    stack.push(new PathNode(fieldName, type));
+                }
             }
             node = node.getParent();
         }
-
-        return "ROOT/" + path;
-    }
-
-    public boolean isField() {
-        return false;
-    }
-
-    public boolean isObject() {
-        return false;
-    }
-
-    public boolean isArray() {
-        return false;
-    }
-
-    public boolean isValue() {
-        return false;
+        stack.push(new PathNode(TemplateNode.ROOT_PATH));
+        List<PathNode> stackList = new ArrayList<>(stack);
+        Collections.reverse(stackList);
+        return Collections.unmodifiableList(stackList);
     }
 
     public JsonLocation getStartLocation() {

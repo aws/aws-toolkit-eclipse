@@ -70,12 +70,14 @@ public class TextWizardPageInput implements WizardPageInput {
     }
 
     /** {@inheritDoc} */
+    @Override
     public void init(final Composite parent,
                      final DataBindingContext context) {
 
         createLabelColumn(parent);
 
         PostBuildHook<Text> bindInputHook = new PostBuildHook<Text>() {
+            @Override
             public void run(final Text value) {
 
                 context.bindValue(
@@ -91,11 +93,13 @@ public class TextWizardPageInput implements WizardPageInput {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Object getValue() {
         return observableValue.getValue();
     }
 
     /** {@inheritDoc} */
+    @Override
     public void dispose() {
         // Nothing to do here.
     }

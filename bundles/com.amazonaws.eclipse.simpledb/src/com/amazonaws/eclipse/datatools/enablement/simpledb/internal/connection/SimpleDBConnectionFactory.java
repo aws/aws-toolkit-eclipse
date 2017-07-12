@@ -32,6 +32,7 @@ public class SimpleDBConnectionFactory implements IConnectionFactory {
     /**
      * @see org.eclipse.datatools.connectivity.IConnectionFactory#createConnection(org.eclipse.datatools.connectivity.IConnectionProfile)
      */
+    @Override
     public IConnection createConnection(final IConnectionProfile profile) {
         this.simpleDBConnectionUtils.initializeMissingProperties(profile.getBaseProperties());
 
@@ -43,6 +44,7 @@ public class SimpleDBConnectionFactory implements IConnectionFactory {
     /**
      * @see org.eclipse.datatools.connectivity.IConnectionFactory#createConnection(org.eclipse.datatools.connectivity.IConnectionProfile, java.lang.String, java.lang.String)
      */
+    @Override
     public IConnection createConnection(final IConnectionProfile profile, final String uid, final String pwd) {
         return createConnection(profile);
     }

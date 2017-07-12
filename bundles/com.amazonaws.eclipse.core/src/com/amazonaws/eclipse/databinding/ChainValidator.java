@@ -36,7 +36,7 @@ import org.eclipse.core.runtime.IStatus;
  */
 public class ChainValidator<T> extends MultiValidator {
     private IObservableValue model;
-    private List<IValidator> validators = new ArrayList<IValidator>();
+    private List<IValidator> validators = new ArrayList<>();
     private final IObservableValue enabler;
 
     public ChainValidator(IObservableValue model, IValidator... validators) {

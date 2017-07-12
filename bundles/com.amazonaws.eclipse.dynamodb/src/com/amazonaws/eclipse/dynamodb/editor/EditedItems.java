@@ -31,7 +31,7 @@ public class EditedItems {
      * in the same order as insertions. This is so that updates are done in the
      * same order as edits.
      */
-    private final Map<Map<String, AttributeValue>, EditedItem> editedItems = new LinkedHashMap<Map<String, AttributeValue>, EditedItem>();
+    private final Map<Map<String, AttributeValue>, EditedItem> editedItems = new LinkedHashMap<>();
         
     /**
      * @see java.util.Map#get(java.lang.Object)

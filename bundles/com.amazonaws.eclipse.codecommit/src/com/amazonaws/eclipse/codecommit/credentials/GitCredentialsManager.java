@@ -40,7 +40,7 @@ import com.amazonaws.util.StringUtils;
  * Git credentials manager that manages Git credentials in between memory and disk.
  */
 public class GitCredentialsManager {
-    private static final Map<String, GitCredential> GIT_CREDENTIALS = new HashMap<String, GitCredential>();
+    private static final Map<String, GitCredential> GIT_CREDENTIALS = new HashMap<>();
 
     public static void init() {
         AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(
@@ -143,6 +143,7 @@ public class GitCredentialsManager {
 
         private AccountInfoChangeListenerForGitCredentials() {}
 
+        @Override
         public void onAccountInfoChange() {
             mergeAwsProfiles();
         }
@@ -154,7 +155,7 @@ public class GitCredentialsManager {
      * This helper method correctly parses cvs lines.
      */
     private static List<String> splitStringByComma(String str) {
-        List<String> tokens = new ArrayList<String>();
+        List<String> tokens = new ArrayList<>();
         int fromIndex = 0, endIndex = 0;
         while ((endIndex = str.indexOf(',', fromIndex)) > 0) {
             tokens.add(str.substring(fromIndex, endIndex));

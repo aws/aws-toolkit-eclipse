@@ -39,9 +39,11 @@ public class OpenEnvironmentEditorAction extends Action {
         this.setText("Open in WTP Server Editor");
     }
 
+    @Override
     public void run() {
         Display.getDefault().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();

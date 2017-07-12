@@ -31,6 +31,7 @@ public class PackageNameValidator implements IValidator {
         this.message = message;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
         if (StringUtils.isNullOrEmpty(s)) {

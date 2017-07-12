@@ -66,7 +66,7 @@ public class TemplateSchemaRules {
     public List<PseudoParameter> getPseudoParameters() {
         // TODO: Caching
 
-        ArrayList<PseudoParameter> pseudoParameters = new ArrayList<PseudoParameter>();
+        ArrayList<PseudoParameter> pseudoParameters = new ArrayList<>();
 
         Iterator<Entry<String, JsonNode>> iterator = rootNode.get(PSEUDO_PARAMETERS).fields();
         while (iterator.hasNext()) {
@@ -83,7 +83,7 @@ public class TemplateSchemaRules {
     public List<IntrinsicFunction> getIntrinsicFuntions() {
         // TODO: Caching
 
-        ArrayList<IntrinsicFunction> intrinsicFunctions = new ArrayList<IntrinsicFunction>();
+        ArrayList<IntrinsicFunction> intrinsicFunctions = new ArrayList<>();
 
         Iterator<Entry<String, JsonNode>> iterator = rootNode.get(INTRINSIC_FUNCTIONS).fields();
         while (iterator.hasNext()) {
@@ -98,7 +98,7 @@ public class TemplateSchemaRules {
     }
 
 
-    public Schema parseSchema(JsonNode schemaNode) {
+    private Schema parseSchema(JsonNode schemaNode) {
         Schema schema = new Schema();
 
         if (schemaNode.has(DESCRIPTION)) {
@@ -121,7 +121,7 @@ public class TemplateSchemaRules {
                 }
 
                 if (entry.getValue().has(ALLOWED_VALUES)) {
-                    List<String> allowedValues = new ArrayList<String>();
+                    List<String> allowedValues = new ArrayList<>();
                     Iterator<JsonNode> iterator = entry.getValue().get(ALLOWED_VALUES).elements();
                     while (iterator.hasNext()) allowedValues.add(iterator.next().asText());
                     schemaProperty.setAllowedValues(allowedValues);

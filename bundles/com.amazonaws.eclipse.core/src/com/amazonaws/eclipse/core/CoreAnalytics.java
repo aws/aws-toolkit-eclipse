@@ -29,7 +29,7 @@ public class CoreAnalytics {
     public static void trackLoadBucketTimeDuration(long duration) {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addMetric(METRIC_NAME_LOAD_S3_BUCKET_TIME_DURATION_MS, (double)duration)
+                .addMetric(METRIC_NAME_LOAD_S3_BUCKET_TIME_DURATION_MS, duration)
                 .build());
     }
 }

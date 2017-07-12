@@ -86,6 +86,7 @@ public class CodeStarProjectCheckoutWizard extends Wizard implements IImportWiza
         cloneDestinationPage = createCloneDestinationPage();
     }
 
+    @Override
     public void init(IWorkbench workbench, IStructuredSelection arg1) {
         this.workbench = workbench;
     }
@@ -102,6 +103,7 @@ public class CodeStarProjectCheckoutWizard extends Wizard implements IImportWiza
         try {
             final File destinationFile = cloneDestinationPage.getDestinationFile();
             getContainer().run(true, true, new IRunnableWithProgress() {
+                @Override
                 public void run(IProgressMonitor monitor)
                         throws InvocationTargetException, InterruptedException {
                     monitor.subTask("Cloning repository...");

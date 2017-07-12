@@ -40,8 +40,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.ui.dialogs.SaveAsDialog;
-
 import com.amazonaws.eclipse.codecommit.CodeCommitConstants;
 import com.amazonaws.eclipse.codecommit.credentials.GitCredential;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -51,7 +49,6 @@ import com.amazonaws.eclipse.core.widget.CheckboxComplex;
 import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.AmazonIdentityManagementException;
 import com.amazonaws.services.identitymanagement.model.AttachUserPolicyRequest;
 import com.amazonaws.services.identitymanagement.model.CreateServiceSpecificCredentialRequest;
 import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
@@ -163,6 +160,7 @@ public class GitCredentialsComposite extends Composite {
         browseButton = newPushButton(buttonComposite, "Import from csv file");
         browseButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
         browseButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.SINGLE);
                 String path = dialog.open();
@@ -210,7 +208,7 @@ public class GitCredentialsComposite extends Composite {
     // Create a new IAM user attched with the default policy, AWSCodeCommitPowerUser
     private User createNewIamUser() {
         AmazonIdentityManagement iam = dataModel.getIamClient();
-        Set<String> userSet = new HashSet<String>();
+        Set<String> userSet = new HashSet<>();
         ListUsersResult result = new ListUsersResult();
         do {
             result = iam.listUsers(new ListUsersRequest().withMarker(result.getMarker()));
@@ -243,7 +241,7 @@ public class GitCredentialsComposite extends Composite {
             if (line == null) {
                 throw new ParseException("The csv file is empty", 1);
             }
-            line = bufferedReader.readLine();	// the second line of the default csv file contains the credentials separated with ','
+            line = bufferedReader.readLine();    // the second line of the default csv file contains the credentials separated with ','
             if (line == null) {
                 throw new ParseException("Invalid Git credential csv file format!", 2);
             }

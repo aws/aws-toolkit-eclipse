@@ -119,6 +119,7 @@ class BundleJob extends Job {
             final String message = "Successfully created AMI " + amiName;
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_INFORMATION | SWT.OK);
                     messageBox.setMessage(message);
@@ -134,6 +135,7 @@ class BundleJob extends Job {
         } catch (final ShellCommandException sce) {
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     new ShellCommandErrorDialog(sce).open();
                 }

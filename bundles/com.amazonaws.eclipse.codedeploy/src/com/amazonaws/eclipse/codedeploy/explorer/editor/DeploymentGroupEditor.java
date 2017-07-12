@@ -165,6 +165,7 @@ public class DeploymentGroupEditor extends EditorPart {
 
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         for ( Control c : parent.getChildren() ) {
                             c.dispose();

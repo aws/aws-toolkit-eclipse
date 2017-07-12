@@ -119,7 +119,7 @@ public class RegionUtils {
      * @see ServiceAbbreviations
      */
     public synchronized static List<Region> getRegionsForService(String serviceAbbreviation) {
-        List<Region> regions = new LinkedList<Region>();
+        List<Region> regions = new LinkedList<>();
         for ( Region r : getRegions() ) {
             if ( r.isServiceSupported(serviceAbbreviation) ) {
                 regions.add(r);

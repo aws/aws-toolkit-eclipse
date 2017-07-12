@@ -52,8 +52,8 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
         StructuredSelection selection = (StructuredSelection)getActionSite().getStructuredViewer().getSelection();
         @SuppressWarnings("rawtypes")
         Iterator iterator = selection.iterator();
-        List<EnvironmentDescription> environments = new ArrayList<EnvironmentDescription>();
-        List<ApplicationDescription> applications = new ArrayList<ApplicationDescription>();
+        List<EnvironmentDescription> environments = new ArrayList<>();
+        List<ApplicationDescription> applications = new ArrayList<>();
         while ( iterator.hasNext() ) {
             Object obj = iterator.next();
             if ( obj instanceof EnvironmentDescription ) {
@@ -105,7 +105,7 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
                     String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
                     AWSElasticBeanstalk beanstalk = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(endpoint);
 
-                    List<Exception> errors = new ArrayList<Exception>();
+                    List<Exception> errors = new ArrayList<>();
                     for (EnvironmentDescription env : environments) {
                         try {
                             beanstalk.terminateEnvironment(new TerminateEnvironmentRequest().withEnvironmentId(env.getEnvironmentId()));
@@ -155,7 +155,7 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
                     String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
                     AWSElasticBeanstalk beanstalk = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(endpoint);
 
-                    List<Exception> errors = new ArrayList<Exception>();
+                    List<Exception> errors = new ArrayList<>();
                     for (ApplicationDescription app : applications) {
                         try {
                             beanstalk.deleteApplication(new DeleteApplicationRequest().withApplicationName(app.getApplicationName()));

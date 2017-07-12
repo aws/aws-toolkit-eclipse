@@ -24,47 +24,47 @@ import org.eclipse.swt.widgets.TreeColumn;
  * associated comparator.
  */
 public class SelectionTableColumnClickListener extends SelectionAdapter {
-	/** The index of the column associated with this listener */
-	private final int columnIndex;
-	
-	/** The comparator controlling sorting on the associated table */
-	private final SelectionTableComparator comparator;
+    /** The index of the column associated with this listener */
+    private final int columnIndex;
+    
+    /** The comparator controlling sorting on the associated table */
+    private final SelectionTableComparator comparator;
 
-	/** The viewer associated with this column click listener */
-	private final TreeViewer viewer;
+    /** The viewer associated with this column click listener */
+    private final TreeViewer viewer;
 
-	/**
-	 * Creates a new SelectionTableColumnClickListener associated with the
-	 * specified column and comparator.
-	 * 
-	 * @param columnIndex
-	 *            The index of the column associated with this listener.
-	 * @param comparator
-	 *            The comparator that controls sorting on the associated
-	 *            selection table.
-	 */
-	public SelectionTableColumnClickListener(int columnIndex, TreeViewer viewer, SelectionTableComparator comparator) {
-		this.columnIndex = columnIndex;
-		this.viewer = viewer;
-		this.comparator = comparator;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
-	 */
-	@Override
-	public void widgetSelected(SelectionEvent e) {
-		TreeColumn treeColumn = (TreeColumn)e.getSource();
-		viewer.getTree().setSortColumn(treeColumn);
+    /**
+     * Creates a new SelectionTableColumnClickListener associated with the
+     * specified column and comparator.
+     * 
+     * @param columnIndex
+     *            The index of the column associated with this listener.
+     * @param comparator
+     *            The comparator that controls sorting on the associated
+     *            selection table.
+     */
+    public SelectionTableColumnClickListener(int columnIndex, TreeViewer viewer, SelectionTableComparator comparator) {
+        this.columnIndex = columnIndex;
+        this.viewer = viewer;
+        this.comparator = comparator;
+    }
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+     */
+    @Override
+    public void widgetSelected(SelectionEvent e) {
+        TreeColumn treeColumn = (TreeColumn)e.getSource();
+        viewer.getTree().setSortColumn(treeColumn);
 
-		// If we're already sorting in this column and the user
-		// clicks on it, we want to reverse the sort direction.
-		if (comparator.getColumn() == columnIndex) {
-			comparator.reverseDirection();
-		}
-		comparator.setColumn(columnIndex);
+        // If we're already sorting in this column and the user
+        // clicks on it, we want to reverse the sort direction.
+        if (comparator.getColumn() == columnIndex) {
+            comparator.reverseDirection();
+        }
+        comparator.setColumn(columnIndex);
 
-		viewer.getTree().setSortDirection(comparator.getDirection());
-		viewer.refresh();
-	}
+        viewer.getTree().setSortDirection(comparator.getDirection());
+        viewer.refresh();
+    }
 }

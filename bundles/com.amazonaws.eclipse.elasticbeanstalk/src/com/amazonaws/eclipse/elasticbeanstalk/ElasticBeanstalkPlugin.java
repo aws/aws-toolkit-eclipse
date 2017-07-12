@@ -83,7 +83,7 @@ public class ElasticBeanstalkPlugin extends AbstractAwsPlugin implements IStartu
     public static final String TOMCAT_7_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat7"; //$NON-NLS-1$
     public static final String TOMCAT_8_SERVER_TYPE_ID = "com.amazonaws.eclipse.elasticbeanstalk.servers.tomcat8"; //$NON-NLS-1$
 
-    public static final Collection<String> SERVER_TYPE_IDS = new HashSet<String>();
+    public static final Collection<String> SERVER_TYPE_IDS = new HashSet<>();
     private Font subtleDialogFont;
 
     static {
@@ -106,6 +106,7 @@ public class ElasticBeanstalkPlugin extends AbstractAwsPlugin implements IStartu
             System.out.println(message);
     }
 
+    @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
 
@@ -125,6 +126,7 @@ public class ElasticBeanstalkPlugin extends AbstractAwsPlugin implements IStartu
      * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
      * )
      */
+    @Override
     public void stop(BundleContext context) throws Exception {
         plugin = null;
         syncEnvironmentsJob.cancel();
@@ -137,6 +139,7 @@ public class ElasticBeanstalkPlugin extends AbstractAwsPlugin implements IStartu
     /* (non-Javadoc)
      * @see org.eclipse.ui.IStartup#earlyStartup()
      */
+    @Override
     public void earlyStartup() {
     }
 
@@ -177,7 +180,7 @@ public class ElasticBeanstalkPlugin extends AbstractAwsPlugin implements IStartu
      * Returns all AWS Elastic Beanstalk servers known to ServerCore.
      */
     public static Collection<IServer> getExistingElasticBeanstalkServers() {
-        List<IServer> elasticBeanstalkServers = new ArrayList<IServer>();
+        List<IServer> elasticBeanstalkServers = new ArrayList<>();
 
         IServer[] servers = ServerCore.getServers();
         for ( IServer server : servers ) {
@@ -304,15 +307,18 @@ public class ElasticBeanstalkPlugin extends AbstractAwsPlugin implements IStartu
      */
     private class NewServerListener implements IServerLifecycleListener {
 
+        @Override
         public void serverAdded(IServer server) {
             if ( SERVER_TYPE_IDS.contains(server.getServerType().getId()) ) {
                 ElasticBeanstalkPlugin.getDefault().syncEnvironments();
             }
         }
 
+        @Override
         public void serverChanged(IServer server) {
         }
 
+        @Override
         public void serverRemoved(IServer server) {
         }
     }

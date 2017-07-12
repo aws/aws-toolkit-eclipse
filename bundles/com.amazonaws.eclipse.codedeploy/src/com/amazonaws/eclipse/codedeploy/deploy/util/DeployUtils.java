@@ -159,6 +159,7 @@ public class DeployUtils {
 
         copyDirectoryWithTransformationHandler(templateCopySourceRoot, targetBaseDir, new FileTransformationHandler() {
 
+            @Override
             public void copyFromFileToFile(File src, File target) throws IOException {
                 String srcContent = FileUtils.readFileToString(src);
                 String transformedContent = substituteUserConfiguration(

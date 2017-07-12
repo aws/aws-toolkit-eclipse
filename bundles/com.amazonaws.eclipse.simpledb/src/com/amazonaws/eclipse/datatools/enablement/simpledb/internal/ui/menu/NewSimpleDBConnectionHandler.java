@@ -29,6 +29,7 @@ public class NewSimpleDBConnectionHandler extends AbstractHandler {
     private static final String DATABASE_DEVELOPMENT_PERSPECTIVE_ID =
         "org.eclipse.datatools.sqltools.sqleditor.perspectives.EditorPerspective";
 
+    @Override
     public Object execute(final ExecutionEvent event) throws ExecutionException {
         try {
             PlatformUI.getWorkbench().showPerspective(DATABASE_DEVELOPMENT_PERSPECTIVE_ID,

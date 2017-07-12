@@ -34,7 +34,7 @@ public final class LoadIamRolesJob extends LoadResourcesJob<Role> {
 
     @Override
     protected List<Role> getAllResources() {
-        List<Role> roles = new ArrayList<Role>();
+        List<Role> roles = new ArrayList<>();
         ListRolesResult result = null;
         do {
             ListRolesRequest request = new ListRolesRequest();

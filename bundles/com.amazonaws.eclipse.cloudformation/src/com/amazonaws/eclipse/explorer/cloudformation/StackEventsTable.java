@@ -56,8 +56,10 @@ public class StackEventsTable extends Composite {
 
         private StackEvent[] events;
 
+        @Override
         public void dispose() {}
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof StackEvent[]) {
                 events = (StackEvent[])newInput;
@@ -66,37 +68,47 @@ public class StackEventsTable extends Composite {
             }
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return events;
         }
 
+        @Override
         public Object[] getChildren(TreePath parentPath) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(TreePath path) {
             return false;
         }
 
+        @Override
         public TreePath[] getParents(Object element) {
             return new TreePath[0];
         }
     }
 
     private final class StackEventsLabelProvider implements ITableLabelProvider {
+        @Override
         public void addListener(ILabelProviderListener listener) {}
+        @Override
         public void removeListener(ILabelProviderListener listener) {}
 
+        @Override
         public void dispose() {}
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof StackEvent == false) return "";
 
@@ -173,7 +185,7 @@ public class StackEventsTable extends Composite {
         public void run() {
             try {
                 DescribeStackEventsRequest request = new DescribeStackEventsRequest().withStackName(stackEditorInput.getStackName());
-                final List<StackEvent> stackEvents = new LinkedList<StackEvent>();
+                final List<StackEvent> stackEvents = new LinkedList<>();
                 DescribeStackEventsResult result = null;
                 do {
                     if (result != null) request.setNextToken(result.getNextToken());
@@ -183,6 +195,7 @@ public class StackEventsTable extends Composite {
                 } while (result.getNextToken() != null);
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         viewer.setInput(stackEvents.toArray(new StackEvent[stackEvents.size()]));
                     }

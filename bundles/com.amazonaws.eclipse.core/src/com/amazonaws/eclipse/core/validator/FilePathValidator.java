@@ -28,6 +28,7 @@ public class FilePathValidator implements IValidator {
     /* (non-Javadoc)
      * @see org.eclipse.core.databinding.validation.IValidator#validate(java.lang.Object)
      */
+    @Override
     public IStatus validate(Object value) {
         String filePath = (String) value;
         File file = new File(filePath);

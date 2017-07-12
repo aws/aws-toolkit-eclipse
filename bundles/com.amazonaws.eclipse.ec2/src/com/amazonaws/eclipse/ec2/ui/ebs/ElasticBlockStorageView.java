@@ -120,6 +120,7 @@ public class ElasticBlockStorageView extends ViewPart implements IRefreshable {
 
     private void fillLocalToolBar(IToolBarManager manager) {
         refreshAction = new Action() {
+            @Override
             public void run() {
                 if (volumeSelectionTable != null)
                     volumeSelectionTable.refreshVolumes();
@@ -138,6 +139,7 @@ public class ElasticBlockStorageView extends ViewPart implements IRefreshable {
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
      */
+    @Override
     public void refreshData() {
         if (refreshAction != null)
             refreshAction.run();

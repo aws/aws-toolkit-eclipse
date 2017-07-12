@@ -254,6 +254,7 @@ class FormsOverviewComposite extends Composite {
                         null : rssFeed.getChannel().getItems().subList(0, 10);
 
                 Display.getDefault().syncExec(new Runnable () {
+                    @Override
                     public void run() {
                         for (Control control : composite.getChildren()) control.dispose();
 
@@ -303,7 +304,7 @@ class FormsOverviewComposite extends Composite {
      *         implementations.
      */
     private List<OverviewContribution> loadOverviewContributions() {
-        Map<String, OverviewContribution> overviewContributionsByPluginId = new HashMap<String, OverviewContribution>();
+        Map<String, OverviewContribution> overviewContributionsByPluginId = new HashMap<>();
 
         IExtensionPoint extensionPoint = Platform.getExtensionRegistry().getExtensionPoint(AwsToolkitCore.OVERVIEW_EXTENSION_ID);
         for (IExtension extension : extensionPoint.getExtensions()) {
@@ -322,7 +323,7 @@ class FormsOverviewComposite extends Composite {
             }
         }
 
-        ArrayList<OverviewContribution> overviewContributions = new ArrayList<OverviewContribution>();
+        ArrayList<OverviewContribution> overviewContributions = new ArrayList<>();
         for (String pluginId : PLUGIN_ORDER) {
             if (overviewContributionsByPluginId.containsKey(pluginId)) {
                 overviewContributions.add(overviewContributionsByPluginId.remove(pluginId));

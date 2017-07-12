@@ -27,7 +27,6 @@ import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.ui.preferences.AwsToolkitPreferencePage;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
-import com.amazonaws.eclipse.ec2.ui.HelpLinkListener;
 import com.amazonaws.eclipse.ec2.ui.keypair.KeyPairComposite;
 
 /**
@@ -77,6 +76,7 @@ public class KeyPairsPreferencePage extends AwsToolkitPreferencePage implements
     /* (non-Javadoc)
      * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
      */
+    @Override
     public void init(IWorkbench workbench) {}
 
 }

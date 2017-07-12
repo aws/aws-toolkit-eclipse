@@ -96,7 +96,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
             return;
         }
 
-        IPreferenceStore ec2PluginPreferenceStore =	getEc2PluginPreferenceStore();
+        IPreferenceStore ec2PluginPreferenceStore =    getEc2PluginPreferenceStore();
 
         for (String preferenceToImport : preferencesToImport) {
             String value = ec2PluginPreferenceStore.getString(preferenceToImport);

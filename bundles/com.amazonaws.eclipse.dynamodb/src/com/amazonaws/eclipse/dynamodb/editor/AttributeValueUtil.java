@@ -89,7 +89,7 @@ public class AttributeValueUtil {
      * Returns a list of ByteBuffers corresponding to the base64 strings given.
      */
     private static Collection<ByteBuffer> getByteBuffers(Collection<String> newValue) {
-        List<ByteBuffer> buffers = new LinkedList<ByteBuffer>();
+        List<ByteBuffer> buffers = new LinkedList<>();
         for (String value : newValue) {
             buffers.add(getByteBuffer(value));
         }
@@ -213,7 +213,7 @@ public class AttributeValueUtil {
      * Returns a base-64 string of the given bytes
      */
     private static Collection<String> base64FormatOfBinarySet(Collection<ByteBuffer> bs) {
-        List<String> base64Strings = new LinkedList<String>();
+        List<String> base64Strings = new LinkedList<>();
         for (ByteBuffer b : bs) {
             base64Strings.add(base64Format(b));
         }

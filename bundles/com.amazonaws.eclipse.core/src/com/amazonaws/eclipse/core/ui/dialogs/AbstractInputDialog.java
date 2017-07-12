@@ -98,6 +98,7 @@ public abstract class AbstractInputDialog extends TitleAreaDialog {
 
       inputText.addModifyListener(new ModifyListener() {
 
+        @Override
         public void modifyText(ModifyEvent arg0) {
             inputValue = inputText.getText();
 
@@ -131,12 +132,14 @@ public abstract class AbstractInputDialog extends TitleAreaDialog {
 
         new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     performFinish(AbstractInputDialog.this.inputValue);
                 } catch (final Exception e) {
                     // hide progress bar
                     Display.getDefault().syncExec(new Runnable() {
+                        @Override
                         public void run() {
                             setErrorMessage(e.getMessage());
                             progressBar.setVisible(false);
@@ -148,6 +151,7 @@ public abstract class AbstractInputDialog extends TitleAreaDialog {
                 }
 
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         AbstractInputDialog.super.okPressed();
                     }

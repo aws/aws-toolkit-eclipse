@@ -75,13 +75,14 @@ public class StopInstancesAction extends Action {
     @Override
     public void run() {
 
-        final List<String> instanceIds = new ArrayList<String>();
+        final List<String> instanceIds = new ArrayList<>();
         for ( Instance instance : instanceSelectionTable.getAllSelectedInstances() ) {
             instanceIds.add(instance.getInstanceId());
         }
 
         new Thread() {
 
+            @Override
             public void run() {
                 try {
                     StopInstancesRequest request = new StopInstancesRequest().withInstanceIds(instanceIds);

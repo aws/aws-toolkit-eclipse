@@ -20,6 +20,7 @@ public class GenericTemplateParameterValidator implements IValidator {
         return parameterModel;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String input = (String)value;
         if (input == null) {

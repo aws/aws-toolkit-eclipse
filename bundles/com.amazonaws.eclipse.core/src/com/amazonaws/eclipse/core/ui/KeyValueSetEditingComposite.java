@@ -182,7 +182,9 @@ public class KeyValueSetEditingComposite extends Composite {
 
         saveButton = new Button(buttonPanel, SWT.PUSH);
         saveButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_SAVE));
-        saveButton.addSelectionListener(saveListener);
+        if (saveListener != null) {
+            saveButton.addSelectionListener(saveListener);
+        }
         saveButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -246,7 +248,7 @@ public class KeyValueSetEditingComposite extends Composite {
 
     private Collection<Pair> getSelectedObjects() {
         IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
-        List<Pair> pairs = new LinkedList<Pair>();
+        List<Pair> pairs = new LinkedList<>();
         Iterator<?> iter = s.iterator();
         while (iter.hasNext()) {
             Object next = iter.next();
@@ -345,8 +347,8 @@ public class KeyValueSetEditingComposite extends Composite {
     }
 
     public static class KeyValueSetEditingCompositeBuilder {
-        private List<IValidator> keyValidators = new ArrayList<IValidator>();
-        private List<IValidator> valueValidators = new ArrayList<IValidator>();
+        private List<IValidator> keyValidators = new ArrayList<>();
+        private List<IValidator> valueValidators = new ArrayList<>();
         private SelectionListener saveListener;
         private KeyValueEditingUiText uiText = new KeyValueEditingUiText();
 
@@ -408,6 +410,7 @@ public class KeyValueSetEditingComposite extends Composite {
             setTitle(title);
             setMessage(message);
             aggregateValidationStatus.addChangeListener(new IChangeListener() {
+                @Override
                 public void handleChange(ChangeEvent event) {
                     populateValidationStatus();
                 }

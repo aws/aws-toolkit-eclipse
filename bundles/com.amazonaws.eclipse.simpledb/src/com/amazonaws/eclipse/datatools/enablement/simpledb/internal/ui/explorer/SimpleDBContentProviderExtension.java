@@ -44,37 +44,46 @@ public class SimpleDBContentProviderExtension extends SQLModelContentProviderExt
     super();
   }
 
-  public Object[] getChildren(final Object parentElement) {
+  @Override
+public Object[] getChildren(final Object parentElement) {
     return new Object[0];
   }
 
-  public boolean hasChildren(final Object element) {
+  @Override
+public boolean hasChildren(final Object element) {
     return false;
   }
 
-  public void getPipelinedChildren(final Object parent, final Set theCurrentChildren) {
+  @Override
+public void getPipelinedChildren(final Object parent, final Set theCurrentChildren) {
   }
 
-  public void getPipelinedElements(final Object anInput, final Set theCurrentElements) {
+  @Override
+public void getPipelinedElements(final Object anInput, final Set theCurrentElements) {
   }
 
-  public Object getPipelinedParent(final Object anObject, final Object suggestedParent) {
+  @Override
+public Object getPipelinedParent(final Object anObject, final Object suggestedParent) {
     return suggestedParent;
   }
 
-  public boolean interceptRefresh(final PipelinedViewerUpdate refreshSynchronization) {
+  @Override
+public boolean interceptRefresh(final PipelinedViewerUpdate refreshSynchronization) {
     return false;
   }
 
-  public PipelinedShapeModification interceptRemove(final PipelinedShapeModification removeModification) {
+  @Override
+public PipelinedShapeModification interceptRemove(final PipelinedShapeModification removeModification) {
     return removeModification;
   }
 
-  public boolean interceptUpdate(final PipelinedViewerUpdate anUpdateSynchronization) {
+  @Override
+public boolean interceptUpdate(final PipelinedViewerUpdate anUpdateSynchronization) {
     return false;
   }
 
-  public PipelinedShapeModification interceptAdd(final PipelinedShapeModification anAddModification) {
+  @Override
+public PipelinedShapeModification interceptAdd(final PipelinedShapeModification anAddModification) {
     //anAddModification.getChildren().clear();
 
     if (anAddModification.getParent() instanceof Database

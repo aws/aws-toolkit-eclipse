@@ -152,6 +152,7 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         }
     }
 
+    @Override
     public ResultSet getAttributes(final String catalog,
             final String schemaPattern, final String typeNamePattern,
             final String attributeNamePattern) throws SQLException {
@@ -159,6 +160,7 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getBestRowIdentifier(final String catalog,
             final String schema, final String table, final int scope,
             final boolean nullable) throws SQLException {
@@ -166,6 +168,7 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         // throw new SQLException("not supported: bestRowIdentifier");
     }
 
+    @Override
     public ResultSet getCatalogs() throws SQLException {
         if (this.getCatalogs == null) {
             this.getCatalogs = new JdbcPreparedStatement(this.conn,
@@ -186,12 +189,14 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         return this.getCatalogs.executeQuery();
     }
 
+    @Override
     public ResultSet getColumnPrivileges(final String catalog,
             final String schema, final String table,
             final String columnNamePattern) throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getColumns(final String catalog,
             final String schemaPattern, final String tableNamePattern,
             final String columnNamePattern) throws SQLException {
@@ -210,6 +215,7 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
                 + " limit 10"); //$NON-NLS-1$
     }
 
+    @Override
     public ResultSet getCrossReference(final String primaryCatalog,
             final String primarySchema, final String primaryTable,
             final String foreignCatalog, final String foreignSchema,
@@ -217,22 +223,26 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getExportedKeys(final String catalog, final String schema,
             final String table) throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getImportedKeys(final String catalog, final String schema,
             final String table) throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getIndexInfo(final String catalog, final String schema,
             final String table, final boolean unique, final boolean approximate)
     throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getPrimaryKeys(final String catalog, final String schema,
             final String table) throws SQLException {
         if (this.getPrimaryKeys == null) {
@@ -260,18 +270,21 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         return this.getPrimaryKeys.executeQuery();
     }
 
+    @Override
     public ResultSet getProcedureColumns(final String catalog,
             final String schemaPattern, final String procedureNamePattern,
             final String columnNamePattern) throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getProcedures(final String catalog,
             final String schemaPattern, final String procedureNamePattern)
     throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getSchemas() throws SQLException {
         if (this.getSchemas == null) {
             this.getSchemas = new JdbcPreparedStatement(this.conn,
@@ -293,24 +306,28 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         return this.getSchemas.executeQuery();
     }
 
+    @Override
     public ResultSet getSuperTables(final String catalog,
             final String schemaPattern, final String tableNamePattern)
     throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getSuperTypes(final String catalog,
             final String schemaPattern, final String typeNamePattern)
     throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getTablePrivileges(final String catalog,
             final String schemaPattern, final String tableNamePattern)
     throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getTableTypes() throws SQLException {
         checkOpen();
         if (this.getTableTypes == null) {
@@ -330,6 +347,7 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
         return this.getTableTypes.executeQuery();
     }
 
+    @Override
     public synchronized ResultSet getTables(final String c, final String s,
             String t, final String[] types) throws SQLException {
         if (this.getTables == null) {
@@ -367,651 +385,809 @@ public class JdbcDatabaseMetaData implements DatabaseMetaData {
                 + "TABLE_NAME" + JdbcStatement.DELIMITED_IDENTIFIER_QUOTE + "='" + t + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
+    @Override
     public ResultSet getTypeInfo() throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getUDTs(final String catalog, final String schemaPattern,
             final String typeNamePattern, final int[] types)
     throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public ResultSet getVersionColumns(final String catalog,
             final String schema, final String table) throws SQLException {
         return new JdbcResultSet(null);
     }
 
+    @Override
     public Connection getConnection() {
         return this.conn;
     }
 
+    @Override
     public int getDatabaseMajorVersion() {
         return 1;
     }
 
+    @Override
     public int getDatabaseMinorVersion() {
         return 0;
     }
 
+    @Override
     public int getDriverMajorVersion() {
         return 1;
     }
 
+    @Override
     public int getDriverMinorVersion() {
         return 0;
     }
 
+    @Override
     public int getJDBCMajorVersion() {
         return 2009;
     }
 
+    @Override
     public int getJDBCMinorVersion() {
         return 4;
     }
 
+    @Override
     public int getDefaultTransactionIsolation() {
         return Connection.TRANSACTION_SERIALIZABLE;
     }
 
+    @Override
     public int getMaxBinaryLiteralLength() {
         return 0;
     }
 
+    @Override
     public int getMaxCatalogNameLength() {
         return 0;
     }
 
+    @Override
     public int getMaxCharLiteralLength() {
         return 0;
     }
 
+    @Override
     public int getMaxColumnNameLength() {
         return 0;
     }
 
+    @Override
     public int getMaxColumnsInGroupBy() {
         return 0;
     }
 
+    @Override
     public int getMaxColumnsInIndex() {
         return 0;
     }
 
+    @Override
     public int getMaxColumnsInOrderBy() {
         return 0;
     }
 
+    @Override
     public int getMaxColumnsInSelect() {
         return 0;
     }
 
+    @Override
     public int getMaxColumnsInTable() {
         return 0;
     }
 
+    @Override
     public int getMaxConnections() {
         return 0;
     }
 
+    @Override
     public int getMaxCursorNameLength() {
         return 0;
     }
 
+    @Override
     public int getMaxIndexLength() {
         return 0;
     }
 
+    @Override
     public int getMaxProcedureNameLength() {
         return 0;
     }
 
+    @Override
     public int getMaxRowSize() {
         return 0;
     }
 
+    @Override
     public int getMaxSchemaNameLength() {
         return 0;
     }
 
+    @Override
     public int getMaxStatementLength() {
         return 0;
     }
 
+    @Override
     public int getMaxStatements() {
         return 0;
     }
 
+    @Override
     public int getMaxTableNameLength() {
         return 0;
     }
 
+    @Override
     public int getMaxTablesInSelect() {
         return 0;
     }
 
+    @Override
     public int getMaxUserNameLength() {
         return 0;
     }
 
+    @Override
     public int getResultSetHoldability() {
         return ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
 
+    @Override
     public int getSQLStateType() {
         return sqlStateSQL99;
     }
 
+    @Override
     public String getDatabaseProductName() {
         return "SimpleDB"; //$NON-NLS-1$
     }
 
+    @Override
     public String getDatabaseProductVersion() throws SQLException {
         return "2009.4.15"; // ? //$NON-NLS-1$
     }
 
+    @Override
     public String getDriverName() {
         return "SimpleDB"; //$NON-NLS-1$
     }
 
+    @Override
     public String getDriverVersion() {
         return "1.0"; //$NON-NLS-1$
     }
 
+    @Override
     public String getExtraNameCharacters() {
         return ""; //$NON-NLS-1$
     }
 
+    @Override
     public String getCatalogSeparator() {
         return "."; //$NON-NLS-1$
     }
 
+    @Override
     public String getCatalogTerm() {
         return "catalog"; //$NON-NLS-1$
     }
 
+    @Override
     public String getSchemaTerm() {
         return "schema"; //$NON-NLS-1$
     }
 
+    @Override
     public String getProcedureTerm() {
         return "not_implemented"; //$NON-NLS-1$
     }
 
+    @Override
     public String getSearchStringEscape() {
         return null;
     }
 
+    @Override
     public String getIdentifierQuoteString() {
         return "`"; //$NON-NLS-1$
     }
 
+    @Override
     public String getSQLKeywords() {
         return ""; //$NON-NLS-1$
     }
 
+    @Override
     public String getNumericFunctions() {
         return ""; //$NON-NLS-1$
     }
 
+    @Override
     public String getStringFunctions() {
         return ""; //$NON-NLS-1$
     }
 
+    @Override
     public String getSystemFunctions() {
         return ""; //$NON-NLS-1$
     }
 
+    @Override
     public String getTimeDateFunctions() {
         return ""; //$NON-NLS-1$
     }
 
+    @Override
     public String getURL() {
         return null;
     }
 
+    @Override
     public String getUserName() {
         return null;
     }
 
+    @Override
     public boolean allProceduresAreCallable() {
         return false;
     }
 
+    @Override
     public boolean allTablesAreSelectable() {
         return true;
     }
 
+    @Override
     public boolean dataDefinitionCausesTransactionCommit() {
         return false;
     }
 
+    @Override
     public boolean dataDefinitionIgnoredInTransactions() {
         return false;
     }
 
+    @Override
     public boolean doesMaxRowSizeIncludeBlobs() {
         return false;
     }
 
+    @Override
     public boolean deletesAreDetected(final int type) {
         return false;
     }
 
+    @Override
     public boolean insertsAreDetected(final int type) {
         return false;
     }
 
+    @Override
     public boolean isCatalogAtStart() {
         return true;
     }
 
+    @Override
     public boolean locatorsUpdateCopy() {
         return false;
     }
 
+    @Override
     public boolean nullPlusNonNullIsNull() {
         return true;
     }
 
+    @Override
     public boolean nullsAreSortedAtEnd() {
         return !nullsAreSortedAtStart();
     }
 
+    @Override
     public boolean nullsAreSortedAtStart() {
         return true;
     }
 
+    @Override
     public boolean nullsAreSortedHigh() {
         return true;
     }
 
+    @Override
     public boolean nullsAreSortedLow() {
         return !nullsAreSortedHigh();
     }
 
+    @Override
     public boolean othersDeletesAreVisible(final int type) {
         return false;
     }
 
+    @Override
     public boolean othersInsertsAreVisible(final int type) {
         return false;
     }
 
+    @Override
     public boolean othersUpdatesAreVisible(final int type) {
         return false;
     }
 
+    @Override
     public boolean ownDeletesAreVisible(final int type) {
         return false;
     }
 
+    @Override
     public boolean ownInsertsAreVisible(final int type) {
         return false;
     }
 
+    @Override
     public boolean ownUpdatesAreVisible(final int type) {
         return false;
     }
 
+    @Override
     public boolean storesLowerCaseIdentifiers() {
         return false;
     }
 
+    @Override
     public boolean storesLowerCaseQuotedIdentifiers() {
         return false;
     }
 
+    @Override
     public boolean storesMixedCaseIdentifiers() {
         return true;
     }
 
+    @Override
     public boolean storesMixedCaseQuotedIdentifiers() {
         return false;
     }
 
+    @Override
     public boolean storesUpperCaseIdentifiers() {
         return false;
     }
 
+    @Override
     public boolean storesUpperCaseQuotedIdentifiers() {
         return false;
     }
 
+    @Override
     public boolean supportsAlterTableWithAddColumn() {
         return false;
     }
 
+    @Override
     public boolean supportsAlterTableWithDropColumn() {
         return false;
     }
 
+    @Override
     public boolean supportsANSI92EntryLevelSQL() {
         return false;
     }
 
+    @Override
     public boolean supportsANSI92FullSQL() {
         return false;
     }
 
+    @Override
     public boolean supportsANSI92IntermediateSQL() {
         return false;
     }
 
+    @Override
     public boolean supportsBatchUpdates() {
         return true;
     }
 
+    @Override
     public boolean supportsCatalogsInDataManipulation() {
         return false;
     }
 
+    @Override
     public boolean supportsCatalogsInIndexDefinitions() {
         return false;
     }
 
+    @Override
     public boolean supportsCatalogsInPrivilegeDefinitions() {
         return false;
     }
 
+    @Override
     public boolean supportsCatalogsInProcedureCalls() {
         return false;
     }
 
+    @Override
     public boolean supportsCatalogsInTableDefinitions() {
         return false;
     }
 
+    @Override
     public boolean supportsColumnAliasing() {
         return true;
     }
 
+    @Override
     public boolean supportsConvert() {
         return false;
     }
 
+    @Override
     public boolean supportsConvert(final int fromType, final int toType) {
         return false;
     }
 
+    @Override
     public boolean supportsCorrelatedSubqueries() {
         return false;
     }
 
+    @Override
     public boolean supportsDataDefinitionAndDataManipulationTransactions() {
         return true;
     }
 
+    @Override
     public boolean supportsDataManipulationTransactionsOnly() {
         return false;
     }
 
+    @Override
     public boolean supportsDifferentTableCorrelationNames() {
         return false;
     }
 
+    @Override
     public boolean supportsExpressionsInOrderBy() {
         return true;
     }
 
+    @Override
     public boolean supportsMinimumSQLGrammar() {
         return true;
     }
 
+    @Override
     public boolean supportsCoreSQLGrammar() {
         return true;
     }
 
+    @Override
     public boolean supportsExtendedSQLGrammar() {
         return false;
     }
 
+    @Override
     public boolean supportsLimitedOuterJoins() {
         return true;
     }
 
+    @Override
     public boolean supportsFullOuterJoins() {
         return false;
     }
 
+    @Override
     public boolean supportsGetGeneratedKeys() {
         return false;
     }
 
+    @Override
     public boolean supportsGroupBy() {
         return true;
     }
 
+    @Override
     public boolean supportsGroupByBeyondSelect() {
         return false;
     }
 
+    @Override
     public boolean supportsGroupByUnrelated() {
         return false;
     }
 
+    @Override
     public boolean supportsIntegrityEnhancementFacility() {
         return false;
     }
 
+    @Override
     public boolean supportsLikeEscapeClause() {
         return false;
     }
 
+    @Override
     public boolean supportsMixedCaseIdentifiers() {
         return true;
     }
 
+    @Override
     public boolean supportsMixedCaseQuotedIdentifiers() {
         return false;
     }
 
+    @Override
     public boolean supportsMultipleOpenResults() {
         return false;
     }
 
+    @Override
     public boolean supportsMultipleResultSets() {
         return false;
     }
 
+    @Override
     public boolean supportsMultipleTransactions() {
         return true;
     }
 
+    @Override
     public boolean supportsNamedParameters() {
         return true;
     }
 
+    @Override
     public boolean supportsNonNullableColumns() {
         return true;
     }
 
+    @Override
     public boolean supportsOpenCursorsAcrossCommit() {
         return false;
     }
 
+    @Override
     public boolean supportsOpenCursorsAcrossRollback() {
         return false;
     }
 
+    @Override
     public boolean supportsOpenStatementsAcrossCommit() {
         return false;
     }
 
+    @Override
     public boolean supportsOpenStatementsAcrossRollback() {
         return false;
     }
 
+    @Override
     public boolean supportsOrderByUnrelated() {
         return false;
     }
 
+    @Override
     public boolean supportsOuterJoins() {
         return true;
     }
 
+    @Override
     public boolean supportsPositionedDelete() {
         return false;
     }
 
+    @Override
     public boolean supportsPositionedUpdate() {
         return false;
     }
 
+    @Override
     public boolean supportsResultSetConcurrency(final int t, final int c) {
         return t == ResultSet.TYPE_FORWARD_ONLY
         && c == ResultSet.CONCUR_READ_ONLY;
     }
 
+    @Override
     public boolean supportsResultSetHoldability(final int h) {
         return h == ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
 
+    @Override
     public boolean supportsResultSetType(final int t) {
         return t == ResultSet.TYPE_FORWARD_ONLY;
     }
 
+    @Override
     public boolean supportsSavepoints() {
         return false;
     }
 
+    @Override
     public boolean supportsSchemasInDataManipulation() {
         return false;
     }
 
+    @Override
     public boolean supportsSchemasInIndexDefinitions() {
         return false;
     }
 
+    @Override
     public boolean supportsSchemasInPrivilegeDefinitions() {
         return false;
     }
 
+    @Override
     public boolean supportsSchemasInProcedureCalls() {
         return false;
     }
 
+    @Override
     public boolean supportsSchemasInTableDefinitions() {
         return false;
     }
 
+    @Override
     public boolean supportsSelectForUpdate() {
         return false;
     }
 
+    @Override
     public boolean supportsStatementPooling() {
         return false;
     }
 
+    @Override
     public boolean supportsStoredProcedures() {
         return false;
     }
 
+    @Override
     public boolean supportsSubqueriesInComparisons() {
         return false;
     }
 
+    @Override
     public boolean supportsSubqueriesInExists() {
         return false;
     }
 
+    @Override
     public boolean supportsSubqueriesInIns() {
         return false;
     }
 
+    @Override
     public boolean supportsSubqueriesInQuantifieds() {
         return false;
     }
 
+    @Override
     public boolean supportsTableCorrelationNames() {
         return false;
     }
 
+    @Override
     public boolean supportsTransactionIsolationLevel(final int level) {
         return level == Connection.TRANSACTION_SERIALIZABLE;
     }
 
+    @Override
     public boolean supportsTransactions() {
         return true;
     }
 
+    @Override
     public boolean supportsUnion() {
         return true;
     }
 
+    @Override
     public boolean supportsUnionAll() {
         return true;
     }
 
+    @Override
     public boolean updatesAreDetected(final int type) {
         return false;
     }
 
+    @Override
     public boolean usesLocalFilePerTable() {
         return false;
     }
 
+    @Override
     public boolean usesLocalFiles() {
         return true;
     }
 
+    @Override
     public boolean isReadOnly() throws SQLException {
         return this.conn.isReadOnly();
     }
 
+    @Override
     public boolean autoCommitFailureClosesAllResultSets() throws SQLException {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public ResultSet getClientInfoProperties() throws SQLException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public ResultSet getFunctionColumns(final String arg0, final String arg1, final String arg2,
             final String arg3) throws SQLException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public ResultSet getFunctions(final String arg0, final String arg1, final String arg2)
     throws SQLException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public RowIdLifetime getRowIdLifetime() throws SQLException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public ResultSet getSchemas(final String arg0, final String arg1) throws SQLException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public boolean supportsStoredFunctionsUsingCallSyntax() throws SQLException {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public boolean isWrapperFor(final Class<?> iface) throws SQLException {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public <T> T unwrap(final Class<T> iface) throws SQLException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public ResultSet getPseudoColumns(String catalog, String schemaPattern,
             String tableNamePattern, String columnNamePattern)
             throws SQLException {
         return null;
     }
 
+    @Override
     public boolean generatedKeyAlwaysReturned() throws SQLException {
         return false;
     }

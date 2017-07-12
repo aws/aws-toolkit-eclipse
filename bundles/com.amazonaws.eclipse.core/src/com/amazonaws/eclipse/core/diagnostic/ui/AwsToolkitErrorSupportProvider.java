@@ -98,6 +98,7 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
      *
      * @see AbstractStatusAreaProvider#validFor(StatusAdapter)
      */
+    @Override
     public boolean validFor(StatusAdapter statusAdapter) {
         IStatus status = statusAdapter.getStatus();
         if (status == null) return false;
@@ -233,6 +234,7 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
 
                             // Show a message box with mailto: link as fallback
                             Display.getDefault().asyncExec(new Runnable() {
+                                @Override
                                 public void run() {
                                     showFailureDialog(Display.getDefault().getActiveShell(), errorData);
                                 }
@@ -251,6 +253,7 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
 
                         // Show a confirmation message
                         Display.getDefault().asyncExec(new Runnable() {
+                            @Override
                             public void run() {
                                 showSuccessDialog(Display.getDefault().getActiveShell());
                             }
@@ -272,6 +275,7 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
         // Add simple validation to the email field
         email.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent e) {
                 String userInput = email.getText();
 

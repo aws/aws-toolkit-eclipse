@@ -93,8 +93,8 @@ public class DeployWizardDataModel {
 
     private boolean useNonDefaultVpc;
     private String vpcId;
-    private final Set<String> ec2Subnets = new HashSet<String>();
-    private final Set<String> elbSubnets = new HashSet<String>();
+    private final Set<String> ec2Subnets = new HashSet<>();
+    private final Set<String> elbSubnets = new HashSet<>();
     private String elbScheme;
     private String securityGroup;
     private boolean associatePublicIpAddress;

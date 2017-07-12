@@ -49,6 +49,7 @@ public class CreateGroupFirstPage extends WizardPage {
         groupName = PojoObservables.observeValue(wizard.getDataModel(), "groupName");
     }
 
+    @Override
     public void createControl(Composite parent) {
         final Composite comp = new Composite(parent, SWT.NONE);
         comp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -61,7 +62,7 @@ public class CreateGroupFirstPage extends WizardPage {
 
         bindingContext.bindValue(SWTObservables.observeText(groupNameText, SWT.Modify), groupName);
 
-        ChainValidator<String> groupNameValidationStatusProvider = new ChainValidator<String>(groupName,
+        ChainValidator<String> groupNameValidationStatusProvider = new ChainValidator<>(groupName,
                  new NotEmptyValidator("Please provide a group name"));
 
          bindingContext.addValidationStatusProvider(groupNameValidationStatusProvider);
@@ -72,6 +73,7 @@ public class CreateGroupFirstPage extends WizardPage {
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false)

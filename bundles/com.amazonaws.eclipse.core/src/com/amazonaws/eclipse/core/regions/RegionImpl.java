@@ -31,8 +31,8 @@ class RegionImpl implements Region {
     private final String name;
     private final String id;
     private final String flagIconPath;
-    private final Map<String, String> serviceEndpoints = new HashMap<String, String>();
-    private final Map<String, Service> servicesByName = new HashMap<String, Service>();
+    private final Map<String, String> serviceEndpoints = new HashMap<>();
+    private final Map<String, Service> servicesByName = new HashMap<>();
 
 
     public RegionImpl(String name, String id, String flagIconPath) {
@@ -47,6 +47,7 @@ class RegionImpl implements Region {
      *
      * @return The display name for this region.
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -56,6 +57,7 @@ class RegionImpl implements Region {
      *
      * @return The unique system ID for this region.
      */
+    @Override
     public String getId() {
         return id;
     }
@@ -67,6 +69,7 @@ class RegionImpl implements Region {
      *
      * @return A map of the available services in this region.
      */
+    @Override
     public Map<String, String> getServiceEndpoints() {
         return serviceEndpoints;
     }
@@ -79,6 +82,7 @@ class RegionImpl implements Region {
      *
      * @return A map of the available services in this region.
      */
+    @Override
     public Map<String, Service> getServicesByName() {
         return servicesByName;
     }
@@ -88,6 +92,7 @@ class RegionImpl implements Region {
      *
      * @see ServiceAbbreviations
      */
+    @Override
     public String getServiceEndpoint(String serviceName) {
         return serviceEndpoints.get(serviceName);
     }
@@ -97,6 +102,7 @@ class RegionImpl implements Region {
      *
      * @see ServiceAbbreviations
      */
+    @Override
     public boolean isServiceSupported(String serviceName) {
         return serviceEndpoints.containsKey(serviceName);
     }
@@ -104,6 +110,7 @@ class RegionImpl implements Region {
     /**
      * Returns the relative path to a small flag icon representing this region.
      */
+    @Override
     public String getFlagIconPath() {
         return flagIconPath;
     }
@@ -111,6 +118,7 @@ class RegionImpl implements Region {
     /**
      * Returns the image for this region's flag.
      */
+    @Override
     public Image getFlagImage() {
         Image image = AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_FLAG_PREFIX + id);
         if ( image == null ) {
@@ -122,6 +130,7 @@ class RegionImpl implements Region {
     /**
      * Returns the flag's image descriptor.
      */
+    @Override
     public ImageDescriptor getFlagImageDescriptor() {
         ImageDescriptor descriptor = AwsToolkitCore.getDefault().getImageRegistry()
                 .getDescriptor(AwsToolkitCore.IMAGE_FLAG_PREFIX + id);

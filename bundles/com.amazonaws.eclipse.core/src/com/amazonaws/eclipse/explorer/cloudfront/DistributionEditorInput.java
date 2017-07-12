@@ -29,10 +29,12 @@ public class DistributionEditorInput extends AbstractAwsResourceEditorInput {
         this.distributionSummary = distributionSummary;
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_DISTRIBUTION);
     }
 
+    @Override
     public String getName() {
         return getDistributionId();
     }
@@ -45,6 +47,7 @@ public class DistributionEditorInput extends AbstractAwsResourceEditorInput {
         return distributionSummary;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon CloudFront Distribution Editor - " + getName();
     }

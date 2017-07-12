@@ -61,6 +61,7 @@ public abstract class AbstractEnvironmentConfigEditorPart extends ServerEditorPa
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if ( value instanceof IStatus == false )

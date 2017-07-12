@@ -37,7 +37,7 @@ import com.amazonaws.services.codestar.model.Resource;
 public class CodeStarUtils {
 
     public static Map<String, DescribeProjectResult> getCodeStarProjects(String accountId, String regionId) {
-        Map<String, DescribeProjectResult> projectMap = new HashMap<String, DescribeProjectResult>();
+        Map<String, DescribeProjectResult> projectMap = new HashMap<>();
         AWSCodeStar client = getCodeStarClient(accountId, regionId);
         List<ProjectSummary> projectList = client.listProjects(new ListProjectsRequest()).getProjects();
         for (ProjectSummary project : projectList) {
@@ -55,7 +55,7 @@ public class CodeStarUtils {
         AWSCodeCommit codeCommitClient = getCodeCommitClient(accountId, regionId);
         List<Resource> resources = codeStarClient.listResources(new ListResourcesRequest().withProjectId(codestarProjectId)).getResources();
         List<String> codeCommitRepoNames = getCodeCommitRepoNames(resources);
-        List<RepositoryMetadata> repositoryMetadatas = new ArrayList<RepositoryMetadata>();
+        List<RepositoryMetadata> repositoryMetadatas = new ArrayList<>();
         for (String repoName : codeCommitRepoNames) {
             repositoryMetadatas.add(codeCommitClient.getRepository(new GetRepositoryRequest()
                 .withRepositoryName(repoName)).getRepositoryMetadata());
@@ -69,7 +69,7 @@ public class CodeStarUtils {
      * repository is found.
      */
     private static List<String> getCodeCommitRepoNames(List<Resource> resources) {
-        List<String> repoNames = new ArrayList<String>();
+        List<String> repoNames = new ArrayList<>();
         for (Resource resource : resources) {
             ARN resourceArn = ARN.fromSafeString(resource.getId());
             if ("codecommit".equals(resourceArn.getVendor())) {

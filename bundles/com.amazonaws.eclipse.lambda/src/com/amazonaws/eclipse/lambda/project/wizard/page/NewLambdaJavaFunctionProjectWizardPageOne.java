@@ -16,8 +16,6 @@ package com.amazonaws.eclipse.lambda.project.wizard.page;
 
 import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel.P_SHOW_README_FILE;
 
-import java.io.IOException;
-
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
@@ -37,8 +35,6 @@ import com.amazonaws.eclipse.core.ui.ProjectNameComposite;
 import com.amazonaws.eclipse.core.widget.CheckboxComplex;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.util.LambdaFunctionComposite;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 public class NewLambdaJavaFunctionProjectWizardPageOne extends WizardPage {
 
@@ -55,6 +51,7 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends WizardPage {
     private CheckboxComplex showReadmeFileComplex;
 
     private ModifyListener mavenModifyListener = new ModifyListener() {
+        @Override
         public void modifyText(ModifyEvent arg0) {
             onMavenConfigurationChange();
         }
@@ -70,12 +67,14 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends WizardPage {
         this.aggregateValidationStatus = new AggregateValidationStatus(
                 dataBindingContext, AggregateValidationStatus.MAX_SEVERITY);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 populateValidationStatus();
             }
         });
     }
 
+    @Override
     public void createControl(final Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));

@@ -34,6 +34,7 @@ public abstract class OpenUrlHandler extends AbstractHandler {
 
     protected abstract String urlToOpen();
 
+    @Override
     public Object execute(final ExecutionEvent ee) throws ExecutionException {
         try {
 

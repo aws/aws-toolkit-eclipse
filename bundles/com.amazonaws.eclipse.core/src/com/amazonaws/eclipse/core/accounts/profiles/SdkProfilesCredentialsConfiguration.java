@@ -207,6 +207,7 @@ public class SdkProfilesCredentialsConfiguration extends
      * preferece store instance. Also remove the profile from the credentials
      * file.
      */
+    @Override
     public void delete() {
         prefStore.setToDefault(profileNamePreferenceName);
 

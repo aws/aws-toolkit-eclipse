@@ -49,6 +49,7 @@ public class CreateRoleFirstPage extends WizardPage {
         roleName = PojoObservables.observeValue(wizard.getDataModel(), "roleName");
     }
 
+    @Override
     public void createControl(Composite parent) {
         final Composite comp = new Composite(parent, SWT.NONE);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(comp);
@@ -59,7 +60,7 @@ public class CreateRoleFirstPage extends WizardPage {
 
         bindingContext.bindValue(SWTObservables.observeText(roleNameText, SWT.Modify), roleName);
 
-        ChainValidator<String> roleNameValidationStatusProvider = new ChainValidator<String>(roleName,
+        ChainValidator<String> roleNameValidationStatusProvider = new ChainValidator<>(roleName,
                  new NotEmptyValidator("Please provide a valid role name"));
 
          bindingContext.addValidationStatusProvider(roleNameValidationStatusProvider);
@@ -73,6 +74,7 @@ public class CreateRoleFirstPage extends WizardPage {
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false)

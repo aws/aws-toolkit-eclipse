@@ -75,6 +75,7 @@ public class UploadDropAssistant extends CommonDropAdapterAssistant {
 
         uploadFileJob.setRefreshRunnable(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     for ( IEditorReference ref : PlatformUI.getWorkbench().getActiveWorkbenchWindow()

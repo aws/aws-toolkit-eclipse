@@ -27,42 +27,42 @@ import com.amazonaws.eclipse.ec2.Ec2Plugin;
  */
 public class SetupExternalToolsAction extends Action {
 
-	/** The id of the preference page to display */
-	private static final String EXTERNAL_TOOLS_PREFERENCE_PAGE_ID = 
-		"com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage";
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#run()
-	 */
-	@Override
-	public void run() {
-		PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
-				null, EXTERNAL_TOOLS_PREFERENCE_PAGE_ID, new String[] {EXTERNAL_TOOLS_PREFERENCE_PAGE_ID}, null);
-		dialog.open();
-	}
+    /** The id of the preference page to display */
+    private static final String EXTERNAL_TOOLS_PREFERENCE_PAGE_ID = 
+        "com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage";
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#run()
+     */
+    @Override
+    public void run() {
+        PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
+                null, EXTERNAL_TOOLS_PREFERENCE_PAGE_ID, new String[] {EXTERNAL_TOOLS_PREFERENCE_PAGE_ID}, null);
+        dialog.open();
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#getImageDescriptor()
-	 */
-	@Override
-	public ImageDescriptor getImageDescriptor() {
-		return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("configure");
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#getImageDescriptor()
+     */
+    @Override
+    public ImageDescriptor getImageDescriptor() {
+        return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("configure");
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#getText()
-	 */
-	@Override
-	public String getText() {
-		return "Configure your external tools";
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#getText()
+     */
+    @Override
+    public String getText() {
+        return "Configure your external tools";
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#getToolTipText()
-	 */
-	@Override
-	public String getToolTipText() {
-		return "Configure your external tools";
-	}			
-	
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#getToolTipText()
+     */
+    @Override
+    public String getToolTipText() {
+        return "Configure your external tools";
+    }            
+    
 }

@@ -49,14 +49,17 @@ public abstract class AbstractAwsResourceEditorInput implements IEditorInput {
         return regionId;
     }
 
+    @Override
     public Object getAdapter(Class adapter) {
         return null;
     }
 
+    @Override
     public boolean exists() {
         return true;
     }
 
+    @Override
     public IPersistableElement getPersistable() {
         return null;
     }

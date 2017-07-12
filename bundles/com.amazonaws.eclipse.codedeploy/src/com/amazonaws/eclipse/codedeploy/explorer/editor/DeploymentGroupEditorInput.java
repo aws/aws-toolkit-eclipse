@@ -34,14 +34,17 @@ public final class DeploymentGroupEditorInput extends AbstractAwsResourceEditorI
         this.deploymentGroupName = deploymentGroupName;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon CodeDeploy deployment group - " + getName();
     }
 
+    @Override
     public String getName() {
         return String.format("%s [%s]", applicationName, deploymentGroupName);
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry()
                 .getDescriptor(CodeDeployExplorerImages.IMG_DEPLOYMENT_GROUP);

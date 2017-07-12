@@ -104,6 +104,7 @@ public class CreateRoleSecondPage extends WizardPage {
         this.wizard = wizard;
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(composite);
@@ -119,6 +120,7 @@ public class CreateRoleSecondPage extends WizardPage {
         final AggregateValidationStatus aggregateValidationStatus = new AggregateValidationStatus(bindingContext, AggregateValidationStatus.MAX_SEVERITY);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false)
@@ -147,6 +149,7 @@ public class CreateRoleSecondPage extends WizardPage {
         serviceRolesButton.setText("AWS Service Roles");
         serviceRolesButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 servicesCombo.setEnabled(true);
                 accountIdText.setEnabled(false);
@@ -156,6 +159,7 @@ public class CreateRoleSecondPage extends WizardPage {
                 applicationIdText.setEnabled(false);
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -170,7 +174,7 @@ public class CreateRoleSecondPage extends WizardPage {
         servicesCombo.setEnabled(false);
         bindingContext.bindValue(SWTObservables.observeSelection(servicesCombo), service);
 
-        ChainValidator<String> serviceRoleValidationStatusProvider = new ChainValidator<String>(service,
+        ChainValidator<String> serviceRoleValidationStatusProvider = new ChainValidator<>(service,
                 serviceRoles, new NotEmptyValidator("Please select a service"));
 
          bindingContext.addValidationStatusProvider(serviceRoleValidationStatusProvider);
@@ -182,6 +186,7 @@ public class CreateRoleSecondPage extends WizardPage {
         accountRolesButon.setText("Provide access between AWS accounts you own");
         accountRolesButon.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 servicesCombo.setEnabled(false);
                 accountIdText.setEnabled(true);
@@ -191,6 +196,7 @@ public class CreateRoleSecondPage extends WizardPage {
                 applicationIdText.setEnabled(false);
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -204,7 +210,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
         bindingContext.bindValue(SWTObservables.observeText(accountIdText, SWT.Modify), accountId);
 
-        ChainValidator<String> accountIdValidationStatusProvider = new ChainValidator<String>(accountId,
+        ChainValidator<String> accountIdValidationStatusProvider = new ChainValidator<>(accountId,
                 accountRoles, new NotEmptyValidator("Please enter your account Id"));
 
          bindingContext.addValidationStatusProvider(accountIdValidationStatusProvider);
@@ -216,6 +222,7 @@ public class CreateRoleSecondPage extends WizardPage {
         thirdPartyRolesButton.setText("Provide access to a 3rd party AWS account");
         thirdPartyRolesButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 servicesCombo.setEnabled(false);
                 accountIdText.setEnabled(false);
@@ -225,6 +232,7 @@ public class CreateRoleSecondPage extends WizardPage {
                 externalAccountIdText.setEnabled(true);
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -237,7 +245,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
         bindingContext.bindValue(SWTObservables.observeText(internalAccountIdText, SWT.Modify), internalAccountId);
 
-        ChainValidator<String> internalAccountIdValidationStatusProvider = new ChainValidator<String>(internalAccountId,
+        ChainValidator<String> internalAccountIdValidationStatusProvider = new ChainValidator<>(internalAccountId,
                 thirdPartyRoles, new NotEmptyValidator("Please enter the internal account Id"));
 
          bindingContext.addValidationStatusProvider(internalAccountIdValidationStatusProvider);
@@ -251,7 +259,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
         bindingContext.bindValue(SWTObservables.observeText(externalAccountIdText, SWT.Modify), externalAccountId);
 
-        ChainValidator<String> externalAccountIdValidationStatusProvider = new ChainValidator<String>(externalAccountId,
+        ChainValidator<String> externalAccountIdValidationStatusProvider = new ChainValidator<>(externalAccountId,
                 thirdPartyRoles, new NotEmptyValidator("Please enter the external account Id"));
 
          bindingContext.addValidationStatusProvider(externalAccountIdValidationStatusProvider);
@@ -264,6 +272,7 @@ public class CreateRoleSecondPage extends WizardPage {
         webFederationRolesButton.setText("Provide access to web identity providers");
         webFederationRolesButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 servicesCombo.setEnabled(false);
                 accountIdText.setEnabled(false);
@@ -274,6 +283,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -294,6 +304,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
         IdentityProvidersCombo.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (IDENTITY_PROVIDERS[IdentityProvidersCombo.getSelectionIndex()].equals("Google")) {
                     applicationIdLabel.setText("Audience");
@@ -303,6 +314,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -312,7 +324,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
         bindingContext.bindValue(SWTObservables.observeSelection(IdentityProvidersCombo), webProvider);
 
-        ChainValidator<String> webProviderValidationStatusProvider = new ChainValidator<String>(webProvider, webProviderRoles, new NotEmptyValidator(
+        ChainValidator<String> webProviderValidationStatusProvider = new ChainValidator<>(webProvider, webProviderRoles, new NotEmptyValidator(
                 "Please select an identity provider"));
 
         bindingContext.addValidationStatusProvider(webProviderValidationStatusProvider);
@@ -328,7 +340,7 @@ public class CreateRoleSecondPage extends WizardPage {
 
         bindingContext.bindValue(SWTObservables.observeText(applicationIdText, SWT.Modify), applicationId);
 
-        ChainValidator<String> applicationIdValidationStatusProvider = new ChainValidator<String>(applicationId, webProviderRoles, new NotEmptyValidator(
+        ChainValidator<String> applicationIdValidationStatusProvider = new ChainValidator<>(applicationId, webProviderRoles, new NotEmptyValidator(
                 "Please enter application Id or Audience"));
 
          bindingContext.addValidationStatusProvider(applicationIdValidationStatusProvider);

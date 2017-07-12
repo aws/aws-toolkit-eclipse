@@ -31,8 +31,8 @@ public class DeployProjectToOpsworksWizardDataModel {
 
     /* Page 2*/
     private S3ApplicationSource s3ApplicationSource = new S3ApplicationSource();
-    private List<EnvironmentVariable> environmentVariables = new LinkedList<EnvironmentVariable>();
-    private List<String> customDomains = new LinkedList<String>();
+    private List<EnvironmentVariable> environmentVariables = new LinkedList<>();
+    private List<String> customDomains = new LinkedList<>();
 
     private boolean enableSsl;
     private SslConfiguration sslConfiguration = new SslConfiguration();

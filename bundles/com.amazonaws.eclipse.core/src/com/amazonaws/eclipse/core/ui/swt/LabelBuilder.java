@@ -38,6 +38,7 @@ public class LabelBuilder extends AbstractWidgetBuilder<LabelBuilder> {
         withForegroundColor(foregroundColor);
     }
 
+    @Override
     public Label build(final Composite parent) {
         Label label = new Label(parent, getStyle());
         label.setText(text);

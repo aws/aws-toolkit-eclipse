@@ -33,6 +33,7 @@ public class ServerlessSimpleTable extends Resource {
     public void setProvisionedThroughput(ProvisionedThroughput provisionedThroughput) {
         this.provisionedThroughput = provisionedThroughput;
     }
+    @Override
     public TypeProperties toTypeProperties() {
         // TODO Auto-generated method stub
         return null;

@@ -74,6 +74,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         this.batchClient = validateNonNull(batchClient, "batchClient");
     }
 
+    @Override
     public synchronized void startSession(boolean forceFlushEvents) {
 
         if (!this.enabled) {
@@ -98,6 +99,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         }
     }
 
+    @Override
     public synchronized void endSession(boolean forceFlushEvents) {
 
         if (!this.enabled) {
@@ -119,11 +121,13 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         }
     }
 
+    @Override
     public ToolkitEventBuilder eventBuilder() {
         // Start building the event based on the current session
         return new ToolkitEventBuilder(this.currentSession);
     }
 
+    @Override
     public void publishEvent(ToolkitEvent event) {
 
         if (!this.enabled) {
@@ -139,6 +143,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         }
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }

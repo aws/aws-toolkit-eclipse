@@ -232,6 +232,7 @@ public class FunctionEditor extends EditorPart {
                 final FunctionConfiguration configuration = getFunctionResult.getConfiguration();
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         functionNameLabel.setText(configuration.getFunctionName());
                         arnLabel.setText(configuration.getFunctionArn());

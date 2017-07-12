@@ -24,6 +24,7 @@ import com.amazonaws.services.elasticbeanstalk.model.EnvironmentDescription;
 
 public class ElasticBeanstalkLabelProvider extends ExplorerNodeLabelProvider {
 
+    @Override
     public Image getDefaultImage(Object element) {
         ImageRegistry imageRegistry = ElasticBeanstalkPlugin.getDefault().getImageRegistry();
         if ( element instanceof ElasticBeanstalkRootElement ) {

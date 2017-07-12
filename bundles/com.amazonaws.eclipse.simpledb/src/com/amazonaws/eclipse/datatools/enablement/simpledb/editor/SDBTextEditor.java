@@ -36,6 +36,7 @@ public class SDBTextEditor implements IExternalTableDataEditor {
 
     public SDBTextEditor() {}
 
+    @Override
     public void externalEdit(final ITableDataEditor editor) {
         Object obj = editor;
         if (obj instanceof TableDataEditor) {

@@ -44,7 +44,7 @@ public class AppspecTemplateSelectionPage extends WizardPage {
      * For fast look-up when switching the top control
      */
     private final Map<AppspecTemplateMetadataModel, AppspecTemplateConfigComposite> templateConfigCompositeMap =
-            new HashMap<AppspecTemplateMetadataModel, AppspecTemplateConfigComposite>();
+            new HashMap<>();
 
     /* UI widgets */
 
@@ -58,6 +58,7 @@ public class AppspecTemplateSelectionPage extends WizardPage {
      */
     private final IChangeListener selectedTemplateConfigValidationStatusListener = new IChangeListener() {
 
+        @Override
         public void handleChange(ChangeEvent event) {
             Object observable = event.getObservable();
             if (observable instanceof AggregateValidationStatus == false) return;
@@ -93,6 +94,7 @@ public class AppspecTemplateSelectionPage extends WizardPage {
     }
 
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(3, false));
@@ -145,6 +147,7 @@ public class AppspecTemplateSelectionPage extends WizardPage {
         appspecTemplateSelectionCombo
                 .addSelectionChangedListener(new ISelectionChangedListener() {
 
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 IStructuredSelection selection = (IStructuredSelection) event
                         .getSelection();
@@ -176,7 +179,7 @@ public class AppspecTemplateSelectionPage extends WizardPage {
 
     @SuppressWarnings("unchecked")
     private void selectImportedTemplate() {
-        Set<String> existingTemplateNames = new HashSet<String>();
+        Set<String> existingTemplateNames = new HashSet<>();
         for (AppspecTemplateMetadataModel template : templateConfigCompositeMap.keySet()) {
             existingTemplateNames.add(template.getTemplateName());
         }

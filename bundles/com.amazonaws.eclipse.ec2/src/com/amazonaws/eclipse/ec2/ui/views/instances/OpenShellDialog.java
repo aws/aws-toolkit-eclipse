@@ -59,6 +59,7 @@ public final class OpenShellDialog extends MessageDialog {
         userNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
         userNameText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 userName = userNameText.getText();
                 getButton(0).setEnabled(userName.length() > 0);

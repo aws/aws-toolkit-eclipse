@@ -46,7 +46,9 @@ public class BinaryUtils {
 
     public static byte[] sign(final byte[] data, final byte[] key) throws AmazonClientException {
         return new AbstractAWSSigner() {
+            @Override
             public void sign(SignableRequest<?> arg0, AWSCredentials arg1) {}
+            @Override
             protected void addSessionCredentials(SignableRequest<?> arg0, AWSSessionCredentials arg1) {}
             public byte[] sign() {
                 return sign(data, key, SigningAlgorithm.HmacSHA256);

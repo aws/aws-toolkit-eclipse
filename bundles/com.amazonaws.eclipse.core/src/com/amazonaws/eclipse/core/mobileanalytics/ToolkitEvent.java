@@ -33,8 +33,8 @@ public class ToolkitEvent {
     private String eventType;
     private Date timestamp;
 
-    private final Map<String, String> attributes = new HashMap<String, String>();
-    private final Map<String, Double> metrics = new HashMap<String, Double>();
+    private final Map<String, String> attributes = new HashMap<>();
+    private final Map<String, Double> metrics = new HashMap<>();
 
     /**
      * @return convert to the low-level {@link Event} object that is accepted

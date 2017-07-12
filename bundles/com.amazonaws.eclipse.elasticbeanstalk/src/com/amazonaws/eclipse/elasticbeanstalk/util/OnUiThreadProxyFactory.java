@@ -41,7 +41,7 @@ public final class OnUiThreadProxyFactory {
      */
     public static <T> T getProxy(Class<T> interfaceClass, T interfaceImpl) {
         Object proxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[] { interfaceClass },
-                new OnUiThreadProxyFactory.OnUiThreadProxyHandler<T>(interfaceImpl));
+                new OnUiThreadProxyFactory.OnUiThreadProxyHandler<>(interfaceImpl));
         return interfaceClass.cast(proxy);
     }
 
@@ -60,11 +60,13 @@ public final class OnUiThreadProxyFactory {
             this.interfaceImpl = impl;
         }
 
+        @Override
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final AtomicReference<Object> toReturnRef = new AtomicReference<Object>();
-            final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
+            final AtomicReference<Object> toReturnRef = new AtomicReference<>();
+            final AtomicReference<Throwable> throwRef = new AtomicReference<>();
 
             Display.getDefault().syncExec(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         toReturnRef.set(method.invoke(interfaceImpl, args));

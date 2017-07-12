@@ -88,7 +88,7 @@ public class ComboViewerComplex<T> {
     }
 
     public static <T> ComboViewerComplexBuilder<T> builder() {
-        return new ComboViewerComplexBuilder<T>();
+        return new ComboViewerComplexBuilder<>();
     }
 
     public static final class ComboViewerComplexBuilder<T> {
@@ -105,7 +105,7 @@ public class ComboViewerComplex<T> {
 
         public ComboViewerComplex<T> build() {
             validateParameters();
-            return new ComboViewerComplex<T>(
+            return new ComboViewerComplex<>(
                     parent, labelProvider, items, defaultItem,
                     bindingContext, pojoObservableValue, validator,
                     labelValue, comboSpan, listeners);

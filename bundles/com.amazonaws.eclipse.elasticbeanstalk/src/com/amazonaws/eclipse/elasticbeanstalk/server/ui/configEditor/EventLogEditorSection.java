@@ -131,6 +131,7 @@ public class EventLogEditorSection extends ServerEditorSection {
     }
 
     private final class AutoRefreshListener implements IServerListener {
+        @Override
         public void serverChanged(ServerEvent event) {
             if ((event.getKind() & ServerEvent.SERVER_CHANGE) == 0) {
                 return;
@@ -178,6 +179,7 @@ public class EventLogEditorSection extends ServerEditorSection {
             }
         };
 
+        @Override
         public void menuAboutToShow(IMenuManager manager) {
             TreeItem[] selection = viewer.getTree().getSelection();
             copyToClipboardAction.setEnabled(selection != null && selection.length > 0);
@@ -202,6 +204,7 @@ public class EventLogEditorSection extends ServerEditorSection {
                  .withEnvironmentName(environment.getEnvironmentName())).getEvents();
 
              Display.getDefault().syncExec(new Runnable() {
+                @Override
                 public void run() {
                     if (disposed || viewer.getTree().isDisposed()) {
                         return;
@@ -265,30 +268,36 @@ public class EventLogEditorSection extends ServerEditorSection {
         viewer.setContentProvider(new ITreeContentProvider() {
             private List<EventDescription> events;
 
+            @Override
             @SuppressWarnings("unchecked")
             public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
                 if (newInput == null) {
-                    events = new ArrayList<EventDescription>();
+                    events = new ArrayList<>();
                 } else {
                     events = (List<EventDescription>)newInput;
                 }
             }
 
+            @Override
             public void dispose() {
             }
 
+            @Override
             public Object[] getElements(Object inputElement) {
                 return events.toArray();
             }
 
+            @Override
             public Object[] getChildren(Object parentElement) {
                 return new Object[0];
             }
 
+            @Override
             public Object getParent(Object element) {
                 return null;
             }
 
+            @Override
             public boolean hasChildren(Object element) {
                 return false;
             }
@@ -296,19 +305,24 @@ public class EventLogEditorSection extends ServerEditorSection {
 
         viewer.setLabelProvider(new ITableLabelProvider() {
 
+            @Override
             public void removeListener(ILabelProviderListener listener) {
             }
 
+            @Override
             public boolean isLabelProperty(Object element, String property) {
                 return false;
             }
 
+            @Override
             public void dispose() {
             }
 
+            @Override
             public void addListener(ILabelProviderListener listener) {
             }
 
+            @Override
             public String getColumnText(Object element, int columnIndex) {
                 EventDescription event = (EventDescription) element;
                 switch (columnIndex) {
@@ -324,6 +338,7 @@ public class EventLogEditorSection extends ServerEditorSection {
                 }
             }
 
+            @Override
             public Image getColumnImage(Object element, int columnIndex) {
                 if (element == null) {
                     return null;

@@ -48,7 +48,7 @@ public class CompositeWizardPage extends WizardPage {
                                final ImageDescriptor titleImage) {
 
         super(pageName, title, titleImage);
-        this.inputs = new LinkedHashMap<String, WizardPageInput>();
+        this.inputs = new LinkedHashMap<>();
     }
 
     /**
@@ -92,6 +92,7 @@ public class CompositeWizardPage extends WizardPage {
      *
      * @param parent the parent composite to create this page within
      */
+    @Override
     public void createControl(final Composite parent) {
         GridLayout layout = new GridLayout(2, false);
         layout.horizontalSpacing = 10;
@@ -126,6 +127,7 @@ public class CompositeWizardPage extends WizardPage {
             );
 
         status.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(final ChangeEvent event) {
                 updateValidationStatus((IStatus) status.getValue());
             }

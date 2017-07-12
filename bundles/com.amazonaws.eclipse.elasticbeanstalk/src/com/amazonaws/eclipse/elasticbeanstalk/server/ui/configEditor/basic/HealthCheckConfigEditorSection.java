@@ -28,7 +28,7 @@ import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.Environment
  */
 public class HealthCheckConfigEditorSection extends HumanReadableConfigEditorSection {
 
-    private static final Map<String, String> humanReadableNames = new HashMap<String, String>();
+    private static final Map<String, String> humanReadableNames = new HashMap<>();
     static {
         humanReadableNames.put("HealthyThreshold", "Healthy Check Count Threshold");
         humanReadableNames.put("Interval", "Health Check Interval (seconds)");

@@ -41,6 +41,7 @@ public class OpenBucketEditorAction extends Action {
         final IEditorInput input = new BucketEditorInput(bucketName, endpoint, accountId);
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();

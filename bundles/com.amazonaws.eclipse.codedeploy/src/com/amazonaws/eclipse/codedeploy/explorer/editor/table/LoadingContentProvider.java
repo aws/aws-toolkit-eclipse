@@ -6,6 +6,7 @@ class LoadingContentProvider implements TreePathContentProvider {
 
     static final Object LOADING = new Object();
 
+    @Override
     public Object[] getChildren(TreePath parent) {
         if (parent.getSegmentCount() == 0) {
             return new Object[] {LOADING};
@@ -14,6 +15,7 @@ class LoadingContentProvider implements TreePathContentProvider {
         }
     }
 
+    @Override
     public void refresh() {
     }
 

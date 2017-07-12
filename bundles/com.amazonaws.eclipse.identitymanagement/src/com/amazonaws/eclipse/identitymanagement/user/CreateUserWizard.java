@@ -67,7 +67,7 @@ public class CreateUserWizard extends Wizard {
 
     @Override
     public boolean performFinish() {
-        final List<CreateUserRequest> createUserRequests = new ArrayList<CreateUserRequest>();
+        final List<CreateUserRequest> createUserRequests = new ArrayList<>();
         for (Text userName : page.userNameTexts) {
             String name = userName.getText();
             if (name != null) {
@@ -107,13 +107,14 @@ public class CreateUserWizard extends Wizard {
 
     private static class CreateUserWizardFirstPage extends WizardPage {
 
-        private final List<Text> userNameTexts = new ArrayList<Text>();
+        private final List<Text> userNameTexts = new ArrayList<>();
         private final int MAX_NUMBER_USERS = 5;
 
         public CreateUserWizardFirstPage(CreateUserWizard createUserWizard) {
             super("");
         }
 
+        @Override
         public void createControl(Composite parent) {
             final Composite comp = new Composite(parent, SWT.NONE);
             comp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -137,6 +138,7 @@ public class CreateUserWizard extends Wizard {
                 userNameTexts.add(i, userNameText);
                 GridDataFactory.fillDefaults().grab(true, false).applyTo(userNameText);
                 userNameText.addModifyListener(new ModifyListener() {
+                    @Override
                     public void modifyText(ModifyEvent e) {
                         validate();
                     }

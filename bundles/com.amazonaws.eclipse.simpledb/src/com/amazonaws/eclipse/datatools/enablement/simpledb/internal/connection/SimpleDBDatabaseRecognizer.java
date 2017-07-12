@@ -24,7 +24,8 @@ public class SimpleDBDatabaseRecognizer implements IDatabaseRecognizer {
   public static final String PRODUCT = "SimpleDB"; //$NON-NLS-1$
   public static final String VERSION1 = "1.0"; //$NON-NLS-1$
 
-  public DatabaseDefinition recognize(final Connection connection) {
+  @Override
+public DatabaseDefinition recognize(final Connection connection) {
     try {
       String product = connection.getMetaData().getDatabaseProductName();
       if (product.indexOf(PRODUCT) < 0) {

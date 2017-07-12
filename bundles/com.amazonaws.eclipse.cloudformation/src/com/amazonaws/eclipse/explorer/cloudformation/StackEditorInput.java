@@ -38,6 +38,7 @@ public class StackEditorInput extends AbstractAwsResourceEditorInput {
         return stackName;
     }
 
+    @Override
     public String getName() {
         return stackName;
     }
@@ -46,10 +47,12 @@ public class StackEditorInput extends AbstractAwsResourceEditorInput {
         return autoRefresh;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon CloudFormation Stack Editor - " + getName();
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_STACK);
     }

@@ -51,14 +51,14 @@ public class AttributeValueInputDialog extends MessageDialog {
         }
         this.cancelable = cancelable;
         /* Defensive hard copy */
-        List<String> attributeNamesCopy = new LinkedList<String>();
+        List<String> attributeNamesCopy = new LinkedList<>();
         attributeNamesCopy.addAll(attributeNames);
         this.attributeNames = Collections.unmodifiableList(attributeNamesCopy);
-        Map<String, Integer> attributeDataTypesCopy = new HashMap<String, Integer>();
+        Map<String, Integer> attributeDataTypesCopy = new HashMap<>();
         attributeDataTypesCopy.putAll(attributeDataTypes);
         this.attributeDataTypes = Collections.unmodifiableMap(attributeDataTypesCopy);
         /* Set initial values */
-        this.attributeValues = new HashMap<String, String>();
+        this.attributeValues = new HashMap<>();
         if ( null != initialTextualValue ) {
             this.attributeValues.putAll(initialTextualValue);
         }
@@ -95,6 +95,7 @@ public class AttributeValueInputDialog extends MessageDialog {
             inputValueText.setText(attributeValues.get(attributeName));
             /* Modify listener that updates the UI and the underlying data model. */
             inputValueText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     attributeValues.put(attributeName, inputValueText.getText());
                     updateDialogUI();

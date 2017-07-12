@@ -18,8 +18,6 @@ import java.util.Stack;
 
 import org.eclipse.jface.text.BadLocationException;
 
-import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocument;
-
 /**
  * Common utilities for searching through documents.
  */
@@ -28,7 +26,7 @@ public class DocumentUtils {
     /**
      * Starting at the given position in the specified document, this method
      * reads over chars until it finds a non-whitespace char and returns that
-     * char.
+     * char. Return null if none is found.
      *
      * @param document
      *            The document to search in.
@@ -38,7 +36,7 @@ public class DocumentUtils {
      * @return The first non-whitespace char found after the specified position
      *         in the document.
      */
-    public static char readToNextChar(TemplateDocument document, int position) {
+    public static Character readToNextChar(TemplateDocument document, int position) {
         try {
             while (true) {
                 char c = document.getChar(position++);
@@ -47,7 +45,7 @@ public class DocumentUtils {
                 return c;
             }
         } catch (BadLocationException e) {
-            throw new RuntimeException("Error reading ahead to next char", e);
+            return null;
         }
     }
 
@@ -67,9 +65,9 @@ public class DocumentUtils {
      * @return The first unmatched open brace, which indicates the map or array
      *         that contains the specified position.
      */
-    public static char readToPreviousUnmatchedOpenBrace(TemplateDocument document, int position) {
+    public static Character readToPreviousUnmatchedOpenBrace(TemplateDocument document, int position) {
         try {
-            Stack<Character> stack = new Stack<Character>();
+            Stack<Character> stack = new Stack<>();
             position--;
             while (true) {
                 char c = document.getChar(position--);
@@ -85,14 +83,15 @@ public class DocumentUtils {
                 }
             }
         } catch (BadLocationException e) {
-            throw new RuntimeException("Error reading ahead to next char", e);
+            return null;
         }
     }
 
     /**
      * Searches the specified document, backwards, starting from the specified
      * position, looking for the first occurrence of the target character, and
-     * returns the document position of that first occurrence.
+     * returns the document position of that first occurrence. return -1 if none
+     * is found.
      *
      * @param document
      *            The document to search in.
@@ -112,14 +111,14 @@ public class DocumentUtils {
                 if (charToFind == document.getChar(position)) return position;
             }
         } catch (BadLocationException e) {
-            throw new RuntimeException("Error reading back to previous char", e);
+            return -1;
         }
     }
 
     /**
      * Searches the document backwards, starting at the specified position,
      * looking for the first non-whitespace character, and returns that
-     * character.
+     * character. Return null if none is found.
      *
      * @param document
      *            The document to search in.
@@ -129,7 +128,7 @@ public class DocumentUtils {
      * @return The first non-whitespace character that occurs before the
      *         specified position in the document.
      */
-    public static char readToPreviousChar(TemplateDocument document, int position) {
+    public static Character readToPreviousChar(TemplateDocument document, int position) {
         try {
             position--;
             while (true) {
@@ -138,13 +137,13 @@ public class DocumentUtils {
                 return c;
             }
         } catch (BadLocationException e) {
-            throw new RuntimeException("Error reading ahead to next char", e);
+            return null;
         }
     }
 
     /**
      * Reads a string backwards from the current offset position to first
-     * occurrence of a double quote.
+     * occurrence of a double quote. Return null if none is found or a new line is found.
      *
      * @param document
      *            The document to search in.
@@ -152,22 +151,23 @@ public class DocumentUtils {
      *            The offset in the document to start searching at.
      * @return The string from the specified position to the first occurrence of
      *         double quote.
-     * @throws RuntimeException if the character cannot be read from the document.
      */
-    public static String readToPreviousQuote(TemplateDocument document,
-            int position) {
+    public static String readToPreviousQuote(TemplateDocument document, int position) {
         StringBuilder typedString = new StringBuilder();
         char c;
         try {
             position--;
             while (true) {
                 c = document.getChar(position--);
-                if (c == '"')
+                if (c == '"') {
                     break;
+                } else if (c == '\n' || c == '\r') {
+                    return null;
+                }
                 typedString.append(c);
             }
         } catch (BadLocationException e) {
-            throw new RuntimeException("Error reading ahead to next char", e);
+            return null;
         }
         return typedString.reverse().toString();
     }

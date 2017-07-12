@@ -36,6 +36,7 @@ public class JsonStringValidator implements IValidator {
         this.allowEmptyString = allowEmptyString;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
 

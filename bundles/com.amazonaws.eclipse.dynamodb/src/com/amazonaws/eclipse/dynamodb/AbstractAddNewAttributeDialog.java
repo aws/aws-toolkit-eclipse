@@ -42,6 +42,7 @@ public abstract class AbstractAddNewAttributeDialog extends MessageDialog {
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(text);
         text.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent e) {
                 newAttributeName = text.getText();
                 validate();

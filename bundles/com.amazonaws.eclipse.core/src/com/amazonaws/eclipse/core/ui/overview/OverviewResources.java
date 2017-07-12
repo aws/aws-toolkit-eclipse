@@ -50,13 +50,13 @@ public class OverviewResources implements IDisposable {
     private final FormToolkit toolkit;
 
     /** Map of allocated fonts by ID for the overview components */
-    private Map<String, Font> managedFonts = new HashMap<String, Font>();
+    private Map<String, Font> managedFonts = new HashMap<>();
 
     /**
      * Map of shared fonts by ID - these fonts are allocated by the system and
      * will _not_ be released with the rest of the overview resources.
      */
-    private Map<String, Font> sharedFonts = new HashMap<String, Font>();
+    private Map<String, Font> sharedFonts = new HashMap<>();
 
     /** Registry of shared images for the overview components */
     private final ImageRegistry imageRegistry = new ImageRegistry();
@@ -147,6 +147,7 @@ public class OverviewResources implements IDisposable {
     /* (non-Javadoc)
      * @see org.eclipse.ui.services.IDisposable#dispose()
      */
+    @Override
     public void dispose() {
         toolkit.dispose();
         imageRegistry.dispose();

@@ -110,6 +110,7 @@ public abstract class SelectOrInputComposite<T, K extends SelectOrInputDataModel
                 .pojoObservableValue(PojoProperties.value(P_SELECT_EXISTING_RESOURCE, Boolean.class)
                         .observe(dataModel))
                 .selectionListener(new SelectionAdapter() {
+                    @Override
                     public void widgetSelected(SelectionEvent e) {
                         onSelectRadioButtonSelected();
                     }
@@ -132,6 +133,7 @@ public abstract class SelectOrInputComposite<T, K extends SelectOrInputDataModel
                 .pojoObservableValue(PojoProperties.value(P_CREATE_NEW_RESOURCE, Boolean.class)
                         .observe(dataModel))
                 .selectionListener(new SelectionAdapter() {
+                    @Override
                     public void widgetSelected(SelectionEvent e) {
                         onCreateRadioButtonSelected();
                     }

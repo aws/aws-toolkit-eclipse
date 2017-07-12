@@ -38,6 +38,7 @@ public abstract class AbstractAwsProjectWizard extends AbstractAwsWizard impleme
         super(windowTitle);
     }
 
+    @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {
         this.selection = selection;
         this.workbench = workbench;
@@ -48,10 +49,12 @@ public abstract class AbstractAwsProjectWizard extends AbstractAwsWizard impleme
         beforeExecution();
 
         IRunnableWithProgress runnable = new IRunnableWithProgress() {
+            @Override
             public void run(IProgressMonitor monitor)
                     throws InvocationTargetException, InterruptedException {
                 new WorkspaceModifyOperation() {
 
+                    @Override
                     protected void execute(IProgressMonitor monitor) throws CoreException,
                             InvocationTargetException, InterruptedException {
                         IStatus status = doFinish(monitor);

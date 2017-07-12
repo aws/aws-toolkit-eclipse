@@ -58,6 +58,7 @@ public class SdkCredentialsFileContentMonitor {
             @Override
             public void onFileChange(final File changedFile) {
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         if (AwsToolkitCore.getDefault().getPreferenceStore()
                                 .getBoolean(PreferenceConstants.P_ALWAYS_RELOAD_WHEN_CREDNENTIAL_PROFILE_FILE_MODIFIED)) {
@@ -80,6 +81,7 @@ public class SdkCredentialsFileContentMonitor {
 
         // IllegalArgumentException is expected if target.getParentFile == null
         _observer = new FileAlterationObserver(target.getParentFile(), new FileFilter() {
+            @Override
             public boolean accept(File file) {
                 return file.equals(_target);
             }
@@ -93,6 +95,7 @@ public class SdkCredentialsFileContentMonitor {
 
         // Use daemon thread to avoid thread leakage
         _monitor.setThreadFactory(new ThreadFactory() {
+            @Override
             public Thread newThread(Runnable runnable) {
                 Thread t = new Thread(runnable);
                 t.setDaemon(true);

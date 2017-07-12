@@ -38,6 +38,7 @@ public class ElasticBeanstalkContentProvider extends AbstractContentProvider imp
 
     private final IOpenListener listener = new IOpenListener() {
 
+        @Override
         public void open(OpenEvent event) {
             StructuredSelection selection = (StructuredSelection) event.getSelection();
 
@@ -65,10 +66,12 @@ public class ElasticBeanstalkContentProvider extends AbstractContentProvider imp
         this.viewer.addOpenListener(listener);
     }
 
+    @Override
     public String getServiceAbbreviation() {
         return ServiceAbbreviations.BEANSTALK;
     }
 
+    @Override
     public Object[] loadChildren(final Object parentElement) {
         if ( parentElement instanceof AWSResourcesRootElement ) {
             return new Object[] { ElasticBeanstalkRootElement.ROOT_ELEMENT };
@@ -105,6 +108,7 @@ public class ElasticBeanstalkContentProvider extends AbstractContentProvider imp
         return Loading.LOADING;
     }
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof ElasticBeanstalkRootElement ||

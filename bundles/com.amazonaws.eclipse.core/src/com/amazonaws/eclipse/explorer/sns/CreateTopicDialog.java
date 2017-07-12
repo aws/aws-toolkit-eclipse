@@ -53,6 +53,7 @@ public class CreateTopicDialog extends MessageDialog {
         final Text topicNameText = new Text(composite, SWT.BORDER);
         topicNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         topicNameText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 topicName = topicNameText.getText();
                 updateControls();

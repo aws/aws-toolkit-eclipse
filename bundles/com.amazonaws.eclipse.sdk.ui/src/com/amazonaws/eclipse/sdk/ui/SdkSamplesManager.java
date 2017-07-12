@@ -39,12 +39,13 @@ public class SdkSamplesManager {
                     /**
                      * @see java.io.FileFilter#accept(java.io.File)
                      */
+                    @Override
                     public boolean accept(File pathname) {
                         return new File(pathname, "sample.properties").exists();
                     }
                 });
 
-        List<SdkSample> samples = new ArrayList<SdkSample>();
+        List<SdkSample> samples = new ArrayList<>();
         if (sampleDirectories == null || sampleDirectories.length == 0) {
             return samples;
         }

@@ -28,39 +28,39 @@ import org.eclipse.ui.forms.widgets.TableWrapData;
  */
 class HeaderComposite extends Composite {
 
-	/**
-	 * Constructs a new header composite for the AWS Toolkit for Eclipse
-	 * overview page.
-	 * 
-	 * @param parent
-	 *            The parent composite in which to create this header composite.
-	 * @param resources
-	 *            The shared resources for creating this composite (colors,
-	 *            images, fonts, etc).
-	 */
-	public HeaderComposite(Composite parent, OverviewResources resources) {
-		super(parent, SWT.NONE);
-		setLayout(LayoutUtils.newSlimTableWrapLayout(2));
-		
-		Image blueGradientImage = resources.getImage(OverviewResources.IMAGE_GRADIENT); 
-		Image blueGradientLogoImage = resources.getImage(OverviewResources.IMAGE_GRADIENT_WITH_LOGO); 
-		
-		resources.getFormToolkit().createLabel(this, null)
-			.setImage(blueGradientLogoImage);
-		
-		Composite composite = resources.getFormToolkit().createComposite(this);
-		composite.setBackgroundImage(blueGradientImage);
-		composite.setBackgroundMode(SWT.INHERIT_DEFAULT); 
-		TableWrapData tableWrapData = new TableWrapData(TableWrapData.FILL_GRAB);
-		tableWrapData.heightHint = blueGradientImage.getImageData().height;
-		composite.setLayoutData(tableWrapData);
-		composite.setLayout(new GridLayout());
+    /**
+     * Constructs a new header composite for the AWS Toolkit for Eclipse
+     * overview page.
+     * 
+     * @param parent
+     *            The parent composite in which to create this header composite.
+     * @param resources
+     *            The shared resources for creating this composite (colors,
+     *            images, fonts, etc).
+     */
+    public HeaderComposite(Composite parent, OverviewResources resources) {
+        super(parent, SWT.NONE);
+        setLayout(LayoutUtils.newSlimTableWrapLayout(2));
+        
+        Image blueGradientImage = resources.getImage(OverviewResources.IMAGE_GRADIENT); 
+        Image blueGradientLogoImage = resources.getImage(OverviewResources.IMAGE_GRADIENT_WITH_LOGO); 
+        
+        resources.getFormToolkit().createLabel(this, null)
+            .setImage(blueGradientLogoImage);
+        
+        Composite composite = resources.getFormToolkit().createComposite(this);
+        composite.setBackgroundImage(blueGradientImage);
+        composite.setBackgroundMode(SWT.INHERIT_DEFAULT); 
+        TableWrapData tableWrapData = new TableWrapData(TableWrapData.FILL_GRAB);
+        tableWrapData.heightHint = blueGradientImage.getImageData().height;
+        composite.setLayoutData(tableWrapData);
+        composite.setLayout(new GridLayout());
 
-		Label titleLabel = new Label(composite, SWT.NONE);
-		titleLabel.setText("AWS Toolkit for Eclipse");
-		titleLabel.setFont(resources.getFont("big-header"));
-		titleLabel.setForeground(resources.getColor("amazon-orange"));
-		titleLabel.setLayoutData(new GridData(SWT.END, SWT.END, true, true));
-	}
+        Label titleLabel = new Label(composite, SWT.NONE);
+        titleLabel.setText("AWS Toolkit for Eclipse");
+        titleLabel.setFont(resources.getFont("big-header"));
+        titleLabel.setForeground(resources.getColor("amazon-orange"));
+        titleLabel.setLayoutData(new GridData(SWT.END, SWT.END, true, true));
+    }
 
 }

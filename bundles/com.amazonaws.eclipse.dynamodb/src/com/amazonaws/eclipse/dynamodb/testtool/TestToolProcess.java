@@ -137,6 +137,7 @@ public class TestToolProcess {
         // Mac and Linux libraries start with "libsqlite4java-" so
         // use that pattern to identify the library directory
         IOFileFilter fileFilter = new AbstractFileFilter() {
+            @Override
             public boolean accept(File dir, String name) {
                 return name.startsWith("libsqlite4java-");
             }
@@ -270,6 +271,7 @@ public class TestToolProcess {
          */
         private void displayConsole(final IConsole console) {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     IWorkbenchPage page = PlatformUI.getWorkbench()
                         .getActiveWorkbenchWindow()

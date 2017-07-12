@@ -27,8 +27,8 @@ import com.amazonaws.services.mobileanalytics.model.Event;
  */
 class EventQueue {
 
-    private final ConcurrentLinkedQueue<Event> headQueue = new ConcurrentLinkedQueue<Event>();
-    private final ConcurrentLinkedQueue<Event> tailQueue = new ConcurrentLinkedQueue<Event>();
+    private final ConcurrentLinkedQueue<Event> headQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Event> tailQueue = new ConcurrentLinkedQueue<>();
 
     /**
      * Not thread safe.
@@ -59,14 +59,14 @@ class EventQueue {
      * Not thread safe.
      */
     public List<Event> pollAllQueuedEvents() {
-        List<Event> events = new LinkedList<Event>();
+        List<Event> events = new LinkedList<>();
         events.addAll(pollAll(headQueue));
         events.addAll(pollAll(tailQueue));
         return events;
     }
 
     private List<Event> pollAll(Queue<Event> queue) {
-        List<Event> events = new LinkedList<Event>();
+        List<Event> events = new LinkedList<>();
         while (true) {
             Event polled = queue.poll();
             if (polled != null) {

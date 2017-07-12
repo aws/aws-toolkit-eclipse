@@ -138,6 +138,7 @@ public class StackEditor extends EditorPart {
 
         if (stackEditorInput.isAutoRefresh()) {
             autoRefreshThread = new Thread(new Runnable() {
+                @Override
                 public void run() {
                     while (!isStackInStableState()) {
                         try {
@@ -299,6 +300,7 @@ public class StackEditor extends EditorPart {
                 final List<StackResource> stackResources = getClient().describeStackResources(request).getStackResources();
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         descriptionLabel.setText(valueOrDefault(stack.getDescription(), ""));
                         lastUpdatedLabel.setText(valueOrDefault(stack.getLastUpdatedTime(), "N/A"));

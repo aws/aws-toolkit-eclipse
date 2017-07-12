@@ -294,17 +294,17 @@ public class Ec2InstanceLauncher {
 
         List<Instance> instances = initialReservation.getInstances();
 
-        final Map<String, Instance> pendingInstancesById = new HashMap<String, Instance>();
+        final Map<String, Instance> pendingInstancesById = new HashMap<>();
         for (Instance instance : instances) {
             pendingInstancesById.put(instance.getInstanceId(), instance);
         }
 
-        final List<String> instanceIds = new ArrayList<String>();
+        final List<String> instanceIds = new ArrayList<>();
         for (Instance instance : instances) {
             instanceIds.add(instance.getInstanceId());
         }
 
-        Map<String, Instance> startedInstancesById = new HashMap<String, Instance>();
+        Map<String, Instance> startedInstancesById = new HashMap<>();
 
         do {
             pauseForInstancesToStartUp();
@@ -328,7 +328,7 @@ public class Ec2InstanceLauncher {
             // TODO: error detection for startup failures
         } while (!pendingInstancesById.isEmpty());
 
-        return new ArrayList<Instance>(startedInstancesById.values());
+        return new ArrayList<>(startedInstancesById.values());
     }
 
     /**

@@ -154,6 +154,7 @@ class CreateStackWizardFirstPage extends WizardPage {
      * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt
      * .widgets.Composite)
      */
+    @Override
     public void createControl(Composite parent) {
         final Composite comp = new Composite(parent, SWT.NONE);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(comp);
@@ -213,6 +214,7 @@ class CreateStackWizardFirstPage extends WizardPage {
             stackNameControl = combo;
 
             stackName.addChangeListener(new IChangeListener() {
+                @Override
                 public void handleChange(ChangeEvent event) {
                     if ( (Boolean) useTemplateFile.getValue() ) {
                         validateTemplateFile((String) templateFile.getValue());
@@ -229,7 +231,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
         GridDataFactory.fillDefaults().grab(true, false).span(2, 1).indent(fieldDecorationWidth, 0)
                 .applyTo(stackNameControl);
-        ChainValidator<String> stackNameValidationStatusProvider = new ChainValidator<String>(stackName,
+        ChainValidator<String> stackNameValidationStatusProvider = new ChainValidator<>(stackName,
                 new NotEmptyValidator("Please provide a stack name"));
         bindingContext.addValidationStatusProvider(stackNameValidationStatusProvider);
         addStatusDecorator(stackNameControl, stackNameValidationStatusProvider);
@@ -254,9 +256,11 @@ class CreateStackWizardFirstPage extends WizardPage {
             this.combo = combo;
         }
 
+        @Override
         public void run() {
             final List<String> stackNames = CloudFormationUtils.listExistingStacks(
                     new StackSummaryConverter<String>() {
+                        @Override
                         public String convert(StackSummary stack) {
                             return stack.getStackName();
                         }
@@ -264,6 +268,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
             Display.getDefault().syncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized ( this ) {
@@ -317,7 +322,7 @@ class CreateStackWizardFirstPage extends WizardPage {
                 .updateTargetToModel();
         bindingContext.bindValue(SWTObservables.observeSelection(templateUrlOption), useTemplateUrl)
                 .updateTargetToModel();
-        ChainValidator<String> templateUrlValidationStatusProvider = new ChainValidator<String>(templateUrl,
+        ChainValidator<String> templateUrlValidationStatusProvider = new ChainValidator<>(templateUrl,
                 useTemplateUrl, new NotEmptyValidator("Please provide a valid URL for your template"));
         bindingContext.addValidationStatusProvider(templateUrlValidationStatusProvider);
         addStatusDecorator(templateURLText, templateUrlValidationStatusProvider);
@@ -344,6 +349,7 @@ class CreateStackWizardFirstPage extends WizardPage {
         browseButton.setText("Browse...");
         Listener fileTemplateSelectionListener = new Listener() {
 
+            @Override
             public void handleEvent(Event event) {
                 if ( (Boolean) useTemplateFile.getValue() ) {
                     FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
@@ -361,7 +367,7 @@ class CreateStackWizardFirstPage extends WizardPage {
                 .updateTargetToModel();
         bindingContext.bindValue(SWTObservables.observeText(fileTemplateText, SWT.Modify), templateFile)
                 .updateTargetToModel();
-        ChainValidator<String> templateFileValidationStatusProvider = new ChainValidator<String>(templateFile,
+        ChainValidator<String> templateFileValidationStatusProvider = new ChainValidator<>(templateFile,
                 useTemplateFile, new NotEmptyValidator("Please provide a valid file for your template"));
         bindingContext.addValidationStatusProvider(templateFileValidationStatusProvider);
         addStatusDecorator(fileTemplateText, templateFileValidationStatusProvider);
@@ -376,7 +382,7 @@ class CreateStackWizardFirstPage extends WizardPage {
         bindingContext.bindValue(SWTObservables.observeSelection(notifyWithSNSButton), notifyWithSNS)
                 .updateTargetToModel();
         bindingContext.bindValue(SWTObservables.observeSelection(snsTopicCombo), snsTopicArn).updateTargetToModel();
-        ChainValidator<String> snsTopicValidationStatusProvider = new ChainValidator<String>(snsTopicArn,
+        ChainValidator<String> snsTopicValidationStatusProvider = new ChainValidator<>(snsTopicArn,
                 notifyWithSNS, new NotEmptyValidator("Please select an SNS notification topic"));
         bindingContext.addValidationStatusProvider(snsTopicValidationStatusProvider);
         addStatusDecorator(snsTopicCombo, snsTopicValidationStatusProvider);
@@ -423,14 +429,17 @@ class CreateStackWizardFirstPage extends WizardPage {
         UpdateValueStrategy timeoutUpdateStrategy = new UpdateValueStrategy(UpdateValueStrategy.POLICY_UPDATE);
         timeoutUpdateStrategy.setConverter(new IConverter() {
 
+            @Override
             public Object getToType() {
                 return Integer.class;
             }
 
+            @Override
             public Object getFromType() {
                 return String.class;
             }
 
+            @Override
             public Object convert(Object fromObject) {
                 String value = (String) fromObject;
                 if ( "None".equals(value) ) {
@@ -460,6 +469,7 @@ class CreateStackWizardFirstPage extends WizardPage {
         // the customer changes whether to use a file or a URL
         templateUrl.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 if ( ((String) templateUrl.getValue()).length() > 0 ) {
                     validateTemplateUrl((String) templateUrl.getValue());
@@ -468,6 +478,7 @@ class CreateStackWizardFirstPage extends WizardPage {
         });
         useTemplateUrl.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 if ( (Boolean) useTemplateUrl.getValue() && ((String) templateUrl.getValue()).length() > 0 ) {
                     validateTemplateUrl((String) templateUrl.getValue());
@@ -477,12 +488,14 @@ class CreateStackWizardFirstPage extends WizardPage {
 
         templateFile.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 validateTemplateFile((String) templateFile.getValue());
             }
         });
         useTemplateFile.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 if ( (Boolean) useTemplateFile.getValue() ) {
                     validateTemplateFile((String) templateFile.getValue());
@@ -493,6 +506,7 @@ class CreateStackWizardFirstPage extends WizardPage {
         // Status validator for template validation, which occurs out of band
         IValidator templateValidator = new IValidator() {
 
+            @Override
             public IStatus validate(Object value) {
                 if ( value == null ) {
                     return ValidationStatus.error("No template selected");
@@ -528,6 +542,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if ( value instanceof IStatus == false )
@@ -587,12 +602,13 @@ class CreateStackWizardFirstPage extends WizardPage {
             public void run() {
                 AmazonSNS sns = AwsToolkitCore.getClientFactory().getSNSClient();
                 ListTopicsResult topicsResult = sns.listTopics();
-                final List<String> arns = new ArrayList<String>();
+                final List<String> arns = new ArrayList<>();
                 for ( Topic topic : topicsResult.getTopics() ) {
                     arns.add(topic.getTopicArn());
                 }
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         if ( !snsTopicCombo.isDisposed() ) {
                             snsTopicCombo.setItems(arns.toArray(new String[arns.size()]));
@@ -681,6 +697,7 @@ class CreateStackWizardFirstPage extends WizardPage {
             } catch ( Exception e ) {
                 templateValidationException = e;
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         synchronized ( this ) {
                             if ( !isCanceled() ) {
@@ -700,6 +717,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
             Display.getDefault().syncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized ( this ) {

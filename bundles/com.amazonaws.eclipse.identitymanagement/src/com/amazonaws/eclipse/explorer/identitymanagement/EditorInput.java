@@ -28,14 +28,17 @@ public class EditorInput extends AbstractAwsResourceEditorInput {
         this.titleName = titleName;
     }
 
+    @Override
     public String getName() {
         return titleName;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon Identity Management Editor - " + getName();
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_STACK);
     }

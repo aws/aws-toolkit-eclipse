@@ -145,6 +145,7 @@ public class DynamoDBPlugin extends AbstractAwsPlugin {
     private static class DefaultTestToolPortListener
             implements IPropertyChangeListener {
 
+        @Override
         public void propertyChange(PropertyChangeEvent event) {
             if ((event.getProperty()
                         == TestToolPreferencePage.DEFAULT_PORT_PREFERENCE_NAME)

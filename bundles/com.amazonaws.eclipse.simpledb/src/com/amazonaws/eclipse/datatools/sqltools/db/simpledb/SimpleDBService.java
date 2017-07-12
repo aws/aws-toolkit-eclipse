@@ -32,7 +32,7 @@ public class SimpleDBService extends GenericSQLService {
     @Override
     public String[] splitSQLByTerminatorLine(final String sql, final String[] terminators) {
         IDocument doc = new Document(sql);
-        ArrayList<String> groups = new ArrayList<String>();
+        ArrayList<String> groups = new ArrayList<>();
         //the start position for current group
         int index = 0;
         int numberOfLines = doc.getNumberOfLines();

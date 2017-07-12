@@ -21,6 +21,7 @@ import com.amazonaws.eclipse.lambda.serverless.handler.DeployServerlessProjectHa
 import com.amazonaws.eclipse.lambda.upload.wizard.editoraction.AbstractLambdaEditorAction;
 
 public class DeployServerlessAction extends AbstractLambdaEditorAction{
+    @Override
     public void run(IAction action) {
         LambdaAnalytics.trackUploadWizardOpenedFromEditorContextMenu();
         DeployServerlessProjectHandler.doDeployServerlessTemplate(javaProject.getProject());

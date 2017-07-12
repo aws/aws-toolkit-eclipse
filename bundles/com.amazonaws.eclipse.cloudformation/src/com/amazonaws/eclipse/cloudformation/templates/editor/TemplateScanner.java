@@ -14,10 +14,17 @@
  */
 package com.amazonaws.eclipse.cloudformation.templates.editor;
 
+import static com.amazonaws.eclipse.cloudformation.preferences.EditorPreferences.TokenPreference.buildTemplateToken;
+import static com.amazonaws.eclipse.cloudformation.preferences.TemplateTokenPreferenceNames.INTRINSIC_FUNCTION;
+import static com.amazonaws.eclipse.cloudformation.preferences.TemplateTokenPreferenceNames.KEY;
+import static com.amazonaws.eclipse.cloudformation.preferences.TemplateTokenPreferenceNames.PSEUDO_PARAMETER;
+import static com.amazonaws.eclipse.cloudformation.preferences.TemplateTokenPreferenceNames.RESOURCE_TYPE;
+import static com.amazonaws.eclipse.cloudformation.preferences.TemplateTokenPreferenceNames.VALUE;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
@@ -27,27 +34,26 @@ import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 import org.eclipse.jface.text.rules.WordRule;
-import org.eclipse.swt.SWT;
 
-import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateSourceViewerConfiguration.TemplateColorProvider;
+import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.cloudformation.templates.schema.IntrinsicFunction;
 import com.amazonaws.eclipse.cloudformation.templates.schema.PseudoParameter;
 import com.amazonaws.eclipse.cloudformation.templates.schema.TemplateSchemaRules;
 
 public class TemplateScanner extends RuleBasedScanner {
 
-    private static final TemplateColorProvider COLOR_PROVIDER = new TemplateColorProvider();
+    private final IPreferenceStore preferenceStore;
 
-    private static final IToken INTRINSIC_FUNCTION_TOKEN = new Token(new TextAttribute(COLOR_PROVIDER.getColor(TemplateColorProvider.PURPLE), null, SWT.BOLD));
-    private static final IToken PSEUDO_PARAMETER_TOKEN = new Token(new TextAttribute(COLOR_PROVIDER.getColor(TemplateColorProvider.PURPLE), null, SWT.BOLD));
-    private static final IToken RESOURCE_TYPE_TOKEN = new Token(new TextAttribute(COLOR_PROVIDER.getColor(TemplateColorProvider.PURPLE), null, SWT.BOLD));
+    private final Token INTRINSIC_FUNCTION_TOKEN;
+    private final Token PSEUDO_PARAMETER_TOKEN;
+    private final Token RESOURCE_TYPE_TOKEN;
 
-    private static final IToken KEY_TOKEN = new Token(new TextAttribute(COLOR_PROVIDER.getColor(TemplateColorProvider.GREEN), null, SWT.BOLD));
-    private static final IToken VALUE_TOKEN = new Token(new TextAttribute(COLOR_PROVIDER.getColor(TemplateColorProvider.BLUE)));
+    private final Token KEY_TOKEN;
+    private final Token VALUE_TOKEN;
 
     private static final class TemplateWordDetector implements IWordDetector {
 
-        private static final Set<Character> SYMBOLS = new HashSet<Character>();
+        private static final Set<Character> SYMBOLS = new HashSet<>();
 
         static {
             SYMBOLS.add('[');
@@ -60,6 +66,7 @@ public class TemplateScanner extends RuleBasedScanner {
             SYMBOLS.add('\'');
         }
 
+        @Override
         public boolean isWordStart(char c) {
             if (Character.isWhitespace(c)) return false;
 
@@ -68,6 +75,7 @@ public class TemplateScanner extends RuleBasedScanner {
             return true;
         }
 
+        @Override
         public boolean isWordPart(char c) {
             if (Character.isWhitespace(c)) return false;
 
@@ -82,6 +90,7 @@ public class TemplateScanner extends RuleBasedScanner {
     }
 
     private static class TemplateWhitespaceDetector implements IWhitespaceDetector {
+        @Override
         public boolean isWhitespace(char c) {
             return Character.isWhitespace(c);
         }
@@ -110,19 +119,29 @@ public class TemplateScanner extends RuleBasedScanner {
 
                 for (int i = 0; i < readAhead; i++) scanner.unread();
 
-                if (((char)c) == ':') return keyToken;
+                if (c == ':') return keyToken;
             }
 
             return token;
         }
     }
 
-    public TemplateScanner() {
+    public TemplateScanner(IPreferenceStore store) {
+
+        preferenceStore = store;
+
+        INTRINSIC_FUNCTION_TOKEN = new Token(buildTemplateToken(preferenceStore, INTRINSIC_FUNCTION).toTextAttribute());
+        PSEUDO_PARAMETER_TOKEN = new Token(buildTemplateToken(preferenceStore, PSEUDO_PARAMETER).toTextAttribute());
+        RESOURCE_TYPE_TOKEN = new Token(buildTemplateToken(preferenceStore, RESOURCE_TYPE).toTextAttribute());
+
+        KEY_TOKEN = new Token(buildTemplateToken(preferenceStore, KEY).toTextAttribute());
+        VALUE_TOKEN = new Token(buildTemplateToken(preferenceStore, VALUE).toTextAttribute());
+
         // TODO: Can we really ignore case for CloudFormation templates?
         WhitespaceRule whitespaceRule = new WhitespaceRule(new TemplateWhitespaceDetector());
         TemplateWordRule templateWordRule = new TemplateWordRule(new TemplateWordDetector(), KEY_TOKEN, VALUE_TOKEN, true);
 
-        TemplateSchemaRules schemaRules = TemplateSchemaRules.getInstance(); 
+        TemplateSchemaRules schemaRules = TemplateSchemaRules.getInstance();
 
         for (PseudoParameter pseudoParameter : schemaRules.getPseudoParameters()) {
             templateWordRule.addWord(pseudoParameter.getName(), PSEUDO_PARAMETER_TOKEN);
@@ -140,6 +159,14 @@ public class TemplateScanner extends RuleBasedScanner {
                 whitespaceRule,
                 templateWordRule
         });
+    }
+
+    public void resetTokens() {
+        KEY_TOKEN.setData(buildTemplateToken(preferenceStore, KEY).toTextAttribute());
+        VALUE_TOKEN.setData(buildTemplateToken(preferenceStore, VALUE).toTextAttribute());
+        INTRINSIC_FUNCTION_TOKEN.setData(buildTemplateToken(preferenceStore, INTRINSIC_FUNCTION).toTextAttribute());
+        PSEUDO_PARAMETER_TOKEN.setData(buildTemplateToken(preferenceStore, PSEUDO_PARAMETER).toTextAttribute());
+        RESOURCE_TYPE_TOKEN.setData(buildTemplateToken(preferenceStore, RESOURCE_TYPE).toTextAttribute());
     }
 
     public void dispose() {}

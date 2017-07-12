@@ -98,13 +98,13 @@ public class FunctionTagsTable extends Composite {
                     .listTags(new ListTagsRequest()
                             .withResource(functionEditorInput.getFunctionArn()))
                     .getTags();
-            List<String> tagKeysToBeRemoved = new ArrayList<String>();
+            List<String> tagKeysToBeRemoved = new ArrayList<>();
             for (String key : oldTagMap.keySet()) {
                 if (!tagsDataModel.getPairSet().contains(key)) {
                     tagKeysToBeRemoved.add(key);
                 }
             }
-            Map<String, String> tagMap = new HashMap<String, String>();
+            Map<String, String> tagMap = new HashMap<>();
             for (Pair pair : tagsDataModel.getPairSet()) {
                 tagMap.put(pair.getKey(), pair.getValue());
             }

@@ -29,6 +29,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.BrowserUtils;
+import com.amazonaws.eclipse.core.model.KeyValueSetDataModel.Pair;
 import com.amazonaws.eclipse.explorer.cloudformation.wizard.CreateStackWizardDataModel.Mode;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.CancelUpdateStackRequest;
@@ -36,6 +37,7 @@ import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.EstimateTemplateCostRequest;
 import com.amazonaws.services.cloudformation.model.EstimateTemplateCostResult;
 import com.amazonaws.services.cloudformation.model.Parameter;
+import com.amazonaws.services.cloudformation.model.Tag;
 import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 
@@ -143,6 +145,7 @@ public class CreateStackWizard extends Wizard {
         rq.setParameters(createStackRequest.getParameters());
         rq.setTemplateBody(createStackRequest.getTemplateBody());
         rq.setTemplateURL(createStackRequest.getTemplateURL());
+        rq.setTags(createStackRequest.getTags());
         return rq;
     }
 
@@ -168,7 +171,7 @@ public class CreateStackWizard extends Wizard {
         CreateStackRequest rq = new CreateStackRequest();
         rq.setDisableRollback(!dataModel.getRollbackOnFailure());
         if ( dataModel.getNotifyWithSNS() ) {
-            List<String> arns = new ArrayList<String>();
+            List<String> arns = new ArrayList<>();
             arns.add(dataModel.getSnsTopicArn());
             rq.setNotificationARNs(arns);
         }
@@ -181,7 +184,7 @@ public class CreateStackWizard extends Wizard {
         if ( rq.getTimeoutInMinutes() != null && rq.getTimeoutInMinutes() > 0 ) {
             rq.setTimeoutInMinutes(dataModel.getTimeoutMinutes());
         }
-        List<Parameter> params = new ArrayList<Parameter>();
+        List<Parameter> params = new ArrayList<>();
         for ( TemplateParameter parameter : dataModel.getParametersDataModel().getTemplateParameters() ) {
             String value = (String) dataModel.getParametersDataModel().getParameterValues().get(parameter.getParameterKey());
             if ( value != null && value.length() > 0 ) {
@@ -192,6 +195,14 @@ public class CreateStackWizard extends Wizard {
 
         rq.setCapabilities(dataModel.getRequiredCapabilities());
 
+        if (dataModel.getTagModel().getPairSet() != null) {
+            List<Tag> tags = new ArrayList<>(dataModel.getTagModel().getPairSet().size());
+            for (Pair pair : dataModel.getTagModel().getPairSet()) {
+                tags.add(new Tag().withKey(pair.getKey()).withValue(pair.getValue()));
+            }
+            rq.setTags(tags);
+        }
+
         return rq;
     }
 
@@ -199,6 +210,9 @@ public class CreateStackWizard extends Wizard {
     public void addPages() {
         addPage(new CreateStackWizardFirstPage(this));
         addPage(new CreateStackWizardSecondPage(this.getDataModel()));
+        if (Mode.EstimateCost != dataModel.getMode()) {
+            addPage(new CreateStackWizardThirdPage(this.getDataModel()));
+        }
     }
 
     CreateStackWizardDataModel getDataModel() {

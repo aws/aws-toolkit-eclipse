@@ -306,6 +306,7 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
         private void updateBasicHealthControls() {
             final EnvironmentDescription envDesc = environment.getCachedEnvironmentDescription();
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     healthLabel.setForeground(colorConverter.toColor(envDesc.getHealth()));
                     healthLabel.setText(envDesc.getHealth());
@@ -322,6 +323,7 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
          */
         private void updateEnhancedHealthControls(final DescribeEnvironmentHealthResult result) {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     healthLabel.setText(result.getHealthStatus());
                     healthLabel.setForeground(colorConverter.toColor(result.getColor()));

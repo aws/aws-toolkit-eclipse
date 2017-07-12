@@ -19,7 +19,7 @@ package com.amazonaws.eclipse.ec2.ui.keypair;
  * Simple interface to notify interested parties that the set of keys
  * displayed in a {@link KeyPairSelectionTable} has changed.
  */
-public interface KeyPairRefreshListener {	 
+public interface KeyPairRefreshListener {     
     
     /**
      * Notification that the set of key pairs displayed by a

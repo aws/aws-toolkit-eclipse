@@ -78,9 +78,11 @@ public class TrustedEntityTable extends Composite {
     private class RoleTableContentProvider extends ArrayContentProvider {
         private Principal[] principals;
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof Principal[])
                 principals = (Principal[]) newInput;
@@ -88,6 +90,7 @@ public class TrustedEntityTable extends Composite {
                 principals = new Principal[0];
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return principals;
         }
@@ -96,23 +99,29 @@ public class TrustedEntityTable extends Composite {
 
     private class RoleTableLabelProvider implements ITableLabelProvider {
 
+        @Override
         public void addListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public void removeListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             String result = null;
             if (element instanceof Principal == false)
@@ -144,6 +153,7 @@ public class TrustedEntityTable extends Composite {
         public void run() {
             try {
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         if (principals == null) {
                             viewer.setInput(null);

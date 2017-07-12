@@ -24,7 +24,6 @@ import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -43,8 +42,6 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.statushandlers.StatusManager;
-
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.profile.internal.BasicProfile;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -82,6 +79,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
         setDescription("Configure the toolkit with your AWS account credentials");
     }
 
+    @Override
     public void createControl(Composite parent) {
 
         Composite composite = new Composite(parent, SWT.NONE);
@@ -149,6 +147,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
         fullRowGridDataFactory.applyTo(link);
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if ( value instanceof IStatus == false ) return;
@@ -211,6 +210,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
 
     private void openAwsExplorer() {
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(AwsToolkitCore.EXPLORER_VIEW_ID);

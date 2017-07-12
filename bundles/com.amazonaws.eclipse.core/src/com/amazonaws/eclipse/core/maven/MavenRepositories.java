@@ -102,6 +102,7 @@ public class MavenRepositories {
             this.remoteUrl = url.toString();
         }
 
+        @Override
         public String getLatestVersion(String groupId, String artifactId) {
             String metadataUrl = buildMavenMetadataXmlUrl(groupId, artifactId);
             try {
@@ -130,6 +131,7 @@ public class MavenRepositories {
             this.rootPath = root.getAbsolutePath();
         }
 
+        @Override
         public String getLatestVersion(String groupId, String artifactId) {
 
             File targetFile = getTargetFolder(groupId, artifactId);

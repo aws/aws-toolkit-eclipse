@@ -33,14 +33,17 @@ public class DistributionEditor extends AbstractDistributionEditor {
     private DisableDistributionAction disableDistributionAction;
 
 
+    @Override
     public void refreshData() {
         new LoadDistributionInfoThread().start();
     }
 
+    @Override
     protected String getResourceTitle() {
         return "Distribution";
     }
 
+    @Override
     protected void contributeActions(IToolBarManager toolbarManager) {
         enableDistributionAction = new EnableDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
         disableDistributionAction = new DisableDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
@@ -62,6 +65,7 @@ public class DistributionEditor extends AbstractDistributionEditor {
             final Distribution distribution = getClient().getDistribution(new GetDistributionRequest(editorInput.getDistributionId())).getDistribution();
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     setText(domainNameText, distribution.getDomainName());
                     setText(distributionIdText, distribution.getId());

@@ -24,35 +24,35 @@ import org.eclipse.swt.widgets.Menu;
  */
 public class DynamicMenuAction extends MenuAction {
 
-	/**
-	 * Constructor
-	 * 
-	 * @param text
-	 *            Text that gets displayed on the Menu
-	 * @param toolTip
-	 *            Tooltip that gets displayed for the menu
-	 * @param imageDescriptor
-	 *            The icon used for the menu
-	 * @param menuHandler
-	 *            The MenuHandler object used to manage actions
-	 */
-	public DynamicMenuAction(String text, String toolTip, 
-				String imageDescriptor, MenuHandler dropdownMenuHandler) {
-		super(text, toolTip, imageDescriptor, dropdownMenuHandler);
-	}
+    /**
+     * Constructor
+     * 
+     * @param text
+     *            Text that gets displayed on the Menu
+     * @param toolTip
+     *            Tooltip that gets displayed for the menu
+     * @param imageDescriptor
+     *            The icon used for the menu
+     * @param menuHandler
+     *            The MenuHandler object used to manage actions
+     */
+    public DynamicMenuAction(String text, String toolTip, 
+                String imageDescriptor, MenuHandler dropdownMenuHandler) {
+        super(text, toolTip, imageDescriptor, dropdownMenuHandler);
+    }
 
-	/**
-	 * If there is already a menu from previous, dispose it for being able to
-	 * create a fresh one
-	 * 
-	 * @see com.amazonaws.eclipse.ec2.utils.MenuAction#getMenu(Menu parent)
-	 */
-	@Override 
-	public Menu getMenu(Control parent) {
+    /**
+     * If there is already a menu from previous, dispose it for being able to
+     * create a fresh one
+     * 
+     * @see com.amazonaws.eclipse.ec2.utils.MenuAction#getMenu(Menu parent)
+     */
+    @Override 
+    public Menu getMenu(Control parent) {
         if (menu != null) {
             menu.dispose();
         }
         
         return constructMenu(parent);
-	}
+    }
 }

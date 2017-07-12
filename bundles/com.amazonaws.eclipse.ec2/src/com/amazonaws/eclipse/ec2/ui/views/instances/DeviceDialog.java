@@ -31,71 +31,71 @@ import org.eclipse.swt.widgets.Shell;
  */
 class DeviceDialog extends MessageDialog {
 
-	/** The default device to attach a volume to */
-	private static final String DEFAULT_DEVICE = "/dev/sdh";
+    /** The default device to attach a volume to */
+    private static final String DEFAULT_DEVICE = "/dev/sdh";
 
-	/** Stores the selected device after this dialog is disposed */
-	private String device;
-	
-	/** The combo box where the user selects the device */
-	private Combo deviceCombo;
+    /** Stores the selected device after this dialog is disposed */
+    private String device;
+    
+    /** The combo box where the user selects the device */
+    private Combo deviceCombo;
 
-	/**
-	 * Creates a new DeviceDialog ready to be opened.
-	 */
-	public DeviceDialog() {
-		super(new Shell(),
-				"Select Device",
-				null,
-				"Select the device to attach this volume to.",
-				MessageDialog.QUESTION,
-				new String[] {"OK", "Cancel"},
-				0);
-	}
+    /**
+     * Creates a new DeviceDialog ready to be opened.
+     */
+    public DeviceDialog() {
+        super(new Shell(),
+                "Select Device",
+                null,
+                "Select the device to attach this volume to.",
+                MessageDialog.QUESTION,
+                new String[] {"OK", "Cancel"},
+                0);
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.MessageDialog#createCustomArea(org.eclipse.swt.widgets.Composite)
-	 */
-	@Override
-	protected Control createCustomArea(Composite parent) {
-		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
-		composite.setLayout(new GridLayout(2, false));
-		
-		Label label = new Label(composite, SWT.NONE);
-		label.setText("Device:");
-		
-		deviceCombo = new Combo(composite, SWT.READ_ONLY);
-		deviceCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		String devicePrefix = "/dev/sd";
-		for (char c = 'b'; c <= 'z'; c++) {
-			deviceCombo.add(devicePrefix + c);			
-		}
-		deviceCombo.setText(DEFAULT_DEVICE);
-		
-		return composite;			
-	}
-	
-	/**
-	 * Returns the device the user selected (ex: '/dev/sdh').
-	 * 
-	 * @return The device the user selected (ex: '/dev/sdh').
-	 */
-	public String getDevice() {
-		return device;
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.MessageDialog#createCustomArea(org.eclipse.swt.widgets.Composite)
+     */
+    @Override
+    protected Control createCustomArea(Composite parent) {
+        Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        composite.setLayout(new GridLayout(2, false));
+        
+        Label label = new Label(composite, SWT.NONE);
+        label.setText("Device:");
+        
+        deviceCombo = new Combo(composite, SWT.READ_ONLY);
+        deviceCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        String devicePrefix = "/dev/sd";
+        for (char c = 'b'; c <= 'z'; c++) {
+            deviceCombo.add(devicePrefix + c);            
+        }
+        deviceCombo.setText(DEFAULT_DEVICE);
+        
+        return composite;            
+    }
+    
+    /**
+     * Returns the device the user selected (ex: '/dev/sdh').
+     * 
+     * @return The device the user selected (ex: '/dev/sdh').
+     */
+    public String getDevice() {
+        return device;
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.MessageDialog#buttonPressed(int)
-	 */
-	@Override
-	protected void buttonPressed(int buttonId) {
-		if (buttonId == DeviceDialog.OK) {
-			device = deviceCombo.getText();
-		}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.MessageDialog#buttonPressed(int)
+     */
+    @Override
+    protected void buttonPressed(int buttonId) {
+        if (buttonId == DeviceDialog.OK) {
+            device = deviceCombo.getText();
+        }
 
-		super.buttonPressed(buttonId);
-	}
-	
+        super.buttonPressed(buttonId);
+    }
+    
 }

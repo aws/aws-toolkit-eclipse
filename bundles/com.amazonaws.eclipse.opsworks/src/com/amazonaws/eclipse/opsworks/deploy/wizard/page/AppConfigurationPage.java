@@ -31,6 +31,7 @@ public class AppConfigurationPage extends WizardPageWithOnEnterHook {
      */
     private final IChangeListener newJavaAppConfigValidationStatusListener = new IChangeListener() {
 
+        @Override
         public void handleChange(ChangeEvent event) {
             Object observable = event.getObservable();
             if (observable instanceof AggregateValidationStatus == false) return;
@@ -59,6 +60,7 @@ public class AppConfigurationPage extends WizardPageWithOnEnterHook {
 
     }
 
+    @Override
     public void createControl(Composite parent) {
         stackComposite = new Composite(parent, SWT.NONE);
         stackComposite.setLayout(stackLayout);
@@ -66,6 +68,7 @@ public class AppConfigurationPage extends WizardPageWithOnEnterHook {
         setControl(stackComposite);
     }
 
+    @Override
     public void onEnterPage() {
         if (newAppConfigurationComposite != null) {
             newAppConfigurationComposite.removeValidationStatusChangeListener();

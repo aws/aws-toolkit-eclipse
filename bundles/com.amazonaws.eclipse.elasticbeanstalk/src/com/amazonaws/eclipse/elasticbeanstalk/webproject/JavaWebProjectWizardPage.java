@@ -75,6 +75,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
         this.setDescription("Configure the options for creating a new AWS Java web project.");
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false) {
@@ -98,6 +99,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
         });
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
@@ -243,6 +245,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
         UpdateValueStrategy strategy = new UpdateValueStrategy();
         strategy.setConverter(new Converter(Boolean.class, JavaWebProjectTemplate.class) {
+            @Override
             public Object convert(Object fromObject) {
                 Boolean from = (Boolean) fromObject;
                 if (from == null || from == false) {

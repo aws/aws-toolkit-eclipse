@@ -20,6 +20,7 @@ public class S3FileSystemDropAction implements IDropActionDelegate {
 
     public static final String ID = "com.amazonaws.eclipse.explorer.S3FileSystemDropAction";
 
+    @Override
     public boolean run(Object source, Object target) {
         return false;
     }

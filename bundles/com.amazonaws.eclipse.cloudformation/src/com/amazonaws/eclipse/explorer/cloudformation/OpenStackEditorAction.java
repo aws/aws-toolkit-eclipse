@@ -54,6 +54,7 @@ public class OpenStackEditorAction extends Action {
         final IEditorInput input = new StackEditorInput(stackId, endpoint, accountId, autoRefresh);
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();

@@ -58,7 +58,7 @@ class RebootInstancesThread extends Thread {
     @Override
     public void run() {
         try {
-            List<String> instanceIds = new ArrayList<String>();
+            List<String> instanceIds = new ArrayList<>();
             for (Instance instance : instances) {
                 instanceIds.add(instance.getInstanceId());
             }

@@ -102,7 +102,7 @@ public class DeployUtils {
                 createAppRequest.setDomains(dataModel.getCustomDomains());
             }
             if (dataModel.getEnvironmentVariables() != null && !dataModel.getEnvironmentVariables().isEmpty()) {
-                List<EnvironmentVariable> vars = new LinkedList<EnvironmentVariable>();
+                List<EnvironmentVariable> vars = new LinkedList<>();
                 for (com.amazonaws.eclipse.opsworks.deploy.wizard.model.DeployProjectToOpsworksWizardDataModel.EnvironmentVariable envVar : dataModel
                         .getEnvironmentVariables()) {
                     vars.add(envVar.toSdkModel());

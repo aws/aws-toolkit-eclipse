@@ -61,6 +61,7 @@ public class CodeCommitPreferencePage extends AwsToolkitPreferencePage implement
         super("AWS CodeCommit Preferences");
     }
 
+    @Override
     public void init(IWorkbench workbench) {
         setPreferenceStore(CodeCommitPlugin.getDefault().getPreferenceStore());
         initDataModel();
@@ -104,6 +105,7 @@ public class CodeCommitPreferencePage extends AwsToolkitPreferencePage implement
         dataBindingContext.bindValue(SWTObservables.observeText(profileCombo),
                 PojoObservables.observeValue(dataModel, P_PROFILE));
         profileCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 populateGitCredentialsComposite();
             }

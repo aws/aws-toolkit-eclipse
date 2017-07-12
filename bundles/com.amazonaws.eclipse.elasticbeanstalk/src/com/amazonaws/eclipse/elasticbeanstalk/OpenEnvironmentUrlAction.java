@@ -26,10 +26,12 @@ import com.amazonaws.eclipse.core.BrowserUtils;
 public class OpenEnvironmentUrlAction implements IObjectActionDelegate {
     private String environmentUrl;
 
+    @Override
     public void run(IAction action) {
         if (environmentUrl != null) BrowserUtils.openExternalBrowser(environmentUrl);
     }
 
+    @Override
     public void selectionChanged(IAction action, ISelection selection) {
         StructuredSelection structuredSelection = (StructuredSelection)selection;
         IServer selectedServer = (IServer)structuredSelection.getFirstElement();
@@ -43,5 +45,6 @@ public class OpenEnvironmentUrlAction implements IObjectActionDelegate {
                           selectedServer.getServerState() == IServer.STATE_STARTED);
     }
 
+    @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {}
 }

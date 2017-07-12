@@ -28,8 +28,6 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.statushandlers.StatusManager;
-
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -50,7 +48,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
     protected TreeViewer viewer;
 
     /** Cache for previously loaded data */
-    protected Map<Object, Object[]> cachedResponses = new ConcurrentHashMap<Object, Object[]>();
+    protected Map<Object, Object[]> cachedResponses = new ConcurrentHashMap<>();
 
     protected BackgroundContentUpdateJobFactory backgroundJobFactory;
 
@@ -166,6 +164,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         final Object rootElement = tempObject;
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 viewer.getTree().deselectAll();
                 viewer.refresh(rootElement);
@@ -175,18 +174,22 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
 
     }
 
+    @Override
     public void refreshData() {
         refresh();
     }
 
+    @Override
     public Object[] getElements(Object inputElement) {
         return getChildren(inputElement);
     }
 
+    @Override
     public Object getParent(Object element) {
         return null;
     }
 
+    @Override
     public final Object[] getChildren(final Object parentElement) {
         if (!RegionUtils.isServiceSupportedInCurrentRegion(getServiceAbbreviation())) {
             return new Object[0];
@@ -212,6 +215,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         return children;
     }
 
+    @Override
     public void dispose() {
         ContentProviderRegistry.unregisterContentProvider(this);
     }
@@ -220,6 +224,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         cachedResponses.clear();
     }
 
+    @Override
     public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
         this.viewer = (TreeViewer) viewer;
     }
@@ -272,7 +277,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
 
     protected abstract class BackgroundContentUpdateJobFactory {
 
-        private Map<Object, Job> backgroundJobs = new ConcurrentHashMap<Object, Job>();
+        private Map<Object, Job> backgroundJobs = new ConcurrentHashMap<>();
 
         /**
          * Defines the behavior of the background job. Returned boolean values

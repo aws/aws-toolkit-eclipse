@@ -33,6 +33,7 @@ import com.amazonaws.eclipse.lambda.upload.wizard.UploadFunctionWizard;
 
 public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)

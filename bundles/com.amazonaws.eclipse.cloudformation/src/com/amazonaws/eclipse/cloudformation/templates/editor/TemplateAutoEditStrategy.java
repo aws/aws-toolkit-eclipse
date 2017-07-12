@@ -15,6 +15,7 @@
 package com.amazonaws.eclipse.cloudformation.templates.editor;
 
 import java.util.Arrays;
+import java.util.Stack;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentCommand;
@@ -25,10 +26,23 @@ import org.eclipse.jface.text.IRegion;
 import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 
 /**
- * Indentation strategy reacts to newlines by inserting the appropriate amount
- * of indentation.
+ * Indentation strategy reacts to newlines or open characters by inserting the appropriate amount
+ * of indentation and moving the caret to the appropriate location. We apply the auto-edit strategy
+ * in the following two situations:
+ *
+ * 1. Newline character
+ *     // See {@link IndentType} for more information.
+ *   - Double indent
+ *   - Open indent
+ *   - Close indent
+ *   - Jump out
+ * 2. Open character - includes {, [, (, ", '
  */
 final class TemplateAutoEditStrategy implements IAutoEditStrategy {
+
+    // TODO to move this to preference page setting
+    static final int INDENTATION_LENGTH = 2;
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     /*
      * (non-Javadoc)
@@ -37,153 +51,310 @@ final class TemplateAutoEditStrategy implements IAutoEditStrategy {
      * org.eclipse.jface.text.IAutoEditStrategy#customizeDocumentCommand(org
      * .eclipse.jface.text.IDocument, org.eclipse.jface.text.DocumentCommand)
      */
+    @Override
     public void customizeDocumentCommand(IDocument document, DocumentCommand command) {
         try {
-            if ( command.text.startsWith("\r") || command.text.startsWith("\n") ) {
-                autoIndent(document, command);
-            } else if ( command.text.equals("[") ) {
-                insertClosingBrace(document, command, "]");
-            } else if ( command.text.equals("{") ) {
-                insertClosingBrace(document, command, "}");
+            if (isNewlineCommand(command.text)) {
+                IndentContext context = getCurrentIndentContext(document, command);
+                if (context == null) {
+                    return;
+                }
+                switch (context.indentType) {
+                case JUMP_OUT:
+                    command.text = "";
+                    command.caretOffset = command.offset + context.indentValue;
+                    break;
+                case DOUBLE_INDENT:
+                    command.text += sameCharSequence(' ', context.indentValue);
+                    int length = command.text.length();
+                    command.text += LINE_SEPARATOR + sameCharSequence(' ', Math.max(context.indentValue - INDENTATION_LENGTH, 0));
+                    command.shiftsCaret = false;
+                    command.caretOffset = command.offset + length;
+                    break;
+                case OPEN_INDENT:
+                case CLOSE_INDENT:
+                default:
+                    command.text += sameCharSequence(' ', context.indentValue);
+                    command.shiftsCaret = true;
+                    break;
+                }
+            } else if (PairType.isOpenCharacter(command.text)) {
+                insertClosingCharacter(document, command, PairType.fromValue(command.text).closeChar);
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             CloudFormationPlugin.getDefault().logError("Error in auto edit:", e);
         }
     }
 
-    private void insertClosingQuote(IDocument document, DocumentCommand command) throws BadLocationException {
-        int lineStart = document.getLineInformationOfOffset(command.offset).getOffset();
-        String lineContents = document.get(lineStart, command.offset - lineStart);
-
-        // Type over an existing double quote, not before it (unless to type an escape)
-        if ( "\"".equals(document.get(command.offset, 1)) ) {
-            if ( !"\\".equals(document.get(command.offset - 1, 1)) ) {
-                command.text = "\"";
-                command.length = 1;
-                return;
-            }
+    private void insertClosingCharacter(IDocument document, DocumentCommand command, String closingChar) throws BadLocationException {
+        String insertionText = closingChar;
+        if (needsTrailingComma(document, command)) {
+            insertionText += ",";
         }
-
-        boolean keyStart = false;
-        for ( int i = lineContents.length() - 1; i >= 0; i-- ) {
-            char c = lineContents.charAt(i);
-            if ( c == ':' ) {
-                keyStart = true;
-                break;
-            }
-        }
-
-        String insertionText = "\"";
-
-        /*
-         * How do we know whether to add a comma or not? What do we see next in
-         * the document text? ',' = don't append '}' = don't append ']' = don't
-         * append ':' = ??? '{' = append '[' = append if our parent is an object
-         * and we're in the field
-         */
-
-        if ( keyStart && needsTrailingComma(document, command) )
-            insertionText += ", ";
-        else if ( !keyStart )
-            insertionText += " : ";
-
-        // This seems counterintuitive, but we have to mark the command as not
-        // shifting the caret so that it won't get shifted twice. See related
-        // code in TextViewer.handleVerifyEvent, which does the shifting itself.
-        // The command's own shifting just gets in the way.
+        command.text += insertionText;
         command.shiftsCaret = false;
         command.caretOffset = command.offset + 1;
-        command.text += insertionText;
-    }
-
-    private void insertClosingBrace(IDocument document, DocumentCommand command, String closingChar) throws BadLocationException {
-        int indentLength = findIndentationLevel(document, command.offset);
-
-        char[] indentation = new char[indentLength];
-        Arrays.fill(indentation, ' ');
-
-        String newline = System.getProperty("line.separator");
-        String insertionText = newline + new String(indentation) + closingChar;
-        if ( needsTrailingComma(document, command) )
-            insertionText += ", ";
-        command.text += insertionText;
-        // This seems counterintuitive, but we have to mark the command as not
-        // shifting the caret so that it won't get shifted twice. See related
-        // code in TextViewer.handleVerifyEvent, which does the shifting itself.
-        // The command's own shifting just gets in the way.
-        command.shiftsCaret = false;
-        command.caretOffset = command.offset + 1;
-    }
-
-    // TODO: The content assist processor has some very similar code duplicated for this
-    private boolean needsTrailingComma(IDocument document, DocumentCommand command) {
-        int position = command.offset + 1;
-        try {
-            String s = document.get(position, 1);
-            while ( document.getLength() > position && Character.isWhitespace(s.charAt(0)) ) {
-                s = document.get(position, 1);
-                if ( s.equals("}") || s.equals("]") || s.equals(","))
-                    return false;
-                position++;
-            }
-
-            return true;
-        } catch (BadLocationException e) { }
-        return false;
-    }
-
-    private void autoIndent(IDocument document, DocumentCommand command) {
-        try {
-            int indentation = findIndentationLevel(document, command.offset);
-            char[] insertionText = new char[indentation];
-            Arrays.fill(insertionText, ' ');
-            command.shiftsCaret = true;
-            command.text = command.text + new String(insertionText);
-        } catch ( Exception e ) {
-            CloudFormationPlugin.getDefault().logError("Failed to auto-indent", e);
-        }
     }
 
     /**
-     * To determine the indentation of a line, we need to scan backwards
-     * until we find a line with some non-whitespace text on it, then use
-     * that for our anchor. Indent +2 if there are more open than close
-     * braces on this line.
+     * Return true if the next non-whitespace character is an open character, i.e {, [, (, ", '
      */
-    private int findIndentationLevel(IDocument document, int offset) throws BadLocationException {
-        while ( offset > 0 ) {
-            IRegion currLineInfo = document.getLineInformationOfOffset(offset);
-            String lineContents = document.get(currLineInfo.getOffset(), currLineInfo.getLength());
-
-            boolean nonWhitespaceCharFound = false;
-            int numOpenBrackets = 0;
-            int indentation = 0;
-            for ( int i = 0; i < lineContents.length() && currLineInfo.getOffset() + i < offset; i++ ) {
-                char c = lineContents.charAt(i);
-                if ( !Character.isWhitespace(c) ) {
-                    if ( !nonWhitespaceCharFound ) {
-                        indentation = i;
-                    }
-                    nonWhitespaceCharFound = true;
-                    if ( c == '{' || c == '[' )
-                        numOpenBrackets++;
-                    if ( c == '}' || c == ']' )
-                        numOpenBrackets--;
-                }
+    private boolean needsTrailingComma(IDocument document, DocumentCommand command) throws BadLocationException {
+        PairType pairType = PairType.fromValue(command.text);
+        // If the pair is single quote, or parentheses which are not Json token, we don't append the trailing comma.
+        if (pairType == null || !pairType.isJsonToken) {
+            return false;
+        }
+        int position = command.offset;
+        while (document.getLength() > position) {
+            String nextChar = document.get(position, 1);
+            if (PairType.isOpenCharacter(nextChar) && PairType.fromValue(nextChar).isJsonToken) {
+                return true;
+            } else if (!Character.isWhitespace(nextChar.charAt(0))) {
+                return false;
             }
+            ++position;
+        }
+        return false;
+    }
 
-            if ( numOpenBrackets > 0 ) {
-                indentation += 2;
-            }
 
-            if ( nonWhitespaceCharFound ) {
-                return indentation;
+    private static String sameCharSequence(char character, int length) {
+        char[] sequence = new char[length];
+        Arrays.fill(sequence, character);
+        return new String(sequence);
+    }
+
+    private static boolean isNewlineCommand(String characters) {
+        return characters.startsWith("\r") || characters.startsWith("\n");
+    }
+
+    private static IndentContext getCurrentIndentContext(IDocument document, DocumentCommand command) throws BadLocationException {
+        int offset = command.offset;
+        while (offset > 0) {
+            IRegion region = document.getLineInformationOfOffset(offset);
+            String lineContents = document.get(region.getOffset(), region.getLength());
+            IndentContext context = parseOneLine(lineContents, offset - region.getOffset());
+            if (context == null) {
+                offset = region.getOffset() - 1;
             } else {
-                // this line didn't have any non-whitespace characters,
-                // go to the previous one
-                offset = currLineInfo.getOffset() - 1;
+                return context;
             }
         }
-        return 0;
+
+        return null;
+    }
+
+    /**
+     * Parse the current line of the document and return an IndentContext for further action.
+     *
+     * @param line - The current line of the document.
+     * @param offset - The offset of the caret.
+     * @return - The IndentContext to be used for further action.
+     */
+    static IndentContext parseOneLine(String line, int offset) {
+        int indent = leadingWhitespaceLength(line, 0, offset);
+        if (indent >= offset) {
+            return null;
+        }
+        Integer openIndex = parseLineLeftToRight(line, indent, offset - indent);
+        Integer closeIndex = parseLineRightToLeft(line, offset, line.length() - offset);
+        if (openIndex == null && closeIndex == null) {
+            return new IndentContext(IndentType.OPEN_INDENT, indent);
+        } else if (openIndex == null && closeIndex != null) {
+            if (leadingWhitespaceLength(line, offset, closeIndex - offset) == closeIndex - offset) {
+                return new IndentContext(IndentType.CLOSE_INDENT, Math.max(indent - INDENTATION_LENGTH, 0));
+            } else {
+                return new IndentContext(IndentType.OPEN_INDENT, indent);
+            }
+        } else if (openIndex != null && closeIndex == null) {
+            return new IndentContext(IndentType.OPEN_INDENT, indent + INDENTATION_LENGTH);
+        } else {
+            PairType type = PairType.fromValues(line.charAt(openIndex), line.charAt(closeIndex));
+            if (type == null) {
+                return new IndentContext(IndentType.OPEN_INDENT, indent);
+            } else if (type.needIndent) {
+                boolean adjencentToOpenChar = leadingWhitespaceLength(line, openIndex + 1, offset - openIndex - 1) == offset - openIndex - 1;
+                boolean adjencentToCloseChar = leadingWhitespaceLength(line, offset, closeIndex - offset) == closeIndex - offset;
+                if (adjencentToOpenChar && adjencentToCloseChar) {
+                    return new IndentContext(IndentType.DOUBLE_INDENT, indent + INDENTATION_LENGTH);
+                } else if (adjencentToCloseChar) {
+                    return new IndentContext(IndentType.CLOSE_INDENT, indent);
+                } else {
+                    return new IndentContext(IndentType.OPEN_INDENT, indent + INDENTATION_LENGTH);
+                }
+            } else {
+                indent = closeIndex - offset + 1;
+                return new IndentContext(IndentType.JUMP_OUT, indent);
+            }
+        }
+    }
+
+    private static int leadingWhitespaceLength(String line, int offset, int length) {
+        assert(offset + length <= line.length());
+        int i = offset;
+        while (offset + length > i && Character.isWhitespace(line.charAt(i))) {
+            ++i;
+        }
+        return i - offset;
+    }
+
+    /**
+     * Parse a line of string and return the index of the last unpaired character.
+     * Ex.
+     *   - {"key":"value      returns "
+     *   - {"key":"value"     returns {
+     *   - {"key":["value"    returns [
+     */
+    private static Integer parseLineLeftToRight(String line, int offset, int length) {
+        if (length <= 0) {
+            return null;
+        }
+        Stack<Integer> stack = new Stack<>();
+        for (int i = offset; i < offset + length; ++i) {
+            PairType type = PairType.fromValue(line.charAt(i));
+            if (type == null) {
+                continue;
+            }
+            if (stack.isEmpty()) {
+                if (PairType.isOpenCharacter(line.charAt(i))) {
+                    stack.push(i);
+                }
+            } else {
+                char lastCharInStack = line.charAt(stack.peek());
+                if (PairType.fromValues(lastCharInStack, line.charAt(i)) != null) {
+                    stack.pop();
+                } else if (PairType.isOpenCharacter(line.charAt(i))) {
+                    stack.push(i);
+                }
+            }
+        }
+        return stack.isEmpty() ? null : stack.pop();
+    }
+
+    /**
+     * Parse a line of string and return the first unpaired character.
+     * Ex.
+     *   - value"}            returns "
+     *   - , "key2":"value2"} returns }
+     *   - , "value2"]}       returns ]
+     */
+    private static Integer parseLineRightToLeft(String line, int offset, int length) {
+        if (length <= 0) {
+            return null;
+        }
+        Stack<Integer> stack = new Stack<>();
+        for (int i = offset + length - 1; i >= offset; --i) {
+            PairType type = PairType.fromValue(line.charAt(i));
+            if (type == null) {
+                continue;
+            }
+            if (stack.isEmpty()) {
+                if (PairType.isCloseCharacter(line.charAt(i))) {
+                    stack.push(i);
+                }
+            } else {
+                char lastCharInStack = line.charAt(stack.peek());
+                if (PairType.fromValues(line.charAt(i), lastCharInStack) != null) {
+                    stack.pop();
+                } else if (PairType.isCloseCharacter(line.charAt(i))) {
+                    stack.push(i);
+                }
+            }
+        }
+        return stack.isEmpty() ? null : stack.pop();
+    }
+
+    static class IndentContext {
+        IndentType indentType;
+        int indentValue;
+
+        public IndentContext(IndentType indentType, int indentValue) {
+            this.indentType = indentType;
+            this.indentValue = indentValue;
+        }
+    }
+
+    // Indent types when typing 'return' key
+    static enum IndentType {
+                        // '|' stands for cursor
+        DOUBLE_INDENT,  // {|}                => {\n  |\n}
+        OPEN_INDENT,    // {|"key":"value"}   => {\n  |"key":"value"}
+        CLOSE_INDENT,   // {"key":"value"|}   => {"key":"value"\n|}
+        SHIFT_INDENT,   //   |  "key":"value" =>
+        JUMP_OUT,       // {"key":"val|ue"}   => {"key":"value"|}
+        ;
+    }
+
+    private static enum PairType {
+        BRACES("{", "}", true, true),
+        BRACKETS("[", "]", true, true),
+        PARENTHESES("(", ")", false, false),
+        QUOTES("\"", "\"", false, true),
+        SINGLE_QUOTES("'", "'", false, false)
+        ;
+
+        private PairType(String openChar, String closeChar, boolean needIndent, boolean isJsonToken) {
+            this.openChar = openChar;
+            this.closeChar = closeChar;
+            this.needIndent = needIndent;
+            this.isJsonToken = isJsonToken;
+        }
+        String openChar;
+        String closeChar;
+        boolean needIndent;
+        boolean isJsonToken;
+
+        static PairType fromValue(String character) {
+            for (PairType pair : PairType.values()) {
+                if (pair.openChar.equals(character) || pair.closeChar.equals(character)) {
+                    return pair;
+                }
+            }
+            return null;
+        }
+
+        static PairType fromValue(char character) {
+            return fromValue(String.valueOf(character));
+        }
+
+        static boolean isOpenCharacter(String character) {
+            for (PairType pair : PairType.values()) {
+                if (pair.openChar.equals(character)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static boolean isOpenCharacter(char character) {
+            return isOpenCharacter(String.valueOf(character));
+        }
+
+        static boolean isCloseCharacter(String character) {
+            for (PairType pair : PairType.values()) {
+                if (pair.closeChar.equals(character)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static boolean isCloseCharacter(char character) {
+            return isCloseCharacter(String.valueOf(character));
+        }
+
+        static PairType fromValues(String open, String close) {
+            for (PairType pair : PairType.values()) {
+                if (pair.openChar.equals(open) && pair.closeChar.equals(close)) {
+                    return pair;
+                }
+            }
+            return null;
+        }
+
+        static PairType fromValues(char open, char close) {
+            return fromValues(String.valueOf(open), String.valueOf(close));
+        }
     }
 }

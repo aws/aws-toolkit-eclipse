@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
@@ -44,6 +43,7 @@ public class WorkbenchUtils {
 
     public static void selectAndReveal(final IResource resource, final IWorkbench workbench) {
         Display.getDefault().syncExec(new Runnable() {
+            @Override
             public void run() {
                 if (resource == null || workbench == null) return;
                 BasicNewResourceWizard.selectAndReveal(resource, workbench.getActiveWorkbenchWindow());
@@ -53,6 +53,7 @@ public class WorkbenchUtils {
 
     public static void openFileInEditor(final IFile file, final IWorkbench workbench) {
         Display.getDefault().syncExec(new Runnable() {
+            @Override
             public void run() {
                 if (file == null || workbench == null) return;
                 IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
@@ -71,6 +72,7 @@ public class WorkbenchUtils {
 
     public static void openInternalBrowserAsEditor(final URL url, final IWorkbench workbench) {
         Display.getDefault().syncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     if (url == null || workbench == null) return;
@@ -90,7 +92,7 @@ public class WorkbenchUtils {
     public static boolean openSaveFilesDialog(IWorkbench workbench) {
         IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
 
-        List<IEditorPart> dirtyEditors = new ArrayList<IEditorPart>();
+        List<IEditorPart> dirtyEditors = new ArrayList<>();
         for (IWorkbenchWindow window : windows) {
             IWorkbenchPage[] pages = window.getPages();
 

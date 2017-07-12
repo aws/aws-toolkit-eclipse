@@ -41,7 +41,7 @@ public class SdkProfilesFactory {
      * Dispatch a BasicProfile instance with the provided parameters;
      */
     public static BasicProfile newBasicProfile(String profileName, String accessKey, String secretKey, String sessionToken) {
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
         properties.put(ProfileKeyConstants.AWS_ACCESS_KEY_ID, accessKey);
         properties.put(ProfileKeyConstants.AWS_SECRET_ACCESS_KEY, secretKey);
         if (sessionToken != null) {

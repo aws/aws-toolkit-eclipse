@@ -88,6 +88,7 @@ public class CloneRepositoryWizard extends Wizard implements IImportWizard {
         dataModel.setRegionId(regionId);
     }
 
+    @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {
         this.workbench = workbench;
     }
@@ -109,6 +110,7 @@ public class CloneRepositoryWizard extends Wizard implements IImportWizard {
         try {
             final File destinationFile = cloneDestinationPage.getDestinationFile();
             getContainer().run(true, true, new IRunnableWithProgress() {
+                @Override
                 public void run(IProgressMonitor monitor)
                         throws InvocationTargetException, InterruptedException {
                     monitor.subTask("Cloning repository...");

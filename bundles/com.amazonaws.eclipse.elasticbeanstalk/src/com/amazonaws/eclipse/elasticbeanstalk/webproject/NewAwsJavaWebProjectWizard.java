@@ -69,6 +69,7 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
         return false;
     }
 
+    @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {}
 
     public void initDataModel() {

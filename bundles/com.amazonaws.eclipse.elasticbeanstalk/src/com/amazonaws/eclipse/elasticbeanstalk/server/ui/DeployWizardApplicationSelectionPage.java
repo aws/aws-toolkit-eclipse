@@ -131,7 +131,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
 
     @Override
     public List<WizardFragment> getChildFragments() {
-        List<WizardFragment> fragmentList = new ArrayList<WizardFragment>();
+        List<WizardFragment> fragmentList = new ArrayList<>();
         if (useNonDefaultVpc) {
             fragmentList.add(vpcConfigPage);
         }
@@ -231,6 +231,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
             "allowing you to position your Elastic Beanstalk application closer to you or your customers.", 2);
 
         regionChangeListener = new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 Region region = (Region)regionCombo.getData(regionCombo.getText());
                 String endpoint = region.getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK);
@@ -250,6 +251,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
                 refreshEnvironments();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
                 widgetSelected(e);
             }
@@ -303,7 +305,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         bindingContext.bindValue(
                 newApplicationNameTextObservable,
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.NEW_APPLICATION_NAME), null, null);
-        ChainValidator<String> applicationNameValidator = new ChainValidator<String>(
+        ChainValidator<String> applicationNameValidator = new ChainValidator<>(
                 newApplicationNameTextObservable, createNewApplicationRadioButtonObservable,
                 new ApplicationNameValidator(),
                 new NotInListValidator<String>(existingApplicationNames, "Duplicate application name."));
@@ -333,7 +335,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
         bindingContext.bindValue(
                 newEnvironmentDescriptionTextObservable,
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.NEW_ENVIRONMENT_DESCRIPTION), null, null);
-        ChainValidator<String> environmentNameValidator = new ChainValidator<String>(
+        ChainValidator<String> environmentNameValidator = new ChainValidator<>(
                 newEnvironmentNameTextObservable,
                 new EnvironmentNameValidator(),
                 new NotInListValidator<String>(existingEnvironmentNames, "Duplicate environment name."));
@@ -521,7 +523,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private final class LoadApplicationsThread extends CancelableThread {
         @Override
         public void run() {
-            final List<ApplicationDescription> applications = new ArrayList<ApplicationDescription>();
+            final List<ApplicationDescription> applications = new ArrayList<>();
             try {
                 applications.addAll(elasticBeanstalkClient.describeApplications().getApplications());
             } catch (Exception e) {
@@ -538,9 +540,10 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
-                        List<String> applicationNames = new ArrayList<String>();
+                        List<String> applicationNames = new ArrayList<>();
                         for ( ApplicationDescription application : applications ) {
                             applicationNames.add(application.getApplicationName());
                         }
@@ -581,7 +584,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     private final class LoadEnvironmentsThread extends CancelableThread {
         @Override
         public void run() {
-            final List<EnvironmentDescription> environments = new ArrayList<EnvironmentDescription>();
+            final List<EnvironmentDescription> environments = new ArrayList<>();
             try {
                 environments.addAll(elasticBeanstalkClient.describeEnvironments().getEnvironments());
             } catch (Exception e) {
@@ -597,9 +600,10 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
             }
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     try {
-                        List<String> environmentNames = new ArrayList<String>();
+                        List<String> environmentNames = new ArrayList<>();
                         for ( EnvironmentDescription environment : environments ) {
                             // Skip any terminated environments, since we can safely reuse their names
                             if ( isEnvironmentTerminated(environment) ) {

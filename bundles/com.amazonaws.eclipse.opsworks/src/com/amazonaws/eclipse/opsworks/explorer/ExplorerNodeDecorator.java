@@ -28,7 +28,7 @@ import com.amazonaws.services.opsworks.model.Instance;
 
 public class ExplorerNodeDecorator implements ILightweightLabelDecorator {
 
-    private static final Map<String, String> APP_TYPES_MAPPING = new HashMap<String, String>();
+    private static final Map<String, String> APP_TYPES_MAPPING = new HashMap<>();
     static {
         APP_TYPES_MAPPING.put("java", "Java");
         APP_TYPES_MAPPING.put("rails", "Ruby on Rails");
@@ -37,14 +37,19 @@ public class ExplorerNodeDecorator implements ILightweightLabelDecorator {
         APP_TYPES_MAPPING.put("static", "Static");
     }
 
+    @Override
     public void addListener(ILabelProviderListener listener) {}
+    @Override
     public void removeListener(ILabelProviderListener listener) {}
+    @Override
     public void dispose() {}
 
+    @Override
     public boolean isLabelProperty(Object element, String property) {
         return false;
     }
 
+    @Override
     public void decorate(Object element, IDecoration decoration) {
         if (element instanceof LayerElementNode) {
             List<Instance> instances = ((LayerElementNode)element).getInstancesInLayer();

@@ -50,6 +50,7 @@ public class ImportFileComposite extends Composite {
         createControl(context, dataModel);
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
         filePathComplex.setEnabled(enabled);
         browseButton.setEnabled(enabled);
@@ -67,6 +68,7 @@ public class ImportFileComposite extends Composite {
 
         browseButton = newPushButton(this, "Browse");
         browseButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog dialog = new FileDialog(getShell(), SWT.SINGLE);
                 String path = dialog.open();

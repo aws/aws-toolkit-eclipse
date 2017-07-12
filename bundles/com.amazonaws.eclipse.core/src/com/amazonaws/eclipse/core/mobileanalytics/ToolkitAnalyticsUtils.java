@@ -24,8 +24,8 @@ public final class ToolkitAnalyticsUtils {
 
         analytics.publishEvent(analytics.eventBuilder()
                 .setEventType(eventType)
-                .addMetric(metricNameTime, (double)time)
-                .addMetric(metricNameSize, (double)size)
+                .addMetric(metricNameTime, time)
+                .addMetric(metricNameSize, size)
                 .addMetric(metricNameSpeed, (double)size / (double)time)
                 .build());
     }

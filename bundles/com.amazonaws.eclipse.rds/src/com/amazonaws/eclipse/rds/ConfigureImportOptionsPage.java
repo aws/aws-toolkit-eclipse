@@ -158,6 +158,7 @@ public class ConfigureImportOptionsPage extends WizardPage {
                 return new Status(IStatus.WARNING, RDSPlugin.PLUGIN_ID, "Unable to determine outgoing IP address", ioe);
             } finally {
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         cidrIpRangeText.setText(cidr);
                     }
@@ -210,6 +211,7 @@ public class ConfigureImportOptionsPage extends WizardPage {
         selectDriverButton.setText("Select Jar");
 
         selectDriverButton.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog fileDialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.MULTI);
                 fileDialog.setFilterExtensions(new String[] {"jar"});
@@ -224,6 +226,7 @@ public class ConfigureImportOptionsPage extends WizardPage {
                 wizardDataModel.setJdbcDriver(file);
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
 
@@ -235,6 +238,7 @@ public class ConfigureImportOptionsPage extends WizardPage {
         }
     }
 
+    @Override
     public void createControl(Composite parent) {
         this.setDescription("Specify options for connecting to your Amazon RDS database.");
         this.setTitle("Configure RDS Database Connection");
@@ -280,6 +284,7 @@ public class ConfigureImportOptionsPage extends WizardPage {
                 null, new UpdateValueStrategy(UpdateValueStrategy.POLICY_NEVER));
 
         IValueChangeListener valueChangeListener = new IValueChangeListener() {
+            @Override
             public void handleValueChange(ValueChangeEvent event) {
                 validateUserInput();
             }

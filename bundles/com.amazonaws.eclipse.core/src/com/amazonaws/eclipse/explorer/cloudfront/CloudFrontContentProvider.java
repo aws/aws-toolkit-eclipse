@@ -68,6 +68,7 @@ public class CloudFrontContentProvider extends AbstractContentProvider {
     }
 
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof CloudFrontRootElement);
     }
@@ -84,7 +85,7 @@ public class CloudFrontContentProvider extends AbstractContentProvider {
                 public Object[] loadData() {
                     AmazonCloudFront cf = AwsToolkitCore.getClientFactory().getCloudFrontClient();
 
-                    List<ExplorerNode> distributionNodes = new ArrayList<ExplorerNode>();
+                    List<ExplorerNode> distributionNodes = new ArrayList<>();
 
                     DistributionList distributionList = null;
                     do {

@@ -23,64 +23,64 @@ import java.util.List;
  * host correctly.
  */
 public class RemoteFileCopyException extends IOException {
-	
-	/** auto-generated serialization id */
-	private static final long serialVersionUID = -8004706952817340784L;
-	
-	/** The location the file was to be copied on the remote host */
-	private final String remoteFile;
-	
-	/** The location of the local file to copy */
-	private final String localFile;
+    
+    /** auto-generated serialization id */
+    private static final long serialVersionUID = -8004706952817340784L;
+    
+    /** The location the file was to be copied on the remote host */
+    private final String remoteFile;
+    
+    /** The location of the local file to copy */
+    private final String localFile;
 
-	/** A list of the results from each attempt to copy the local file to the remote host */
-	private final List<RemoteFileCopyResults> resultsFromAllAttempts;
+    /** A list of the results from each attempt to copy the local file to the remote host */
+    private final List<RemoteFileCopyResults> resultsFromAllAttempts;
 
 
-	/**
-	 * Constructs a new RemoteFileCopyException complete with all the results
-	 * from each attempt to copy the file to the remote host.
-	 * 
-	 * @param localFile
-	 *            The local file attempting to be copied.
-	 * @param remoteFile
-	 *            The remote location for the local file to be copied.
-	 * @param resultsFromAllAttempts
-	 *            A list of all the results from each attempt at trying to copy
-	 *            this file to the remote host.
-	 */
-	public RemoteFileCopyException(String localFile, String remoteFile, List<RemoteFileCopyResults> resultsFromAllAttempts) {
-		super("Unable to copy remote file after trying " + resultsFromAllAttempts.size() + " times");
-		
-		this.localFile = localFile;
-		this.remoteFile = remoteFile;
-		this.resultsFromAllAttempts = resultsFromAllAttempts;
-	}
+    /**
+     * Constructs a new RemoteFileCopyException complete with all the results
+     * from each attempt to copy the file to the remote host.
+     * 
+     * @param localFile
+     *            The local file attempting to be copied.
+     * @param remoteFile
+     *            The remote location for the local file to be copied.
+     * @param resultsFromAllAttempts
+     *            A list of all the results from each attempt at trying to copy
+     *            this file to the remote host.
+     */
+    public RemoteFileCopyException(String localFile, String remoteFile, List<RemoteFileCopyResults> resultsFromAllAttempts) {
+        super("Unable to copy remote file after trying " + resultsFromAllAttempts.size() + " times");
+        
+        this.localFile = localFile;
+        this.remoteFile = remoteFile;
+        this.resultsFromAllAttempts = resultsFromAllAttempts;
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Throwable#getMessage()
-	 */
-	@Override
-	public String getMessage() {
-		String superMessage = super.getMessage();
-		
-		String message = superMessage + 
-				"\n\tlocal file: '" + localFile + "'" +
-				"\n\tremote file: '" + remoteFile + "'\n";
+    /* (non-Javadoc)
+     * @see java.lang.Throwable#getMessage()
+     */
+    @Override
+    public String getMessage() {
+        String superMessage = super.getMessage();
+        
+        String message = superMessage + 
+                "\n\tlocal file: '" + localFile + "'" +
+                "\n\tremote file: '" + remoteFile + "'\n";
 
-		if (resultsFromAllAttempts != null && resultsFromAllAttempts.size() > 0) {
-			RemoteFileCopyResults results = resultsFromAllAttempts.get(0);
-			message += "\nResults from first attempt:";
-			message += "\n\t" + results.getErrorMessage();
-			
-			if (results.getError() != null) {
-				message += "\n\troot cause: " + results.getError().getMessage();
-			}
-			
-			message += "\n";
-		}
-		
-		return message;
-	}
+        if (resultsFromAllAttempts != null && resultsFromAllAttempts.size() > 0) {
+            RemoteFileCopyResults results = resultsFromAllAttempts.get(0);
+            message += "\nResults from first attempt:";
+            message += "\n\t" + results.getErrorMessage();
+            
+            if (results.getError() != null) {
+                message += "\n\troot cause: " + results.getError().getMessage();
+            }
+            
+            message += "\n";
+        }
+        
+        return message;
+    }
 
 }

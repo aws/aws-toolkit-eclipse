@@ -139,7 +139,7 @@ public class TestToolVersionTable extends Composite {
         }
     }
 
-    private final Collection<Font> fonts = new LinkedList<Font>();
+    private final Collection<Font> fonts = new LinkedList<>();
 
     private TreeViewer viewer;
     private ToolBarManager toolbar;
@@ -255,6 +255,7 @@ public class TestToolVersionTable extends Composite {
         viewer.setLabelProvider(provider);
         viewer.setComparator(new VersionComparator());
         viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
             public void selectionChanged(final SelectionChangedEvent event) {
                 onSelectionChanged();
             }
@@ -374,6 +375,7 @@ public class TestToolVersionTable extends Composite {
         MenuManager manager = new MenuManager("#PopupMenu");
         manager.setRemoveAllWhenShown(true);
         manager.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 manager.add(installAction);
                 manager.add(uninstallAction);
@@ -427,6 +429,7 @@ public class TestToolVersionTable extends Composite {
      */
     private void setInput(final List<TestToolVersion> versions) {
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 _setInput(versions);
             }
@@ -466,6 +469,7 @@ public class TestToolVersionTable extends Composite {
         private List<TestToolVersion> versions;
 
         /** {@inheritDoc} */
+        @Override
         public Object[] getElements(final Object inputElement) {
             if (versions == null) {
                 return null;
@@ -474,6 +478,7 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         @SuppressWarnings("unchecked")
         public void inputChanged(final Viewer viewer,
                                  final Object oldInput,
@@ -483,6 +488,7 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         public Image getColumnImage(final Object element,
                                     final int columnIndex) {
 
@@ -490,6 +496,7 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         public String getColumnText(final Object element,
                                     final int columnIndex) {
 
@@ -521,16 +528,19 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         public Object[] getChildren(final Object parentElement) {
             return new Object[0];
         }
 
         /** {@inheritDoc} */
+        @Override
         public Object getParent(final Object element) {
             return null;
         }
 
         /** {@inheritDoc} */
+        @Override
         public boolean hasChildren(final Object element) {
             return false;
         }
@@ -577,8 +587,10 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         public void beginTask(final String name, final int totalWork) {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     progressBar.setMinimum(0);
                     progressBar.setMaximum(totalWork);
@@ -590,8 +602,10 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         public void worked(final int work) {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     progressBar.setSelection(
                         progressBar.getSelection() + work
@@ -601,8 +615,10 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         public void done() {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     progressBar.setVisible(false);
                 }
@@ -610,26 +626,31 @@ public class TestToolVersionTable extends Composite {
         }
 
         /** {@inheritDoc} */
+        @Override
         public void internalWorked(double arg0) {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
+        @Override
         public boolean isCanceled() {
             return false;
         }
 
         /** {@inheritDoc} */
+        @Override
         public void setCanceled(boolean arg0) {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
+        @Override
         public void setTaskName(String arg0) {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
+        @Override
         public void subTask(String arg0) {
             throw new UnsupportedOperationException();
         }

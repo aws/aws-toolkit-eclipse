@@ -88,8 +88,10 @@ public class SecurityGroupView extends ViewPart implements IRefreshable {
         sashForm.setWeights(new int[] {50, 50});
 
         securityGroupSelectionComposite.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 permissionsComposite.refreshPermissions();
             }
@@ -136,6 +138,7 @@ public class SecurityGroupView extends ViewPart implements IRefreshable {
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
      */
+    @Override
     public void refreshData() {
         if (securityGroupSelectionComposite != null) {
             securityGroupSelectionComposite.getRefreshSecurityGroupsAction().run();

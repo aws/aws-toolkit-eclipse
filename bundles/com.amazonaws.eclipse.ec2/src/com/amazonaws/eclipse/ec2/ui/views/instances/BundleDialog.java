@@ -34,132 +34,133 @@ import org.eclipse.swt.widgets.Text;
  */
 class BundleDialog extends Dialog {
 
-	private Text bucketNameText;
-	private Text imageNameText;
-	
-	private String bucketName;
-	private String imageName;
+    private Text bucketNameText;
+    private Text imageNameText;
+    
+    private String bucketName;
+    private String imageName;
 
-	/**
-	 * Creates a new Bundle Dialog parented by the specified shell.
-	 * 
-	 * @param parentShell
-	 *            The parent shell for this new Dialog.
-	 */
-	protected BundleDialog(Shell parentShell) {
-		super(parentShell);
-	}
+    /**
+     * Creates a new Bundle Dialog parented by the specified shell.
+     * 
+     * @param parentShell
+     *            The parent shell for this new Dialog.
+     */
+    protected BundleDialog(Shell parentShell) {
+        super(parentShell);
+    }
 
-	public String getS3Bucket() {
-		return bucketName;
-	}
-	
-	public String getImageName() {
-		return imageName;
-	}
+    public String getS3Bucket() {
+        return bucketName;
+    }
+    
+    public String getImageName() {
+        return imageName;
+    }
 
-	/*
-	 * Dialog Interface
-	 */
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#createButtonBar(org.eclipse.swt.widgets.Composite)
-	 */
-	@Override
-	protected Control createButtonBar(Composite parent) {
-		Control control = super.createButtonBar(parent);
-		
-		updateOkButton();
-		
-		return control;
-	}
+    /*
+     * Dialog Interface
+     */
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.Dialog#createButtonBar(org.eclipse.swt.widgets.Composite)
+     */
+    @Override
+    protected Control createButtonBar(Composite parent) {
+        Control control = super.createButtonBar(parent);
+        
+        updateOkButton();
+        
+        return control;
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
-	 */
-	@Override
-	protected Control createDialogArea(Composite parent) {
-		ModifyListener listener = new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				updateOkButton();
-			}
-		};
-		
-		this.getShell().setText("Bundle Image");
-		
-		Composite composite = new Composite(parent, SWT.BORDER);		
-		GridLayout gridLayout = new GridLayout(2, false);
-		gridLayout.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
-		gridLayout.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
-		gridLayout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
-		gridLayout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.Dialog#createDialogArea(org.eclipse.swt.widgets.Composite)
+     */
+    @Override
+    protected Control createDialogArea(Composite parent) {
+        ModifyListener listener = new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                updateOkButton();
+            }
+        };
+        
+        this.getShell().setText("Bundle Image");
+        
+        Composite composite = new Composite(parent, SWT.BORDER);        
+        GridLayout gridLayout = new GridLayout(2, false);
+        gridLayout.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
+        gridLayout.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
+        gridLayout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
+        gridLayout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
 
-		composite.setLayout(gridLayout);
-		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        composite.setLayout(gridLayout);
+        composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		GridData gridData;
-					
-		Label label = new Label(composite, SWT.NONE);
-		label.setText("Amazon S3 Bucket:");
-		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.horizontalAlignment = SWT.LEFT;
-		gridData.verticalAlignment = SWT.CENTER;
-		label.setLayoutData(gridData);
+        GridData gridData;
+                    
+        Label label = new Label(composite, SWT.NONE);
+        label.setText("Amazon S3 Bucket:");
+        gridData = new GridData(GridData.FILL_BOTH);
+        gridData.horizontalAlignment = SWT.LEFT;
+        gridData.verticalAlignment = SWT.CENTER;
+        label.setLayoutData(gridData);
 
-		bucketNameText = new Text(composite, SWT.BORDER);
-		bucketNameText.addModifyListener(listener);
-		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.widthHint = 300;
-		bucketNameText.setLayoutData(gridData);
-		
-		
-		
-		label = new Label(composite, SWT.NONE);
-		label.setText("Image Name:");
-		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.horizontalAlignment = SWT.LEFT;
-		gridData.verticalAlignment = SWT.CENTER;
-		label.setLayoutData(gridData);
-		
-		imageNameText = new Text(composite, SWT.BORDER);
-		imageNameText.addModifyListener(listener);
-		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.widthHint = 300;
-		imageNameText.setLayoutData(gridData);
-		
+        bucketNameText = new Text(composite, SWT.BORDER);
+        bucketNameText.addModifyListener(listener);
+        gridData = new GridData(GridData.FILL_BOTH);
+        gridData.widthHint = 300;
+        bucketNameText.setLayoutData(gridData);
+        
+        
+        
+        label = new Label(composite, SWT.NONE);
+        label.setText("Image Name:");
+        gridData = new GridData(GridData.FILL_BOTH);
+        gridData.horizontalAlignment = SWT.LEFT;
+        gridData.verticalAlignment = SWT.CENTER;
+        label.setLayoutData(gridData);
+        
+        imageNameText = new Text(composite, SWT.BORDER);
+        imageNameText.addModifyListener(listener);
+        gridData = new GridData(GridData.FILL_BOTH);
+        gridData.widthHint = 300;
+        imageNameText.setLayoutData(gridData);
+        
 
-		applyDialogFont(composite);
-		
-		return composite;
-	}
+        applyDialogFont(composite);
+        
+        return composite;
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.Dialog#okPressed()
-	 */
-	@Override
-	protected void okPressed() {
-		imageName = imageNameText.getText();
-		bucketName = bucketNameText.getText();
-		
-		super.okPressed();
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.dialogs.Dialog#okPressed()
+     */
+    @Override
+    protected void okPressed() {
+        imageName = imageNameText.getText();
+        bucketName = bucketNameText.getText();
+        
+        super.okPressed();
+    }
 
-	/*
-	 * Private Interface
-	 */
-	
-	private void updateOkButton() {
-		boolean b = true;
-		if (bucketNameText == null || bucketNameText.getText().length() == 0 || imageNameText == null || imageNameText.getText().length() == 0) {
-			b = false;
-		}
-		
-		Button okButton = getButton(OK);
-		if (okButton == null) {
-			return;
-		}
-		
-		okButton.setEnabled(b);
-	}
+    /*
+     * Private Interface
+     */
+    
+    private void updateOkButton() {
+        boolean b = true;
+        if (bucketNameText == null || bucketNameText.getText().length() == 0 || imageNameText == null || imageNameText.getText().length() == 0) {
+            b = false;
+        }
+        
+        Button okButton = getButton(OK);
+        if (okButton == null) {
+            return;
+        }
+        
+        okButton.setEnabled(b);
+    }
 
 }

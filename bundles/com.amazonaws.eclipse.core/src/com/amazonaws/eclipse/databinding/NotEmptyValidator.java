@@ -30,6 +30,7 @@ public class NotEmptyValidator implements IValidator {
         this.message = message;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
         if (s == null || s.trim().length() == 0) return ValidationStatus.error(message);

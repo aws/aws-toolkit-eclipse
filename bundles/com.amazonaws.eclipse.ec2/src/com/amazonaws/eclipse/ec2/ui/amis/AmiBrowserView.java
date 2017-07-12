@@ -33,56 +33,57 @@ public class AmiBrowserView extends ViewPart implements IRefreshable {
     private FilteredAmiSelectionTable filteredAmiSelectionTable;
 
     
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
-	 */
-	@Override
-	public void createPartControl(final Composite parent) {
-		parent.setLayout(new FillLayout());
-	
-		filteredAmiSelectionTable = new FilteredAmiSelectionTable(parent);
-		filteredAmiSelectionTable.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-		contributeToActionBars();
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
+     */
+    @Override
+    public void createPartControl(final Composite parent) {
+        parent.setLayout(new FillLayout());
+    
+        filteredAmiSelectionTable = new FilteredAmiSelectionTable(parent);
+        filteredAmiSelectionTable.setLayoutData(new GridData(GridData.FILL_BOTH));
+        
+        contributeToActionBars();
+    }
 
-	/*
-	 * @see org.eclipse.ui.part.WorkbenchPart#dispose()
-	 */
-	@Override
-	public void dispose() {
-		if (filteredAmiSelectionTable != null)
-		    filteredAmiSelectionTable.dispose();
-		
-		super.dispose();
-	}
+    /*
+     * @see org.eclipse.ui.part.WorkbenchPart#dispose()
+     */
+    @Override
+    public void dispose() {
+        if (filteredAmiSelectionTable != null)
+            filteredAmiSelectionTable.dispose();
+        
+        super.dispose();
+    }
 
-	/**
-	 * Adds a refresh button to this view's toolbar. 
-	 */
-	private void contributeToActionBars() {
-		IActionBars bars = getViewSite().getActionBars();
-		IToolBarManager manager = bars.getToolBarManager();
-		manager.add(filteredAmiSelectionTable.getAmiSelectionTable().getRefreshAction());
-		manager.add(filteredAmiSelectionTable.getAmiSelectionTable().getAmiFilterDropDownAction());
-		manager.add(filteredAmiSelectionTable.getAmiSelectionTable().getPlatformFilterDropDownAction());
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
-	 */
-	@Override
-	public void setFocus() {
-		filteredAmiSelectionTable.setFocus();
-	}
+    /**
+     * Adds a refresh button to this view's toolbar. 
+     */
+    private void contributeToActionBars() {
+        IActionBars bars = getViewSite().getActionBars();
+        IToolBarManager manager = bars.getToolBarManager();
+        manager.add(filteredAmiSelectionTable.getAmiSelectionTable().getRefreshAction());
+        manager.add(filteredAmiSelectionTable.getAmiSelectionTable().getAmiFilterDropDownAction());
+        manager.add(filteredAmiSelectionTable.getAmiSelectionTable().getPlatformFilterDropDownAction());
+    }
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
+     */
+    @Override
+    public void setFocus() {
+        filteredAmiSelectionTable.setFocus();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
-	 */
-	public void refreshData() {
-	    if (filteredAmiSelectionTable != null) {
-	        filteredAmiSelectionTable.refreshData();
-	    }
-	}
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
+     */
+    @Override
+    public void refreshData() {
+        if (filteredAmiSelectionTable != null) {
+            filteredAmiSelectionTable.refreshData();
+        }
+    }
 
 }

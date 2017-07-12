@@ -1,0 +1,32 @@
+{
+  "double-indent-test_no-whitespace": {
+    "line": "{}",
+    "offset": 1,
+    "indentType": "DOUBLE_INDENT",
+    "indentValue": 2
+  },
+  "jump-out-test_double-quotes": {
+    "line": "  \"key\":\"value\"",
+    "offset": 10,
+    "indentType": "JUMP_OUT",
+    "indentValue": 5
+  },
+  "open-indent-test_no-open-character": {
+    "line": "  \"key\": \"value\",",
+    "offset": 17,
+    "indentType": "OPEN_INDENT",
+    "indentValue": 2
+  },
+  "open-indent-test_with-open-character": {
+    "line": "  \"key\": {",
+    "offset": 10,
+    "indentType": "OPEN_INDENT",
+    "indentValue": 4
+  },
+  "close-indent-test": {
+    "line": "{\"key\": \"value\"}",
+    "offset": 15,
+    "indentType": "CLOSE_INDENT",
+    "indentValue": 0
+  }
+}

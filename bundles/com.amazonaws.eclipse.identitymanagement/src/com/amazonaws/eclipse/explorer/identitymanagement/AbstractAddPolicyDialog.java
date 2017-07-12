@@ -78,6 +78,7 @@ public abstract class AbstractAddPolicyDialog extends TitleAreaDialog {
         policyNameText = toolkit.createText(composite, "", SWT.BORDER);
         policyNameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         policyNameText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 validate();
             }
@@ -88,6 +89,7 @@ public abstract class AbstractAddPolicyDialog extends TitleAreaDialog {
         gridData.minimumHeight = 250;
         policyDocText.setLayoutData(gridData);
         policyDocText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 validate();
             }

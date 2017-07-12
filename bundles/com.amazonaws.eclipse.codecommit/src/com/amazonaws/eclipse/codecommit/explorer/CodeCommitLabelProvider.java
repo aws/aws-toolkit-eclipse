@@ -22,6 +22,7 @@ import com.amazonaws.eclipse.explorer.ExplorerNodeLabelProvider;
 import com.amazonaws.services.codecommit.model.RepositoryNameIdPair;
 
 public class CodeCommitLabelProvider extends ExplorerNodeLabelProvider {
+    @Override
     public Image getDefaultImage(Object element) {
         ImageRegistry imageRegistry = CodeCommitPlugin.getDefault().getImageRegistry();
         if ( element instanceof CodeCommitRootElement ) {

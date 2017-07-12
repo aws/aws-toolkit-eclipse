@@ -29,6 +29,7 @@ public class RepositoryEditorInput extends AbstractAwsResourceEditorInput {
         this.repository = repository;
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return CodeCommitPlugin.getDefault().getImageRegistry().getDescriptor(CodeCommitPlugin.IMG_REPOSITORY);
     }
@@ -37,10 +38,12 @@ public class RepositoryEditorInput extends AbstractAwsResourceEditorInput {
         return repository;
     }
 
+    @Override
     public String getToolTipText() {
         return "AWS CodeCommit Repository Editor - " + repository.getRepositoryName();
     }
 
+    @Override
     public String getName() {
         return repository.getRepositoryName();
     }

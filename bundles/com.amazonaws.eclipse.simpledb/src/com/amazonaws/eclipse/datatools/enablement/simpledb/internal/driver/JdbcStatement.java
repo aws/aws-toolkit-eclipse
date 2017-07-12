@@ -98,6 +98,7 @@ public class JdbcStatement implements Statement {
         this.resultSet = new JdbcResultSet(this);
     }
 
+    @Override
     public void close() throws SQLException {
         this.resultSet.close();
         this.data = new RawData();
@@ -109,6 +110,7 @@ public class JdbcStatement implements Statement {
         }
     }
 
+    @Override
     public boolean execute(final String sql) throws SQLException {
         close();
         this.sql = sql;
@@ -418,6 +420,7 @@ public class JdbcStatement implements Statement {
 
     }
 
+    @Override
     public ResultSet executeQuery(final String sql) throws SQLException {
         if (execute(sql)) {
             return getResultSet();
@@ -426,6 +429,7 @@ public class JdbcStatement implements Statement {
         }
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public int executeUpdate(final String inSql) throws SQLException {
         this.sql = inSql;
@@ -455,7 +459,7 @@ public class JdbcStatement implements Statement {
                     DELIMITED_IDENTIFIER_QUOTE);
             List<String> pending = this.conn.getPendingColumns(domain);
             if (pending != null) {
-                pending = new ArrayList<String>(pending);
+                pending = new ArrayList<>(pending);
                 for (String attr : pending) {
                     this.conn.removePendingColumn(domain, attr);
                 }
@@ -470,7 +474,7 @@ public class JdbcStatement implements Statement {
         } else if (lowcaseSql.startsWith("update ")) {
             req = prepareUpdateRequest();
         } else if (lowcaseSql.startsWith("create testdomain ")) {
-            req = new ArrayList<Object>();
+            req = new ArrayList<>();
 
             String domain = convertSQLIdentifierToCatalogFormat(this.sql.substring(this.sql.lastIndexOf(" ") + 1).trim(), //$NON-NLS-1$
                     DELIMITED_IDENTIFIER_QUOTE);
@@ -535,7 +539,7 @@ public class JdbcStatement implements Statement {
 
     List<Object> prepareUpdateRequest() throws SQLException {
         if (this.sql.toLowerCase().indexOf(" set ") < 0) { // workaround for DTP bug - sends update statements without set of any columns
-            return new ArrayList<Object>();
+            return new ArrayList<>();
         }
 
         try {
@@ -567,7 +571,7 @@ public class JdbcStatement implements Statement {
             }
 
             int tally = 0;
-            List<ReplaceableAttribute> attrs = new ArrayList<ReplaceableAttribute>();
+            List<ReplaceableAttribute> attrs = new ArrayList<>();
             for (Object assign : assignmentClause) {
                 UpdateAssignmentExpression assignExp = (UpdateAssignmentExpression) assign;
                 EList<?> cols = assignExp.getTargetColumnList();
@@ -582,7 +586,7 @@ public class JdbcStatement implements Statement {
             }
 
             tally = 0;
-            List<Attribute> deleteAttrs = new ArrayList<Attribute>();
+            List<Attribute> deleteAttrs = new ArrayList<>();
             for (Object assign : assignmentClause) {
                 UpdateAssignmentExpression assignExp = (UpdateAssignmentExpression) assign;
                 EList<?> cols = assignExp.getTargetColumnList();
@@ -599,7 +603,7 @@ public class JdbcStatement implements Statement {
                 ++tally;
             }
 
-            List<Object> reqs = new ArrayList<Object>();
+            List<Object> reqs = new ArrayList<>();
 
             if (!attrs.isEmpty()) {
                 PutAttributesRequest req = new PutAttributesRequest().withDomainName(domain).withItemName(item);
@@ -644,7 +648,7 @@ public class JdbcStatement implements Statement {
 
             int tally = 0;
             String item = null;
-            List<ReplaceableAttribute> attrs = new ArrayList<ReplaceableAttribute>();
+            List<ReplaceableAttribute> attrs = new ArrayList<>();
             for (Object assign : targetColumns) {
                 ValueExpressionColumn col = (ValueExpressionColumn) assign;
                 String colName = col.getName();
@@ -733,7 +737,7 @@ public class JdbcStatement implements Statement {
             this.conn.removePendingColumn(domain, attrName);
 
             Attribute attr = new Attribute().withName(attrName).withValue(null);
-            List<Attribute> attrs = new ArrayList<Attribute>();
+            List<Attribute> attrs = new ArrayList<>();
             attrs.add(attr);
 
             this.sql = "select itemName from " + DELIMITED_IDENTIFIER_QUOTE + domain + DELIMITED_IDENTIFIER_QUOTE //$NON-NLS-1$
@@ -741,7 +745,7 @@ public class JdbcStatement implements Statement {
 
             ResultSet rs = executeQuery(this.sql);
 
-            List<DeleteAttributesRequest> reqs = new ArrayList<DeleteAttributesRequest>();
+            List<DeleteAttributesRequest> reqs = new ArrayList<>();
             while (rs.next()) {
                 String item = rs.getString(1);
                 DeleteAttributesRequest dar = new DeleteAttributesRequest().withDomainName(domain).withItemName(item);
@@ -770,41 +774,51 @@ public class JdbcStatement implements Statement {
         return item;
     }
 
+    @Override
     public ResultSet getGeneratedKeys() throws SQLException {
         throw new SQLException("unsupported by SDB"); //$NON-NLS-1$
     }
 
+    @Override
     public ResultSet getResultSet() throws SQLException {
         return this.resultSet;
     }
 
+    @Override
     public int getUpdateCount() throws SQLException {
         return -1; // we return ResultSet
     }
 
+    @Override
     public void setCursorName(final String name) throws SQLException {
     }
 
+    @Override
     public SQLWarning getWarnings() throws SQLException {
         return null;
     }
 
+    @Override
     public void clearWarnings() throws SQLException {
     }
 
+    @Override
     public Connection getConnection() throws SQLException {
         return this.conn;
     }
 
+    @Override
     public void cancel() throws SQLException {
         //    this.resultSet.checkOpen();
         this.cancel = true;
     }
 
+    @Override
     public int getMaxRows() throws SQLException {
         return this.maxRows;
     }
 
+    @Override
     public void setMaxRows(final int maxRows) throws SQLException {
         //    System.out.println("SETTING MAXROWS: " + maxRows);
         if (maxRows < 0) {
@@ -813,64 +827,78 @@ public class JdbcStatement implements Statement {
         this.maxRows = maxRows;
     }
 
+    @Override
     public int getMaxFieldSize() throws SQLException {
         return 0;
     }
 
+    @Override
     public void setMaxFieldSize(final int max) throws SQLException {
         if (max < 0) {
             throw new SQLException("max field size " + max + " cannot be negative"); //$NON-NLS-1$ //$NON-NLS-2$
         }
     }
 
+    @Override
     public int getFetchSize() throws SQLException {
         return this.resultSet.getFetchSize();
     }
 
+    @Override
     public void setFetchSize(final int r) throws SQLException {
         this.resultSet.setFetchSize(r);
     }
 
+    @Override
     public int getFetchDirection() throws SQLException {
         return this.resultSet.getFetchDirection();
     }
 
+    @Override
     public void setFetchDirection(final int d) throws SQLException {
         this.resultSet.setFetchDirection(d);
     }
 
+    @Override
     public boolean getMoreResults() throws SQLException {
         return getMoreResults(0);
     }
 
+    @Override
     public boolean getMoreResults(final int c) throws SQLException {
         //    checkOpen();
         close();
         return false;
     }
 
+    @Override
     public int getResultSetConcurrency() throws SQLException {
         return getResultSet().getConcurrency();
     }
 
+    @Override
     public int getResultSetHoldability() throws SQLException {
         return ResultSet.CLOSE_CURSORS_AT_COMMIT;
     }
 
+    @Override
     public int getResultSetType() throws SQLException {
         return getResultSet().getType();
     }
 
+    @Override
     public void setEscapeProcessing(final boolean enable) {
     }
 
     // NOT SUPPORTED ////////////////////////////////////////////////////////////
 
+    @Override
     public int getQueryTimeout() throws SQLException {
         throw new SQLException("unsupported by SDB yet"); //$NON-NLS-1$
         //    return this.timeout;
     }
 
+    @Override
     public void setQueryTimeout(final int seconds) throws SQLException {
         throw new SQLException("unsupported by SDB yet"); //$NON-NLS-1$
         //    if (seconds < 0) {
@@ -879,38 +907,47 @@ public class JdbcStatement implements Statement {
         //    this.timeout = seconds;
     }
 
+    @Override
     public void addBatch(final String sql) throws SQLException {
         throw new SQLException("unsupported by SDB yet"); //$NON-NLS-1$
     }
 
+    @Override
     public void clearBatch() throws SQLException {
         throw new SQLException("unsupported by SDB yet"); //$NON-NLS-1$
     }
 
+    @Override
     public int[] executeBatch() throws SQLException {
         throw new SQLException("unsupported by SDB yet"); //$NON-NLS-1$
     }
 
+    @Override
     public boolean execute(final String sql, final int[] colinds) throws SQLException {
         throw new SQLException("unsupported by SDB"); //$NON-NLS-1$
     }
 
+    @Override
     public boolean execute(final String sql, final String[] colnames) throws SQLException {
         throw new SQLException("unsupported by SDB"); //$NON-NLS-1$
     }
 
+    @Override
     public int executeUpdate(final String sql, final int autoKeys) throws SQLException {
         throw new SQLException("unsupported by SDB"); //$NON-NLS-1$
     }
 
+    @Override
     public int executeUpdate(final String sql, final int[] colinds) throws SQLException {
         throw new SQLException("unsupported by SDB"); //$NON-NLS-1$
     }
 
+    @Override
     public int executeUpdate(final String sql, final String[] cols) throws SQLException {
         throw new SQLException("unsupported by SDB"); //$NON-NLS-1$
     }
 
+    @Override
     public boolean execute(final String sql, final int autokeys) throws SQLException {
         throw new SQLException("unsupported by SDB"); //$NON-NLS-1$
     }
@@ -934,9 +971,9 @@ public class JdbcStatement implements Statement {
          * Constructor
          */
         public RawData() {
-            this.rows = new ArrayList<Map<Integer, List<String>>>();
-            this.columns = new ArrayList<String>();
-            this.itemNameColumn = new ArrayList<Integer>();
+            this.rows = new ArrayList<>();
+            this.columns = new ArrayList<>();
+            this.itemNameColumn = new ArrayList<>();
         }
 
         /**
@@ -1039,7 +1076,7 @@ public class JdbcStatement implements Statement {
 
             List<String> values = row.get(column);
             if (values == null) {
-                values = new ArrayList<String>();
+                values = new ArrayList<>();
                 row.put(column, values);
             }
 
@@ -1072,7 +1109,7 @@ public class JdbcStatement implements Statement {
                 ++size; // +1 for ItemName - special case when there is just freshly added attributes and there is no content in the domain
             }
             if (pendings != null) {
-                pendings = new ArrayList<String>(pendings);
+                pendings = new ArrayList<>(pendings);
                 pendings.removeAll(this.columns);
                 size += pendings.size();
             }
@@ -1091,14 +1128,14 @@ public class JdbcStatement implements Statement {
          * @return A list of attributes in the order as they exist in the table
          */
         public List<String> getAttributes() {
-            ArrayList<String> attrs = new ArrayList<String>(this.columns);
+            ArrayList<String> attrs = new ArrayList<>(this.columns);
 
             List<String> pendings = JdbcStatement.this.conn.getPendingColumns(JdbcStatement.this.getDomainName());
             if (pendings != null && !pendings.isEmpty() && this.columns.isEmpty()) {
                 attrs.add(SimpleDBItemName.ITEM_HEADER); // special case when there is just freshly added attributes and there is no content in the domain
             }
             if (pendings != null) {
-                pendings = new ArrayList<String>(pendings);
+                pendings = new ArrayList<>(pendings);
                 pendings.removeAll(this.columns);
                 attrs.addAll(pendings);
             }
@@ -1147,7 +1184,7 @@ public class JdbcStatement implements Statement {
             if (c == -1) {
                 List<String> pendings = JdbcStatement.this.conn.getPendingColumns(JdbcStatement.this.getDomainName());
                 if (pendings != null) {
-                    pendings = new ArrayList<String>(pendings);
+                    pendings = new ArrayList<>(pendings);
                     pendings.removeAll(this.columns);
 
                     for (int i = 0; i < pendings.size(); i++) {
@@ -1184,34 +1221,41 @@ public class JdbcStatement implements Statement {
         public final int items;
     }
 
+    @Override
     public boolean isClosed() throws SQLException {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public boolean isPoolable() throws SQLException {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public void setPoolable(final boolean poolable) throws SQLException {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public boolean isWrapperFor(final Class<?> iface) throws SQLException {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public <T> T unwrap(final Class<T> iface) throws SQLException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public void closeOnCompletion() throws SQLException {
     }
 
+    @Override
     public boolean isCloseOnCompletion() throws SQLException {
         return false;
     }

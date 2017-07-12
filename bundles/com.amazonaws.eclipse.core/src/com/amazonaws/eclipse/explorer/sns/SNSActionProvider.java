@@ -44,7 +44,7 @@ public class SNSActionProvider extends CommonActionProvider {
         menu.add(new CreateTopicAction());
 
         boolean showDeleteMenuItem = true;
-        List<Topic> selectedTopics = new ArrayList<Topic>();
+        List<Topic> selectedTopics = new ArrayList<>();
         Iterator iterator = selection.iterator();
         while (iterator.hasNext()) {
             Object next = iterator.next();

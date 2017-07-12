@@ -160,6 +160,7 @@ public class GroupEditor extends EditorPart implements IRefreshable {
         }
     }
 
+    @Override
     public void refreshData() {
         groupTable.refresh();
     }

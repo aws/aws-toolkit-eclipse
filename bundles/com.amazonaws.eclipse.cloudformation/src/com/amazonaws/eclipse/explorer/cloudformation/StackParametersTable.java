@@ -82,43 +82,55 @@ class StackParametersTable extends Composite {
     private class StackParametersContentProvider implements ITreePathContentProvider {
         Parameter[] parameters;
         
+        @Override
         public void dispose() {}
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof Parameter[]) parameters = (Parameter[])newInput;
             else parameters = new Parameter[0];
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return parameters;
         }
 
+        @Override
         public Object[] getChildren(TreePath parentPath) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(TreePath path) {
             return false;
         }
 
+        @Override
         public TreePath[] getParents(Object element) {
             return new TreePath[0];
         }
     }
     
     private class StackParametersLabelProvider implements ITableLabelProvider {
+        @Override
         public void addListener(ILabelProviderListener listener) {}
+        @Override
         public void removeListener(ILabelProviderListener listener) {}
+        @Override
         public void dispose() {}
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof Parameter == false) return "";
             

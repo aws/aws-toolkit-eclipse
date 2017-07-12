@@ -57,19 +57,19 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
     /*
      * Map of which namespace controls need to be grouped into which editor.
      */
-    private final Map<Collection<String>, HumanReadableConfigEditorSection> editorSectionsByNamespace = new HashMap<Collection<String>, HumanReadableConfigEditorSection>();
+    private final Map<Collection<String>, HumanReadableConfigEditorSection> editorSectionsByNamespace = new HashMap<>();
 
-    private static final Collection<String> serverNamespaces = new HashSet<String>();
-    private static final Collection<String> loadBalancingNamespaces = new HashSet<String>();
-    private static final Collection<String> healthCheckNamespaces = new HashSet<String>();
-    private static final Collection<String> sessionsNamespaces = new HashSet<String>();
-    private static final Collection<String> autoscalingNamespaces = new HashSet<String>();
-    private static final Collection<String> triggerNamespaces = new HashSet<String>();
-    private static final Collection<String> notificationsNamespaces = new HashSet<String>();
-    private static final Collection<String> containerNamespaces = new HashSet<String>();
-    private static final Collection<String> applicationEnvironmentNamespaces = new HashSet<String>();
-    private static final Collection<String> environmentNamespaces = new HashSet<String>();
-    private static final Collection<String> rollingDeploymentsNamespaces = new HashSet<String>();
+    private static final Collection<String> serverNamespaces = new HashSet<>();
+    private static final Collection<String> loadBalancingNamespaces = new HashSet<>();
+    private static final Collection<String> healthCheckNamespaces = new HashSet<>();
+    private static final Collection<String> sessionsNamespaces = new HashSet<>();
+    private static final Collection<String> autoscalingNamespaces = new HashSet<>();
+    private static final Collection<String> triggerNamespaces = new HashSet<>();
+    private static final Collection<String> notificationsNamespaces = new HashSet<>();
+    private static final Collection<String> containerNamespaces = new HashSet<>();
+    private static final Collection<String> applicationEnvironmentNamespaces = new HashSet<>();
+    private static final Collection<String> environmentNamespaces = new HashSet<>();
+    private static final Collection<String> rollingDeploymentsNamespaces = new HashSet<>();
 
 
     static {
@@ -88,7 +88,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         rollingDeploymentsNamespaces.add(ConfigurationOptionConstants.COMMAND);
     }
 
-    private static final Collection<NamespaceGroup> sectionGroups = new ArrayList<NamespaceGroup>();
+    private static final Collection<NamespaceGroup> sectionGroups = new ArrayList<>();
     static {
         sectionGroups.add(new NamespaceGroup("Server", Position.LEFT, serverNamespaces));
         sectionGroups.add(new NamespaceGroup("Load Balancing", Position.LEFT, loadBalancingNamespaces, healthCheckNamespaces, sessionsNamespaces));
@@ -193,7 +193,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         layoutData.horizontalSpan = 2;
         centerColumnComp.setLayoutData(layoutData);
 
-        compositesByNamespace = new HashMap<String, Composite>();
+        compositesByNamespace = new HashMap<>();
         for ( NamespaceGroup namespaceGroup : sectionGroups ) {
 
             Composite parentComp = null;
@@ -265,10 +265,12 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
     /**
      * Refreshes the editor with the latest values
      */
+    @Override
     public void refresh(String templateName) {
         model.refresh(templateName);
     }
 
+    @Override
     public void destroyOldLayouts() {
         // Not allow refresh action during the destroying of controls
         refreshAction.setEnabled(false);
@@ -282,10 +284,10 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
 
     private List<HumanReadableConfigEditorSection> createEditorSections(List<ConfigurationOptionDescription> options) {
 
-        List<HumanReadableConfigEditorSection> editorSections = new ArrayList<HumanReadableConfigEditorSection>();
+        List<HumanReadableConfigEditorSection> editorSections = new ArrayList<>();
 
         for ( Collection<String> namespaces : sectionOrder ) {
-            ArrayList<ConfigurationOptionDescription> optionsInEditorSection = new ArrayList<ConfigurationOptionDescription>();
+            ArrayList<ConfigurationOptionDescription> optionsInEditorSection = new ArrayList<>();
             for ( ConfigurationOptionDescription o : options ) {
                 if ( namespaces.contains(o.getNamespace()) && editorSectionsByNamespace.containsKey(namespaces) ) {
                     if ( optionsInEditorSection.isEmpty() ) {
@@ -302,18 +304,22 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         return editorSections;
     }
 
+    @Override
     public void refreshStarted() {
         getEditorSite().getShell().getDisplay().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 managedForm.getForm().setText(getTitle() + " (loading...)");
             }
         });
     }
 
+    @Override
     public void refreshFinished() {
         getEditorSite().getShell().getDisplay().syncExec(new Runnable() {
 
+            @Override
             public void run() {
 
                 if ( compositesByNamespace.values().iterator().next().getChildren().length == 0 ) {
@@ -348,6 +354,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
         });
     }
 
+    @Override
     public void refreshError(Throwable e) {
         ElasticBeanstalkPlugin.getDefault().getLog().log(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Error creating editor", e));
     }
@@ -367,7 +374,7 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
 
         public NamespaceGroup(String name, Position pos, Collection<String>... namespaces) {
             this.name = name;
-            includedNamespaces = new HashSet<String>();
+            includedNamespaces = new HashSet<>();
             for ( Collection<String> namespace : namespaces ) {
                 includedNamespaces.addAll(namespace);
             }

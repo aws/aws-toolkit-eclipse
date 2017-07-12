@@ -31,7 +31,7 @@ public class LambdaUtils {
     public static <T> List<T> listFunctions(FunctionConfigurationConverter<T> converter) {
         AWSLambda lambda = AwsToolkitCore.getClientFactory().getLambdaClient();
 
-        List<T> newItems = new ArrayList<T>();
+        List<T> newItems = new ArrayList<>();
         ListFunctionsRequest request = new ListFunctionsRequest();
 
         ListFunctionsResult result = null;

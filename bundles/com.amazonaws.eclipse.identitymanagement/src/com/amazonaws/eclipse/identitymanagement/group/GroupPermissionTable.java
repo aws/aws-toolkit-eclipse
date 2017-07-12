@@ -42,6 +42,7 @@ public class GroupPermissionTable extends AbstractPolicyTable {
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if (viewer.getTable().getSelectionCount() > 0) {
                     manager.add(new removePolicyAction());
@@ -114,6 +115,7 @@ public class GroupPermissionTable extends AbstractPolicyTable {
         iam.deleteGroupPolicy(new DeleteGroupPolicyRequest().withGroupName(group.getGroupName()).withPolicyName(policyName));
     }
 
+    @Override
     protected void getPolicyNames() {
         if (group != null) {
         policyNames = iam.listGroupPolicies(new ListGroupPoliciesRequest().withGroupName(group.getGroupName())).getPolicyNames();

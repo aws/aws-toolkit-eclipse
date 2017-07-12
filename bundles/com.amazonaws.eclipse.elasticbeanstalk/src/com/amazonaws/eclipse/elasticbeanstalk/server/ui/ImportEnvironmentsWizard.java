@@ -17,7 +17,6 @@ package com.amazonaws.eclipse.elasticbeanstalk.server.ui;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -107,6 +106,7 @@ public class ImportEnvironmentsWizard extends Wizard {
                     .getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
         }
 
+        @Override
         public void createControl(Composite container) {
 
             if ( !AwsToolkitCore.getDefault().getAccountInfo().isValid() ) {
@@ -127,7 +127,7 @@ public class ImportEnvironmentsWizard extends Wizard {
             /*
              * Determine which elastic beanstalk environments aren't already imported as servers
              */
-            List<RegionEnvironmentDescription> environmentsToImport = new LinkedList<ImportEnvironmentsWizard.RegionEnvironmentDescription>();
+            List<RegionEnvironmentDescription> environmentsToImport = new LinkedList<>();
             for ( Region region : RegionUtils.getRegionsForService(ServiceAbbreviations.BEANSTALK) ) {
                 List<EnvironmentDescription> elasticBeanstalkEnvs = getExistingEnvironments(region);
                 Collection<IServer> elasticBeanstalkServers = ElasticBeanstalkPlugin
@@ -185,6 +185,7 @@ public class ImportEnvironmentsWizard extends Wizard {
                 viewer.setInput(environmentsToImport.toArray(new RegionEnvironmentDescription[environmentsToImport.size()]));
                 viewer.getTree().addSelectionListener(new SelectionListener() {
 
+                    @Override
                     public void widgetSelected(SelectionEvent e) {
                         if ( viewer.getCheckedElements().length > 0 ) {
                             setErrorMessage(null);
@@ -197,6 +198,7 @@ public class ImportEnvironmentsWizard extends Wizard {
                         ImportEnvironmentsWizard.this.getContainer().updateButtons();
                     }
 
+                    @Override
                     public void widgetDefaultSelected(SelectionEvent e) {
                         widgetSelected(e);
                     }
@@ -244,7 +246,7 @@ public class ImportEnvironmentsWizard extends Wizard {
      * Returns all AWS Elastic Beanstalk environments in the region given.
      */
     private List<EnvironmentDescription> getExistingEnvironments(Region region) {
-        List<EnvironmentDescription> filtered = new ArrayList<EnvironmentDescription>();
+        List<EnvironmentDescription> filtered = new ArrayList<>();
 
         AWSElasticBeanstalk client = AwsToolkitCore.getClientFactory().getElasticBeanstalkClientByEndpoint(
                 region.getServiceEndpoints().get(ServiceAbbreviations.BEANSTALK));
@@ -270,6 +272,7 @@ public class ImportEnvironmentsWizard extends Wizard {
         try {
             getContainer().run(true, false, new IRunnableWithProgress() {
 
+                @Override
                 public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                     monitor.beginTask("Importing servers", toImport.length * 3);
                     try {
@@ -322,19 +325,24 @@ public class ImportEnvironmentsWizard extends Wizard {
 
     private class EnvironmentSelectionTreeProvider implements ITableLabelProvider, ITreeContentProvider {
 
+        @Override
         public void removeListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public void addListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             RegionEnvironmentDescription env = (RegionEnvironmentDescription) element;
 
@@ -353,27 +361,33 @@ public class ImportEnvironmentsWizard extends Wizard {
             return "";
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             if ( columnIndex == 0 )
                 return ElasticBeanstalkPlugin.getDefault().getImageRegistry().get(ElasticBeanstalkPlugin.IMG_SERVER);
             return null;
         }
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
         }
 
+        @Override
         public boolean hasChildren(Object element) {
             return false;
         }
 
+        @Override
         public Object getParent(Object element) {
             return null;
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return (Object[]) inputElement;
         }
 
+        @Override
         public Object[] getChildren(Object parentElement) {
             return new Object[0];
         }

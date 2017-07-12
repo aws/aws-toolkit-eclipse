@@ -41,6 +41,7 @@ class OpenShellAction extends Action {
         this.setToolTipText("Opens a connection to this host");
     }
 
+    @Override
     public void run() {
         for ( final Instance instance : instanceSelectionTable.getAllSelectedInstances() ) {
             openInstanceShell(instance);

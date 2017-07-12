@@ -174,8 +174,10 @@ public class CreateNewVolumeDialog extends Dialog {
         GridData gridData;
 
         SelectionListener selectionListener = new SelectionListener() {
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 updateControls();
             }
@@ -241,8 +243,10 @@ public class CreateNewVolumeDialog extends Dialog {
         snapshotSelectionComposite.setLayoutData(gridData);
 
         snapshotSelectionComposite.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 updateControls();
             }

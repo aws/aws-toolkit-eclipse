@@ -24,6 +24,7 @@ public class StackNameValidator implements IValidator {
     public String message;
     private static final String PATTERN = "^[a-zA-Z]([a-zA-Z\\-0-9])*";
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
         if (StringUtils.isNullOrEmpty(s)) {

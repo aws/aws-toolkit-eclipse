@@ -73,6 +73,7 @@ public class ImportAppspecTemplateMetadataDialog extends Dialog {
                                     .importCustomTemplateMetadata(new File(filepath));
 
                             Display.getDefault().syncExec(new Runnable() {
+                                @Override
                                 public void run() {
                                     String message = String.format(
                                             "Template [%s] imported!", newTemplate.getTemplateName());
@@ -84,6 +85,7 @@ public class ImportAppspecTemplateMetadataDialog extends Dialog {
 
                         } catch (final Exception e) {
                             Display.getDefault().syncExec(new Runnable() {
+                                @Override
                                 public void run() {
                                     String message = "Failed to load template metadata. "
                                             + e.getMessage();
@@ -99,6 +101,7 @@ public class ImportAppspecTemplateMetadataDialog extends Dialog {
 
                         } finally {
                             Display.getDefault().syncExec(new Runnable() {
+                                @Override
                                 public void run() {
                                     ImportAppspecTemplateMetadataDialog.this.close();
                                 }

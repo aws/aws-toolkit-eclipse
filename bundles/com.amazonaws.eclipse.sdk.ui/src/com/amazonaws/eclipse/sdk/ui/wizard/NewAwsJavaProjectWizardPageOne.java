@@ -80,6 +80,7 @@ class NewAwsJavaProjectWizardPageOne extends WizardPage {
         this.aggregateValidationStatus = new AggregateValidationStatus(
                 dataBindingContext, AggregateValidationStatus.MAX_SEVERITY);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 populateValidationStatus();
             }
@@ -99,6 +100,7 @@ class NewAwsJavaProjectWizardPageOne extends WizardPage {
         return layout;
     }
 
+    @Override
     public void createControl(final Composite parent) {
 
         initializeDialogUnits(parent);
@@ -191,7 +193,7 @@ class NewAwsJavaProjectWizardPageOne extends WizardPage {
      */
     private static class SdkSamplesComposite extends Composite {
         private final List<SdkSample> sdkSamples;
-        private final List<Button> buttons = new ArrayList<Button>();
+        private final List<Button> buttons = new ArrayList<>();
 
         public SdkSamplesComposite(Composite parent, List<SdkSample> sdkSamples) {
             super(parent, SWT.NONE);
@@ -237,7 +239,7 @@ class NewAwsJavaProjectWizardPageOne extends WizardPage {
             if (sourceButton.getSelection()) {
                 this.sdkSamples.add((SdkSample)sourceButton.getData());
             } else {
-                this.sdkSamples.remove((SdkSample)sourceButton.getData());
+                this.sdkSamples.remove(sourceButton.getData());
             }
         }
     }

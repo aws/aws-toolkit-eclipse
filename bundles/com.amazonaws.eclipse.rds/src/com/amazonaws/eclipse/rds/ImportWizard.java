@@ -57,6 +57,7 @@ public class ImportWizard extends Wizard implements IImportWizard {
         return false;
     }
 
+    @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {}
 
 }

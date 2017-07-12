@@ -52,7 +52,7 @@ public class ServerlessFunction extends Resource {
     @JsonIgnore
     private Map<String, TypeProperties> additionalEvents;
     // Additional properties that we don't care for now such as Environment
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new HashMap<>();
 
     public String getHandler() {
         return handler;
@@ -109,6 +109,7 @@ public class ServerlessFunction extends Resource {
     public void setAdditionalEvents(Map<String, TypeProperties> additionalEvents) {
         this.additionalEvents = additionalEvents;
     }
+    @Override
     public TypeProperties toTypeProperties() {
         TypeProperties tp = new TypeProperties();
         tp.setType(ResourceType.AWS_SERVERLESS_FUNCTION.toString());

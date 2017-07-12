@@ -83,6 +83,7 @@ public class NewDomainWizardAction extends AbstractAction {
                         InputDialog dlg = new InputDialog(display.getActiveShell(), Messages.CreateNewDomain,
                                 Messages.NewDomainName, "", new IInputValidator() { //$NON-NLS-1$
 
+                            @Override
                             public String isValid(final String newText) {
                                 return newText != null && newText.trim().length() > 0 ? null : Messages.EmptyDomainName;
                             }

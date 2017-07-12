@@ -20,10 +20,10 @@ package com.amazonaws.eclipse.core.ui;
  * data they are displaying.
  */
 public interface IRefreshable {
-	
-	/**
-	 * Refreshes the data displayed by this IRefreshable control.  
-	 */
-	public void refreshData();
-	
+    
+    /**
+     * Refreshes the data displayed by this IRefreshable control.  
+     */
+    public void refreshData();
+    
 }

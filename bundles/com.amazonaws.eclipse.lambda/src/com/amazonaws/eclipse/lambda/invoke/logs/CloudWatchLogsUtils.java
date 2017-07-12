@@ -46,7 +46,7 @@ public class CloudWatchLogsUtils {
     }
 
     public static List<LogStream> listLogStreams(AWSLogs client, String groupName) {
-        List<LogStream> streams = new ArrayList<LogStream>();
+        List<LogStream> streams = new ArrayList<>();
 
         DescribeLogStreamsRequest request = new DescribeLogStreamsRequest()
                 .withLogGroupName(groupName)
@@ -71,7 +71,7 @@ public class CloudWatchLogsUtils {
 
 
     public static List<OutputLogEvent> listLogEvents(AWSLogs client, String groupName, List<LogStream> streamNames) {
-        List<OutputLogEvent> events = new ArrayList<OutputLogEvent>();
+        List<OutputLogEvent> events = new ArrayList<>();
 
         for (LogStream stream : streamNames) {
             GetLogEventsRequest getLogEventsRequest = new GetLogEventsRequest()

@@ -104,6 +104,7 @@ class PasswordPolicyForm extends Composite {
     }
 
     private class AddPasswordPolicySelectionListener implements SelectionListener {
+        @Override
         public void widgetSelected(SelectionEvent e) {
 
             final UpdateAccountPasswordPolicyRequest updateAccountPasswordPolicyRequest = new UpdateAccountPasswordPolicyRequest();
@@ -130,6 +131,7 @@ class PasswordPolicyForm extends Composite {
 
         }
 
+        @Override
         public void widgetDefaultSelected(SelectionEvent e) {
             return;
         }
@@ -138,6 +140,7 @@ class PasswordPolicyForm extends Composite {
 
       private class DeletePasswordPolicySelectionLister implements SelectionListener {
 
+        @Override
         public void widgetSelected(SelectionEvent e) {
             new Job("Deleting password policy") {
                 @Override
@@ -154,6 +157,7 @@ class PasswordPolicyForm extends Composite {
             }.schedule();
         }
 
+        @Override
         public void widgetDefaultSelected(SelectionEvent e) {
             return;
         }
@@ -185,7 +189,8 @@ class PasswordPolicyForm extends Composite {
              try {
 
                  Display.getDefault().asyncExec(new Runnable() {
-                     public void run() {
+                     @Override
+                    public void run() {
                          if (passwordPolicy != null) {
                          headerLabel.setText("Modify your existing password policy below.");
                          minCharacterLable.setText(passwordPolicy.getMinimumPasswordLength().toString());

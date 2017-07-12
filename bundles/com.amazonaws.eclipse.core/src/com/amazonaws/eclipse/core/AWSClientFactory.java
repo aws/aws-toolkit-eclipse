@@ -134,6 +134,7 @@ public class AWSClientFactory {
         accountInfo = plugin.getAccountManager().getAccountInfo(accountId);
 
         plugin.getProxyService().addProxyChangeListener(new IProxyChangeListener() {
+            @Override
             public void proxyInfoChanged(IProxyChangeEvent event) {
                 cachedClientsByEndpoint.invalidateClients();
                 cachedClients.invalidateClients();
@@ -141,6 +142,7 @@ public class AWSClientFactory {
         });
 
         plugin.getAccountManager().addAccountInfoChangeListener(new AccountInfoChangeListener() {
+            @Override
             public void onAccountInfoChange() {
                 cachedClientsByEndpoint.invalidateClients();
                 cachedClients.invalidateClients();

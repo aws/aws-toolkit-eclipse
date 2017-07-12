@@ -154,6 +154,7 @@ public class UserEditor extends EditorPart implements IRefreshable {
         }
     }
 
+    @Override
     public void refreshData() {
         userTable.refresh();
     }

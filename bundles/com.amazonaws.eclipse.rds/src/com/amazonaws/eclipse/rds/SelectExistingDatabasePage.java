@@ -49,6 +49,7 @@ class SelectExistingDatabasePage extends WizardPage {
         this.wizardDataModel = wizardDataModel;
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(2, false));
@@ -115,11 +116,12 @@ class SelectExistingDatabasePage extends WizardPage {
             this.rds = rds;
         }
 
+        @Override
         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
             // TODO: we really need one RDS client for each region... but we'll fake it for now...
 
             // TODO: host name should be enough to determine if we've imported a db yet?
-            dbsByRegion = new HashMap<String, List<DBInstance>>();
+            dbsByRegion = new HashMap<>();
             System.out.println("Identified DBs in US-EAST-1: ");
             List<DBInstance> dbInstances = rds.describeDBInstances().getDBInstances();
             for (DBInstance db : dbInstances) {

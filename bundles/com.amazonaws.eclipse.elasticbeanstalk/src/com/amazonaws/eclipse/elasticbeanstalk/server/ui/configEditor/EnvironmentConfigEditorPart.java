@@ -182,7 +182,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
                 .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         DescribeApplicationsResult result = client.describeApplications(new DescribeApplicationsRequest()
                 .withApplicationNames(environment.getApplicationName()));
-        final Collection<String> existingTemplateNames = new HashSet<String>();
+        final Collection<String> existingTemplateNames = new HashSet<>();
         for ( ApplicationDescription app : result.getApplications() ) {
             for ( String templateName : app.getConfigurationTemplates() ) {
                 existingTemplateNames.add(templateName);
@@ -200,6 +200,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
     /**
      * Refreshes the editor with the latest values
      */
+    @Override
     public void refresh(String templateName) {
         model.refresh(templateName);
     }
@@ -212,7 +213,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
                 .getElasticBeanstalkClientByEndpoint(environment.getRegionEndpoint());
         DescribeApplicationsResult result = client.describeApplications(new DescribeApplicationsRequest()
                 .withApplicationNames(environment.getApplicationName()));
-        final Collection<String> existingTemplateNames = new HashSet<String>();
+        final Collection<String> existingTemplateNames = new HashSet<>();
         for ( ApplicationDescription app : result.getApplications() ) {
             for ( String templateName : app.getConfigurationTemplates() ) {
                 existingTemplateNames.add(templateName);
@@ -235,11 +236,11 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
      * options given, one per namespace.
      */
     private List<EnvironmentConfigEditorSection> createEditorSections(List<ConfigurationOptionDescription> options) {
-        List<EnvironmentConfigEditorSection> editorSections = new ArrayList<EnvironmentConfigEditorSection>();
-        Map<String, List<ConfigurationOptionDescription>> optionsByNamespace = new HashMap<String, List<ConfigurationOptionDescription>>();
+        List<EnvironmentConfigEditorSection> editorSections = new ArrayList<>();
+        Map<String, List<ConfigurationOptionDescription>> optionsByNamespace = new HashMap<>();
         for ( ConfigurationOptionDescription o : options ) {
             if ( !optionsByNamespace.containsKey(o.getNamespace()) ) {
-                ArrayList<ConfigurationOptionDescription> optionsInNamespace = new ArrayList<ConfigurationOptionDescription>();
+                ArrayList<ConfigurationOptionDescription> optionsInNamespace = new ArrayList<>();
                 optionsByNamespace.put(o.getNamespace(), optionsInNamespace);
                 // We use our customized environment type section
                 if (o.getNamespace().equals(ConfigurationOptionConstants.ENVIRONMENT_TYPE) && o.getName().equals("EnvironmentType")) {
@@ -254,6 +255,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
         return editorSections;
     }
 
+    @Override
     public void refreshStarted() {
         /*
          * Although we are likely already in the UI thread, not executing this
@@ -262,6 +264,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
          */
         getEditorSite().getShell().getDisplay().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 exportTemplateAction.setEnabled(false);
                 importTemplateAction.setEnabled(false);
@@ -270,10 +273,12 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
         });
     }
 
+    @Override
     public void refreshFinished() {
 
         getEditorSite().getShell().getDisplay().syncExec(new Runnable() {
 
+            @Override
             public void run() {
 
                 // Every time we redraw the layouts.
@@ -305,6 +310,7 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
 
     }
 
+    @Override
     public void refreshError(Throwable e) {
         ElasticBeanstalkPlugin.getDefault().getLog().log(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Error creating editor", e));
     }

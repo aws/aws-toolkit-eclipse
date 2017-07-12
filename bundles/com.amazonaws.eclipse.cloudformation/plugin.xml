@@ -68,28 +68,48 @@
             </menu>
             <action
                 label="Estimate Cost"
-                class="com.amazonaws.eclipse.explorer.cloudformation.EstimateTemplateCostAction"
+                class="com.amazonaws.eclipse.cloudformation.actions.EstimateTemplateCostAction"
                 menubarPath="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS/group"
                 enablesFor="1"
                 id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.estimateTemplateCost" />
             <action
                 label="Update Stack"
-                class="com.amazonaws.eclipse.explorer.cloudformation.UpdateStackAction"
+                class="com.amazonaws.eclipse.cloudformation.actions.UpdateStackAction"
                 menubarPath="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS/group"
                 enablesFor="1"
                 id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.updateStack" />
             <action
                 label="Create Stack"
-                class="com.amazonaws.eclipse.explorer.cloudformation.CreateStackAction"
+                class="com.amazonaws.eclipse.cloudformation.actions.CreateStackAction"
                 menubarPath="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.RunOnAWS/group"
                 enablesFor="1"
                 id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.updateStack" />
             <action
                 label="Format Template"
-                class="com.amazonaws.eclipse.explorer.cloudformation.FormatTemplateAction"
+                class="com.amazonaws.eclipse.cloudformation.actions.FormatTemplateAction"
                 enablesFor="1"
                 id="com.amazonaws.eclipse.explorer.cloudformation.templateEditor.formatTemplate" />
         </objectContribution>
+    </extension>
+
+    <extension point="org.eclipse.ui.preferencePages">
+      <page
+        category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+        class="com.amazonaws.eclipse.cloudformation.preferences.PreferencePage"
+        id="com.amazonaws.eclipse.cloudformation.preferences.PreferencePage"
+        name="CloudFormation Template Editor">
+      </page>
+
+      <page
+        category="com.amazonaws.eclipse.cloudformation.preferences.PreferencePage"
+        class="com.amazonaws.eclipse.cloudformation.preferences.SyntaxColoringPreferencePage"
+        id="com.amazonaws.eclipse.cloudformation.preferences.SyntaxColoringPreferencePage"
+        name="Syntax Coloring">
+      </page>
+    </extension>
+
+    <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="com.amazonaws.eclipse.cloudformation.preferences.PreferenceInitializer" />
     </extension>
 
 </plugin>

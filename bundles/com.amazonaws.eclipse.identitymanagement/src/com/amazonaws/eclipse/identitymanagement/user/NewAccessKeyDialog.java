@@ -79,6 +79,7 @@ public class NewAccessKeyDialog extends MessageDialog {
         downloadButton.setEnabled(false);
         downloadButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog fd = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
                 fd.setText("Save As");
@@ -95,6 +96,7 @@ public class NewAccessKeyDialog extends MessageDialog {
                     }
                 }
             }
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -126,6 +128,7 @@ public class NewAccessKeyDialog extends MessageDialog {
         @Override
         public void run() {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         createAccessKeyResult = iam.createAccessKey(new CreateAccessKeyRequest().withUserName(userName));

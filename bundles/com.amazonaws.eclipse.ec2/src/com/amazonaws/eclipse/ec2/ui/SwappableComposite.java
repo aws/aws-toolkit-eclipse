@@ -23,37 +23,37 @@ import org.eclipse.swt.widgets.Control;
  * once.  When one child is displayed, all the others are hidden.
  */
 public class SwappableComposite extends Composite {
-	/**
-	 * Creates a new SwappableComposite with the specified parent and SWT
-	 * style.
-	 * 
-	 * @param parent
-	 *            The parent of this composite.
-	 * @param style
-	 *            The SWT style for this composite.
-	 */
-	public SwappableComposite(Composite parent, int style) {
-		super (parent, style);
-	}
+    /**
+     * Creates a new SwappableComposite with the specified parent and SWT
+     * style.
+     * 
+     * @param parent
+     *            The parent of this composite.
+     * @param style
+     *            The SWT style for this composite.
+     */
+    public SwappableComposite(Composite parent, int style) {
+        super (parent, style);
+    }
 
-	/**
-	 * Displays the specified composite and hides all other child
-	 * composites.
-	 * 
-	 * @param composite
-	 *            The child Composite to display.
-	 */
-	public void setActiveComposite(Control composite) {
-		if (composite == null) return;
-		
-		for (Control control : getChildren()) {
-			if (composite.equals(control)) {
-				control.setVisible(true);
-				control.setBounds(getClientArea());
-				control.getParent().layout();
-			} else {
-				control.setVisible(false);
-			}
-		}
-	}
+    /**
+     * Displays the specified composite and hides all other child
+     * composites.
+     * 
+     * @param composite
+     *            The child Composite to display.
+     */
+    public void setActiveComposite(Control composite) {
+        if (composite == null) return;
+        
+        for (Control control : getChildren()) {
+            if (composite.equals(control)) {
+                control.setVisible(true);
+                control.setBounds(getClientArea());
+                control.getParent().layout();
+            } else {
+                control.setVisible(false);
+            }
+        }
+    }
 }

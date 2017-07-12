@@ -172,6 +172,7 @@ public class SelectOrCreateBucketComposite extends Composite {
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadS3BucketsInFunctionRegionThread.this) {

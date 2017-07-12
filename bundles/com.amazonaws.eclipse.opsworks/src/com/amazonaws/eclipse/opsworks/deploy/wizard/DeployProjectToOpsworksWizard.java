@@ -62,6 +62,7 @@ public class DeployProjectToOpsworksWizard extends Wizard {
         try {
             getContainer().run(true, false, new IRunnableWithProgress() {
 
+                @Override
                 public void run(IProgressMonitor monitor) throws InvocationTargetException,
                         InterruptedException {
 
@@ -98,6 +99,7 @@ public class DeployProjectToOpsworksWizard extends Wizard {
                                             .getApps().get(0);
 
                                     Display.getDefault().syncExec(new Runnable() {
+                                        @Override
                                         public void run() {
                                             MessageDialog.openInformation(Display
                                                     .getDefault().getActiveShell(),
@@ -115,6 +117,7 @@ public class DeployProjectToOpsworksWizard extends Wizard {
 
                                 } else {
                                     Display.getDefault().syncExec(new Runnable() {
+                                        @Override
                                         public void run() {
                                         MessageDialog.openError(Display
                                                 .getDefault().getActiveShell(),

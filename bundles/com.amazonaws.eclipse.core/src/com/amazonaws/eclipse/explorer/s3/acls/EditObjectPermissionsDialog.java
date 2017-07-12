@@ -37,7 +37,7 @@ public class EditObjectPermissionsDialog extends EditPermissionsDialog {
 
     @Override
     protected List<PermissionOption> getPermissionOptions() {
-        List<PermissionOption> list = new ArrayList<PermissionOption>();
+        List<PermissionOption> list = new ArrayList<>();
         list.add(new PermissionOption(Permission.Read,     "Read Data"));
         list.add(new PermissionOption(Permission.ReadAcp,  "Read ACL"));
         list.add(new PermissionOption(Permission.WriteAcp, "Write ACL"));

@@ -45,7 +45,7 @@ public class CreateTableDataModel {
     
     // We use a set instead of a list to store all the attribute definitions,
     // in order to avoid duplicate from multiple secondary indexes.
-    private Set<AttributeDefinition> attributeDefinitions = new HashSet<AttributeDefinition>();
+    private Set<AttributeDefinition> attributeDefinitions = new HashSet<>();
 
     public void setTableName(String tableName) {
         this.tableName = tableName;

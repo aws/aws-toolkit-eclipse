@@ -183,6 +183,7 @@ class TwoPhaseValidator extends MultiValidator {
             final IStatus rval = asyncValidator.validate(input);
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     synchronized (TwoPhaseValidator.this) {
 

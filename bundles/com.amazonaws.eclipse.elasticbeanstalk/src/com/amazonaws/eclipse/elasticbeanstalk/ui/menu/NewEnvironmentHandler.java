@@ -24,6 +24,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.wst.server.ui.internal.wizard.NewServerWizard;
 
 public class NewEnvironmentHandler extends AbstractHandler {
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         NewServerWizard wizard = new NewServerWizard();
         wizard.init(PlatformUI.getWorkbench(), new StructuredSelection());

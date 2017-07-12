@@ -81,6 +81,7 @@ public class SdkCredentialsFileMonitor implements IPropertyChangeListener {
      * When the credentials file location is changed in the preference store,
      * reset the content monitor to track the file at the new location.
      */
+    @Override
     public void propertyChange(PropertyChangeEvent event) {
 
         String propertyName = event.getProperty();

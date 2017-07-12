@@ -32,6 +32,7 @@ public class FilenameFilters {
      */
     public static class JarFilenameFilter implements FilenameFilter {
 
+        @Override
         public boolean accept(File dir, String name) {
             return (name.toLowerCase().endsWith(".jar"));
         }
@@ -42,6 +43,7 @@ public class FilenameFilters {
      */
     public static class SdkLibraryJarFilenameFilter implements FilenameFilter {
 
+        @Override
         public boolean accept(File dir, String name) {
             return AWS_JAVA_SDK_PATTERN.matcher(name).matches();
         }
@@ -52,6 +54,7 @@ public class FilenameFilters {
      */
     public static class SdkSourceJarFilenameFilter implements FilenameFilter {
 
+        @Override
         public boolean accept(File dir, String name) {
             return AWS_JAVA_SDK_SOURCE_PATTERN.matcher(name).matches();
         }
@@ -62,6 +65,7 @@ public class FilenameFilters {
      */
     public static class JavaSourceFilenameFilter implements FilenameFilter {
 
+        @Override
         public boolean accept(File dir, String name) {
             return name.toLowerCase().endsWith(".java");
         }
@@ -72,6 +76,7 @@ public class FilenameFilters {
      */
     public static class CredentialsFilenameFilter implements FilenameFilter {
 
+        @Override
         public boolean accept(File dir, String name) {
             return name.equals("credentials");
         }

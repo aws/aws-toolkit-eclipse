@@ -155,6 +155,7 @@ public class RepositoryEditor extends EditorPart {
 
         Button checkoutButton = toolkit.createButton(composite, "Check out", SWT.PUSH);
         checkoutButton.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 CloneRepositoryAction.executeCloneAction(repositoryEditorInput.getAccountId(), repositoryEditorInput.getRegionId(), repositoryName);
             }
@@ -181,6 +182,7 @@ public class RepositoryEditor extends EditorPart {
         branchCombo = branchComboViewer.getCombo();
         branchCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         branchCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 onBranchSelected();
             }
@@ -237,6 +239,7 @@ public class RepositoryEditor extends EditorPart {
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     lastModifiedDateText.setText(metadata.getLastModifiedDate().toString());
                     repositoryDescriptionText.setText(nonNullString(metadata.getRepositoryDescription()));
@@ -252,6 +255,7 @@ public class RepositoryEditor extends EditorPart {
         public void run() {
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     branchCombo.removeAll();
                     List<String> branches = client.listBranches(new ListBranchesRequest()
@@ -276,10 +280,11 @@ public class RepositoryEditor extends EditorPart {
         @Override
         public void run() {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     String repositoryName = repositoryEditorInput.getRepository().getRepositoryName();
                     String currentBranch = branchCombo.getText();
-                    List<CommitRow> row = new ArrayList<CommitRow>();
+                    List<CommitRow> row = new ArrayList<>();
                     if (!StringUtils.isNullOrEmpty(currentBranch)) {
                         String commitId = client.getBranch(new GetBranchRequest()
                                 .withRepositoryName(repositoryName)
@@ -323,6 +328,7 @@ public class RepositoryEditor extends EditorPart {
 
         private CommitRow[] commits;
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof List) {
                 commits = ((List<CommitRow>)newInput).toArray(new CommitRow[0]);
@@ -331,22 +337,27 @@ public class RepositoryEditor extends EditorPart {
             }
         }
 
+        @Override
         public void dispose() {
 
         }
 
+        @Override
         public Object[] getChildren(TreePath arg0) {
             return null;
         }
 
+        @Override
         public Object[] getElements(Object arg0) {
             return commits;
         }
 
+        @Override
         public TreePath[] getParents(Object arg0) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(TreePath arg0) {
             return false;
         }
@@ -354,24 +365,30 @@ public class RepositoryEditor extends EditorPart {
 
     private final class CommitLabelProvider implements ITableLabelProvider {
 
+        @Override
         public void addListener(ILabelProviderListener arg0) {
         }
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public boolean isLabelProperty(Object arg0, String arg1) {
             return false;
         }
 
+        @Override
         public void removeListener(ILabelProviderListener arg0) {
 
         }
 
+        @Override
         public Image getColumnImage(Object arg0, int arg1) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object obj, int column) {
             if (obj instanceof CommitRow == false) return "";
 

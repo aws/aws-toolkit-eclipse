@@ -58,7 +58,7 @@ public abstract class ResourceEditorDataLoaderThread extends Thread {
     }
 
     protected void setText(Text label, List<String> value) {
-        if (value == null) value = new ArrayList<String>(0);
+        if (value == null) value = new ArrayList<>(0);
 
         StringBuilder buffer = new StringBuilder();
         for (String s : value) {
@@ -92,7 +92,7 @@ public abstract class ResourceEditorDataLoaderThread extends Thread {
     }
 
     protected void setText(Label label, List<String> value) {
-        if (value == null) value = new ArrayList<String>(0);
+        if (value == null) value = new ArrayList<>(0);
 
         StringBuilder buffer = new StringBuilder();
         for (String s : value) {

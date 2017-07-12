@@ -278,6 +278,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
             }
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     nameLabel.setText(queueName);
                     urlLink.setText("<a>" + queueUrl + "</a>");
@@ -388,6 +389,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
 
                     Display.getDefault().asyncExec(new Runnable() {
 
+                        @Override
                         public void run() {
                             nameLabel.setText(group.getAutoScalingGroupName());
                             availabilityZonesLabel.setText(group.getAvailabilityZones().toString());
@@ -461,6 +463,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
             final LoadBalancerDescription lb = loadBalancers.get(0);
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     nameLabel.setText(lb.getLoadBalancerName());
                     dnsLabel.setText(lb.getDNSName());
@@ -500,7 +503,7 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
 
         @Override
         public void update(EnvironmentResourceDescription resources) {
-            List<String> instanceIds = new ArrayList<String>();
+            List<String> instanceIds = new ArrayList<>();
             for (Instance instance : resources.getInstances()) {
                 instanceIds.add(instance.getId());
             }

@@ -226,6 +226,7 @@ public class UpdateEnvironmentJob extends Job {
     private void waitForEnvironmentToBecomeAvailable(IProgressMonitor monitor, ElasticBeanstalkPublishingUtils utils)
             throws CoreException {
         Runnable runnable = new Runnable() {
+            @Override
             public void run() {
                 cancelLaunchClientJob();
             }
@@ -319,7 +320,7 @@ public class UpdateEnvironmentJob extends Job {
 
             IVMConnector debuggerConnector = JavaRuntime.getDefaultVMConnector();
 
-            Map<String, String> arguments = new HashMap<String, String>();
+            Map<String, String> arguments = new HashMap<>();
             arguments.put("timeout", "60000");
             arguments.put("hostname", getEc2InstanceHostname());
             arguments.put("port", debugPort);
@@ -348,6 +349,7 @@ public class UpdateEnvironmentJob extends Job {
         // prompted for this information much earlier.
         final DebugPortDialog dialog = new DebugPortDialog(securityGroup, debugPort);
         Display.getDefault().syncExec(new Runnable() {
+            @Override
             public void run() {
                 dialog.openDialog();
             }
@@ -440,6 +442,7 @@ public class UpdateEnvironmentJob extends Job {
             this.cname = cname;
         }
 
+        @Override
         public boolean hasEventOccurred() {
             try {
                 InetAddress address = InetAddress.getByName(cname);

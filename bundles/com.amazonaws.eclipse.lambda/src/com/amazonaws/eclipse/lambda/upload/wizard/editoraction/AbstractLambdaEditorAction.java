@@ -27,9 +27,11 @@ public abstract class AbstractLambdaEditorAction implements IObjectActionDelegat
 
     protected IJavaProject javaProject;
 
+    @Override
     public void selectionChanged(IAction action, ISelection selection) {
     }
 
+    @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {
         if (!(targetPart instanceof JavaEditor)) {
             return;

@@ -24,6 +24,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 
 public class OpenPreferencesHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         String resource = AwsToolkitCore.ACCOUNT_PREFERENCE_PAGE_ID;
         

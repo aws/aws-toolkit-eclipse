@@ -32,9 +32,9 @@ import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.*;
 @Immutable
 public class ClientContextJsonHelper {
 
-    private final Map<String, String> client = new HashMap<String, String>();
-    private final Map<String, String> env = new HashMap<String, String>();
-    private final Map<String, Map<String, String>> services = new HashMap<String, Map<String, String>>();
+    private final Map<String, String> client = new HashMap<>();
+    private final Map<String, String> env = new HashMap<>();
+    private final Map<String, Map<String, String>> services = new HashMap<>();
 
     private static final ObjectMapper JACKSON_MAPPER = new ObjectMapper();
 

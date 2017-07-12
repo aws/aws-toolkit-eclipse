@@ -40,7 +40,7 @@ public class EditBucketPermissionsDialog extends EditPermissionsDialog {
 
     @Override
     protected List<PermissionOption> getPermissionOptions() {
-        List<PermissionOption> list = new ArrayList<PermissionOption>();
+        List<PermissionOption> list = new ArrayList<>();
         list.add(new PermissionOption(Permission.Read,     "List Contents"));
         list.add(new PermissionOption(Permission.Write,    "Edit Contents"));
         list.add(new PermissionOption(Permission.ReadAcp,  "Read ACL"));

@@ -27,7 +27,7 @@ public class NewAwsJavaProjectWizardDataModel {
     private final ProjectNameDataModel projectNameDataModel = new ProjectNameDataModel();
     private final MavenConfigurationDataModel mavenConfigurationDataModel = new MavenConfigurationDataModel();
     private AccountInfo accountInfo;
-    private final List<SdkSample> sdkSamples = new ArrayList<SdkSample>();
+    private final List<SdkSample> sdkSamples = new ArrayList<>();
 
     public AccountInfo getAccountInfo() {
         return accountInfo;

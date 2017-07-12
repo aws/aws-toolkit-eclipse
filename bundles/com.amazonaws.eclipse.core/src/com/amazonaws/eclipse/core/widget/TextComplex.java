@@ -68,7 +68,7 @@ public class TextComplex {
         dataBindingContext.bindValue(swtObservableValue, pojoObservableValue);
 
         enabler.setValue(true);
-        ChainValidator<String> handlerPackageValidator = new ChainValidator<String>(
+        ChainValidator<String> handlerPackageValidator = new ChainValidator<>(
                 swtObservableValue, enabler, validators);
         dataBindingContext.addValidationStatusProvider(handlerPackageValidator);
         new DecorationChangeListener(controlDecoration,
@@ -100,7 +100,7 @@ public class TextComplex {
         private Composite composite;
         private DataBindingContext dataBindingContext;
         private IObservableValue pojoObservableValue;
-        private List<IValidator> validators = new ArrayList<IValidator>();
+        private List<IValidator> validators = new ArrayList<>();
         private String labelValue;
 
         private ModifyListener modifyListener;

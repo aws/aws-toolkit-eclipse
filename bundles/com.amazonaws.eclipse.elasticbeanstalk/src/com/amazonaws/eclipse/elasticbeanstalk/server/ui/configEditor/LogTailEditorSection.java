@@ -148,7 +148,7 @@ public class LogTailEditorSection extends ServerEditorSection {
 
             // For each instance, there are potentially multiple tail samples.
             // We just display the last one for each instance.
-            Map<String, EnvironmentInfoDescription> tails = new HashMap<String, EnvironmentInfoDescription>();
+            Map<String, EnvironmentInfoDescription> tails = new HashMap<>();
             for (EnvironmentInfoDescription envInfo : envInfos) {
                 if ( !tails.containsKey(envInfo.getEc2InstanceId())
                         || tails.get(envInfo.getEc2InstanceId()).getSampleTimestamp()
@@ -157,7 +157,7 @@ public class LogTailEditorSection extends ServerEditorSection {
                 }
             }
 
-            List<String> instanceIds = new ArrayList<String>();
+            List<String> instanceIds = new ArrayList<>();
             instanceIds.addAll(tails.keySet());
             Collections.sort(instanceIds);
 
@@ -180,6 +180,7 @@ public class LogTailEditorSection extends ServerEditorSection {
             }
 
             Display.getDefault().syncExec(new Runnable() {
+                @Override
                 public void run() {
                     log.setText(builder.toString());
                 }

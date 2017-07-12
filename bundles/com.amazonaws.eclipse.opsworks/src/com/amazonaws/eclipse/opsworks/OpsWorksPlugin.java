@@ -18,9 +18,11 @@ public class OpsWorksPlugin extends AbstractUIPlugin implements IStartup {
 
     private static OpsWorksPlugin plugin;
 
+    @Override
     public void earlyStartup() {
     }
 
+    @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
 

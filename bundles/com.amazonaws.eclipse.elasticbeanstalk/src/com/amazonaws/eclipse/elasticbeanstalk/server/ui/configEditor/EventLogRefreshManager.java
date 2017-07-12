@@ -29,7 +29,7 @@ public class EventLogRefreshManager {
 
     private final ScheduledThreadPoolExecutor executor;
 
-    private Set<EventLogEditorSection> activeEventLogs = new CopyOnWriteArraySet<EventLogEditorSection>();
+    private Set<EventLogEditorSection> activeEventLogs = new CopyOnWriteArraySet<>();
 
     private EventLogRefreshManager() {
         executor = new ScheduledThreadPoolExecutor(1);
@@ -37,6 +37,7 @@ public class EventLogRefreshManager {
     }
 
     private class EventLogRefresher implements Runnable {
+        @Override
         public void run() {
             for (EventLogEditorSection eventLog : activeEventLogs) {
                 eventLog.refresh();

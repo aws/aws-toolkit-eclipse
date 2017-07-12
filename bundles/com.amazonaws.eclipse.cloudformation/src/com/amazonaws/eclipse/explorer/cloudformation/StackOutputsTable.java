@@ -84,8 +84,10 @@ class StackOutputsTable extends Composite {
 
         private Output[] outputs;
 
+        @Override
         public void dispose() {}
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof Output[]) {
                 outputs = (Output[]) newInput;
@@ -94,18 +96,22 @@ class StackOutputsTable extends Composite {
             }
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return outputs;
         }
 
+        @Override
         public Object[] getChildren(TreePath parentPath) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(TreePath path) {
             return false;
         }
 
+        @Override
         public TreePath[] getParents(Object element) {
             return new TreePath[0];
         }
@@ -113,20 +119,26 @@ class StackOutputsTable extends Composite {
 
     private class StackOutputsLabelProvider implements ITableLabelProvider {
 
+        @Override
         public void addListener(ILabelProviderListener listener) {}
 
+        @Override
         public void removeListener(ILabelProviderListener listener) {}
 
+        @Override
         public void dispose() {}
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof Output == false) return "";
 

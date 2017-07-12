@@ -1,0 +1,54 @@
+{
+  "highlight": {
+    "keyToken": {
+      "id": "keyToken",
+      "color": {
+        "red": 63,
+        "green": 127,
+        "blue": 127
+      },
+      "bold": true,
+      "italic": false
+    },
+    "valueToken": {
+      "id": "valueToken",
+      "color": {
+        "red": 42,
+        "green": 0,
+        "blue": 255
+      },
+      "bold": true,
+      "italic": false
+    },
+    "intrinsicFunctionToken": {
+      "id": "intrinsicFunctionToken",
+      "color": {
+        "red": 127,
+        "green": 0,
+        "blue": 127
+      },
+      "bold": true,
+      "italic": false
+    },
+    "pseudoParameterToken": {
+      "id": "pseudoParameterToken",
+      "color": {
+        "red": 127,
+        "green": 0,
+        "blue": 127
+      },
+      "bold": true,
+      "italic": false
+    },
+    "resourceTypeToken": {
+      "id": "resourceTypeToken",
+      "color": {
+        "red": 127,
+        "green": 0,
+        "blue": 127
+      },
+      "bold": true,
+      "italic": false
+    }
+  }
+}

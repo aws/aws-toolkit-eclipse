@@ -158,7 +158,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
         @Override
         public void run() {
             StructuredSelection selection = (StructuredSelection)viewer.getSelection();
-            Iterator<Message> iterator = (Iterator<Message>)selection.iterator();
+            Iterator<Message> iterator = selection.iterator();
 
             while (iterator.hasNext()) {
                 Message message = iterator.next();
@@ -233,6 +233,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
             final Map<String, String> attributes = getClient().getQueueAttributes(request).getAttributes();
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     retentionPeriodLabel.setText(attributes.get(RETENTION_PERIOD));
                     maxMessageSizeLabel.setText(attributes.get(MAX_MESSAGE_SIZE));
@@ -256,7 +257,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
     private class LoadMessagesThread extends Thread {
         @Override
         public void run() {
-            final Map<String, Message> messagesById = new HashMap<String, Message>();
+            final Map<String, Message> messagesById = new HashMap<>();
 
             for (int i = 0; i < 5; i++) {
                 ReceiveMessageRequest request = new ReceiveMessageRequest(queueEditorInput.getQueueUrl()).withVisibilityTimeout(0).withMaxNumberOfMessages(10).withAttributeNames(ALL);
@@ -268,6 +269,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
             }
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     viewer.setInput(messagesById.values());
                 }
@@ -279,8 +281,10 @@ public class QueueEditor extends EditorPart implements IRefreshable {
 
         private Message[] messages;
 
+        @Override
         public void dispose() {}
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof Collection) {
                 messages = ((Collection<Message>)newInput).toArray(new Message[0]);
@@ -289,18 +293,22 @@ public class QueueEditor extends EditorPart implements IRefreshable {
             }
         }
 
+        @Override
         public Object[] getChildren(TreePath arg0) {
             return null;
         }
 
+        @Override
         public Object[] getElements(Object arg0) {
             return messages;
         }
 
+        @Override
         public TreePath[] getParents(Object arg0) {
             return new TreePath[0];
         }
 
+        @Override
         public boolean hasChildren(TreePath arg0) {
             return false;
         }
@@ -314,19 +322,25 @@ public class QueueEditor extends EditorPart implements IRefreshable {
             dateFormat = DateFormat.getDateTimeInstance();
         }
 
+        @Override
         public void addListener(ILabelProviderListener arg0) {}
+        @Override
         public void removeListener(ILabelProviderListener arg0) {}
 
+        @Override
         public void dispose() {}
 
+        @Override
         public boolean isLabelProperty(Object obj, String column) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object obj, int column) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object obj, int column) {
             if (obj instanceof Message == false) return "";
 
@@ -385,6 +399,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
         MenuManager menuManager = new MenuManager();
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 manager.add(new DeleteMessageAction());
             }
@@ -413,6 +428,7 @@ public class QueueEditor extends EditorPart implements IRefreshable {
         return column;
     }
 
+    @Override
     public void refreshData() {
         new RefreshAction().run();
     }

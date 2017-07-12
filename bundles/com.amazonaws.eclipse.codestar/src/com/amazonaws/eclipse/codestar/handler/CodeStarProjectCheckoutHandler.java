@@ -25,6 +25,7 @@ import com.amazonaws.eclipse.codestar.wizard.CodeStarProjectCheckoutWizard;
 
 public class CodeStarProjectCheckoutHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         CodeStarProjectCheckoutWizard newWizard = new CodeStarProjectCheckoutWizard();
         newWizard.init(PlatformUI.getWorkbench(), null);

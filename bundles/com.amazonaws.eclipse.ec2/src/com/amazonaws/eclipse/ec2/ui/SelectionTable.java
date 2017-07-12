@@ -330,6 +330,7 @@ public abstract class SelectionTable extends Composite {
         /* (non-Javadoc)
          * @see org.eclipse.jface.action.IMenuListener#menuAboutToShow(org.eclipse.jface.action.IMenuManager)
          */
+        @Override
         public void menuAboutToShow(IMenuManager manager) {
             if (accountInfo != null && accountInfo.isValid()) {
                 fillContextMenu(manager);

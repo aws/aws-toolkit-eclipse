@@ -67,11 +67,13 @@ public class RoleTrustRelationships extends Composite {
         editPolicyButton.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
         editPolicyButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 EditTrustRelationshipDialog dialog = new EditTrustRelationshipDialog(iam, Display.getCurrent().getActiveShell(), role);
                 dialog.open();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -97,7 +99,7 @@ public class RoleTrustRelationships extends Composite {
             trustEntitiesTable.setPrincipals(null);
             return;
         }
-        List<Principal> principals = new LinkedList<Principal>();
+        List<Principal> principals = new LinkedList<>();
 
         for (Statement statement : Policy.fromJson(assumeRolePolicyDocument).getStatements()) {
             principals.addAll(statement.getPrincipals());

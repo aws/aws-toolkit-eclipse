@@ -73,6 +73,7 @@ public class CreateRoleThirdPage extends WizardPage {
         this.wizard = wizard;
     }
 
+    @Override
     public void createControl(Composite parent) {
 
         Composite composite = new Composite(parent, SWT.NONE);
@@ -85,6 +86,7 @@ public class CreateRoleThirdPage extends WizardPage {
         grantPermissionButton.setText("Grant permissions");
         grantPermissionButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (grantPermissionButton.getSelection()) {
                     policyNameText.setEnabled(true);
@@ -95,6 +97,7 @@ public class CreateRoleThirdPage extends WizardPage {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
 
@@ -108,7 +111,7 @@ public class CreateRoleThirdPage extends WizardPage {
         policyNameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         bindingContext.bindValue(SWTObservables.observeText(policyNameText, SWT.Modify), policyName);
 
-        ChainValidator<String> policyNameValidationStatusProvider = new ChainValidator<String>(policyName,
+        ChainValidator<String> policyNameValidationStatusProvider = new ChainValidator<>(policyName,
                 grantPermission, new NotEmptyValidator("Please enter policy name"));
 
          bindingContext.addValidationStatusProvider(policyNameValidationStatusProvider);
@@ -122,7 +125,7 @@ public class CreateRoleThirdPage extends WizardPage {
         policyDocText.setLayoutData(gridData);
         bindingContext.bindValue(SWTObservables.observeText(policyDocText, SWT.Modify), policyDoc);
 
-        ChainValidator<String> policyDocValidationStatusProvider = new ChainValidator<String>(policyDoc,
+        ChainValidator<String> policyDocValidationStatusProvider = new ChainValidator<>(policyDoc,
                 grantPermission, new NotEmptyValidator("Please enter valid policy doc"));
 
          bindingContext.addValidationStatusProvider(policyDocValidationStatusProvider);
@@ -145,6 +148,7 @@ public class CreateRoleThirdPage extends WizardPage {
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if ( value instanceof IStatus == false )

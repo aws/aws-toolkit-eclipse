@@ -79,6 +79,7 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
     private RadioButtonComplex useBlueprintButtonComplex;
     private RadioButtonComplex useServerlessTemplateButtonComplex;
     private ModifyListener mavenModifyListener = new ModifyListener() {
+        @Override
         public void modifyText(ModifyEvent arg0) {
             onMavenConfigurationChange();
         }
@@ -95,12 +96,14 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
         this.aggregateValidationStatus = new AggregateValidationStatus(
                 bindingContext, AggregateValidationStatus.MAX_SEVERITY);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 populateValidationStatus();
             }
         });
     }
 
+    @Override
     public void createControl(final Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
@@ -141,6 +144,7 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
                 .labelValue("Select a Blueprint:")
                 .defaultValue(dataModel.isUseBlueprint())
                 .selectionListener(new SelectionAdapter() {
+                    @Override
                     public void widgetSelected(SelectionEvent e) {
                         onSelectBlueprintButtonSelect();
                     }
@@ -156,6 +160,7 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
                 .labelValue("Select a Serverless template file:")
                 .defaultValue(dataModel.isUseServerlessTemplateFile())
                 .selectionListener(new SelectionAdapter() {
+                    @Override
                     public void widgetSelected(SelectionEvent e) {
                         onSelectServerlessTemplateButtonSelect();
                     }
@@ -171,6 +176,7 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
         ISelection selection = new StructuredSelection(dataModel.getBlueprintName());
         blueprintSelectionViewer.setSelection(selection, true);
         blueprintSelectionViewer.addSelectionChangedListener(new ISelectionChangedListener(){
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 onBlueprintSelectionViewerSelectionChange();
             }

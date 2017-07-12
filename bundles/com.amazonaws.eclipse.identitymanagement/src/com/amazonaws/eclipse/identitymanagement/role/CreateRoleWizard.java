@@ -206,7 +206,7 @@ public class CreateRoleWizard extends Wizard {
                 condition.setConditionKey("www.amazon.com:app_id");
             }
 
-            List<String> value = new LinkedList<String>();
+            List<String> value = new LinkedList<>();
             value.add(dataModel.getApplicationId());
             condition.setValues(value);
         } else if (dataModel.getThirdPartyRoles()) {
@@ -214,7 +214,7 @@ public class CreateRoleWizard extends Wizard {
                 condition = new Condition();
                 condition.setType("StringEquals");
                 condition.setConditionKey("sts:ExternalId");
-                List<String> value = new LinkedList<String>();
+                List<String> value = new LinkedList<>();
                 value.add(dataModel.getExternalAccountId());
                 condition.setValues(value);
              }

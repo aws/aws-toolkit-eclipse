@@ -97,6 +97,7 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
     private ISWTObservableValue newJavaFunctionNameTextObservable;
 
     private final SelectionListener javaFunctionSectionRadioButtonSelectionListener = new SelectionAdapter() {
+        @Override
         public void widgetSelected(SelectionEvent e) {
             radioButtonSelected(e.getSource());
             runValidators();
@@ -124,6 +125,7 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
                 bindingContext, AggregateValidationStatus.MAX_SEVERITY);
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
@@ -291,6 +293,7 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
         // Bind the validation status to the wizard page message
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false) return;
@@ -312,7 +315,7 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
                 useExistingJavaFunctionRadioButtonObservable, // enabler
                 new BooleanValidator("Please select a Lambda function")));
 
-        ChainValidator<String> functionNameValidator = new ChainValidator<String>(
+        ChainValidator<String> functionNameValidator = new ChainValidator<>(
                 newJavaFunctionNameTextObservable,
                 createNewJavaFunctionRadioButtonObservable, // enabler
                 new NotEmptyValidator("Please provide a Lambda function name"),
@@ -356,8 +359,8 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
 
         @Override
         public void run() {
-            final List<String> javaFunctionNames = new ArrayList<String>();
-            final Map<String, FunctionConfiguration> javaFunctions = new HashMap<String, FunctionConfiguration>();
+            final List<String> javaFunctionNames = new ArrayList<>();
+            final Map<String, FunctionConfiguration> javaFunctions = new HashMap<>();
 
             try {
                 for (FunctionConfiguration funcConfig : ServiceApiUtils.getAllJavaFunctions(lambdaClient)) {
@@ -376,6 +379,7 @@ public class TargetFunctionSelectionPage extends WizardPageWithOnEnterHook {
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadJavaFunctionsThread.this) {

@@ -54,6 +54,7 @@ public class TestToolPreferencePage extends AwsToolkitPreferencePage
     }
 
     /** {@inheritDoc} */
+    @Override
     public void init(final IWorkbench workbench) {
         setPreferenceStore(DynamoDBPlugin.getDefault().getPreferenceStore());
     }

@@ -30,6 +30,7 @@ public class IsFalseBooleanValidator implements IValidator {
         this.message = message;
     }
 
+    @Override
     public IStatus validate(Object value) {
         if ( ((Boolean) value) )
             return ValidationStatus.error(message);

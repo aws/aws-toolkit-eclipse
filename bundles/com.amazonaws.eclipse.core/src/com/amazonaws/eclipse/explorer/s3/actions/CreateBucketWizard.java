@@ -116,6 +116,7 @@ class CreateBucketWizard extends Wizard {
          * @param value the bucket name
          * @return the result of validation
          */
+        @Override
         public IStatus validate(final Object value) {
             String bucketName = (String) value;
 
@@ -154,6 +155,7 @@ class CreateBucketWizard extends Wizard {
          * @param value the bucket name
          * @return the result of validation
          */
+        @Override
         public IStatus validate(final Object value) {
             String bucketName = (String) value;
 
@@ -208,7 +210,7 @@ class CreateBucketWizard extends Wizard {
          */
         private static final Set<String> VALID_ERROR_CODES;
         static {
-            Set<String> set = new HashSet<String>();
+            Set<String> set = new HashSet<>();
 
             set.add("NoSuchBucket");
 
@@ -227,7 +229,7 @@ class CreateBucketWizard extends Wizard {
          */
         private static final Set<String> IN_USE_ERROR_CODES;
         static {
-            Set<String> set = new HashSet<String>();
+            Set<String> set = new HashSet<>();
 
             set.add("AccessDenied");
             set.add("InvalidBucketState");

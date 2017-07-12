@@ -43,27 +43,33 @@ public class DomainEditorInput implements IEditorInput {
         this.accountId = accountId;
     }
 
+    @Override
     @SuppressWarnings("rawtypes")
     public Object getAdapter(final Class adapter) {
         return null;
     }
 
+    @Override
     public boolean exists() {
         return true;
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_TABLE);
     }
 
+    @Override
     public String getName() {
         return this.domainName;
     }
 
+    @Override
     public IPersistableElement getPersistable() {
         return null;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon SimpleDB Query Editor - " + this.domainName;
     }

@@ -48,8 +48,8 @@ import com.amazonaws.services.ec2.model.Snapshot;
  */
 public class SnapshotSelectionTable extends SelectionTable implements IRefreshable {
 
-	/** The period between refreshes when snapshots are in progress */
-	private static final int REFRESH_PERIOD_IN_MILLISECONDS = 10 * 1000;
+    /** The period between refreshes when snapshots are in progress */
+    private static final int REFRESH_PERIOD_IN_MILLISECONDS = 10 * 1000;
 
     private static final int STATE_COLUMN = 0;
     private static final int SNAPSHOT_ID_COLUMN = 1;
@@ -57,22 +57,22 @@ public class SnapshotSelectionTable extends SelectionTable implements IRefreshab
     private static final int START_TIME_COLUMN = 3;
     private static final int TAGS_COLUMN = 4;
 
-	/** An Action implementation that refreshes the snapshots */
-	private Action refreshAction;
+    /** An Action implementation that refreshes the snapshots */
+    private Action refreshAction;
 
-	/** An Action implementation that deletes the selected snapshot */
-	private Action deleteAction;
+    /** An Action implementation that deletes the selected snapshot */
+    private Action deleteAction;
 
-	/**
-	 * The timer we turn on when snapshots are in progress to refresh
-	 * the snapshot data.
-	 */
-	private RefreshTimer refreshTimer;
+    /**
+     * The timer we turn on when snapshots are in progress to refresh
+     * the snapshot data.
+     */
+    private RefreshTimer refreshTimer;
 
-	/**
-	 * Comparator for sorting snapshots by creation time.
-	 */
-	class SnapshotComparator extends SelectionTableComparator {
+    /**
+     * Comparator for sorting snapshots by creation time.
+     */
+    class SnapshotComparator extends SelectionTableComparator {
 
         public SnapshotComparator(int defaultColumn) {
             super(defaultColumn);
@@ -106,324 +106,335 @@ public class SnapshotSelectionTable extends SelectionTable implements IRefreshab
 
             return 0;
         }
-	}
+    }
 
-	/**
-	 * Label and content provider for snapshot selection table.
-	 */
-	private static class SnapshotTableProvider extends LabelProvider
-			implements ITreeContentProvider, ITableLabelProvider {
-	    
+    /**
+     * Label and content provider for snapshot selection table.
+     */
+    private static class SnapshotTableProvider extends LabelProvider
+            implements ITreeContentProvider, ITableLabelProvider {
+        
         private final DateFormat dateFormat = DateFormat.getDateTimeInstance();
 
-		List<Object> snapshots;
+        List<Object> snapshots;
 
-		/*
-		 * IStructuredContentProvider Interface
-		 */
+        /*
+         * IStructuredContentProvider Interface
+         */
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
-		 */
-		public Object[] getElements(Object inputElement) {
-			if (snapshots == null) return null;
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
+         */
+        @Override
+        public Object[] getElements(Object inputElement) {
+            if (snapshots == null) return null;
 
-			return snapshots.toArray();
-		}
+            return snapshots.toArray();
+        }
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
-		 */
-		@SuppressWarnings("unchecked")
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			if (newInput instanceof List) {
-				snapshots = (List<Object>)newInput;
-			}
-		}
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+         */
+        @Override
+        @SuppressWarnings("unchecked")
+        public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+            if (newInput instanceof List) {
+                snapshots = (List<Object>)newInput;
+            }
+        }
 
-		/*
-		 * ITableLabelProvider Interface
-		 */
+        /*
+         * ITableLabelProvider Interface
+         */
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
-		 */
-		public Image getColumnImage(Object element, int columnIndex) {
-		    if (columnIndex == 0)
-		        return Ec2Plugin.getDefault().getImageRegistry().get("snapshot");
-			return null;
-		}
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
+         */
+        @Override
+        public Image getColumnImage(Object element, int columnIndex) {
+            if (columnIndex == 0)
+                return Ec2Plugin.getDefault().getImageRegistry().get("snapshot");
+            return null;
+        }
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
-		 */
-		public String getColumnText(Object element, int columnIndex) {
-			if (!(element instanceof Snapshot)) {
-				return "???";
-			}
+        /* (non-Javadoc)
+         * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
+         */
+        @Override
+        public String getColumnText(Object element, int columnIndex) {
+            if (!(element instanceof Snapshot)) {
+                return "???";
+            }
 
-			Snapshot snapshot = (Snapshot)element;
+            Snapshot snapshot = (Snapshot)element;
 
-			switch (columnIndex) {
-			case STATE_COLUMN:
-				if (snapshot.getState().equalsIgnoreCase("pending")) {
-				    if (snapshot.getProgress() != null && snapshot.getProgress().length() > 0) {
-				        return "pending (" + snapshot.getProgress() + ")";
-				    } else {
-				        return "pending";
-				    }
-				}
-				return snapshot.getState();
-			case SNAPSHOT_ID_COLUMN:
-				return snapshot.getSnapshotId();
-			case VOLUME_ID_COLUMN:
-				return snapshot.getVolumeId();
-			case START_TIME_COLUMN:
-			    if (snapshot.getStartTime() == null) return "";
-			    return dateFormat.format(snapshot.getStartTime());
-			case TAGS_COLUMN:
-			    return TagFormatter.formatTags(snapshot.getTags());
-			}
+            switch (columnIndex) {
+            case STATE_COLUMN:
+                if (snapshot.getState().equalsIgnoreCase("pending")) {
+                    if (snapshot.getProgress() != null && snapshot.getProgress().length() > 0) {
+                        return "pending (" + snapshot.getProgress() + ")";
+                    } else {
+                        return "pending";
+                    }
+                }
+                return snapshot.getState();
+            case SNAPSHOT_ID_COLUMN:
+                return snapshot.getSnapshotId();
+            case VOLUME_ID_COLUMN:
+                return snapshot.getVolumeId();
+            case START_TIME_COLUMN:
+                if (snapshot.getStartTime() == null) return "";
+                return dateFormat.format(snapshot.getStartTime());
+            case TAGS_COLUMN:
+                return TagFormatter.formatTags(snapshot.getTags());
+            }
 
-			return "???";
-		}
-		
-		public Object[] getChildren(Object parentElement) {
-			return new Object[0];
-		}
+            return "???";
+        }
+        
+        @Override
+        public Object[] getChildren(Object parentElement) {
+            return new Object[0];
+        }
 
-		public Object getParent(Object element) {
-			return null;
-		}
-		
-		public boolean hasChildren(Object element) {
-			return false;
-		}
-	}
-
-
-	/**
-	 * Creates a new snapshot selection table with the specified parent.
-	 *
-	 * @param parent
-	 *            The parent ui component for the new snapshot selection table.
-	 */
-	public SnapshotSelectionTable(Composite parent) {
-		super(parent);
-
-		SnapshotTableProvider snapshotTableProvider = new SnapshotTableProvider();
-		viewer.setContentProvider(snapshotTableProvider);
-		viewer.setLabelProvider(snapshotTableProvider);
-		
-		setComparator(new SnapshotComparator(START_TIME_COLUMN));
-
-		refreshSnapshots();
-
-		refreshTimer = new RefreshTimer(this, REFRESH_PERIOD_IN_MILLISECONDS);
-	}
-
-	/**
-	 * Returns the currently selected snapshot.
-	 *
-	 * @return The currently selected snapshot.
-	 */
-	public Snapshot getSelectedSnapshot() {
-		return (Snapshot)getSelection();
-	}
-
-	/**
-	 * Refreshes the list of snapshots displayed by this snapshot selection
-	 * table.
-	 */
-	public void refreshSnapshots() {
-		new RefreshSnapshotsThread().start();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
-	 */
-	public void refreshData() {
-		this.refreshSnapshots();
-	}
+        @Override
+        public Object getParent(Object element) {
+            return null;
+        }
+        
+        @Override
+        public boolean hasChildren(Object element) {
+            return false;
+        }
+    }
 
 
-	/*
-	 * SelectionTable Interface
-	 */
+    /**
+     * Creates a new snapshot selection table with the specified parent.
+     *
+     * @param parent
+     *            The parent ui component for the new snapshot selection table.
+     */
+    public SnapshotSelectionTable(Composite parent) {
+        super(parent);
 
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#createColumns()
-	 */
-	@Override
-	protected void createColumns() {
-		newColumn("State", 10);
-		newColumn("Snapshot ID", 10);
-		newColumn("Volume ID", 10);
-		newColumn("Creation Time", 60);
-		newColumn("Tags", 15);
-	}
+        SnapshotTableProvider snapshotTableProvider = new SnapshotTableProvider();
+        viewer.setContentProvider(snapshotTableProvider);
+        viewer.setLabelProvider(snapshotTableProvider);
+        
+        setComparator(new SnapshotComparator(START_TIME_COLUMN));
 
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#fillContextMenu(org.eclipse.jface.action.IMenuManager)
-	 */
-	@Override
-	protected void fillContextMenu(IMenuManager manager) {
-		Snapshot selectedSnapshot = getSelectedSnapshot();
+        refreshSnapshots();
 
-		boolean isSnapshotSelected = (selectedSnapshot != null);
-		deleteAction.setEnabled(isSnapshotSelected);
+        refreshTimer = new RefreshTimer(this, REFRESH_PERIOD_IN_MILLISECONDS);
+    }
 
-		manager.add(refreshAction);
-		manager.add(new Separator());
-		manager.add(deleteAction);
-	}
+    /**
+     * Returns the currently selected snapshot.
+     *
+     * @return The currently selected snapshot.
+     */
+    public Snapshot getSelectedSnapshot() {
+        return (Snapshot)getSelection();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#makeActions()
-	 */
-	@Override
-	protected void makeActions() {
-		refreshAction = new Action() {
-			public void run() {
-				refreshSnapshots();
-			}
-		};
-		refreshAction.setText("Refresh");
-		refreshAction.setToolTipText("Refresh the list of snapshots.");
-		refreshAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh"));
+    /**
+     * Refreshes the list of snapshots displayed by this snapshot selection
+     * table.
+     */
+    public void refreshSnapshots() {
+        new RefreshSnapshotsThread().start();
+    }
 
-		deleteAction = new Action () {
-			public void run() {
-				Snapshot selectedSnapshot = getSelectedSnapshot();
-				new DeleteSnapshotThread(selectedSnapshot).start();
-			}
-		};
-		deleteAction.setText("Delete Snapshot");
-		deleteAction.setToolTipText("Delete the selected snapshot.");
-		deleteAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("remove"));
-	}
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
+     */
+    @Override
+    public void refreshData() {
+        this.refreshSnapshots();
+    }
 
-	/*
-	 * Private Interface
-	 */
 
-	/**
-	 * Sets the input of this control to the specified list of snapshots and
-	 * also takes care of any special requirements of in progress snapshots such
-	 * as turning on the refresh timer and displaying progress bars for the
-	 * snapshot progress.
-	 *
-	 * @param snapshots
-	 *            The list of snapshots that should be displayed in this
-	 *            selection table.
-	 */
-	private void setInput(final List<Snapshot> snapshots) {
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				Snapshot previouslySelectedSnapshot = getSelectedSnapshot();
+    /*
+     * SelectionTable Interface
+     */
 
-				viewer.setInput(snapshots);
-				packColumns();
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#createColumns()
+     */
+    @Override
+    protected void createColumns() {
+        newColumn("State", 10);
+        newColumn("Snapshot ID", 10);
+        newColumn("Volume ID", 10);
+        newColumn("Creation Time", 60);
+        newColumn("Tags", 15);
+    }
 
-				if (previouslySelectedSnapshot != null) {
-					Tree table = viewer.getTree();
-					for (int i = 0; i < table.getItemCount(); i++) {
-						Snapshot snapshot = (Snapshot)table.getItem(i).getData();
-						if (snapshot.getSnapshotId().equals(previouslySelectedSnapshot.getSnapshotId())) {
-							table.select(table.getItem(i));
-						}
-					}
-				}
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#fillContextMenu(org.eclipse.jface.action.IMenuManager)
+     */
+    @Override
+    protected void fillContextMenu(IMenuManager manager) {
+        Snapshot selectedSnapshot = getSelectedSnapshot();
 
-				resetRefreshTimer(snapshots);
-			}
-		});
-	}
+        boolean isSnapshotSelected = (selectedSnapshot != null);
+        deleteAction.setEnabled(isSnapshotSelected);
 
-	/**
-	 * Turns on or off the refresh timer depending on whether or not any of the
-	 * specified snapshots are currently in progress. If snapshots are in
-	 * progress, the refresh timer is turned on so that the user watch as the
-	 * snapshot progresses, otherwise the refresh timer is turned off.
-	 *
-	 * @param snapshots
-	 *            The snapshots being displayed by this control.
-	 */
-	private void resetRefreshTimer(List<Snapshot> snapshots) {
-		for (Snapshot snapshot : snapshots) {
-			if (snapshot.getState().equalsIgnoreCase("pending")) {
-				refreshTimer.startTimer();
-				return;
-			}
-		}
+        manager.add(refreshAction);
+        manager.add(new Separator());
+        manager.add(deleteAction);
+    }
 
-		refreshTimer.stopTimer();
-	}
+    /* (non-Javadoc)
+     * @see com.amazonaws.eclipse.ec2.ui.SelectionTable#makeActions()
+     */
+    @Override
+    protected void makeActions() {
+        refreshAction = new Action() {
+            @Override
+            public void run() {
+                refreshSnapshots();
+            }
+        };
+        refreshAction.setText("Refresh");
+        refreshAction.setToolTipText("Refresh the list of snapshots.");
+        refreshAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh"));
 
-	/*
-	 * Private Threads for making EC2 service calls
-	 */
+        deleteAction = new Action () {
+            @Override
+            public void run() {
+                Snapshot selectedSnapshot = getSelectedSnapshot();
+                new DeleteSnapshotThread(selectedSnapshot).start();
+            }
+        };
+        deleteAction.setText("Delete Snapshot");
+        deleteAction.setToolTipText("Delete the selected snapshot.");
+        deleteAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("remove"));
+    }
 
-	/**
-	 * Thread for making an EC2 service call to refresh the list of EBS
-	 * snapshots for the current account.
-	 */
-	private class RefreshSnapshotsThread extends Thread {
-		/* (non-Javadoc)
-		 * @see java.lang.Thread#run()
-		 */
-		@Override
-		public void run() {
-			try {
-			    AmazonEC2 ec2 = getAwsEc2Client();
-			    final List<Snapshot> snapshots = ec2.describeSnapshots().getSnapshots();
-				setInput(snapshots);
-			} catch (Exception e) {
-				// Only log an error if the account info is valid and we
-				// actually expected this call to work
-				if (AwsToolkitCore.getDefault().getAccountInfo().isValid()) {
-					Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
-							"Unable to refresh snapshots: " + e.getMessage(), e);
-					StatusManager.getManager().handle(status, StatusManager.LOG);
-				}
-			}
-		}
-	}
+    /*
+     * Private Interface
+     */
 
-	/**
-	 * Thread for making an EC2 service call to delete a snapshot.
-	 */
-	private class DeleteSnapshotThread extends Thread {
-		/** The snapshot to delete */
-		private final Snapshot snapshot;
+    /**
+     * Sets the input of this control to the specified list of snapshots and
+     * also takes care of any special requirements of in progress snapshots such
+     * as turning on the refresh timer and displaying progress bars for the
+     * snapshot progress.
+     *
+     * @param snapshots
+     *            The list of snapshots that should be displayed in this
+     *            selection table.
+     */
+    private void setInput(final List<Snapshot> snapshots) {
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                Snapshot previouslySelectedSnapshot = getSelectedSnapshot();
 
-		/**
-		 * Creates a new thread ready to be started to delete the specified
-		 * snapshot.
-		 *
-		 * @param snapshot
-		 *            The snapshot to delete.
-		 */
-		public DeleteSnapshotThread(Snapshot snapshot) {
-			this.snapshot = snapshot;
-		}
+                viewer.setInput(snapshots);
+                packColumns();
 
-		/* (non-Javadoc)
-		 * @see java.lang.Thread#run()
-		 */
-		@Override
-		public void run() {
-			try {
-			    getAwsEc2Client().deleteSnapshot(new DeleteSnapshotRequest()
-			        .withSnapshotId(snapshot.getSnapshotId()));
+                if (previouslySelectedSnapshot != null) {
+                    Tree table = viewer.getTree();
+                    for (int i = 0; i < table.getItemCount(); i++) {
+                        Snapshot snapshot = (Snapshot)table.getItem(i).getData();
+                        if (snapshot.getSnapshotId().equals(previouslySelectedSnapshot.getSnapshotId())) {
+                            table.select(table.getItem(i));
+                        }
+                    }
+                }
 
-				refreshSnapshots();
-			} catch (Exception e) {
-				Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
-						"Unable to delete snapshot: " + e.getMessage(), e);
-				StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
-			}
-		}
-	}
+                resetRefreshTimer(snapshots);
+            }
+        });
+    }
+
+    /**
+     * Turns on or off the refresh timer depending on whether or not any of the
+     * specified snapshots are currently in progress. If snapshots are in
+     * progress, the refresh timer is turned on so that the user watch as the
+     * snapshot progresses, otherwise the refresh timer is turned off.
+     *
+     * @param snapshots
+     *            The snapshots being displayed by this control.
+     */
+    private void resetRefreshTimer(List<Snapshot> snapshots) {
+        for (Snapshot snapshot : snapshots) {
+            if (snapshot.getState().equalsIgnoreCase("pending")) {
+                refreshTimer.startTimer();
+                return;
+            }
+        }
+
+        refreshTimer.stopTimer();
+    }
+
+    /*
+     * Private Threads for making EC2 service calls
+     */
+
+    /**
+     * Thread for making an EC2 service call to refresh the list of EBS
+     * snapshots for the current account.
+     */
+    private class RefreshSnapshotsThread extends Thread {
+        /* (non-Javadoc)
+         * @see java.lang.Thread#run()
+         */
+        @Override
+        public void run() {
+            try {
+                AmazonEC2 ec2 = getAwsEc2Client();
+                final List<Snapshot> snapshots = ec2.describeSnapshots().getSnapshots();
+                setInput(snapshots);
+            } catch (Exception e) {
+                // Only log an error if the account info is valid and we
+                // actually expected this call to work
+                if (AwsToolkitCore.getDefault().getAccountInfo().isValid()) {
+                    Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
+                            "Unable to refresh snapshots: " + e.getMessage(), e);
+                    StatusManager.getManager().handle(status, StatusManager.LOG);
+                }
+            }
+        }
+    }
+
+    /**
+     * Thread for making an EC2 service call to delete a snapshot.
+     */
+    private class DeleteSnapshotThread extends Thread {
+        /** The snapshot to delete */
+        private final Snapshot snapshot;
+
+        /**
+         * Creates a new thread ready to be started to delete the specified
+         * snapshot.
+         *
+         * @param snapshot
+         *            The snapshot to delete.
+         */
+        public DeleteSnapshotThread(Snapshot snapshot) {
+            this.snapshot = snapshot;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Thread#run()
+         */
+        @Override
+        public void run() {
+            try {
+                getAwsEc2Client().deleteSnapshot(new DeleteSnapshotRequest()
+                    .withSnapshotId(snapshot.getSnapshotId()));
+
+                refreshSnapshots();
+            } catch (Exception e) {
+                Status status = new Status(Status.ERROR, Ec2Plugin.PLUGIN_ID,
+                        "Unable to delete snapshot: " + e.getMessage(), e);
+                StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+            }
+        }
+    }
 
 }

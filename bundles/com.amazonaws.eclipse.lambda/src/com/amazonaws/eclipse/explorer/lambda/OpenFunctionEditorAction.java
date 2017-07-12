@@ -43,6 +43,7 @@ public class OpenFunctionEditorAction extends Action {
         final IEditorInput input = new FunctionEditorInput(accountId, regionId, functionArn, functionName);
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();

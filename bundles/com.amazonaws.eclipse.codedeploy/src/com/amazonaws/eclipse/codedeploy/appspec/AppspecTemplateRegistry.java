@@ -43,7 +43,7 @@ public class AppspecTemplateRegistry {
      */
     public List<AppspecTemplateMetadataModel> getDefaultTemplates() {
 
-        List<AppspecTemplateMetadataModel> models = new LinkedList<AppspecTemplateMetadataModel>();
+        List<AppspecTemplateMetadataModel> models = new LinkedList<>();
 
         try {
             Bundle bundle = CodeDeployPlugin.getDefault().getBundle();
@@ -75,7 +75,7 @@ public class AppspecTemplateRegistry {
 
     public List<AppspecTemplateMetadataModel> getCustomTemplates() {
 
-        List<AppspecTemplateMetadataModel> models = new LinkedList<AppspecTemplateMetadataModel>();
+        List<AppspecTemplateMetadataModel> models = new LinkedList<>();
 
         String prefValue = prefStore.getString(P_CUSTOM_APPSPEC_TEMPLATE_LOCATIONS);
         if (prefValue != null && !prefValue.isEmpty()) {
@@ -100,7 +100,7 @@ public class AppspecTemplateRegistry {
     }
 
     public Set<String> getAllTemplateNames() {
-        Set<String> allNames = new HashSet<String>();
+        Set<String> allNames = new HashSet<>();
 
         for (AppspecTemplateMetadataModel template : getDefaultTemplates()) {
             allNames.add(template.getTemplateName());
@@ -124,7 +124,7 @@ public class AppspecTemplateRegistry {
 
         String prefValue = prefStore.getString(P_CUSTOM_APPSPEC_TEMPLATE_LOCATIONS);
         if (prefValue != null && !prefValue.isEmpty()) {
-            List<String> locations = new LinkedList<String>(
+            List<String> locations = new LinkedList<>(
                     Arrays.asList(prefValue.split(Pattern.quote(LOCATION_SEPARATOR))));
             locations.add(metadataFile.getAbsolutePath());
 

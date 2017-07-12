@@ -36,6 +36,7 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
      */
     private final IChangeListener functionConfigValidationStatusListener = new IChangeListener() {
 
+        @Override
         public void handleChange(ChangeEvent event) {
             Object observable = event.getObservable();
             if (observable instanceof AggregateValidationStatus == false) return;
@@ -64,6 +65,7 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
         this.dataModel = dataModel;
     }
 
+    @Override
     public void createControl(Composite parent) {
         functionConfigurationComposite = new FunctionConfigurationComposite(
                 parent, dataModel);
@@ -75,6 +77,7 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
         setControl(functionConfigurationComposite);
     }
 
+    @Override
     public void onEnterPage() {
         resetErrorMessage();
 

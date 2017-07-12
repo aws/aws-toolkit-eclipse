@@ -159,6 +159,7 @@ public class GeneratePresignedUrlAction extends Action {
             final Text contentTypeText = new Text(contentTypeComp, SWT.BORDER);
             contentTypeText.addModifyListener(new ModifyListener() {
 
+                @Override
                 public void modifyText(ModifyEvent e) {
                     contentType = contentTypeText.getText();
                 }

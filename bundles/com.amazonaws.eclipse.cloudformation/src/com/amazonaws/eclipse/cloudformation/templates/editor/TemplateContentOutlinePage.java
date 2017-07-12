@@ -39,8 +39,7 @@ import com.amazonaws.eclipse.cloudformation.templates.TemplateArrayNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateObjectNode;
 import com.amazonaws.eclipse.cloudformation.templates.TemplateValueNode;
-import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocument;
-import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocumentListener;
+import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateDocument.TemplateDocumentListener;
 import com.fasterxml.jackson.core.JsonLocation;
 
 public class TemplateContentOutlinePage extends ContentOutlinePage implements TemplateDocumentListener {
@@ -58,6 +57,7 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
     }
 
 
+    @Override
     public void createControl(Composite parent) {
         super.createControl(parent);
         final TreeViewer viewer = getTreeViewer();
@@ -67,6 +67,7 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
         viewer.setAutoExpandLevel(2);
 
         viewer.addOpenListener(new IOpenListener() {
+            @Override
             public void open(OpenEvent event) {
                 TemplateOutlineNode selectedNode = (TemplateOutlineNode)((StructuredSelection)event.getSelection()).getFirstElement();
 
@@ -88,14 +89,14 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
     }
 
     // TODO: move/rename me
-    private Set<String> expandedPaths = new HashSet<String>();
+    private Set<String> expandedPaths = new HashSet<>();
 
     private void updateContent() {
         TreeViewer viewer = getTreeViewer();
 
         if (document.getModel() == null) return;
 
-        expandedPaths = new HashSet<String>();
+        expandedPaths = new HashSet<>();
         for (Object obj : viewer.getExpandedElements()) {
             TemplateOutlineNode expandedNode = (TemplateOutlineNode)obj;
             expandedPaths.add(expandedNode.getNode().getPath());
@@ -123,18 +124,24 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
     }
 
     public class TemplateOutlineLabelProvider implements ILabelProvider {
+        @Override
         public void dispose() {}
+        @Override
         public void addListener(ILabelProviderListener listener) {}
+        @Override
         public void removeListener(ILabelProviderListener listener) {}
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getImage(Object element) {
             return null;
         }
 
+        @Override
         public String getText(Object element) {
             if (element instanceof TemplateOutlineNode == false) return null;
 
@@ -179,24 +186,24 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
         public TemplateOutlineNode[] getChildren() {
             if (node == null) return new TemplateOutlineNode[0];
 
-            List<TemplateOutlineNode> children = new ArrayList<TemplateOutlineNode>();
-            if (node.isObject()) {
+            List<TemplateOutlineNode> children = new ArrayList<>();
+            if (node instanceof TemplateObjectNode) {
                 TemplateObjectNode object = (TemplateObjectNode)node;
 
                 for (Entry<String, TemplateNode> entry : object.getFields()) {
-                    if (entry.getValue().isValue()) {
+                    if (entry.getValue() instanceof TemplateValueNode) {
                         children.add(new TemplateOutlineNode(entry.getKey() + ": " + ((TemplateValueNode)entry.getValue()).getText(), entry.getValue()));
                     } else {
                         children.add(new TemplateOutlineNode(entry.getKey(), entry.getValue()));
                     }
                 }
-            } else if (node.isArray()) {
+            } else if (node instanceof TemplateArrayNode) {
                 TemplateArrayNode array = (TemplateArrayNode)node;
 
                 for (TemplateNode node : array.getMembers()) {
-                    if (node.isObject()) children.add(new TemplateOutlineNode("{Object}", node));
-                    if (node.isArray())  children.add(new TemplateOutlineNode("{Array}", node));
-                    if (node.isValue())  children.add(new TemplateOutlineNode(((TemplateValueNode)node).getText(), node));
+                    if (node instanceof TemplateObjectNode) children.add(new TemplateOutlineNode("{Object}", node));
+                    if (node instanceof TemplateArrayNode)  children.add(new TemplateOutlineNode("{Array}", node));
+                    if (node instanceof TemplateValueNode)  children.add(new TemplateOutlineNode(((TemplateValueNode)node).getText(), node));
                 }
             }
 
@@ -205,10 +212,12 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
     }
 
     public class TemplateOutlineContentProvider implements ITreeContentProvider {
+        @Override
         public void dispose() {}
 
         private TemplateOutlineNode root;
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput == null) {
                 root = null;
@@ -221,10 +230,12 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
             }
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return getChildren(inputElement);
         }
 
+        @Override
         public Object[] getChildren(Object parentElement) {
             if (root == null) return new Object[0];
 
@@ -235,10 +246,12 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
             return null;
         }
 
+        @Override
         public Object getParent(Object element) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(Object element) {
             if (element instanceof TemplateOutlineNode) {
                 return ((TemplateOutlineNode) element).getChildren().length > 0;
@@ -248,7 +261,8 @@ public class TemplateContentOutlinePage extends ContentOutlinePage implements Te
         }
     }
 
-    public void templateDocumentChanged() {
+    @Override
+    public void onTemplateDocumentChanged() {
         updateContent();
     }
 }

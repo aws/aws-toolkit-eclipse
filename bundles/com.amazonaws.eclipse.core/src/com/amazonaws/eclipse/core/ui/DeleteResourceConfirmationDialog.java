@@ -81,6 +81,7 @@ public class DeleteResourceConfirmationDialog extends TitleAreaDialog {
         resourceNameText = new Text(container, SWT.BORDER);
         resourceNameText.setLayoutData(gridData);
         resourceNameText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent event) {
                 getButton(IDialogConstants.OK_ID).setEnabled(resourceName.equals(resourceNameText.getText()));
             }

@@ -52,6 +52,7 @@ public class OpenDeploymentGroupEditorAction extends Action {
                 applicationName, deploymentGroupName, endpoint, accountId);
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench()

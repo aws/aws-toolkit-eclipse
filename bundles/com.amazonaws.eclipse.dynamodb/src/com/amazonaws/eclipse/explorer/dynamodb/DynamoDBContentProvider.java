@@ -82,6 +82,7 @@ public class DynamoDBContentProvider extends AbstractContentProvider {
                 }
                 if ( refreshUI ) {
                     Display.getDefault().asyncExec(new Runnable() {
+                        @Override
                         public void run() {
                             viewer.refresh(parentElement);
                         }
@@ -102,6 +103,7 @@ public class DynamoDBContentProvider extends AbstractContentProvider {
         return instance;
     }
 
+    @Override
     public boolean hasChildren(Object element) {
         return element instanceof AWSResourcesRootElement || element instanceof DynamoDBRootNode;
     }
@@ -117,7 +119,7 @@ public class DynamoDBContentProvider extends AbstractContentProvider {
                 @Override
                 public Object[] loadData() {
                     AmazonDynamoDB db = AwsToolkitCore.getClientFactory().getDynamoDBV2Client();
-                    List<DynamoDBTableNode> nodes = new LinkedList<DynamoDBTableNode>();
+                    List<DynamoDBTableNode> nodes = new LinkedList<>();
                     ListTablesResult listTables = new ListTablesResult();
                     do {
                         listTables = db.listTables(new ListTablesRequest().withExclusiveStartTableName(listTables

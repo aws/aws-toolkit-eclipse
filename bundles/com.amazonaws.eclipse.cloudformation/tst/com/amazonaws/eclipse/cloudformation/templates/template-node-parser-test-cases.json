@@ -1,0 +1,47 @@
+{
+  "test1": {
+    "input": "{}",
+    "throwException": false,
+    "path": ""
+  },
+  "test2": {
+    "input": "{",
+    "throwException": true,
+    "path": "ROOT/"
+  },
+  "test3": {
+    "input": "{\"\"}",
+    "throwException": true,
+    "path": "ROOT/"
+  },
+  "test4": {
+    "input": "{\"key}",
+    "throwException": true,
+    "path": "ROOT/"
+  },
+  "test5": {
+    "input": "{\"key\"}",
+    "throwException": true,
+    "path": "ROOT/"
+   },
+   "test6": {
+     "input": "{\"key\": \"}",
+     "throwException": true,
+     "path": "ROOT/key/"
+   },
+   "test7": {
+     "input": "{\"key\": {\"Type\": \"AWS::S3\", \"\"}}",
+     "throwException": true,
+     "path": "ROOT/key,AWS::S3/"
+   },
+   "test8": {
+     "input": "{\"key\": {\"\"}",
+     "throwException": true,
+     "path": "ROOT/key/"
+   },
+   "test9": {
+     "input": "{\"key\": [{\"tag\": \"",
+     "throwException": true,
+     "path": "ROOT/key/0/tag/"
+   }
+}

@@ -41,7 +41,7 @@ public class ServiceApiUtils {
 
     public static List<FunctionConfiguration> getAllJavaFunctions(AWSLambda lambda) {
 
-        List<FunctionConfiguration> allJavaFunctions = new LinkedList<FunctionConfiguration>();
+        List<FunctionConfiguration> allJavaFunctions = new LinkedList<>();
         String nextMarker = null;
 
         do {
@@ -70,7 +70,7 @@ public class ServiceApiUtils {
      */
     public static List<Role> getAllLambdaRoles(AmazonIdentityManagement iam) {
 
-        List<Role> allRoles = new LinkedList<Role>();
+        List<Role> allRoles = new LinkedList<>();
         String nextMarker = null;
 
         do {

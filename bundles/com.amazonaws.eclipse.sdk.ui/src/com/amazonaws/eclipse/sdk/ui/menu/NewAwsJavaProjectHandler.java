@@ -24,6 +24,7 @@ import org.eclipse.ui.PlatformUI;
 import com.amazonaws.eclipse.sdk.ui.wizard.NewAwsJavaProjectWizard;
 
 public class NewAwsJavaProjectHandler extends AbstractHandler {
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         NewAwsJavaProjectWizard newWizard = new NewAwsJavaProjectWizard();
         newWizard.init(PlatformUI.getWorkbench(), null);

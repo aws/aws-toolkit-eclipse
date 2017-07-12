@@ -21,6 +21,7 @@ import com.amazonaws.eclipse.lambda.upload.wizard.handler.UploadFunctionToLambda
 
 public class UploadToLambdaAction extends AbstractLambdaEditorAction {
 
+    @Override
     public void run(IAction action) {
         LambdaAnalytics.trackUploadWizardOpenedFromEditorContextMenu();
         UploadFunctionToLambdaCommandHandler

@@ -42,6 +42,7 @@ public class UserPermissionTable extends AbstractPolicyTable {
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if (viewer.getTable().getSelectionCount() > 0) {
                     manager.add(new removePolicyAction());
@@ -114,6 +115,7 @@ public class UserPermissionTable extends AbstractPolicyTable {
         iam.deleteUserPolicy(new DeleteUserPolicyRequest().withUserName(user.getUserName()).withPolicyName(policyName));
     }
 
+    @Override
     protected void getPolicyNames() {
         if (user != null) {
         policyNames = iam.listUserPolicies(new ListUserPoliciesRequest().withUserName(user.getUserName())).getPolicyNames();

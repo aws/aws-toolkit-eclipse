@@ -36,7 +36,6 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.ec2.Ec2InstanceLauncher;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.InstanceUtils;
-import com.amazonaws.eclipse.ec2.preferences.PreferenceConstants;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AssociateAddressRequest;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
@@ -60,7 +59,7 @@ public abstract class Cluster {
     /**
      * The individual application servers that make up this cluster.
      */
-    protected List<Ec2Server> applicationServers = new ArrayList<Ec2Server>();
+    protected List<Ec2Server> applicationServers = new ArrayList<>();
 
     /** The optional proxy for this elastic cluster */
     private Ec2WebProxy webProxy;
@@ -70,7 +69,7 @@ public abstract class Cluster {
      * server configuration successfully published since the last time
      * the server configuration files were invalidated.
      */
-    protected Set<String> serversWithUpToDateConfiguration = new HashSet<String>();
+    protected Set<String> serversWithUpToDateConfiguration = new HashSet<>();
 
     /**
      * The configuration that defines how a cluster instance runs, including the
@@ -83,7 +82,7 @@ public abstract class Cluster {
      * A map of the application server AMIs to launch for this cluster mapped by
      * Amazon EC2 region name.
      */
-    private Map<String, String> amisByRegion = new HashMap<String, String>();
+    private Map<String, String> amisByRegion = new HashMap<>();
 
     /**
      * True if this cluster should be running in debug mode, false otherwise.
@@ -214,7 +213,7 @@ public abstract class Cluster {
      * @return A list of the Amazon EC2 instance IDs for this cluster.
      */
     public List<String> getInstanceIds() {
-        List<String> instanceIds = new ArrayList<String>();
+        List<String> instanceIds = new ArrayList<>();
 
         if (applicationServers == null) {
             return instanceIds;
@@ -646,7 +645,7 @@ public abstract class Cluster {
          */
 
         // Launch as many hosts as we need to get our fleet to the right size
-        List<Instance> instances = new ArrayList<Instance>();
+        List<Instance> instances = new ArrayList<>();
         if (numberOfMissingHosts > 0) {
             logger.info("Launching " + numberOfMissingHosts
                     + " service container instances");

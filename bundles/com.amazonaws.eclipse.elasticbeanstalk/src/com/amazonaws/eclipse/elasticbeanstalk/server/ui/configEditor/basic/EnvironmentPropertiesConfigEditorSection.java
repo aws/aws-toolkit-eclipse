@@ -37,12 +37,12 @@ public class EnvironmentPropertiesConfigEditorSection extends HumanReadableConfi
 
     @Override
     protected Map<String, String> getHumanReadableNames() {
-        return new HashMap<String, String>();
+        return new HashMap<>();
     }
 
     @Override
     protected String[] getFieldOrder() {
-        List<String> optionNames = new ArrayList<String>();
+        List<String> optionNames = new ArrayList<>();
         for (ConfigurationOptionDescription o : options) {
             optionNames.add(o.getName());
         }

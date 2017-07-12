@@ -99,6 +99,7 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
             regionChangeListener = new PreferencePropertyChangeListener() {
 
+                @Override
                 public void watchedPropertyChanged() {
                     RegionSelectionMenuAction.this.refreshData();
                 }
@@ -109,15 +110,18 @@ public class ConfigurationActionProvider extends CommonActionProvider {
         @Override
         public IMenuCreator getMenuCreator() {
             return new IMenuCreator() {
+                @Override
                 public Menu getMenu(Menu parent) {
                     return null;
                 }
 
+                @Override
                 public Menu getMenu(Control parent) {
                     if (menu == null) menu = createMenu(parent);
                     return menu;
                 }
 
+                @Override
                 public void dispose() {
                     if (regionChangeListener != null) {
                         AwsToolkitCore.getDefault().removeDefaultRegionChangeListener(regionChangeListener);
@@ -139,11 +143,13 @@ public class ConfigurationActionProvider extends CommonActionProvider {
                 menuItem.setData(region);
                 menuItem.setSelection(region.equals(currentRegion));
                 menuItem.addSelectionListener(new SelectionListener() {
+                    @Override
                     public void widgetSelected(SelectionEvent e) {
                         IPreferenceStore preferenceStore = AwsToolkitCore.getDefault().getPreferenceStore();
                         preferenceStore.setValue(PreferenceConstants.P_DEFAULT_REGION, region.getId());
                     }
 
+                    @Override
                     public void widgetDefaultSelected(SelectionEvent e) {}
                 });
 
@@ -173,10 +179,12 @@ public class ConfigurationActionProvider extends CommonActionProvider {
             return AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_AWS_ICON);
         }
 
+        @Override
         public void refreshData() {
             updateRegionFlag();
         }
 
+        @Override
         public void dispose() {
             if (regionChangeListener != null) {
                 AwsToolkitCore.getDefault().removeDefaultRegionChangeListener(regionChangeListener);
@@ -228,6 +236,7 @@ public class ConfigurationActionProvider extends CommonActionProvider {
 
         menuMgr.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 String currentAccountId = AwsToolkitCore.getDefault().getCurrentAccountId();
                 Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames();

@@ -85,10 +85,10 @@ public abstract class DatabaseConnectionFactory {
      *         specified database.
      */
     public static DatabaseConnectionFactory createConnectionFactory(ImportDBInstanceDataModel wizardDataModel) {
-    	
+        
         final String dbEngine = wizardDataModel.getDbInstance().getEngine();
         
-		if (dbEngine.startsWith("oracle")) {
+        if (dbEngine.startsWith("oracle")) {
             return new OracleConnectionFactory(wizardDataModel);
         } else if (dbEngine.startsWith("mysql")) {
             return new MySqlConnectionFactory(wizardDataModel);

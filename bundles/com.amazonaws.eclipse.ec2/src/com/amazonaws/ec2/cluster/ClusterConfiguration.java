@@ -21,72 +21,72 @@ package com.amazonaws.ec2.cluster;
  */
 public interface ClusterConfiguration {
 
-	/**
-	 * Returns the name of the security group in which this cluster's instances
-	 * run.
-	 * 
-	 * @return The name of the security group in which this cluster's instances
-	 *         run.
-	 */
-	public String getSecurityGroupName();
+    /**
+     * Returns the name of the security group in which this cluster's instances
+     * run.
+     * 
+     * @return The name of the security group in which this cluster's instances
+     *         run.
+     */
+    public String getSecurityGroupName();
 
-	/**
-	 * Returns the desired size for this cluster.
-	 * 
-	 * @return The desired size for this cluster.
-	 */
-	public int getClusterSize();
+    /**
+     * Returns the desired size for this cluster.
+     * 
+     * @return The desired size for this cluster.
+     */
+    public int getClusterSize();
 
-	/**
-	 * Returns the optional Elastic IP associated with this cluster.
-	 * 
-	 * @return The optional Elastic IP associated with this cluster.
-	 */
-	public String getElasticIp();
+    /**
+     * Returns the optional Elastic IP associated with this cluster.
+     * 
+     * @return The optional Elastic IP associated with this cluster.
+     */
+    public String getElasticIp();
 
-	/**
-	 * Returns the name of the Amazon EC2 region in which this cluster is to
-	 * run.
-	 * 
-	 * @return The name of the Amazon EC2 region in which this cluster is to
-	 *         run.
-	 */
-	public String getEc2RegionName();
+    /**
+     * Returns the name of the Amazon EC2 region in which this cluster is to
+     * run.
+     * 
+     * @return The name of the Amazon EC2 region in which this cluster is to
+     *         run.
+     */
+    public String getEc2RegionName();
 
-	/**
-	 * Returns the main port on which this cluster is configured to listen for
-	 * requests.
-	 * 
-	 * @return The main port on which this cluster is configured to listen for
-	 *         requests.
-	 */
-	public int getMainPort();
+    /**
+     * Returns the main port on which this cluster is configured to listen for
+     * requests.
+     * 
+     * @return The main port on which this cluster is configured to listen for
+     *         requests.
+     */
+    public int getMainPort();
 
-	/**
-	 * Returns the name of the key pair required to log into the instances in
-	 * this cluster.
-	 * 
-	 * @return The name of the key pair required to log into the instances in
-	 *         this cluster.
-	 */
-	public String getKeyPairName();
+    /**
+     * Returns the name of the key pair required to log into the instances in
+     * this cluster.
+     * 
+     * @return The name of the key pair required to log into the instances in
+     *         this cluster.
+     */
+    public String getKeyPairName();
 
-	/**
-	 * Returns the ID of the Amazon EC2 instance type for the hosts in this
-	 * cluster.
-	 * 
-	 * @return The ID of the Amazon EC2 instance type for the hosts in this
-	 *         cluster.
-	 */
-	public String getEc2InstanceType();
+    /**
+     * Returns the ID of the Amazon EC2 instance type for the hosts in this
+     * cluster.
+     * 
+     * @return The ID of the Amazon EC2 instance type for the hosts in this
+     *         cluster.
+     */
+    public String getEc2InstanceType();
 
-	/**
-	 * Returns the Amazon EC2 service endpoint with which this cluster
-	 * communicates.
-	 * 
-	 * @return The Amazon EC2 service endpoint with which this cluster
-	 *         communicates.
-	 */
-	public String getEc2RegionEndpoint();
+    /**
+     * Returns the Amazon EC2 service endpoint with which this cluster
+     * communicates.
+     * 
+     * @return The Amazon EC2 service endpoint with which this cluster
+     *         communicates.
+     */
+    public String getEc2RegionEndpoint();
 
 }

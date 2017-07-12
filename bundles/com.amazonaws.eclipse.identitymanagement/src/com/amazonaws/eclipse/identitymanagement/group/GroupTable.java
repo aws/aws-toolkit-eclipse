@@ -61,6 +61,7 @@ public class GroupTable extends AbstractGroupTable {
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if (viewer.getTable().getSelectionCount() > 0) {
 
@@ -119,6 +120,7 @@ public class GroupTable extends AbstractGroupTable {
         viewer.getTable().setMenu(menuManager.createContextMenu(viewer.getTable()));
 
         viewer.getTable().addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 int index = viewer.getTable().getSelectionIndex();
                 if (index >= 0) {

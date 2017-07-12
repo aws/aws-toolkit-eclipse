@@ -100,6 +100,7 @@ public class RoleSummary extends Composite {
         public void run() {
             try {
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         if (role != null) {
                             roleARNLabel.setText(role.getArn());

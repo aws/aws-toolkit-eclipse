@@ -413,7 +413,7 @@ public class FunctionConfigurationComposite extends Composite {
         String memoryErrMsg = String.format(
                 "Please enter a memory size within the range of [%d, %d]",
                 MIN_MEMORY, MAX_MEMORY);
-        ChainValidator<Long> memoryValidator = new ChainValidator<Long>(
+        ChainValidator<Long> memoryValidator = new ChainValidator<>(
                 memoryModelObservable, new RangeValidator(memoryErrMsg,
                         MIN_MEMORY, MAX_MEMORY));
         bindingContext.addValidationStatusProvider(memoryValidator);
@@ -423,7 +423,7 @@ public class FunctionConfigurationComposite extends Composite {
         String timeoutErrMsg = String.format(
                 "Please enter a timeout within the range of [%d, %d]",
                 MIN_TIMEOUT, MAX_TIMEOUT);
-        ChainValidator<Long> timeoutValidator = new ChainValidator<Long>(
+        ChainValidator<Long> timeoutValidator = new ChainValidator<>(
                 timeoutModelObservable, new RangeValidator(timeoutErrMsg,
                         MIN_TIMEOUT, MAX_TIMEOUT));
         bindingContext.addValidationStatusProvider(timeoutValidator);
@@ -519,6 +519,7 @@ public class FunctionConfigurationComposite extends Composite {
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadS3BucketsInFunctionRegionThread.this) {
@@ -564,7 +565,7 @@ public class FunctionConfigurationComposite extends Composite {
      * Async loading of IAM roles. IAM roles are only loaded once.
      */
 
-    private List<Role> allRolesSortedByName = new LinkedList<Role>();
+    private List<Role> allRolesSortedByName = new LinkedList<>();
     private String roleArnToBeSelectedAfterRolesAreLoaded;
 
     private void selectRoleByArn(String roleArn) {
@@ -597,6 +598,7 @@ public class FunctionConfigurationComposite extends Composite {
 
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 roleNameCombo.setItems(new String[] { LOADING });
                 roleNameCombo.select(0);
@@ -606,6 +608,7 @@ public class FunctionConfigurationComposite extends Composite {
 
         Display.getDefault().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
                 try {
 
@@ -622,8 +625,8 @@ public class FunctionConfigurationComposite extends Composite {
                         roleLoadedObservable.setValue(false);
 
                     } else {
-                        List<String> allRoleNames = new LinkedList<String>();
-                        Map<String, Role> allRolesMap = new HashMap<String, Role>();
+                        List<String> allRoleNames = new LinkedList<>();
+                        Map<String, Role> allRolesMap = new HashMap<>();
                         for (Role role : roles) {
                             allRoleNames.add(role.getRoleName());
                             allRolesMap.put(role.getRoleName(), role);

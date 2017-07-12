@@ -76,19 +76,20 @@ public class CreateTableSecondPage extends WizardPage {
         setMessage(OK_MESSAGE);
         setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_AWS_LOGO));
         
-        localSecondaryIndexes = new LinkedList<LocalSecondaryIndex>();
+        localSecondaryIndexes = new LinkedList<>();
         wizard.getDataModel().setLocalSecondaryIndexes(localSecondaryIndexes);
         
-        localSecondaryIndexKeyAttributes = new LinkedList<AttributeDefinition>();
+        localSecondaryIndexKeyAttributes = new LinkedList<>();
         
-        globalSecondaryIndexes = new LinkedList<GlobalSecondaryIndex>();
+        globalSecondaryIndexes = new LinkedList<>();
         wizard.getDataModel().setGlobalSecondaryIndexes(globalSecondaryIndexes);
         
-        globalSecondaryIndexKeyAttributes = new LinkedList<List<AttributeDefinition>>();
+        globalSecondaryIndexKeyAttributes = new LinkedList<>();
         
         this.wizard = wizard;
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite comp = new Composite(parent, SWT.NONE);
 
@@ -105,6 +106,7 @@ public class CreateTableSecondPage extends WizardPage {
         addLSIButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addLSIButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (localSecondaryIndexes.size() >= MAX_NUM_LSI) {
                     new MessageDialog(getShell(), "Validation Error", null, "A table cannot have more than five local secondary indexes.", MessageDialog.ERROR, new String[] { "OK", "CANCEL" }, 0).open();
@@ -123,6 +125,7 @@ public class CreateTableSecondPage extends WizardPage {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -182,6 +185,7 @@ public class CreateTableSecondPage extends WizardPage {
         addGSIButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addGSIButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (globalSecondaryIndexes.size() >= MAX_NUM_GSI) {
                     new MessageDialog(getShell(), "Validation Error", null, "A table cannot have more than five global secondary indexes.", MessageDialog.ERROR, new String[] { "OK", "CANCEL" }, 0).open();
@@ -198,6 +202,7 @@ public class CreateTableSecondPage extends WizardPage {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -280,7 +285,7 @@ public class CreateTableSecondPage extends WizardPage {
     }
 
     public Set<AttributeDefinition> getAllIndexKeyAttributeDefinitions() {
-        Set<AttributeDefinition> allAttrs = new HashSet<AttributeDefinition>();
+        Set<AttributeDefinition> allAttrs = new HashSet<>();
         
         for (AttributeDefinition lsiKey : localSecondaryIndexKeyAttributes) {
             allAttrs.add(lsiKey);
@@ -327,6 +332,7 @@ public class CreateTableSecondPage extends WizardPage {
             menuManager.setRemoveAllWhenShown(true);
             menuManager.addMenuListener(new IMenuListener() {
 
+                @Override
                 public void menuAboutToShow(IMenuManager manager) {
                     if (viewer.getTable().getSelectionCount() > 0) {
 
@@ -374,23 +380,29 @@ public class CreateTableSecondPage extends WizardPage {
         }
 
         protected static abstract class IndexTableLabelProvider implements ITableLabelProvider {
+            @Override
             public void addListener(ILabelProviderListener listener) {
             }
 
+            @Override
             public void removeListener(ILabelProviderListener listener) {
             }
 
+            @Override
             public void dispose() {
             }
 
+            @Override
             public boolean isLabelProperty(Object element, String property) {
                 return false;
             }
 
+            @Override
             public Image getColumnImage(Object element, int columnIndex) {
                 return null;
             }
 
+            @Override
             public abstract String getColumnText(Object element, int columnIndex);
         }
         
@@ -426,7 +438,7 @@ public class CreateTableSecondPage extends WizardPage {
                 return CreateTablePageUtil.stringJoin(indexProjection.getNonKeyAttributes(), DELIM);
             } else {
                 // Primary keys
-                Set<String> projectedKeys = new HashSet<String>();
+                Set<String> projectedKeys = new HashSet<>();
                 returnString += dataModel.getHashKeyName() + DELIM;
                 projectedKeys.add(dataModel.getHashKeyName());
                 if (dataModel.getEnableRangeKey()) {

@@ -34,6 +34,7 @@ public class CodeDeployContentProvider extends AbstractContentProvider {
      * Abstract methods of AbstractContentProvider
      */
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof CodeDeployRootElement ||
@@ -69,7 +70,7 @@ public class CodeDeployContentProvider extends AbstractContentProvider {
                             .getAllDeploymentGroupInfos(client, appName);
 
                     // Wrap the DeploymentGroupInfo objects into DeploymentGroupNodes
-                    List<DeploymentGroupNode> nodes = new LinkedList<DeploymentGroupNode>();
+                    List<DeploymentGroupNode> nodes = new LinkedList<>();
 
                     for (DeploymentGroupInfo group : groups) {
                         DeploymentInfo mostRecentDeployment = ServiceAPIUtils
@@ -110,6 +111,7 @@ public class CodeDeployContentProvider extends AbstractContentProvider {
 
     private final IOpenListener listener = new IOpenListener() {
 
+        @Override
         public void open(OpenEvent event) {
             StructuredSelection selection = (StructuredSelection)event.getSelection();
 

@@ -100,7 +100,8 @@ public class InvokeFunctionInputDialog extends Dialog {
       inputBox.setLayoutData(gridData);
 
       inputBox.addModifyListener(new ModifyListener() {
-          public void modifyText(ModifyEvent e) {
+          @Override
+        public void modifyText(ModifyEvent e) {
               md.setLastInvokeInput(inputBox.getText());
           }
       });
@@ -144,6 +145,7 @@ public class InvokeFunctionInputDialog extends Dialog {
     private void loadJsonFilesAsync(final boolean showJsonFile) {
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 jsonInputFileCombo.setItems(new String[] {LOADING});
                 jsonInputFileCombo.select(0);
@@ -153,6 +155,7 @@ public class InvokeFunctionInputDialog extends Dialog {
 
         Display.getDefault().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
                 List<IFile> jsonFiles = null;
                 try {
@@ -182,9 +185,10 @@ public class InvokeFunctionInputDialog extends Dialog {
     }
 
     private List<IFile> findJsonFiles(IProject project) throws CoreException {
-        final List<IFile> jsonFiles = new LinkedList<IFile>();
+        final List<IFile> jsonFiles = new LinkedList<>();
 
         project.accept(new IResourceVisitor() {
+            @Override
             public boolean visit(IResource res) throws CoreException {
                 if (res instanceof IFile) {
                     IFile file = (IFile)res;

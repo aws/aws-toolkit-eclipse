@@ -30,7 +30,7 @@ import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.Environment
  */
 public class ScalingTriggerConfigEditorSection extends HumanReadableConfigEditorSection {
 
-    private static final Map<String, String> humanReadableNames = new HashMap<String, String>();
+    private static final Map<String, String> humanReadableNames = new HashMap<>();
     static {
         humanReadableNames.put("MeasureName", "Trigger Measurement");
         humanReadableNames.put("Statistic", "Trigger Statistic");

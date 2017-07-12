@@ -35,7 +35,6 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.layout.GridDataFactory;
-import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -50,7 +49,6 @@ import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.cloudformation.model.ParametersDataModel;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.databinding.DecorationChangeListener;
-import com.amazonaws.eclipse.databinding.NotEmptyValidator;
 import com.amazonaws.services.cloudformation.model.TemplateParameter;
 
 /**
@@ -131,7 +129,7 @@ public class ParametersComposite extends Composite {
                 paramControl = text;
 
                 // Add validators for the constraints listed in the template
-                List<IValidator> validators = new ArrayList<IValidator>();
+                List<IValidator> validators = new ArrayList<>();
 
                 if ( paramMap.containsKey(ALLOWED_PATTERN) ) {
                     String pattern = (String) paramMap.get(ALLOWED_PATTERN);
@@ -157,7 +155,7 @@ public class ParametersComposite extends Composite {
                 }
 
                 if ( !validators.isEmpty() ) {
-                    validationStatusProvider = new ChainValidator<String>(observeParameter,
+                    validationStatusProvider = new ChainValidator<>(observeParameter,
                             validators.toArray(new IValidator[validators.size()]));
                 }
             }

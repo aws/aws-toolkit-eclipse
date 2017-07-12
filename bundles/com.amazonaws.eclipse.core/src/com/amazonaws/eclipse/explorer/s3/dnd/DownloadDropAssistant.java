@@ -193,6 +193,7 @@ public class DownloadDropAssistant extends CommonDropAdapterAssistant {
             // file selection dialog.
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         dropFolder.refreshLocal(1, monitor);

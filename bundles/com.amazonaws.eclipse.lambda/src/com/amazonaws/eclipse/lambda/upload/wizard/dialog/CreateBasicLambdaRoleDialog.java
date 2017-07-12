@@ -99,6 +99,7 @@ public class CreateBasicLambdaRoleDialog extends AbstractInputDialog {
         // Sleep for 10 seconds so that the policy change can be fully populated
 
         Display.getDefault().syncExec(new Runnable() {
+            @Override
             public void run() {
                 setMessage("Role created. Waiting for the attached role policy to be fully available...");
             }

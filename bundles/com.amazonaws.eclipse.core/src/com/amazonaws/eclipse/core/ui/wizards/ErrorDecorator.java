@@ -70,6 +70,7 @@ public class ErrorDecorator implements IValueChangeListener {
      *
      * @param event the value change event
      */
+    @Override
     public void handleValueChange(final ValueChangeEvent event) {
         update((IStatus) event.getObservableValue().getValue());
     }

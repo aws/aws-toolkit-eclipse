@@ -27,7 +27,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
  */
 class EditedItem {
 
-    private final Set<String> editedAttributes = new HashSet<String>();
+    private final Set<String> editedAttributes = new HashSet<>();
     private Map<String, AttributeValue> attributes;
     private final TableItem tableItem;
 

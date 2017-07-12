@@ -29,7 +29,7 @@ import com.amazonaws.eclipse.core.regions.RegionUtils;
  */
 public class DefaultAccountMonitor extends AbstractPreferencePropertyMonitor{
 
-    private static final Set<String> watchedProperties = new HashSet<String>();
+    private static final Set<String> watchedProperties = new HashSet<>();
     static {
         watchedProperties.add(PreferenceConstants.P_GLOBAL_CURRENT_DEFAULT_ACCOUNT);
         watchedProperties.add(PreferenceConstants.P_REGIONS_WITH_DEFAULT_ACCOUNTS);

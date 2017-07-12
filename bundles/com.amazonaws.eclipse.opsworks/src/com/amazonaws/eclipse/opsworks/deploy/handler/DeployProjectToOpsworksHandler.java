@@ -29,6 +29,7 @@ import com.amazonaws.eclipse.opsworks.deploy.wizard.DeployProjectToOpsworksWizar
 
 public class DeployProjectToOpsworksHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)

@@ -31,7 +31,7 @@ public final class CompositeBuilder
     private GridLayout layout;
 
     public CompositeBuilder() {
-        children = new ArrayList<WidgetBuilder>();
+        children = new ArrayList<>();
     }
 
     public GridLayout getLayout() {
@@ -123,6 +123,7 @@ public final class CompositeBuilder
         return this;
     }
 
+    @Override
     public Composite build(final Composite parent) {
         Composite composite = new Composite(parent, getStyle());
 

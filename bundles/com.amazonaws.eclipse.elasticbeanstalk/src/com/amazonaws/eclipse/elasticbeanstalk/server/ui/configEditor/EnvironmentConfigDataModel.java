@@ -49,7 +49,7 @@ import com.amazonaws.services.elasticbeanstalk.model.DescribeConfigurationOption
  */
 public class EnvironmentConfigDataModel {
 
-    private static final Map<Environment, EnvironmentConfigDataModel> models = new HashMap<Environment, EnvironmentConfigDataModel>();
+    private static final Map<Environment, EnvironmentConfigDataModel> models = new HashMap<>();
 
     private final Environment environment;
     private final IObservableMap dataModel;
@@ -63,9 +63,9 @@ public class EnvironmentConfigDataModel {
     private EnvironmentConfigDataModel(Environment environment) {
         this.environment = environment;
         this.dataModel = new WritableMap();
-        this.sharedObservables = new HashMap<OptionKey, IObservableValue>();
-        this.listeners = new LinkedList<RefreshListener>();
-        this.options = new LinkedList<ConfigurationOptionDescription>();
+        this.sharedObservables = new HashMap<>();
+        this.listeners = new LinkedList<>();
+        this.options = new LinkedList<>();
         this.ignoredOptions = IgnoredOptions.getDefault();
     }
 
@@ -193,7 +193,7 @@ public class EnvironmentConfigDataModel {
      * changed event if their contents are equal.
      */
     void synchronizeSets(ConfigurationOptionSetting setting, OptionKey key) {
-        Set<String> settingValues = new HashSet<String>();
+        Set<String> settingValues = new HashSet<>();
 
         @SuppressWarnings("unchecked")
         Collection<String> modelValues = ((Collection<String>) dataModel.get(key));
@@ -254,13 +254,13 @@ public class EnvironmentConfigDataModel {
         } catch (AmazonServiceException e) {
             if ( "InvalidParameterValue".equals(e.getErrorCode()) ) {
                 // If the environment doesn't exist yet...
-                return new ArrayList<ConfigurationOptionDescription>();
+                return new ArrayList<>();
             } else {
                 throw e;
             }
         }
 
-        List<ConfigurationOptionDescription> options = new ArrayList<ConfigurationOptionDescription>();
+        List<ConfigurationOptionDescription> options = new ArrayList<>();
         for ( ConfigurationOptionDescription desc : optionsDesc.getOptions() ) {
             if (!ignoredOptions.isOptionIgnored(desc.getNamespace(), desc.getName())) {
                 options.add(desc);
@@ -268,6 +268,7 @@ public class EnvironmentConfigDataModel {
         }
         Collections.sort(options, new Comparator<ConfigurationOptionDescription>() {
 
+            @Override
             public int compare(ConfigurationOptionDescription o1, ConfigurationOptionDescription o2) {
                 if ( o1.getNamespace().equals(o2.getNamespace()) ) {
                     return o1.getName().compareTo(o2.getName());
@@ -311,7 +312,7 @@ public class EnvironmentConfigDataModel {
      * Sorts the list of settings given into a map keyed by namespace.
      */
     public Map<String, List<ConfigurationOptionSetting>> createSettingsMap(List<ConfigurationSettingsDescription> settings) {
-        Map<String, List<ConfigurationOptionSetting>> options = new HashMap<String, List<ConfigurationOptionSetting>>();
+        Map<String, List<ConfigurationOptionSetting>> options = new HashMap<>();
         for ( ConfigurationOptionSetting opt : settings.get(0).getOptionSettings() ) {
             if ( !options.containsKey(opt.getNamespace()) ) {
                 options.put(opt.getNamespace(), new ArrayList<ConfigurationOptionSetting>());
@@ -325,7 +326,7 @@ public class EnvironmentConfigDataModel {
      * Transforms the model into a list of configuration option settings.
      */
     public Collection<ConfigurationOptionSetting> createConfigurationOptions() {
-        Collection<ConfigurationOptionSetting> settings = new ArrayList<ConfigurationOptionSetting>();
+        Collection<ConfigurationOptionSetting> settings = new ArrayList<>();
 
         for ( Object key : dataModel.keySet() ) {
             OptionKey option = (OptionKey) key;
@@ -404,6 +405,7 @@ public class EnvironmentConfigDataModel {
 
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         synchronized (RefreshThread.this) {
                             if ( !isCanceled() )

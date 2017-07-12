@@ -24,8 +24,6 @@ import java.util.UUID;
 import org.apache.http.annotation.NotThreadSafe;
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.internal.Profile;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.preferences.PluginPreferenceStoreAccountOptionalConfiguration;
@@ -288,7 +286,7 @@ public final class AwsPluginAccountManager {
             return Collections.<String, String>emptyMap();
         }
 
-        Map<String, String> allAccountNames = new LinkedHashMap<String, String>();
+        Map<String, String> allAccountNames = new LinkedHashMap<>();
         for (Entry<String, AccountInfo> entry : allAccountInfo.entrySet()) {
             allAccountNames.put(
                     entry.getKey(),
@@ -306,7 +304,7 @@ public final class AwsPluginAccountManager {
             return Collections.<String, String>emptyMap();
         }
 
-        Map<String, String> allAccountIds = new LinkedHashMap<String, String>();
+        Map<String, String> allAccountIds = new LinkedHashMap<>();
         for (Entry<String, AccountInfo> entry : allAccountInfo.entrySet()) {
             allAccountIds.put(
                     entry.getValue().getAccountName(),

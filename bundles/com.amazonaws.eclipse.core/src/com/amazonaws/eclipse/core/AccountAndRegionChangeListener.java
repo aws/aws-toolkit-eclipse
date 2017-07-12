@@ -25,10 +25,12 @@ import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
  */
 public abstract class AccountAndRegionChangeListener implements AccountInfoChangeListener, PreferencePropertyChangeListener{
 
+    @Override
     public void watchedPropertyChanged() {
         onAccountOrRegionChange();
     }
 
+    @Override
     public void onAccountInfoChange() {
         onAccountOrRegionChange();
     }

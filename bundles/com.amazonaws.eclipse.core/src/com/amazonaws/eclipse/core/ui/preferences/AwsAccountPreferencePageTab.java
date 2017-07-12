@@ -60,8 +60,6 @@ import org.eclipse.ui.forms.events.IExpansionListener;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.Section;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.internal.Profile;
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
@@ -124,7 +122,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
     /**
      * Additional listeners to be notified when the account information is modified
      */
-    private final List<ModifyListener> accountInfoFieldEditorListeners = new LinkedList<ModifyListener>();
+    private final List<ModifyListener> accountInfoFieldEditorListeners = new LinkedList<>();
 
     /** Page controls */
     BooleanFieldEditor enableRegionDefaultAccount;
@@ -144,7 +142,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
      * The set of field editors that need to know when the account or its name
      * changes.
      */
-    private final Collection<AccountInfoPropertyEditor> accountFieldEditors = new LinkedList<AccountInfoPropertyEditor>();
+    private final Collection<AccountInfoPropertyEditor> accountFieldEditors = new LinkedList<>();
 
     /** The checkbox controlling how we display the secret key */
     private Button hideSecretKeyCheckbox;
@@ -246,7 +244,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
      * Returns names of all the accounts.
      */
     public List<String> getAccountNames() {
-        List<String> accountNames = new LinkedList<String>();
+        List<String> accountNames = new LinkedList<>();
         for (AccountInfo account : accountInfoByIdentifier.values()) {
             accountNames.add(account.getAccountName());
         }
@@ -259,7 +257,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
      * @return True if duplicate account names are found in this tab.
      */
     public boolean checkDuplicateAccountName() {
-        Set<String> accountNames = new HashSet<String>();
+        Set<String> accountNames = new HashSet<>();
         for (String accountName : getAccountNames()) {
             if (!accountNames.add(accountName)) {
                 return true;
@@ -344,6 +342,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
                 false, false));
         removeTabButton.addSelectionListener(new SelectionAdapter() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 MessageDialog confirmRemoveTabDialog = new MessageDialog(
                         Display.getDefault().getActiveShell(),
@@ -426,7 +425,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
                     .getInternalAccountId();
         }
 
-        final List<AccountInfo> allAccounts = new LinkedList<AccountInfo>(
+        final List<AccountInfo> allAccounts = new LinkedList<>(
                 accountInfoByIdentifier.values());
 
         setUpAccountSelectorItems(allAccounts, currentRegionAccount);
@@ -437,6 +436,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
         accountSelector
                 .addSelectionChangedListener(new ISelectionChangedListener() {
 
+                    @Override
                     public void selectionChanged(SelectionChangedEvent event) {
                         IStructuredSelection selection = (IStructuredSelection) event
                                 .getSelection();
@@ -531,6 +531,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
 
         accountSelector.getCombo().addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(ModifyEvent arg0) {
                 if (accountSelector.getCombo().getItemCount() > 1) {
                     deleteAccount.setEnabled(true);
@@ -631,6 +632,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
                 "Show secret access key", false);
 
         hideSecretKeyCheckbox.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 updateSecretKeyText();
             }
@@ -650,6 +652,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
         useSessionTokenCheckbox = createCheckbox(awsAccountGroup,
                 "Use session token", false);
         useSessionTokenCheckbox.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 boolean useSessionToken = useSessionTokenCheckbox.getSelection();
                 AccountInfo currentAccount = accountInfoByIdentifier.get(currentRegionAccountId);
@@ -716,9 +719,11 @@ public class AwsAccountPreferencePageTab extends TabItem {
 
         expandableComposite.addExpansionListener(new IExpansionListener() {
 
+            @Override
             public void expansionStateChanging(ExpansionEvent e) {
             }
 
+            @Override
             public void expansionStateChanged(ExpansionEvent e) {
                 parent.getParent().layout();
             }
@@ -763,6 +768,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
             enableRegionDefaultAccount
                     .setPropertyChangeListener(new IPropertyChangeListener() {
 
+                        @Override
                         public void propertyChange(PropertyChangeEvent event) {
                             boolean enabled = (Boolean) event.getNewValue();
                             AwsAccountPreferencePageTab.this
@@ -935,6 +941,7 @@ public class AwsAccountPreferencePageTab extends TabItem {
 
         // Validate the page whenever the editors are touched
         fieldEditor.getTextControl().addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 /*
                  * Since the data-binding also observes the Modify event on the

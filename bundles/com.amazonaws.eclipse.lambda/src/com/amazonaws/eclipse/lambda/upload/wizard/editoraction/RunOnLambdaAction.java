@@ -21,6 +21,7 @@ import com.amazonaws.eclipse.lambda.invoke.handler.InvokeFunctionHandler;
 
 public class RunOnLambdaAction extends AbstractLambdaEditorAction {
 
+    @Override
     public void run(IAction action) {
         LambdaAnalytics.trackInvokeDialogOpenedFromEditorContextMenu();
         InvokeFunctionHandler.invokeLambdaFunctionProject(javaProject.getProject());

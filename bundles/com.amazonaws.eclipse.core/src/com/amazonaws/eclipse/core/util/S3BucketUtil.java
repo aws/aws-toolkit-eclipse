@@ -37,11 +37,12 @@ public class S3BucketUtil {
 
         ExecutorService es = Executors.newFixedThreadPool(threads);
 
-        final CopyOnWriteArrayList<Bucket> result = new CopyOnWriteArrayList<Bucket>();
+        final CopyOnWriteArrayList<Bucket> result = new CopyOnWriteArrayList<>();
         final CountDownLatch latch = new CountDownLatch(buckets.size());
 
         for (final Bucket bucket : buckets) {
             es.submit(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         if (isBucketInRegion(s3, bucket, region)) {

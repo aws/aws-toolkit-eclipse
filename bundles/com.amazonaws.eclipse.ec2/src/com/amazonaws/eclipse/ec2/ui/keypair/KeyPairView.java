@@ -26,6 +26,7 @@ import org.eclipse.ui.part.ViewPart;
  * An Eclipse view listing all available EC2 Key Pairs.
  */
 public class KeyPairView extends ViewPart {
+    @Override
     public void createPartControl(Composite parent) {
         parent.setLayout(new GridLayout(1, true));
         KeyPairComposite keyPairComposite = new KeyPairComposite(parent);
@@ -46,6 +47,7 @@ public class KeyPairView extends ViewPart {
     /**
      * Passing the focus request to the viewer's control.
      */
+    @Override
     public void setFocus() {
         // TODO:
     }

@@ -26,45 +26,45 @@ import com.amazonaws.eclipse.ec2.Ec2Plugin;
  * Action subclass for configuring AWS account information.
  */
 public class SetupAwsAccountAction extends Action {
-	
-	/** The id of the preference page to display */
-	private static final String EC2_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage";
-	private static final String KEYPAIR_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.ec2.preferences.KeyPairsPreferencePage";
-	private static final String REGION_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.core.ui.preferences.RegionsPreferencePage";
-	private static final String EXTERNALTOOL_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage";
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#run()
-	 */
-	@Override
-	public void run() {
-		PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
-				null, EC2_PREFERENCE_PAGE_ID, new String[] {EC2_PREFERENCE_PAGE_ID, EXTERNALTOOL_PREFERENCE_PAGE_ID, KEYPAIR_PREFERENCE_PAGE_ID, REGION_PREFERENCE_PAGE_ID}, null);			
-		dialog.open();
-	}
+    
+    /** The id of the preference page to display */
+    private static final String EC2_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage";
+    private static final String KEYPAIR_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.ec2.preferences.KeyPairsPreferencePage";
+    private static final String REGION_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.core.ui.preferences.RegionsPreferencePage";
+    private static final String EXTERNALTOOL_PREFERENCE_PAGE_ID = "com.amazonaws.eclipse.ec2.preferences.ExternalToolsPreferencePage";
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#run()
+     */
+    @Override
+    public void run() {
+        PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
+                null, EC2_PREFERENCE_PAGE_ID, new String[] {EC2_PREFERENCE_PAGE_ID, EXTERNALTOOL_PREFERENCE_PAGE_ID, KEYPAIR_PREFERENCE_PAGE_ID, REGION_PREFERENCE_PAGE_ID}, null);            
+        dialog.open();
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#getImageDescriptor()
-	 */
-	@Override
-	public ImageDescriptor getImageDescriptor() {
-		return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("configure");
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#getImageDescriptor()
+     */
+    @Override
+    public ImageDescriptor getImageDescriptor() {
+        return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("configure");
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#getText()
-	 */
-	@Override
-	public String getText() {
-		return "Configure your AWS account info";
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#getText()
+     */
+    @Override
+    public String getText() {
+        return "Configure your AWS account info";
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.action.Action#getToolTipText()
-	 */
-	@Override
-	public String getToolTipText() {
-		return "Configure your AWS account information";
-	}			
-	
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.action.Action#getToolTipText()
+     */
+    @Override
+    public String getToolTipText() {
+        return "Configure your AWS account information";
+    }            
+    
 }

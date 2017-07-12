@@ -36,8 +36,8 @@ public class SimpleDBItem {
 
     public SimpleDBItem(final Item item) {
         this.itemName = item.getName();
-        this.attributes = new TreeMap<String, Collection<String>>();
-        this.columns = new ArrayList<String>();
+        this.attributes = new TreeMap<>();
+        this.columns = new ArrayList<>();
 
         String currCol = null;
         for ( Attribute att : item.getAttributes() ) {

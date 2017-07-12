@@ -47,6 +47,7 @@ public abstract class AbstractOpenAwsEditorAction extends Action {
         final IEditorInput input = createEditorInput(endpoint, accountId);
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();

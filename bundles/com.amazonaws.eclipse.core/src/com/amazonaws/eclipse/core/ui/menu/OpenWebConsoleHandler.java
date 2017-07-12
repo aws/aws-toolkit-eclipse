@@ -23,6 +23,7 @@ import com.amazonaws.eclipse.core.BrowserUtils;
 
 public class OpenWebConsoleHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         BrowserUtils.openExternalBrowser(AwsUrls.AWS_MANAGEMENT_CONSOLE_URL);
         return null;

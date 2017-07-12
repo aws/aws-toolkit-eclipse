@@ -92,6 +92,7 @@ public class SelectOrInputStackComposite extends SelectOrInputComposite<StackSum
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadCFStackInFunctionRegionThread.this) {

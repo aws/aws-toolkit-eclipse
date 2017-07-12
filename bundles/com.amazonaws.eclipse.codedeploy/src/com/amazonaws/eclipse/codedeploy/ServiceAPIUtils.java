@@ -32,7 +32,7 @@ public class ServiceAPIUtils {
 
     public static List<String> getAllApplicationNames(AmazonCodeDeploy client) {
 
-        List<String> allAppNames = new LinkedList<String>();
+        List<String> allAppNames = new LinkedList<>();
         String nextToken = null;
 
         do {
@@ -54,7 +54,7 @@ public class ServiceAPIUtils {
 
     public static List<ApplicationInfo> getAllApplicationInfos(AmazonCodeDeploy client) {
 
-        List<ApplicationInfo> allAppInfos = new LinkedList<ApplicationInfo>();
+        List<ApplicationInfo> allAppInfos = new LinkedList<>();
 
         List<String> allAppNames = getAllApplicationNames(client);
         if (allAppNames != null && !allAppNames.isEmpty()) {
@@ -73,7 +73,7 @@ public class ServiceAPIUtils {
     public static List<String> getAllDeploymentGroupNames(
             AmazonCodeDeploy client, String applicationName) {
 
-        List<String> allDeployGroupNames = new LinkedList<String>();
+        List<String> allDeployGroupNames = new LinkedList<>();
         String nextToken = null;
 
         do {
@@ -97,7 +97,7 @@ public class ServiceAPIUtils {
     public static List<DeploymentGroupInfo> getAllDeploymentGroupInfos(
             AmazonCodeDeploy client, String applicationName) {
 
-        List<DeploymentGroupInfo> allDeployGroupInfos = new LinkedList<DeploymentGroupInfo>();
+        List<DeploymentGroupInfo> allDeployGroupInfos = new LinkedList<>();
 
         List<String> allDeployGroupNames = getAllDeploymentGroupNames(client, applicationName);
         for (String deployGroupName : allDeployGroupNames) {
@@ -114,7 +114,7 @@ public class ServiceAPIUtils {
 
     public static List<String> getAllDeploymentConfigNames(AmazonCodeDeploy client) {
 
-        List<String> allConfigNames = new LinkedList<String>();
+        List<String> allConfigNames = new LinkedList<>();
         String nextToken = null;
 
         do {
@@ -138,7 +138,7 @@ public class ServiceAPIUtils {
             AmazonCodeDeploy client, String applicationName,
             String deploymentGroupName) {
 
-        List<DeploymentInfo> allDeploymentInfos = new LinkedList<DeploymentInfo>();
+        List<DeploymentInfo> allDeploymentInfos = new LinkedList<>();
         String nextToken = null;
 
         do {
@@ -193,6 +193,7 @@ public class ServiceAPIUtils {
 
         // Sort by creation data
         Collections.sort(latestDeploymentInfosPage, new Comparator<DeploymentInfo>() {
+            @Override
             public int compare(DeploymentInfo a, DeploymentInfo b) {
                 int a_to_b = a.getCreateTime().compareTo(b.getCreateTime());
                 // In descending order
@@ -207,7 +208,7 @@ public class ServiceAPIUtils {
     public static List<InstanceSummary> getAllDeploymentInstances(
             AmazonCodeDeploy client, String deploymentId) {
 
-        List<InstanceSummary> allDeploymentInstances = new LinkedList<InstanceSummary>();
+        List<InstanceSummary> allDeploymentInstances = new LinkedList<>();
         String nextToken = null;
 
         do {

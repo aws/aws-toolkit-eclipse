@@ -18,16 +18,12 @@ package com.amazonaws.eclipse.cloudformation.templates;
  * Represents a JSON value in a Template document.
  */
 public class TemplateValueNode extends TemplateNode {
-    private String text;
+    private final String text;
 
     public TemplateValueNode(String text) {
         this.text = text;
     }
 
-    public boolean isValue() {
-        return true;
-    }
-    
     public String getText() {
         return text;
     }

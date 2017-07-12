@@ -30,85 +30,94 @@ import com.amazonaws.services.ec2.model.SecurityGroup;
  * Label and content provider for the security group selection table.
  */
 class SecurityGroupTableProvider extends LabelProvider
-	implements ITreeContentProvider, ITableLabelProvider {
+    implements ITreeContentProvider, ITableLabelProvider {
 
-	List<SecurityGroup> securityGroups;
+    List<SecurityGroup> securityGroups;
 
-	/*
-	 * IStructuredContentProvider
-	 */
+    /*
+     * IStructuredContentProvider
+     */
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
-	 */
-	@SuppressWarnings("unchecked")
-	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-		if (!(newInput instanceof List)) return;
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+        if (!(newInput instanceof List)) return;
 
-		securityGroups = (List<SecurityGroup>)newInput;
-	}
+        securityGroups = (List<SecurityGroup>)newInput;
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.BaseLabelProvider#dispose()
-	 */
-	public void dispose() {
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.viewers.BaseLabelProvider#dispose()
+     */
+    @Override
+    public void dispose() {
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
-	 */
-	public Object[] getElements(Object parent) {
-		return securityGroups.toArray();
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
+     */
+    @Override
+    public Object[] getElements(Object parent) {
+        return securityGroups.toArray();
+    }
 
 
-	/*
-	 * ITableLabelProvider Interface
-	 */
+    /*
+     * ITableLabelProvider Interface
+     */
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
-	 */
-	public String getColumnText(Object obj, int index) {
-		if (!(obj instanceof SecurityGroup)) return "???";
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
+     */
+    @Override
+    public String getColumnText(Object obj, int index) {
+        if (!(obj instanceof SecurityGroup)) return "???";
 
-		SecurityGroup securityGroup = (SecurityGroup)obj;
+        SecurityGroup securityGroup = (SecurityGroup)obj;
 
-		switch (index) {
-		case 0:
-			return securityGroup.getGroupName();
-		case 1:
-			return securityGroup.getDescription();
-		}
+        switch (index) {
+        case 0:
+            return securityGroup.getGroupName();
+        case 1:
+            return securityGroup.getDescription();
+        }
 
-		return "N/A";
-	}
+        return "N/A";
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
-	 */
-	public Image getColumnImage(Object obj, int index) {
-		if (index == 0)
-		    return Ec2Plugin.getDefault().getImageRegistry().get("shield");
-		return null;		
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
+     */
+    @Override
+    public Image getColumnImage(Object obj, int index) {
+        if (index == 0)
+            return Ec2Plugin.getDefault().getImageRegistry().get("shield");
+        return null;        
+    }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.viewers.LabelProvider#getImage(java.lang.Object)
-	 */
-	public Image getImage(Object obj) {
-		return null;
-	}
+    /* (non-Javadoc)
+     * @see org.eclipse.jface.viewers.LabelProvider#getImage(java.lang.Object)
+     */
+    @Override
+    public Image getImage(Object obj) {
+        return null;
+    }
 
-	public Object[] getChildren(Object parentElement) {
-		return new Object[0];
-	}
+    @Override
+    public Object[] getChildren(Object parentElement) {
+        return new Object[0];
+    }
 
-	public Object getParent(Object element) {
-		return null;
-	}
+    @Override
+    public Object getParent(Object element) {
+        return null;
+    }
 
-	public boolean hasChildren(Object element) {
-		return false;
-	}
+    @Override
+    public boolean hasChildren(Object element) {
+        return false;
+    }
 }

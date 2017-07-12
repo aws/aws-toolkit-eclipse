@@ -88,7 +88,7 @@ public class EditObjectTagsAction extends Action {
     }
 
     private KeyValueSetDataModel convertToDataModel(List<Tag> tags) {
-        List<Pair> pairList = new ArrayList<Pair>(tags.size());
+        List<Pair> pairList = new ArrayList<>(tags.size());
         for (Tag tag : tags) {
             pairList.add(new Pair(tag.getKey(), tag.getValue()));
         }
@@ -96,7 +96,7 @@ public class EditObjectTagsAction extends Action {
     }
 
     private List<Tag> convertFromDataModel(KeyValueSetDataModel dataModel) {
-        List<Tag> tags = new ArrayList<Tag>(dataModel.getPairSet().size());
+        List<Tag> tags = new ArrayList<>(dataModel.getPairSet().size());
         for (Pair pair : dataModel.getPairSet()) {
             tags.add(new Tag(pair.getKey(), pair.getValue()));
         }

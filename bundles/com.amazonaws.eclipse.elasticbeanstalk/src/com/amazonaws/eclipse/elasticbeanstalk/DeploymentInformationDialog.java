@@ -168,6 +168,7 @@ public class DeploymentInformationDialog extends MessageDialog {
         versionLabelText.setText(versionLabel);
         versionLabelText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
         versionLabelText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 versionLabel = versionLabelText.getText();
                 validate();
@@ -180,6 +181,7 @@ public class DeploymentInformationDialog extends MessageDialog {
         chooseADebugPort.setText("Remote debugging port:");
         debugPortText = new Text(parent, SWT.BORDER);
         debugPortText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 debugPort = debugPortText.getText();
                 validate();

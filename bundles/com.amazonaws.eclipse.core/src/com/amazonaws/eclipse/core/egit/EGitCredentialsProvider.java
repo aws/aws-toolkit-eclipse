@@ -118,6 +118,7 @@ public class EGitCredentialsProvider extends CredentialsProvider {
         final boolean[] result = new boolean[1];
 
         PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+            @Override
             public void run() {
                 Shell shell = PlatformUI.getWorkbench()
                         .getActiveWorkbenchWindow().getShell();
@@ -153,7 +154,7 @@ public class EGitCredentialsProvider extends CredentialsProvider {
      * @param uri the uri of the get request
      * @param item the item to handle
      * @return <code>true</code> if the request was successful and values were supplied;
-     * 		<code>false</code> if the user canceled the request and did not supply all requested values.
+     *         <code>false</code> if the user canceled the request and did not supply all requested values.
      */
     private boolean getSingleSpecial(Shell shell, URIish uri, CredentialItem item) {
         if (item instanceof CredentialItem.InformationalMessage) {
@@ -203,7 +204,7 @@ public class EGitCredentialsProvider extends CredentialsProvider {
      * @param uri the uri of the get request
      * @param items the items to handle
      * @return <code>true</code> if the request was successful and values were supplied;
-     * 		<code>false</code> if the user canceled the request and did not supply all requested values.
+     *         <code>false</code> if the user canceled the request and did not supply all requested values.
      */
     private boolean getMultiSpecial(Shell shell, URIish uri, CredentialItem... items) {
         CustomPromptDialog dialog = new CustomPromptDialog(shell, uri, UIText.EGitCredentialsProvider_information, items);
@@ -216,9 +217,10 @@ public class EGitCredentialsProvider extends CredentialsProvider {
     }
 
     private UserPasswordCredentials getCredentialsFromUser(final URIish uri) {
-        final AtomicReference<UserPasswordCredentials> aRef = new AtomicReference<UserPasswordCredentials>(
+        final AtomicReference<UserPasswordCredentials> aRef = new AtomicReference<>(
                 null);
         PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+            @Override
             public void run() {
                 Shell shell = PlatformUI.getWorkbench()
                         .getActiveWorkbenchWindow().getShell();

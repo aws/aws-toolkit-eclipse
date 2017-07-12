@@ -15,15 +15,18 @@
 package com.amazonaws.eclipse.cloudformation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.ListStacksRequest;
 import com.amazonaws.services.cloudformation.model.ListStacksResult;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.StackSummary;
+import com.amazonaws.services.cloudformation.model.Tag;
 
 public class CloudFormationUtils {
 
@@ -46,7 +49,7 @@ public class CloudFormationUtils {
     private static <T> List<T> listExistingStacks(String regionId, StackSummaryConverter<T> converter) {
         AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory().getCloudFormationClientByRegion(regionId);
 
-        List<T> newItems = new ArrayList<T>();
+        List<T> newItems = new ArrayList<>();
         ListStacksRequest request = new ListStacksRequest();
 
         ListStacksResult result = null;
@@ -66,5 +69,15 @@ public class CloudFormationUtils {
 
     public interface StackSummaryConverter<T> {
         T convert(StackSummary stack);
+    }
+
+    public static List<Tag> getTags(String stackName) {
+        AmazonCloudFormation cloudFormation = AwsToolkitCore.getClientFactory().getCloudFormationClient();
+        try {
+            return cloudFormation.describeStacks(new DescribeStacksRequest().withStackName(stackName)).getStacks().get(0).getTags();
+        } catch (Exception e) {
+            CloudFormationPlugin.getDefault().logError(e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 }

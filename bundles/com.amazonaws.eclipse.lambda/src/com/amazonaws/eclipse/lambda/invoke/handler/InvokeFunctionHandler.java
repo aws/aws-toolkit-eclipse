@@ -61,6 +61,7 @@ import com.amazonaws.util.StringUtils;
 
 public class InvokeFunctionHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)

@@ -30,6 +30,7 @@ public class S3ObjectSummaryDropAction implements IDropActionDelegate {
 
     public static final String ID = "com.amazonaws.eclipse.explorer.s3.objectSummaryDropAction";
 
+    @Override
     public boolean run(Object source, Object target) {
 
         BucketAndKey bk = new BucketAndKey((byte[]) source);
@@ -149,6 +150,7 @@ public class S3ObjectSummaryDropAction implements IDropActionDelegate {
             // file selection dialog.
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         dropFolder.refreshLocal(1, monitor);

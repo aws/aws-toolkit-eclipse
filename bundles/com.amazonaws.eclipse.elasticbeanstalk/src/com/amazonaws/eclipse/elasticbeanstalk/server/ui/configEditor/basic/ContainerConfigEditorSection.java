@@ -42,7 +42,7 @@ import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescript
  */
 public class ContainerConfigEditorSection extends HumanReadableConfigEditorSection {
 
-    private static final Map<String, String> humanReadableNames = new HashMap<String, String>();
+    private static final Map<String, String> humanReadableNames = new HashMap<>();
     static {
         humanReadableNames.put("Xms",                   "Initial JVM Heap Size (-Xms argument)");
         humanReadableNames.put("Xmx",                   "Maximum JVM Heap Size (-Xmx argument)");
@@ -116,6 +116,7 @@ public class ContainerConfigEditorSection extends HumanReadableConfigEditorSecti
         final IObservableValue enablementObservable = SWTObservables.observeSelection(enablement);
                 
         IValueChangeListener listener = new IValueChangeListener() {
+            @Override
             public void handleValueChange(ValueChangeEvent event) {
                 portText.setEnabled((Boolean) enablementObservable.getValue());
                 portLabel.setEnabled((Boolean) enablementObservable.getValue());
@@ -136,14 +137,17 @@ public class ContainerConfigEditorSection extends HumanReadableConfigEditorSecti
                 UpdateValueStrategy.POLICY_UPDATE);
         debugEnabledModelToTarget.setConverter(new IConverter() {
             
+            @Override
             public Object getToType() {
                 return Boolean.class;
             }
             
+            @Override
             public Object getFromType() {
                 return String.class;
             }
             
+            @Override
             public Object convert(Object fromObject) {
                 return ((String)fromObject).contains("-Xdebug");
             }
@@ -152,14 +156,17 @@ public class ContainerConfigEditorSection extends HumanReadableConfigEditorSecti
         
         debugEnabledTargetToModel.setConverter(new IConverter() {
 
+            @Override
             public Object getToType() {
                 return String.class;
             }
 
+            @Override
             public Object getFromType() {
                 return Boolean.class;
             }
 
+            @Override
             public Object convert(Object fromObject) {
                 String currentOptions = (String) jvmOptionsObservable.getValue();
 
@@ -189,14 +196,17 @@ public class ContainerConfigEditorSection extends HumanReadableConfigEditorSecti
                 UpdateValueStrategy.POLICY_UPDATE);
         portTargetToModel.setConverter(new IConverter() {
             
+            @Override
             public Object getToType() {
                 return String.class;
             }
             
+            @Override
             public Object getFromType() {
                 return String.class;
             }
             
+            @Override
             public Object convert(Object fromObject) {
                 String debugPort = (String) fromObject;
                 String currentOptions = (String) jvmOptionsObservable.getValue();
@@ -226,14 +236,17 @@ public class ContainerConfigEditorSection extends HumanReadableConfigEditorSecti
                 UpdateValueStrategy.POLICY_UPDATE);
         portModelToTarget.setConverter(new IConverter() {
             
+            @Override
             public Object getToType() {
                 return String.class;
             }
             
+            @Override
             public Object getFromType() {
                 return String.class;
             }
             
+            @Override
             public Object convert(Object fromObject) {
                 String debugPort = Environment.getDebugPort((String) fromObject);
                 if (debugPort != null)

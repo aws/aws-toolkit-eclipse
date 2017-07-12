@@ -86,6 +86,7 @@ public class CreateTableFirstPage extends WizardPage {
         writeCapacity = PojoObservables.observeValue(wizard.getDataModel(), "writeCapacity");
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite comp = new Composite(parent, SWT.NONE);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(comp);
@@ -96,7 +97,7 @@ public class CreateTableFirstPage extends WizardPage {
         tableNameLabel.setText("Table Name:");
         final Text tableNameText = CreateTablePageUtil.newTextField(comp);
         bindingContext.bindValue(SWTObservables.observeText(tableNameText, SWT.Modify), tableName);
-        ChainValidator<String> tableNameValidationStatusProvider = new ChainValidator<String>(tableName, new NotEmptyValidator("Please provide a table name"));
+        ChainValidator<String> tableNameValidationStatusProvider = new ChainValidator<>(tableName, new NotEmptyValidator("Please provide a table name"));
         bindingContext.addValidationStatusProvider(tableNameValidationStatusProvider);
 
         // Hash key
@@ -104,7 +105,7 @@ public class CreateTableFirstPage extends WizardPage {
         new Label(hashKeyGroup, SWT.READ_ONLY).setText("Hash Key Name:");
         final Text hashKeyText = CreateTablePageUtil.newTextField(hashKeyGroup);
         bindingContext.bindValue(SWTObservables.observeText(hashKeyText, SWT.Modify), hashKeyName);
-        ChainValidator<String> hashKeyNameValidationStatusProvider = new ChainValidator<String>(hashKeyName, new NotEmptyValidator("Please provide an attribute name for the hash key"));
+        ChainValidator<String> hashKeyNameValidationStatusProvider = new ChainValidator<>(hashKeyName, new NotEmptyValidator("Please provide an attribute name for the hash key"));
         bindingContext.addValidationStatusProvider(hashKeyNameValidationStatusProvider);
 
         new Label(hashKeyGroup, SWT.READ_ONLY).setText("Hash Key Type:");
@@ -123,7 +124,7 @@ public class CreateTableFirstPage extends WizardPage {
         rangeKeyAttributeLabel.setText("Range Key Name:");
         final Text rangeKeyText = CreateTablePageUtil.newTextField(rangeKeyGroup);
         bindingContext.bindValue(SWTObservables.observeText(rangeKeyText, SWT.Modify), rangeKeyName);
-        ChainValidator<String> rangeKeyNameValidationStatusProvider = new ChainValidator<String>(rangeKeyName, enableRangeKey, new NotEmptyValidator(
+        ChainValidator<String> rangeKeyNameValidationStatusProvider = new ChainValidator<>(rangeKeyName, enableRangeKey, new NotEmptyValidator(
                 "Please provide an attribute name for the range key"));
         bindingContext.addValidationStatusProvider(rangeKeyNameValidationStatusProvider);
 
@@ -161,7 +162,7 @@ public class CreateTableFirstPage extends WizardPage {
         final Text readCapacityText = CreateTablePageUtil.newTextField(throughputGroup);
         readCapacityText.setText("" + CAPACITY_UNIT_MINIMUM);
         bindingContext.bindValue(SWTObservables.observeText(readCapacityText, SWT.Modify), readCapacity);
-        ChainValidator<Long> readCapacityValidationStatusProvider = new ChainValidator<Long>(
+        ChainValidator<Long> readCapacityValidationStatusProvider = new ChainValidator<>(
                 readCapacity, new RangeValidator(
                         "Please enter a read capacity of " + CAPACITY_UNIT_MINIMUM + " or more.", CAPACITY_UNIT_MINIMUM,
                         Long.MAX_VALUE));
@@ -178,7 +179,7 @@ public class CreateTableFirstPage extends WizardPage {
         minimumWriteCapacityLabel.setText("(Minimum capacity " + CAPACITY_UNIT_MINIMUM + ")");
         minimumWriteCapacityLabel.setFont(italicFont);
         bindingContext.bindValue(SWTObservables.observeText(writeCapacityText, SWT.Modify), writeCapacity);
-        ChainValidator<Long> writeCapacityValidationStatusProvider = new ChainValidator<Long>(
+        ChainValidator<Long> writeCapacityValidationStatusProvider = new ChainValidator<>(
                 writeCapacity, new RangeValidator(
                         "Please enter a write capacity of " + CAPACITY_UNIT_MINIMUM + " or more.", CAPACITY_UNIT_MINIMUM,
                         Long.MAX_VALUE));
@@ -202,6 +203,7 @@ public class CreateTableFirstPage extends WizardPage {
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false)

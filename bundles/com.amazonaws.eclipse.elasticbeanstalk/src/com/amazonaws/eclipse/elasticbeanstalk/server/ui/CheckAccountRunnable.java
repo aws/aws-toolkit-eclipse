@@ -27,6 +27,7 @@ public final class CheckAccountRunnable implements IRunnableWithProgress {
         this.client = client;
     }
 
+    @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         try {
             monitor.beginTask("Checking connection to AWS Elastic Beanstalk...", IProgressMonitor.UNKNOWN);

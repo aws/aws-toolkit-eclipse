@@ -112,7 +112,7 @@ class CreateTableWizard extends Wizard {
         throughput.setReadCapacityUnits(dataModel.getReadCapacity());
         throughput.setWriteCapacityUnits(dataModel.getWriteCapacity());
         createTableRequest.setProvisionedThroughput(throughput);
-        List<KeySchemaElement> keySchema = new LinkedList<KeySchemaElement>();
+        List<KeySchemaElement> keySchema = new LinkedList<>();
         KeySchemaElement keySchemaElement = new KeySchemaElement();
         keySchemaElement.setAttributeName(dataModel.getHashKeyName());
         keySchemaElement.setKeyType(KeyType.HASH);
@@ -164,7 +164,7 @@ class CreateTableWizard extends Wizard {
     }
 
     private void init() {
-        UINameToValueMap = new HashMap<String, String>();
+        UINameToValueMap = new HashMap<>();
         UINameToValueMap.put("String", "S");
         UINameToValueMap.put("Number", "N");
         UINameToValueMap.put("Binary", "B");

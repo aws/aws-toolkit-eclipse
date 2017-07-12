@@ -59,7 +59,7 @@ public class ServiceExceptionParser {
             Matcher m = p.matcher(ase.getErrorMessage());
 
             if (m.matches()) {
-                Map<String, String> properties = new HashMap<String, String>();
+                Map<String, String> properties = new HashMap<>();
                 properties.put(PRINCIPAL, m.group(1));
                 properties.put(ACTION, m.group(2));
                 properties.put(RESOURCE, m.group(3));

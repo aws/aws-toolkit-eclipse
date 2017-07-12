@@ -70,7 +70,7 @@ public class OpenSQLScrapbookAction extends Action {
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         IEditorReference[] editors = window.getActivePage().getEditorReferences();
         int suffix = 0;
-        List<String> editorNameList = new ArrayList<String>();
+        List<String> editorNameList = new ArrayList<>();
         for (int i = 0; i < editors.length; i++) {
             editorNameList.add(editors[i].getName());
         }

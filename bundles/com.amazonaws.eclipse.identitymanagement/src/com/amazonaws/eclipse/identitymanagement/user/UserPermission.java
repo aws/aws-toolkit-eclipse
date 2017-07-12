@@ -61,12 +61,14 @@ public class UserPermission extends Composite {
         addPolicyButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addPolicyButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 AddUserPolicyDialog addUserPolicyDialog = new AddUserPolicyDialog(iam, Display.getCurrent().getActiveShell(), toolkit, user, userPermissionTable);
                 addUserPolicyDialog.open();
                 userPermissionTable.refresh();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });

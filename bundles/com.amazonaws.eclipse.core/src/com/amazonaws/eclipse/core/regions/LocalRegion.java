@@ -31,10 +31,10 @@ class LocalRegion implements Region {
     public static final LocalRegion INSTANCE = new LocalRegion();
 
     private final Map<String, String> serviceEndpoints =
-        new ConcurrentHashMap<String, String>();
+        new ConcurrentHashMap<>();
 
     private final Map<String, Service> servicesByName =
-        new ConcurrentHashMap<String, Service>();
+        new ConcurrentHashMap<>();
 
     private LocalRegion() {
     }
@@ -45,6 +45,7 @@ class LocalRegion implements Region {
      *
      * @return The display name for this region.
      */
+    @Override
     public String getName() {
         return "Local (localhost)";
     }
@@ -54,6 +55,7 @@ class LocalRegion implements Region {
      *
      * @return The unique system ID for this region.
      */
+    @Override
     public String getId() {
         return "local";
     }
@@ -65,6 +67,7 @@ class LocalRegion implements Region {
      *
      * @return A map of the available services in this region.
      */
+    @Override
     public Map<String, String> getServiceEndpoints() {
         return serviceEndpoints;
     }
@@ -77,6 +80,7 @@ class LocalRegion implements Region {
      *
      * @return A map of the available services in this region.
      */
+    @Override
     public Map<String, Service> getServicesByName() {
         return servicesByName;
     }
@@ -86,6 +90,7 @@ class LocalRegion implements Region {
      *
      * @see ServiceAbbreviations
      */
+    @Override
     public String getServiceEndpoint(String serviceName) {
         return serviceEndpoints.get(serviceName);
     }
@@ -95,6 +100,7 @@ class LocalRegion implements Region {
      *
      * @see ServiceAbbreviations
      */
+    @Override
     public boolean isServiceSupported(String serviceName) {
         return serviceEndpoints.containsKey(serviceName);
     }
@@ -102,6 +108,7 @@ class LocalRegion implements Region {
     /**
      * Returns the relative path to a small flag icon representing this region.
      */
+    @Override
     public String getFlagIconPath() {
         return null;
     }
@@ -109,6 +116,7 @@ class LocalRegion implements Region {
     /**
      * Returns the image for this region's flag.
      */
+    @Override
     public Image getFlagImage() {
         return AwsToolkitCore.getDefault().getImageRegistry()
             .get(AwsToolkitCore.IMAGE_AWS_ICON);
@@ -117,6 +125,7 @@ class LocalRegion implements Region {
     /**
      * Returns the flag's image descriptor.
      */
+    @Override
     public ImageDescriptor getFlagImageDescriptor() {
         return  AwsToolkitCore.getDefault().getImageRegistry()
             .getDescriptor(AwsToolkitCore.IMAGE_AWS_ICON);

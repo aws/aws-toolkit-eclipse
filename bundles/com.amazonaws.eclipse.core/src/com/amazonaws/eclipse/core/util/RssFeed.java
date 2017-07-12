@@ -41,7 +41,7 @@ public class RssFeed {
 
         @JacksonXmlElementWrapper(useWrapping=false)
         @JacksonXmlProperty(localName = "item")
-        private List<Item> items = new ArrayList<Item>();
+        private List<Item> items = new ArrayList<>();
 
         public List<Item> getItems() {
             return items;

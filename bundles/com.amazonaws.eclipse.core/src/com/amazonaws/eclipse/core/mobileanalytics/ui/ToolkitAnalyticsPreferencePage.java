@@ -38,6 +38,7 @@ public class ToolkitAnalyticsPreferencePage extends AwsToolkitPreferencePage
         setDescription("Anonymous Collection of Analytics");
     }
 
+    @Override
     public void init(IWorkbench workbench) {
     }
 

@@ -88,7 +88,7 @@ public class Serverless {
         template.setDescription(model.getDescription());
         template.setTransform(model.getTransform());
         template.setAdditionalProperties(model.getAdditionalProperties());
-        Map<String, TypeProperties> resources = new HashMap<String, TypeProperties>();
+        Map<String, TypeProperties> resources = new HashMap<>();
         resources.putAll(model.getAdditionalResources());
 
         // Put Serverless resources to the map.
@@ -147,7 +147,7 @@ public class Serverless {
         Object eventsObject = resource.get("Events");
         if (eventsObject != null) {
             Map<String, TypeProperties> events = convert((Map<String, Object>) eventsObject);
-            Map<String, TypeProperties> additionalEvents = new HashMap<String, TypeProperties>();
+            Map<String, TypeProperties> additionalEvents = new HashMap<>();
             for (Entry<String, TypeProperties> entry : events.entrySet()) {
                 String eventLogicalId = entry.getKey();
                 TypeProperties event = entry.getValue();
@@ -168,7 +168,7 @@ public class Serverless {
     }
 
     private static Map<String, TypeProperties> convert(Map<String, Object> map) {
-        Map<String, TypeProperties> typeProperties = new HashMap<String, TypeProperties>();
+        Map<String, TypeProperties> typeProperties = new HashMap<>();
         for (Entry<String, Object> entry : map.entrySet()) {
             typeProperties.put(entry.getKey(), MAPPER.convertValue(entry.getValue(), TypeProperties.class));
         }

@@ -27,6 +27,7 @@ public class SimpleDBLabelProviderExtension extends SQLModelLabelProviderExtensi
     public SimpleDBLabelProviderExtension() {
     }
 
+    @Override
     public String getText(final Object element) {
         if (element instanceof IColumnNode) {
             IColumnNode node = (IColumnNode) element;

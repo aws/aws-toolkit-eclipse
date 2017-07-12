@@ -197,7 +197,7 @@ public class NewAppConfigurationComposite extends Composite {
                 bucketNameSelected,
                 new BooleanValidator("Please select a bucket for storing the application source")));
 
-        ChainValidator<String> keyNameValidator = new ChainValidator<String>(
+        ChainValidator<String> keyNameValidator = new ChainValidator<>(
                 keyNameTextObservable,
                 new NotEmptyValidator("Please provide a valid S3 key name"));
         bindingContext.addValidationStatusProvider(keyNameValidator);
@@ -248,6 +248,7 @@ public class NewAppConfigurationComposite extends Composite {
     private void loadS3BucketsAsync() {
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 bucketNameCombo.setItems(new String[] {LOADING});
                 bucketNameCombo.select(0);
@@ -256,6 +257,7 @@ public class NewAppConfigurationComposite extends Composite {
 
         Display.getDefault().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     AmazonS3 client = AwsToolkitCore.getClientFactory().getS3Client();
@@ -266,7 +268,7 @@ public class NewAppConfigurationComposite extends Composite {
                         bucketNameSelected.setValue(false);
 
                     } else {
-                        List<String> allBucketNames = new LinkedList<String>();
+                        List<String> allBucketNames = new LinkedList<>();
                         for (Bucket bucket : allBuckets) {
                             allBucketNames.add(bucket.getName());
                         }

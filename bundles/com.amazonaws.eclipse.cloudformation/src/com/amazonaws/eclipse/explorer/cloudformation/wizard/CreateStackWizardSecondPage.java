@@ -60,6 +60,7 @@ public class CreateStackWizardSecondPage extends WizardPage {
      * org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets
      * .Composite)
      */
+    @Override
     public void createControl(final Composite parent) {
         scrolledComp = new ScrolledComposite(parent, SWT.V_SCROLL);
         scrolledComp.setExpandHorizontal(true);
@@ -73,6 +74,7 @@ public class CreateStackWizardSecondPage extends WizardPage {
 
         scrolledComp.addControlListener(new ControlAdapter() {
 
+            @Override
             public void controlResized(ControlEvent e) {
                 if (comp != null) {
                     Rectangle r = scrolledComp.getClientArea();
@@ -93,6 +95,7 @@ public class CreateStackWizardSecondPage extends WizardPage {
         aggregateValidationStatus = new AggregateValidationStatus(bindingContext,
                 AggregateValidationStatus.MAX_SEVERITY);
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(ChangeEvent event) {
                 populateValidationStatus();
             }

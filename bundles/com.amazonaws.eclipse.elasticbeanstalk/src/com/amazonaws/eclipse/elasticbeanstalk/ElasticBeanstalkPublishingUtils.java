@@ -213,7 +213,7 @@ public class ElasticBeanstalkPublishingUtils {
 
     private static final Map<String, String> ENV_TIER_MAP;
     static {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
 
         map.put(ConfigurationOptionConstants.WEB_SERVER, "Standard");
         map.put(ConfigurationOptionConstants.WORKER, "SQS/HTTP");
@@ -223,7 +223,7 @@ public class ElasticBeanstalkPublishingUtils {
 
     private static final Map<String, String> ENV_TYPE_MAP;
     static {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
 
         map.put(ConfigurationOptionConstants.SINGLE_INSTANCE_ENV, "SingleInstance");
         map.put(ConfigurationOptionConstants.LOAD_BALANCED_ENV, "LoadBalanced");
@@ -249,7 +249,7 @@ public class ElasticBeanstalkPublishingUtils {
                 .withDescription(environment.getEnvironmentDescription())
                 .withEnvironmentName(environment.getEnvironmentName()).withVersionLabel(versionLabel);
 
-        List<ConfigurationOptionSetting> optionSettings = new ArrayList<ConfigurationOptionSetting>();
+        List<ConfigurationOptionSetting> optionSettings = new ArrayList<>();
         if (!StringUtils.isNullOrEmpty(environment.getKeyPairName())) {
             optionSettings.add(new ConfigurationOptionSetting().withNamespace(ConfigurationOptionConstants.LAUNCHCONFIGURATION)
                     .withOptionName("EC2KeyName").withValue(environment.getKeyPairName()));

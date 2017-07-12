@@ -98,6 +98,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
     private final WebLinkListener webLinkListener = new WebLinkListener();
 
     protected final SelectionListener javaAppSectionRadioButtonSelectionListener = new SelectionAdapter() {
+        @Override
         public void widgetSelected(SelectionEvent e) {
             radioButtonSelected(e.getSource());
             runValidators();
@@ -120,6 +121,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
                 bindingContext, AggregateValidationStatus.MAX_SEVERITY);
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
@@ -307,6 +309,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
         // Bind the validation status to the wizard page message
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false) return;
@@ -331,7 +334,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
                 useExistingJavaAppRadioButtonObservable, // enabler
                 new BooleanValidator("Please select a Java app")));
 
-        ChainValidator<String> appNameValidator = new ChainValidator<String>(
+        ChainValidator<String> appNameValidator = new ChainValidator<>(
                 newApplicationNameTextObservable,
                 createNewJavaAppRadioButtonObservable, // enabler
                 new NotEmptyValidator("Please provide a valid app name"));
@@ -363,8 +366,8 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
 
         @Override
         public void run() {
-            final List<String> stackNames = new ArrayList<String>();
-            final Map<String, Stack> stacks = new HashMap<String, Stack>();
+            final List<String> stackNames = new ArrayList<>();
+            final Map<String, Stack> stacks = new HashMap<>();
 
             try {
                 for (Stack stack : ServiceAPIUtils.getAllStacks(opsworksClient)) {
@@ -383,6 +386,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadStacksThread.this) {
@@ -440,8 +444,8 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
         @Override
         public void run() {
 
-            final List<String> javaAppUINames = new ArrayList<String>();
-            final Map<String, App> javaApps = new HashMap<String,App>();
+            final List<String> javaAppUINames = new ArrayList<>();
+            final Map<String, App> javaApps = new HashMap<>();
 
             try {
                 String stackId = dataModel.getExistingStack().getStackId();
@@ -464,6 +468,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
 
             Display.getDefault().asyncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         synchronized (LoadJavaAppsThread.this) {

@@ -46,7 +46,7 @@ import com.amazonaws.services.identitymanagement.model.User;
 
 public class AddUsersToGroupDialog extends TitleAreaDialog {
     private final FormToolkit toolkit;
-    private final List<Button> userButtons = new ArrayList<Button>();
+    private final List<Button> userButtons = new ArrayList<>();
     private final Group group;
     private final List<User> usersInGroup;
     private AmazonIdentityManagement iam;
@@ -120,7 +120,7 @@ public class AddUsersToGroupDialog extends TitleAreaDialog {
     @Override
     protected void okPressed() {
 
-        final List<String> users = new LinkedList<String>();
+        final List<String> users = new LinkedList<>();
         for (Button button : userButtons) {
             if (button.getSelection() && button.getEnabled()) {
                 users.add(button.getText());

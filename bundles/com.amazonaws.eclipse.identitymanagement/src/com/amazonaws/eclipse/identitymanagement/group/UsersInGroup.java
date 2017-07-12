@@ -63,11 +63,13 @@ public class UsersInGroup extends Composite {
         addUserButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addUserButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 AddUsersToGroupDialog addUserToGroupDialog = new AddUsersToGroupDialog(iam, Display.getCurrent().getActiveShell(), toolkit, group, usersInGroupTable);
                 addUserToGroupDialog.open();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });

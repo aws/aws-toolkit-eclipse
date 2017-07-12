@@ -32,6 +32,7 @@ public class RegexValidator implements IValidator {
         this.regex = regex;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
         if (!Pattern.matches(regex, s)) return ValidationStatus.error(message);

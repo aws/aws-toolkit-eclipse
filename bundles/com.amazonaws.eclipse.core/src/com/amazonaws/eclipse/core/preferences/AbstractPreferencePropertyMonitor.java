@@ -32,7 +32,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
  */
 public abstract class AbstractPreferencePropertyMonitor implements IPropertyChangeListener {
 
-    private List<PreferencePropertyChangeListener> listeners = new CopyOnWriteArrayList<PreferencePropertyChangeListener>();
+    private List<PreferencePropertyChangeListener> listeners = new CopyOnWriteArrayList<>();
 
     private final long notificationDelay;
     private NotifyListenersJob job = null;
@@ -67,6 +67,7 @@ public abstract class AbstractPreferencePropertyMonitor implements IPropertyChan
         listeners.remove(listener);
     }
 
+    @Override
     public void propertyChange(PropertyChangeEvent event) {
         String property = event.getProperty();
 
@@ -96,6 +97,7 @@ public abstract class AbstractPreferencePropertyMonitor implements IPropertyChan
             this.setSystem(true);
         }
 
+        @Override
         protected IStatus run(IProgressMonitor monitor) {
             AbstractPreferencePropertyMonitor.this.notifyListeners();
             return Status.OK_STATUS;

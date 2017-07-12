@@ -49,7 +49,7 @@ public class SimpleDBConnection extends JDBCConnection {
         try {
             if (getDriverDefinition() != null) {
                 hasDriver = true;
-                //				super.open();
+                //                super.open();
 
                 if (this.mConnection != null) {
                     close();

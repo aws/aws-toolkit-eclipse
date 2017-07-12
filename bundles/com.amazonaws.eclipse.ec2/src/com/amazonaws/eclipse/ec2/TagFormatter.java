@@ -34,6 +34,7 @@ public class TagFormatter {
 
         if (tags == null || tags.isEmpty()) return "";
         Collections.sort(tags, new Comparator<Tag>() {
+            @Override
             public int compare(Tag o1, Tag o2) {
                 return o1.getKey().compareTo(o2.getKey());
             }

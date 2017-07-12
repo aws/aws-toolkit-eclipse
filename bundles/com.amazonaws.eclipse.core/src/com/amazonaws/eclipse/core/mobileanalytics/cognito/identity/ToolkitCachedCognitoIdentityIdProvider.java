@@ -67,6 +67,7 @@ public class ToolkitCachedCognitoIdentityIdProvider implements AWSCognitoIdentit
         this.cognitoIdentityClient = cognitoIdentityClient;
     }
 
+    @Override
     public String getIdentityId() {
         if (identityId == null) {
             if (isPersistedIdentityIdValid()) {

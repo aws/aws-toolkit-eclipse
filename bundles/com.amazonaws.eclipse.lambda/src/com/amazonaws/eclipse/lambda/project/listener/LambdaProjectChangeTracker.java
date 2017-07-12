@@ -30,7 +30,7 @@ import com.amazonaws.eclipse.lambda.LambdaPlugin;
  */
 public class LambdaProjectChangeTracker {
 
-    private final ConcurrentHashMap<IProject, Boolean> projectDirtyMap = new ConcurrentHashMap<IProject, Boolean>();
+    private final ConcurrentHashMap<IProject, Boolean> projectDirtyMap = new ConcurrentHashMap<>();
 
     private final IElementChangedListener projectChangeListener = new LambdaProjectElementChangeListener();
 
@@ -91,6 +91,7 @@ public class LambdaProjectChangeTracker {
     private class LambdaProjectElementChangeListener implements
             IElementChangedListener {
 
+        @Override
         public void elementChanged(ElementChangedEvent event) {
 
             JavaElementDeltaAcceptor.accept(event.getDelta(),

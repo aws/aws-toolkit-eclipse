@@ -29,3 +29,6 @@ Export-Package: com.amazonaws.eclipse.cloudformation,
  com.amazonaws.eclipse.cloudformation.model,
  com.amazonaws.eclipse.cloudformation.ui,
  com.amazonaws.eclipse.explorer.cloudformation
+Import-Package: org.eclipse.jdt.internal.ui,
+ org.eclipse.jdt.internal.ui.javaeditor,
+ org.junit

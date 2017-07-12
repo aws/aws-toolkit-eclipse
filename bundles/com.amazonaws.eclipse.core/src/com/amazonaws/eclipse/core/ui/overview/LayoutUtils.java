@@ -20,25 +20,25 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
  * General utilities for SWT layouts.
  */
 public class LayoutUtils {
-	
-	/**
-	 * Creates a new TableWrapLayout with no margins or padding anywhere.
-	 * 
-	 * @param numColumns
-	 *            The number of columns for the new TableWrapLayout.
-	 *            
-	 * @return The new TableWrapLayout.
-	 */
-	public static TableWrapLayout newSlimTableWrapLayout(int numColumns) {
-		TableWrapLayout tableWrapLayout = new TableWrapLayout();
-		tableWrapLayout.numColumns = numColumns;
-		tableWrapLayout.bottomMargin = 0;
-		tableWrapLayout.horizontalSpacing = 0;
-		tableWrapLayout.leftMargin = 0;
-		tableWrapLayout.rightMargin = 0;
-		tableWrapLayout.topMargin = 0;
-		tableWrapLayout.verticalSpacing = 0;
-		return tableWrapLayout;
-	}
+    
+    /**
+     * Creates a new TableWrapLayout with no margins or padding anywhere.
+     * 
+     * @param numColumns
+     *            The number of columns for the new TableWrapLayout.
+     *            
+     * @return The new TableWrapLayout.
+     */
+    public static TableWrapLayout newSlimTableWrapLayout(int numColumns) {
+        TableWrapLayout tableWrapLayout = new TableWrapLayout();
+        tableWrapLayout.numColumns = numColumns;
+        tableWrapLayout.bottomMargin = 0;
+        tableWrapLayout.horizontalSpacing = 0;
+        tableWrapLayout.leftMargin = 0;
+        tableWrapLayout.rightMargin = 0;
+        tableWrapLayout.topMargin = 0;
+        tableWrapLayout.verticalSpacing = 0;
+        return tableWrapLayout;
+    }
 
 }

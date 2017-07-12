@@ -29,6 +29,7 @@ import com.amazonaws.eclipse.codedeploy.deploy.wizard.DeployProjectToCodeDeployW
 
 public class DeployProjectToCodeDeployHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)

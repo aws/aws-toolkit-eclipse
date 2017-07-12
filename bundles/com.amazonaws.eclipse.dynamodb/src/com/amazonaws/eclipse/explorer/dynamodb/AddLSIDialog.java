@@ -160,11 +160,12 @@ public class AddLSIDialog extends TitleAreaDialog {
         new Label(composite, SWT.NONE | SWT.READ_ONLY).setText("Attribute to Index:");
         attributeNameText = new Text(composite, SWT.BORDER);
         bindingContext.bindValue(SWTObservables.observeText(attributeNameText, SWT.Modify), indexRangeKeyNameInKeySchemaDefinitionModel);
-        ChainValidator<String> attributeNameValidationStatusProvider = new ChainValidator<String>(indexRangeKeyNameInKeySchemaDefinitionModel, new NotEmptyValidator("Please provide an attribute name"));
+        ChainValidator<String> attributeNameValidationStatusProvider = new ChainValidator<>(indexRangeKeyNameInKeySchemaDefinitionModel, new NotEmptyValidator("Please provide an attribute name"));
         bindingContext.addValidationStatusProvider(attributeNameValidationStatusProvider);
         bindingContext.bindValue(SWTObservables.observeText(attributeNameText, SWT.Modify), indexRangeKeyNameInAttributeDefinitionsModel);
         attributeNameText.addModifyListener(new ModifyListener() {
             
+            @Override
             public void modifyText(ModifyEvent e) {
                 if (attributeNameText.getText().equals(primaryRangeKeyName)
                         && attributeTypeCombo != null
@@ -191,7 +192,7 @@ public class AddLSIDialog extends TitleAreaDialog {
         indexNameText = new Text(composite, SWT.BORDER);
         GridDataFactory.fillDefaults().grab(true, false).applyTo(indexNameText);
         bindingContext.bindValue(SWTObservables.observeText(indexNameText, SWT.Modify), indexNameModel);
-        ChainValidator<String> indexNameValidationStatusProvider = new ChainValidator<String>(indexNameModel, new NotEmptyValidator("Please provide an index name"));
+        ChainValidator<String> indexNameValidationStatusProvider = new ChainValidator<>(indexNameModel, new NotEmptyValidator("Please provide an index name"));
         bindingContext.addValidationStatusProvider(indexNameValidationStatusProvider);
 
         // Projection type
@@ -202,6 +203,7 @@ public class AddLSIDialog extends TitleAreaDialog {
         bindingContext.bindValue(SWTObservables.observeSelection(projectionTypeCombo), projectionTypeModel);
         projectionTypeCombo.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (projectionTypeCombo.getSelectionIndex() == 2) {
                     // Enable the list for adding non-key attributes to the projection
@@ -211,6 +213,7 @@ public class AddLSIDialog extends TitleAreaDialog {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -224,6 +227,7 @@ public class AddLSIDialog extends TitleAreaDialog {
         addAttributeButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addAttributeButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 AddNewAttributeDialog newAttributeTable = new AddNewAttributeDialog();
                 if (newAttributeTable.open() == 0) {
@@ -236,6 +240,7 @@ public class AddLSIDialog extends TitleAreaDialog {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -247,6 +252,7 @@ public class AddLSIDialog extends TitleAreaDialog {
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false)
@@ -315,6 +321,7 @@ public class AddLSIDialog extends TitleAreaDialog {
             menuManager.setRemoveAllWhenShown(true);
             menuManager.addMenuListener(new IMenuListener() {
 
+                @Override
                 public void menuAboutToShow(IMenuManager manager) {
                     if (viewer.getList().getSelectionCount() > 0) {
 

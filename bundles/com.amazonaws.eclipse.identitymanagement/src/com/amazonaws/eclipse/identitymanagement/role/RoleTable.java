@@ -89,6 +89,7 @@ public class RoleTable extends Composite {
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if (viewer.getTable().getSelectionCount() > 0) {
 
@@ -125,6 +126,7 @@ public class RoleTable extends Composite {
         viewer.getTable().setMenu(menuManager.createContextMenu(viewer.getTable()));
 
         viewer.getTable().addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 int index = viewer.getTable().getSelectionIndex();
                 if (index >= 0) {
@@ -161,9 +163,11 @@ public class RoleTable extends Composite {
     private class RoleTableContentProvider extends ArrayContentProvider {
         private Role[] roles;
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof Role[])
                 roles = (Role[]) newInput;
@@ -171,6 +175,7 @@ public class RoleTable extends Composite {
                 roles = new Role[0];
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return roles;
         }
@@ -181,23 +186,29 @@ public class RoleTable extends Composite {
     }
 
     private class RoleTableLabelProvider implements ITableLabelProvider {
+        @Override
         public void addListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public void removeListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof Role == false)
                 return "";
@@ -268,6 +279,7 @@ public class RoleTable extends Composite {
                 final List<Role> roles;
                 roles = iam.listRoles().getRoles();
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         viewer.setInput(roles.toArray(new Role[roles.size()]));
                     }

@@ -56,6 +56,7 @@ public class SDBTableIdDataWizardPage extends WizardPage {
         this.editor = editor;
     }
 
+    @Override
     public void createControl(final Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
 
@@ -70,6 +71,7 @@ public class SDBTableIdDataWizardPage extends WizardPage {
         this.t = new Text(composite, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
         this.t.addModifyListener(new ModifyListener() {
 
+            @Override
             public void modifyText(final ModifyEvent a) {
                 if (SDBTableIdDataWizardPage.this.t.getText().getBytes().length > 1024) {
                     setErrorMessage(Messages.valueToLong);

@@ -56,7 +56,7 @@ class Tomcat7SolutionStacks {
     static String lookupLatestSolutionStackName(AWSElasticBeanstalk client) {
         try {
 
-            List<String> tomcat7Java764bitStacks = new ArrayList<String>();
+            List<String> tomcat7Java764bitStacks = new ArrayList<>();
 
             for (SolutionStackDescription ss : client.listAvailableSolutionStacks().getSolutionStackDetails()) {
                 String ssName = ss.getSolutionStackName();

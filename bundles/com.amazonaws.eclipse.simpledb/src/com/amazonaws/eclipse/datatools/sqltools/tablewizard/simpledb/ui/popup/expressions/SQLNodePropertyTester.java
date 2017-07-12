@@ -25,6 +25,7 @@ import org.eclipse.datatools.modelbase.sql.tables.Table;
 
 public class SQLNodePropertyTester extends PropertyTester {
 
+    @Override
     public boolean test(final Object receiver, final String property, final Object[] args, final Object expectedValue) {
         if (!"vendor".equalsIgnoreCase(property)) { //$NON-NLS-1$
             return false;

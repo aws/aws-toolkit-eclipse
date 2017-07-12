@@ -24,7 +24,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 
-import com.amazonaws.services.s3.transfer.Transfer.TransferState;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressEventType;
@@ -68,7 +67,7 @@ public class UploadFilesJob extends Job {
         List<KeyFilePair> pairSet = getActualFilesToUpload();
         int totalFilesToUpload = pairSet.size();
         monitor.beginTask(String.format("Uploading %d files to Amazon S3!", totalFilesToUpload), 100 * totalFilesToUpload);
-        List<IStatus> errorStatuses = new ArrayList<IStatus>();
+        List<IStatus> errorStatuses = new ArrayList<>();
         int uploadedFiles = 0;
         for (KeyFilePair pair : pairSet) {
             String name = pair.keyName;
@@ -92,7 +91,7 @@ public class UploadFilesJob extends Job {
     }
 
     private List<KeyFilePair> getActualFilesToUpload() {
-        List<KeyFilePair> pairSet = new ArrayList<KeyFilePair>();
+        List<KeyFilePair> pairSet = new ArrayList<>();
         for (File file : filesToUpload) {
             putFilesToList(null, file, pairSet);
         }

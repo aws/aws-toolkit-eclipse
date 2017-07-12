@@ -18,6 +18,7 @@ import java.util.Comparator;
 
 public class MavenArtifactVersionComparator implements Comparator<String> {
 
+    @Override
     public int compare(String left, String right) {
         int[] leftVersion = parseVersion(left);
         int[] rightVersion = parseVersion(right);

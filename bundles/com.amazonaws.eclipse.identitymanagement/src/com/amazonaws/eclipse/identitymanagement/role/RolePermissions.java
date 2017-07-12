@@ -62,11 +62,13 @@ public class RolePermissions extends Composite {
         addPolicyButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addPolicyButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 AddRolePolicyDialog addRolePolicyDialog = new AddRolePolicyDialog(iam, Display.getCurrent().getActiveShell(), toolkit, role, rolePermissionTable);
                 addRolePolicyDialog.open();
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });

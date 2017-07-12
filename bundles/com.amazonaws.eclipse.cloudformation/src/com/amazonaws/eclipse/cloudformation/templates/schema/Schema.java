@@ -20,7 +20,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class Schema {
-    private final Map<String, SchemaProperty> properties = new HashMap<String, SchemaProperty>();
+    private final Map<String, SchemaProperty> properties = new HashMap<>();
     private String description;
     
     public String getDescription() {
@@ -43,6 +43,7 @@ public class Schema {
         return properties.keySet();
     }
     
+    @Override
     public String toString() {
         String buffer = "";
         for (Entry<String, SchemaProperty> entry : properties.entrySet()) {

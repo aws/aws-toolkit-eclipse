@@ -48,30 +48,37 @@ public class TestAccountInfo implements AccountInfo {
         }
     }
 
+    @Override
     public String getAccessKey() {
         return getProperty("accessKey");
     }
 
+    @Override
     public String getSecretKey() {
         return getProperty("secretKey");
     }
 
+    @Override
     public String getEc2CertificateFile() {
         return getProperty("ec2CertificateFile");
     }
 
+    @Override
     public String getEc2PrivateKeyFile() {
         return getProperty("ec2PrivateKeyFile");
     }
 
+    @Override
     public String getUserId() {
         return getProperty("userId");
     }
 
+    @Override
     public void setAccessKey(String accessKey) {
         properties.setProperty("accessKey", accessKey);
     }
 
+    @Override
     public void setSecretKey(String secretKey) {
         properties.setProperty("secretKey", secretKey);
     }
@@ -99,76 +106,91 @@ public class TestAccountInfo implements AccountInfo {
 
     /* Un-implemented methods */
 
+    @Override
     public String getInternalAccountId() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public String getAccountName() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public void setAccountName(String accountName) {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void setUserId(String userId) {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void setEc2PrivateKeyFile(String ec2PrivateKeyFile) {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void setEc2CertificateFile(String ec2CertificateFile) {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void save() {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void delete() {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public boolean isDirty() {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public boolean isValid() {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public boolean isCertificateValid() {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public boolean isUseSessionToken() {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public void setUseSessionToken(boolean useSessionToken) {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public String getSessionToken() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public void setSessionToken(String sessionToken) {
         // TODO Auto-generated method stub
 

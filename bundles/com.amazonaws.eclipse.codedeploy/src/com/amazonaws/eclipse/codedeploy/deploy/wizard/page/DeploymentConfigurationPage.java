@@ -38,7 +38,6 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.databinding.BooleanValidator;
 import com.amazonaws.eclipse.databinding.ChainValidator;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
@@ -83,6 +82,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
         initializeValidators();
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
@@ -96,6 +96,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
         setPageComplete(false);
     }
 
+    @Override
     public void onEnterPage() {
         loadDeploymentConfigsAsync();
         loadS3BucketsAsync();
@@ -107,6 +108,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
         // Bind the validation status to the wizard page message
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false) return;
@@ -179,6 +181,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
     private void loadDeploymentConfigsAsync() {
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 deploymentConfigCombo.setItems(new String[] {LOADING});
                 deploymentConfigCombo.select(0);
@@ -187,6 +190,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
 
         Display.getDefault().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     String endpoint = dataModel.getRegion().getServiceEndpoints()
@@ -240,6 +244,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
     private void loadS3BucketsAsync() {
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 bucketNameCombo.setItems(new String[] {LOADING});
                 bucketNameCombo.select(0);
@@ -248,6 +253,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
 
         Display.getDefault().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     AmazonS3 client = AwsToolkitCore.getClientFactory().getS3Client();
@@ -265,7 +271,7 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
                         bucketNameSelected.setValue(false);
 
                     } else {
-                        List<String> allBucketNames = new LinkedList<String>();
+                        List<String> allBucketNames = new LinkedList<>();
                         for (Bucket bucket : allBuckets) {
                             allBucketNames.add(bucket.getName());
                         }

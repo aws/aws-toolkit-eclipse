@@ -47,7 +47,7 @@ public class Section {
 
 
     public void addChildSchema(String name, Schema schema) {
-        if (childSchemas == null) childSchemas = new HashMap<String, Schema>();
+        if (childSchemas == null) childSchemas = new HashMap<>();
         
         childSchemas.put(name, schema);
     }

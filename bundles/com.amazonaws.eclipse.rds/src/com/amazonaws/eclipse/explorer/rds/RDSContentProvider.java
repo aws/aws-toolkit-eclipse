@@ -30,6 +30,7 @@ import com.amazonaws.services.rds.model.DBInstance;
 
 public class RDSContentProvider extends AbstractContentProvider {
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element == RDS_ROOT_NODE);
@@ -47,7 +48,7 @@ public class RDSContentProvider extends AbstractContentProvider {
                 public Object[] loadData() {
                     AmazonRDS rds = AwsToolkitCore.getClientFactory().getRDSClient();
                     List<DBInstance> dbInstances = rds.describeDBInstances().getDBInstances();
-                    List<DatabaseNode> databaseNodes = new ArrayList<DatabaseNode>();
+                    List<DatabaseNode> databaseNodes = new ArrayList<>();
                     for (DBInstance dbInstance : dbInstances) {
                         databaseNodes.add(new DatabaseNode(dbInstance));
                     }

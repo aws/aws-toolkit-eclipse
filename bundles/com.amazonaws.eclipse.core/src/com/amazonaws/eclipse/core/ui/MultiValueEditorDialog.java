@@ -53,7 +53,7 @@ public class MultiValueEditorDialog extends MessageDialog {
     private static final String NEW_VALUE = "<new value>";
     private boolean editLocked = false;
     private int lockedRowIndex = -1;
-    protected final List<String> values = new ArrayList<String>();
+    protected final List<String> values = new ArrayList<>();
     protected String columnText = "Attributes";
 
     public List<String> getValues() {
@@ -123,6 +123,7 @@ public class MultiValueEditorDialog extends MessageDialog {
         editor.grabHorizontal = true;
         table.addListener(SWT.MouseUp, new Listener() {
 
+            @Override
             public void handleEvent(final Event event) {
                 Rectangle clientArea = table.getClientArea();
                 Point pt = new Point(event.x, event.y);
@@ -143,6 +144,7 @@ public class MultiValueEditorDialog extends MessageDialog {
                             }
                             Listener textListener = new Listener() {
 
+                                @Override
                                 public void handleEvent(final Event e) {
                                     if ( e.type == SWT.Traverse && e.detail == SWT.TRAVERSE_ESCAPE ) {
                                         /* Skip data validation and dispose the text editor */
@@ -201,6 +203,7 @@ public class MultiValueEditorDialog extends MessageDialog {
             private boolean update = true;
             private ISelection lastSelection;
             
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 if ( update && isLocked() ) {
                     update = false; // avoid infinite loop

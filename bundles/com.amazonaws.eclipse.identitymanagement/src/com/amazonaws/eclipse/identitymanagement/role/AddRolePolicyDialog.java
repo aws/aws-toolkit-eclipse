@@ -38,6 +38,7 @@ class AddRolePolicyDialog extends AbstractAddPolicyDialog {
         shell.setText("Manage Role Permission");
     }
 
+    @Override
     protected void putPolicy(String policyName, String policyDoc) {
         iam.putRolePolicy(new PutRolePolicyRequest().withRoleName(role.getRoleName()).withPolicyDocument(policyDoc).withPolicyName(policyName));
     }

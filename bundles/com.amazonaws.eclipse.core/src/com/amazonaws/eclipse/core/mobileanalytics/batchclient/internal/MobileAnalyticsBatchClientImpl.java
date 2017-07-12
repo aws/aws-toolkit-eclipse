@@ -68,6 +68,7 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
         this.clientContextString = clientContextString;
     }
 
+    @Override
     public void putEvent(Event event) {
 
         // we don't lock the queue when accepting incoming event, and the
@@ -87,6 +88,7 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
         }
     }
 
+    @Override
     public void flush() {
         tryDispatchAllEventsAsync();
     }
@@ -117,10 +119,12 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
                         .withEvents(eventsBatch),
                 new AsyncHandler<PutEventsRequest, PutEventsResult>() {
 
+                    @Override
                     public void onSuccess(PutEventsRequest arg0, PutEventsResult arg1) {
                         markRequestDone();
                     }
 
+                    @Override
                     public void onError(Exception arg0) {
                         restoreEventsQueue(eventsBatch);
                         markRequestDone();

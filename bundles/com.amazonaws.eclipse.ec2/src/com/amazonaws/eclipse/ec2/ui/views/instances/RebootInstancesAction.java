@@ -31,17 +31,18 @@ final class RebootInstancesAction extends Action {
         this.instanceSelectionTable = instanceSelectionTable;
     }
 
+    @Override
     public void run() {
-    	MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
+        MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
 
         messageBox.setText("Reboot selected instances?");
         messageBox.setMessage("If you continue, you won't be able to access these instances " +
-        		"until they finish rebooting.");
+                "until they finish rebooting.");
 
         // Bail out if the user cancels...
         if (messageBox.open() == SWT.CANCEL) return;
 
-    	new RebootInstancesThread(instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
+        new RebootInstancesThread(instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
     }
 
     @Override

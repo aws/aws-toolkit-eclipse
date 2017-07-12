@@ -83,12 +83,12 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      * accounts deleted in the preference page will only be removed from this
      * map; the actual deletion in the external source is handled separately.
      */
-    private final LinkedHashMap<String, AccountInfo> accountInfoByIdentifier = new LinkedHashMap<String, AccountInfo>();
+    private final LinkedHashMap<String, AccountInfo> accountInfoByIdentifier = new LinkedHashMap<>();
 
     /**
      * All the accounts that are to be deleted.
      */
-    private final Set<AccountInfo> accountInfoToBeDeleted = new HashSet<AccountInfo>();
+    private final Set<AccountInfo> accountInfoToBeDeleted = new HashSet<>();
 
     private FileFieldEditor credentailsFileLocation;
     private boolean credentailsFileLocationChanged = false;
@@ -183,6 +183,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      * @see
      * org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
      */
+    @Override
     public void init(IWorkbench workbench) {}
 
     /*
@@ -231,7 +232,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
      * Returns the ids of all the regions that are configured with an account tab
      */
     private List<String> getConfiguredRegions() {
-        List<String> regionIds = new LinkedList<String>();
+        List<String> regionIds = new LinkedList<>();
         for (TabItem tab : accountsTabFolder.getItems()) {
             if (tab instanceof AwsAccountPreferencePageTab) {
                 AwsAccountPreferencePageTab accountTab = (AwsAccountPreferencePageTab) tab;
@@ -363,7 +364,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
     }
 
     List<AwsAccountPreferencePageTab> getAllAccountPreferencePageTabs() {
-        List<AwsAccountPreferencePageTab> tabs = new LinkedList<AwsAccountPreferencePageTab>();
+        List<AwsAccountPreferencePageTab> tabs = new LinkedList<>();
         for (TabItem tab : accountsTabFolder.getItems()) {
             if (tab instanceof AwsAccountPreferencePageTab) {
                 tabs.add((AwsAccountPreferencePageTab)tab);
@@ -540,6 +541,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
 
             credentailsFileLocation.getTextControl(composite).addModifyListener(new ModifyListener() {
 
+                @Override
                 public void modifyText(ModifyEvent e) {
                     String modifiedLocation = credentailsFileLocation
                             .getTextControl(composite).getText();
@@ -570,6 +572,7 @@ public class AwsAccountPreferencePage extends AwsToolkitPreferencePage implement
                     AwsAccountPreferencePageTab accountTab = (AwsAccountPreferencePageTab)tab;
                     accountTab.addAccountInfoFieldEditorModifyListener(new ModifyListener() {
 
+                        @Override
                         public void modifyText(ModifyEvent arg0) {
                             for (AccountInfo account : accountInfoByIdentifier.values()) {
                                 if (account.isDirty()) {

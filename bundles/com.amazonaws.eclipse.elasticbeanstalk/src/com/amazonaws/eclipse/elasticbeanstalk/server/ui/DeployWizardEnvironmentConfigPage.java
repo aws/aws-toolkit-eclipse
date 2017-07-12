@@ -210,7 +210,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
 
         bindingContext.bindValue(keyPairSelectionObservable,
                 PojoObservables.observeValue(wizardDataModel, DeployWizardDataModel.KEY_PAIR), null, null);
-        ChainValidator<String> keyPairValidator = new ChainValidator<String>(keyPairSelectionObservable,
+        ChainValidator<String> keyPairValidator = new ChainValidator<>(keyPairSelectionObservable,
                 usingKeyPairObservable, new ValidKeyPairValidator(AwsToolkitCore.getDefault().getCurrentAccountId()));
         bindingContext.addValidationStatusProvider(keyPairValidator);
 
@@ -228,7 +228,7 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
 
         // CNAME
         // TODO: make CNAME conform to exact spec, check for in-use
-        ChainValidator<String> chainValidator = new ChainValidator<String>(
+        ChainValidator<String> chainValidator = new ChainValidator<>(
                 SWTObservables.observeText(cname, SWT.Modify), usingCnameObservable, new NotEmptyValidator(
                         "CNAME cannot be empty."), new NoInvalidNameCharactersValidator("Invalid characters in CNAME."));
         bindingContext.addValidationStatusProvider(chainValidator);

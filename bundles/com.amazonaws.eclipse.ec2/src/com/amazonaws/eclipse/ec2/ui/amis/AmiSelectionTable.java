@@ -173,6 +173,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
         platformFilterDropDownAction = new MenuAction("Platform Filter", "Filter by platform", "filter", platformDropDownMenuHandler);
 
         refreshAction = new Action() {
+            @Override
             public void run() {
                 refreshAmis();
             }
@@ -270,6 +271,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
     @Override
     protected void makeActions() {
         launchAction = new Action() {
+            @Override
             public void run() {
                 Image image = getSelectedImage();
                 new WizardDialog(Display.getCurrent().getActiveShell(), new LaunchWizard(image)).open();
@@ -280,6 +282,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
         launchAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("launch"));
 
         deleteAmiAction = new Action() {
+            @Override
             public void run() {
                 MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
 
@@ -307,6 +310,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
         /* (non-Javadoc)
          * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
          */
+        @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
             filterImages();
         }
@@ -314,6 +318,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
         /* (non-Javadoc)
          * @see org.eclipse.jface.viewers.IContentProvider#dispose()
          */
+        @Override
         public void dispose() {}
 
         protected void applyFilters() {
@@ -323,13 +328,13 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
         private void filterImages() {
             noOfAMIs = 0;   //Resets no of AMIs
             synchronized (this) {
-                if (unfilteredImages == null) unfilteredImages = new ArrayList<Image>();
+                if (unfilteredImages == null) unfilteredImages = new ArrayList<>();
             }
 
             // We filter based on Text filter and Drop down Filters
             String[] searchTerms = (filter == null ? null : filter.split(" "));
 
-            List<Image> tempFilteredImages = new ArrayList<Image>(unfilteredImages.size());
+            List<Image> tempFilteredImages = new ArrayList<>(unfilteredImages.size());
             for (Image image : unfilteredImages) {
 
                 boolean containsAllTerms = true;
@@ -365,6 +370,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
             applyFilters();
         }
 
+        @Override
         public void updateChildCount(Object element, int currentChildCount) {
             if (element instanceof Image){
                 viewer.setChildCount(element, 0);
@@ -373,6 +379,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
             }
         }
 
+        @Override
         public void updateElement(Object parent, int index) {
             Object element = filteredImages.get(index);
             viewer.replace(parent, index, element);
@@ -383,6 +390,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
             this.unfilteredImages = unfilteredImages;
         }
 
+        @Override
         public Object getParent(Object element) {
             return null;
         }
@@ -390,6 +398,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
 
     private class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 
+        @Override
         public String getColumnText(Object obj, int index) {
             if (obj == null) {
                 return "??";
@@ -412,11 +421,13 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
             return "???";
         }
 
+        @Override
         public org.eclipse.swt.graphics.Image getColumnImage(Object obj, int index) {
             if (index == 0)
                 return Ec2Plugin.getDefault().getImageRegistry().get("ami");
             return null;
         }
+        @Override
         public org.eclipse.swt.graphics.Image getImage(Object obj) {
             return null;
         }
@@ -491,6 +502,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
                         noOfAMIs = images.size();
                         Display.getDefault().syncExec(new Runnable() {
 
+                            @Override
                             public void run() {
                                 if ( viewer != null ) {
                                     // There appears to be a bug in SWT virtual
@@ -536,7 +548,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
             String menuId = amiDropDownMenuHandler.getCurrentSelection().getMenuId();
             if (!menuId.equals("ALL")) {
                 if (menuId.equals("amazon")) {
-                    List<String> owners = new LinkedList<String>();
+                    List<String> owners = new LinkedList<>();
                     owners.add("amazon");
                     request.setOwners(owners);
                 } else if (menuId.equals("Public")) {
@@ -544,7 +556,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
                 } else if (menuId.equals("Private")) {
                     request.getFilters().add(new Filter().withName("is-public").withValues("false"));
                 } else if (menuId.equals("ByMe")) {
-                    List<String> owners = new LinkedList<String>();
+                    List<String> owners = new LinkedList<>();
                     owners.add("self");
                     request.setOwners(owners);
                 } else if (menuId.equals("32-bit")) {
@@ -570,6 +582,7 @@ public class AmiSelectionTable extends SelectionTable implements IMenu {
      *
      * @see com.amazonaws.eclipse.ec2.utils.IMenu#menuClicked(com.amazonaws.eclipse.ec2.utils.IMenu.MenuItem)
      */
+    @Override
     public void menuClicked(MenuItem itemSelected) {
         refreshAmis();
     }

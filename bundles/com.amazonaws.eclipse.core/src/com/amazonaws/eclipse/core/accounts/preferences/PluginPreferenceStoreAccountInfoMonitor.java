@@ -29,7 +29,7 @@ public final class PluginPreferenceStoreAccountInfoMonitor extends AbstractPrefe
 
     private static final long NOTIFICATION_DELAY = 1000L;
 
-    private static final Set<String> watchedProperties = new HashSet<String>();
+    private static final Set<String> watchedProperties = new HashSet<>();
     static {
         watchedProperties.add(PreferenceConstants.P_ACCESS_KEY);
         watchedProperties.add(PreferenceConstants.P_ACCOUNT_IDS);

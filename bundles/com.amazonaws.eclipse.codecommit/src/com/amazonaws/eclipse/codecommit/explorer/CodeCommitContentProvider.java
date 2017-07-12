@@ -37,6 +37,7 @@ public class CodeCommitContentProvider extends AbstractContentProvider implement
 
     private final IOpenListener listener = new IOpenListener() {
 
+        @Override
         public void open(OpenEvent event) {
             StructuredSelection selection = (StructuredSelection) event.getSelection();
 
@@ -64,10 +65,12 @@ public class CodeCommitContentProvider extends AbstractContentProvider implement
         this.viewer.addOpenListener(listener);
     }
 
+    @Override
     public String getServiceAbbreviation() {
         return ServiceAbbreviations.CODECOMMIT;
     }
 
+    @Override
     public Object[] loadChildren(final Object parentElement) {
         if ( parentElement instanceof AWSResourcesRootElement ) {
             return new Object[] { CodeCommitRootElement.ROOT_ELEMENT};
@@ -88,6 +91,7 @@ public class CodeCommitContentProvider extends AbstractContentProvider implement
         return Loading.LOADING;
     }
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof CodeCommitRootElement);

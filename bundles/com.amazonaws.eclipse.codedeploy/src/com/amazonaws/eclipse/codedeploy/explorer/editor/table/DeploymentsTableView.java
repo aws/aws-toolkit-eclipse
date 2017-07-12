@@ -110,8 +110,10 @@ public class DeploymentsTableView extends Composite {
         // Async load top-level data
         new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         // Preserve the current column widths
                         int[] colWidth = new int[viewer.getTree().getColumns().length];
@@ -132,6 +134,7 @@ public class DeploymentsTableView extends Composite {
                 loadAllTopLevelElements();
 
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         viewer.setInput(contentCache);
                     }
@@ -188,6 +191,7 @@ public class DeploymentsTableView extends Composite {
 
         new Thread(new Runnable() {
 
+            @Override
             public void run() {
 
                 isRefreshing = true;
@@ -199,6 +203,7 @@ public class DeploymentsTableView extends Composite {
                 loadAllTopLevelElements();
 
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         viewer.setInput(contentCache);
                     }
@@ -228,6 +233,7 @@ public class DeploymentsTableView extends Composite {
 
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
                 tableTitleLabel.setText("Deployments");
                 tableTitleLabel.pack();
@@ -239,6 +245,7 @@ public class DeploymentsTableView extends Composite {
         if (inDisplayThread) {
             Display.getDefault().syncExec(new Runnable() {
 
+                @Override
                 public void run() {
                     updateRefreshProgress(progress, false);
                 }

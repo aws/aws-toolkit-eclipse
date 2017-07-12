@@ -42,6 +42,7 @@ public class CloudFormationContentProvider extends AbstractContentProvider {
         }
     }
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof CloudFormationRootElement);
@@ -59,6 +60,7 @@ public class CloudFormationContentProvider extends AbstractContentProvider {
                 public Object[] loadData() {
                     List<StackNode> stackNodes = CloudFormationUtils.listExistingStacks(
                             new StackSummaryConverter<StackNode>() {
+                                @Override
                                 public StackNode convert(StackSummary stack) {
                                     return new StackNode(stack);
                                 }

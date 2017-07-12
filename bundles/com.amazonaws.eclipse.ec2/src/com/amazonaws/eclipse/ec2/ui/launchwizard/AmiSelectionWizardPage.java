@@ -71,6 +71,7 @@ class AmiSelectionWizardPage extends WizardPage {
     /* (non-Javadoc)
      * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
      */
+    @Override
     public void createControl(Composite parent) {
         Composite control = new Composite(parent, SWT.NONE);
         control.setLayout(new GridLayout(1, false));

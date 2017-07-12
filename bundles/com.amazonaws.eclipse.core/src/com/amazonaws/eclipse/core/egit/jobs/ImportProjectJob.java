@@ -82,6 +82,7 @@ public class ImportProjectJob {
         final File[] repoDir = new File[1];
         // get the data from the page in the UI thread
         PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+            @Override
             public void run() {
                 projectName[0] = ImportProjectJob.this.projectName;
                 defaultLocation[0] = true;
@@ -91,6 +92,7 @@ public class ImportProjectJob {
         });
         try {
             IWorkspaceRunnable wsr = new IWorkspaceRunnable() {
+                @Override
                 public void run(IProgressMonitor actMonitor)
                         throws CoreException {
                     final IProjectDescription desc = ResourcesPlugin
@@ -137,6 +139,7 @@ public class ImportProjectJob {
     private void convertToMavenProject(final IProject project) throws InterruptedException {
         Job job = new Job("Enable Maven nature.") {
 
+            @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
                     ResolverConfiguration configuration = new ResolverConfiguration();

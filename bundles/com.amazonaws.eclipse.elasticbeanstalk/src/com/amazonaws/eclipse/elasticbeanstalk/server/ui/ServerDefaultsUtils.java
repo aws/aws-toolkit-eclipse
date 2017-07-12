@@ -30,7 +30,7 @@ import com.amazonaws.eclipse.core.regions.RegionUtils;
 public class ServerDefaultsUtils {
 
     public static void setDefaultServerName(IServerWorkingCopy serverWorkingCopy, String environmentName) {
-        Set<String> existingServerNames = new HashSet<String>();
+        Set<String> existingServerNames = new HashSet<>();
         for (IServer server : ServerCore.getServers()) {
             existingServerNames.add(server.getName());
         }

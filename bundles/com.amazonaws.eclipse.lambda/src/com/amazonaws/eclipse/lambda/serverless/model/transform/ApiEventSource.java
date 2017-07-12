@@ -55,6 +55,7 @@ public class ApiEventSource extends EventSource {
         this.customIntegration = customIntegration;
     }
     
+    @Override
     public TypeProperties toTypeProperties() {
         //TODO 
         return null;

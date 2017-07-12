@@ -57,7 +57,7 @@ public class SQSActionProvider extends CommonActionProvider {
         menu.add(new CreateQueueAction());
 
         boolean onlyQueuesSelected = true;
-        List<String> selectedQueues = new ArrayList<String>();
+        List<String> selectedQueues = new ArrayList<>();
         Iterator<?> iterator = selection.iterator();
         while (iterator.hasNext()) {
             Object next = iterator.next();
@@ -92,7 +92,7 @@ public class SQSActionProvider extends CommonActionProvider {
             CreateQueueDialog createQueueDialog = new CreateQueueDialog();
             if (createQueueDialog.open() == 0) {
                 try {
-                    Map<String, String> attributes = new HashMap<String, String>();
+                    Map<String, String> attributes = new HashMap<>();
                     if (createQueueDialog.getQueueDelay() > 0) {
                         attributes.put(QueueAttributeName.DelaySeconds.toString(), Integer.toString(createQueueDialog.getQueueDelay()));
                     }
@@ -137,6 +137,7 @@ public class SQSActionProvider extends CommonActionProvider {
             final Text topicNameText = new Text(composite, SWT.BORDER);
             topicNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
             topicNameText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     queueName = topicNameText.getText();
                     updateControls();
@@ -152,6 +153,7 @@ public class SQSActionProvider extends CommonActionProvider {
             queueDelaySpinner.setPageIncrement(60);
             queueDelaySpinner.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
             queueDelaySpinner.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     queueDelay = queueDelaySpinner.getSelection();
                     updateControls();

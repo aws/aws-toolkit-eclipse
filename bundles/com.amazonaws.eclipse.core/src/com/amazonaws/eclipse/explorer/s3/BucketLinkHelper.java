@@ -16,6 +16,7 @@ public class BucketLinkHelper implements ILinkHelper {
     /**
      * Finds the bucket corresponding to the editor input.
      */
+    @Override
     public IStructuredSelection findSelection(IEditorInput anInput) {
         if (!( anInput instanceof BucketEditorInput ))
             return null;
@@ -39,6 +40,7 @@ public class BucketLinkHelper implements ILinkHelper {
      * Activates the relevant editor for the selection given. If an editor for
      * this bucket isn't already open, won't open it.
      */
+    @Override
     public void activateEditor(IWorkbenchPage aPage, IStructuredSelection aSelection) {
         Bucket b = (Bucket) aSelection.getFirstElement();
 

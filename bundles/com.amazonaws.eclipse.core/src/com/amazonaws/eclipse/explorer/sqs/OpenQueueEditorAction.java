@@ -42,6 +42,7 @@ public class OpenQueueEditorAction extends Action {
         final IEditorInput input = new QueueEditorInput(queueUrl, endpoint, accountId);
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();

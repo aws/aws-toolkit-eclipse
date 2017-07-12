@@ -14,9 +14,14 @@
  */
 package com.amazonaws.eclipse.explorer.cloudformation.wizard;
 
+import static com.amazonaws.eclipse.cloudformation.CloudFormationConstants.MAX_ALLOWED_TAG_AMOUNT;
+
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.amazonaws.eclipse.cloudformation.model.ParametersDataModel;
+import com.amazonaws.eclipse.core.model.KeyValueSetDataModel;
+import com.amazonaws.eclipse.core.model.KeyValueSetDataModel.Pair;
 
 /**
  * Data model for creating a new stack
@@ -36,6 +41,7 @@ public class CreateStackWizardDataModel {
     // for use only with file templates, to avoid processing the file twice
     private String templateBody;
     private boolean usePreselectedTemplateFile;
+    private final KeyValueSetDataModel tagModel = new KeyValueSetDataModel(MAX_ALLOWED_TAG_AMOUNT, new ArrayList<Pair>(MAX_ALLOWED_TAG_AMOUNT));
     private Mode mode = Mode.Create;
 
     private final ParametersDataModel parametersDataModel = new ParametersDataModel();
@@ -138,6 +144,10 @@ public class CreateStackWizardDataModel {
 
     public void setUsePreselectedTemplateFile(boolean usePreselectedTemplateFile) {
         this.usePreselectedTemplateFile = usePreselectedTemplateFile;
+    }
+
+    public KeyValueSetDataModel getTagModel() {
+        return tagModel;
     }
 
     public Mode getMode() {

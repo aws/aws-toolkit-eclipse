@@ -34,6 +34,7 @@ final class CreateAmiAction extends Action {
         this.instanceSelectionTable = instanceSelectionTable;
     }
 
+    @Override
     public void run() {
         for ( Instance instance : instanceSelectionTable.getAllSelectedInstances() ) {
             createAmiFromInstance(instance);

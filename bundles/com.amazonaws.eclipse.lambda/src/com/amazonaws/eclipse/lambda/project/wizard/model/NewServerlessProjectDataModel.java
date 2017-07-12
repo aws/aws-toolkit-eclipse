@@ -117,7 +117,7 @@ public class NewServerlessProjectDataModel {
     public List<ServerlessHandlerTemplateData> getServerlessHandlerTemplateData()
             throws JsonParseException, JsonMappingException, IOException {
         buildServerlessModel();
-        List<ServerlessHandlerTemplateData> handlers = new ArrayList<ServerlessHandlerTemplateData>();
+        List<ServerlessHandlerTemplateData> handlers = new ArrayList<>();
         for (ServerlessFunction function : serverlessModel.getServerlessFunctions().values()) {
             ServerlessHandlerTemplateData template = new ServerlessHandlerTemplateData();
             template.setPackageName(NameUtils.toHandlerPackageName(packagePrefix));

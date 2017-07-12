@@ -23,16 +23,10 @@ import com.fasterxml.jackson.core.JsonLocation;
  * Represents a JSON array structure in a Template document.
  */
 public class TemplateArrayNode extends TemplateNode {
-    private JsonLocation startLocation;
-    private JsonLocation endLocation;
-    private List<TemplateNode> members = new ArrayList<TemplateNode>();
+    private List<TemplateNode> members = new ArrayList<>();
 
     public TemplateArrayNode(JsonLocation startLocation) {
-        this.startLocation = startLocation;
-    }
-
-    public boolean isArray() {
-        return true;
+        setStartLocation(startLocation);
     }
 
     public List<TemplateNode> getMembers() {
@@ -40,24 +34,13 @@ public class TemplateArrayNode extends TemplateNode {
     }
 
     public void add(TemplateNode node) {
-        node.setParent(this);
-
+        TemplateIndexNode indexNode = new TemplateIndexNode(members.size());
+        indexNode.setParent(this);
+        node.setParent(indexNode);
         members.add(node);
     }
 
-    public JsonLocation getStartLocation() {
-        return startLocation;
-    }
-
-    public void setStartLocation(JsonLocation startLocation) {
-        this.startLocation = startLocation;
-    }
-
-    public JsonLocation getEndLocation() {
-        return endLocation;
-    }
-
-    public void setEndLocation(JsonLocation endLocation) {
-        this.endLocation = endLocation;
+    public TemplateNode get(int index) {
+        return members.get(index);
     }
 }

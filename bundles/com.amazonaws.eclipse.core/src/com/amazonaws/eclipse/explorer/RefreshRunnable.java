@@ -29,6 +29,7 @@ public final class RefreshRunnable implements Runnable {
         this.viewer = viewer;
     }
 
+    @Override
     public void run() {
         this.viewer.refresh(parentElement);
     }

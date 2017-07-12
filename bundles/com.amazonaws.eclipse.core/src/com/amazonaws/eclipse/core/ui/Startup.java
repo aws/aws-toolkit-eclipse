@@ -50,6 +50,7 @@ public class Startup implements IStartup {
     /* (non-Javadoc)
      * @see org.eclipse.ui.IStartup#earlyStartup()
      */
+    @Override
     public void earlyStartup() {
         recordOverviewContributors();
     }
@@ -93,26 +94,32 @@ public class Startup implements IStartup {
     protected static void displayAwsToolkitOverviewEditor() {
         if ( input == null) {
             input = new IEditorInput() {
+            @Override
             public Object getAdapter(Class adapter) {
                 return null;
             }
 
+            @Override
             public String getToolTipText() {
                 return "AWS Toolkit for Eclipse Overview";
             }
 
+            @Override
             public IPersistableElement getPersistable() {
                 return null;
             }
 
+            @Override
             public String getName() {
                 return "AWS Toolkit for Eclipse Overview";
             }
 
+            @Override
             public ImageDescriptor getImageDescriptor() {
                 return null;
             }
 
+            @Override
             public boolean exists() {
                 return true;
             }
@@ -120,6 +127,7 @@ public class Startup implements IStartup {
         }
 
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
@@ -157,7 +165,7 @@ public class Startup implements IStartup {
      *         Toolkit Overview view.
      */
     private Map<String, String> getRegisteredOverviewContributors() {
-        Map<String, String> registeredPlugins = new HashMap<String, String>();
+        Map<String, String> registeredPlugins = new HashMap<>();
 
         File dataFile = getPropertiesFile();
         if (dataFile == null || dataFile.exists() == false) {
@@ -194,7 +202,7 @@ public class Startup implements IStartup {
      *         view.
      */
     private Map<String, String> findOverviewContributors() {
-        Map<String, String> plugins = new HashMap<String, String>();
+        Map<String, String> plugins = new HashMap<>();
 
         IExtensionPoint extensionPoint = Platform.getExtensionRegistry().getExtensionPoint(AwsToolkitCore.OVERVIEW_EXTENSION_ID);
         IExtension[] extensions = extensionPoint.getExtensions();

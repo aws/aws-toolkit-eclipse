@@ -38,128 +38,128 @@ public class PlatformUtils {
     private static final String PPK_CONVERTER_EXE = "/bin/PemToPPKConverter.exe";
     private static final Logger logger = Logger.getLogger(PlatformUtils.class.getName());
     
-	/**
-	 * Returns true if the current platform is a windows platform.
-	 * 
-	 * @return True if the current platform is a windows platform.
-	 */
-	public boolean isWindows() {
-		String platform = System.getProperty("os.name");
-		
-		if (platform == null) {
-			Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
-					"No system property for 'os.name'");
-			StatusManager.getManager().handle(status, StatusManager.LOG);
+    /**
+     * Returns true if the current platform is a windows platform.
+     * 
+     * @return True if the current platform is a windows platform.
+     */
+    public boolean isWindows() {
+        String platform = System.getProperty("os.name");
+        
+        if (platform == null) {
+            Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
+                    "No system property for 'os.name'");
+            StatusManager.getManager().handle(status, StatusManager.LOG);
 
-			return false;
-		}
-		
-		return platform.toLowerCase().contains("windows");
-	}
+            return false;
+        }
+        
+        return platform.toLowerCase().contains("windows");
+    }
 
-	/**
-	 * Returns true if the current platform is a Linux platform.
-	 * 
-	 * @return True if the current platform is a Linux platform.
-	 */
-	public boolean isLinux() {
-		String platform = System.getProperty("os.name");
-		
-		if (platform == null) {
-			Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
-					"No system property for 'os.name'");
-			StatusManager.getManager().handle(status, StatusManager.LOG);
+    /**
+     * Returns true if the current platform is a Linux platform.
+     * 
+     * @return True if the current platform is a Linux platform.
+     */
+    public boolean isLinux() {
+        String platform = System.getProperty("os.name");
+        
+        if (platform == null) {
+            Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
+                    "No system property for 'os.name'");
+            StatusManager.getManager().handle(status, StatusManager.LOG);
 
-			return false;
-		}
-		
-		return platform.toLowerCase().contains("linux");
-	}
+            return false;
+        }
+        
+        return platform.toLowerCase().contains("linux");
+    }
 
-	/**
-	 * Returns true if the current platform is a Mac platform.
-	 * 
-	 * @return True if the current platform is a Mac platform.
-	 */
-	public boolean isMac() {
-		String platform = System.getProperty("os.name");
-		
-		if (platform == null) {
-			Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
-					"No system property for 'os.name'");
-			StatusManager.getManager().handle(status, StatusManager.LOG);
+    /**
+     * Returns true if the current platform is a Mac platform.
+     * 
+     * @return True if the current platform is a Mac platform.
+     */
+    public boolean isMac() {
+        String platform = System.getProperty("os.name");
+        
+        if (platform == null) {
+            Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
+                    "No system property for 'os.name'");
+            StatusManager.getManager().handle(status, StatusManager.LOG);
 
-			return false;
-		}
-		
-		return platform.toLowerCase().contains("mac os");
-	}
+            return false;
+        }
+        
+        return platform.toLowerCase().contains("mac os");
+    }
 
-	/**
-	 * Returns true if the platform specific SSH client is correctly configured
-	 * and ready to be used on this system.
-	 * 
-	 * @return True if the platform specific SSH client is correctly configured
-	 *         and ready to be used on this system.
-	 */
-	public boolean isSshClientConfigured() {
-		if (isWindows()) {
-			String puttyPath = Ec2Plugin.getDefault().getPreferenceStore().getString(PreferenceConstants.P_PUTTY_EXECUTABLE);
+    /**
+     * Returns true if the platform specific SSH client is correctly configured
+     * and ready to be used on this system.
+     * 
+     * @return True if the platform specific SSH client is correctly configured
+     *         and ready to be used on this system.
+     */
+    public boolean isSshClientConfigured() {
+        if (isWindows()) {
+            String puttyPath = Ec2Plugin.getDefault().getPreferenceStore().getString(PreferenceConstants.P_PUTTY_EXECUTABLE);
 
-			// First make sure something is specified...
-			if (puttyPath == null || puttyPath.length() == 0) return false;
-			
-			// Next make sure it's a file
-			if (! new File(puttyPath).isFile()) return false;
-		}
-		
-		return true;
-	}
+            // First make sure something is specified...
+            if (puttyPath == null || puttyPath.length() == 0) return false;
+            
+            // Next make sure it's a file
+            if (! new File(puttyPath).isFile()) return false;
+        }
+        
+        return true;
+    }
 
-	/**
-	 * Opens a shell to the specified host using a platform specific terminal
-	 * window.
-	 * 
-	 * @param user
-	 *            The user to connect to the remote host as.
-	 * @param host
-	 *            The remote host to connect to.
-	 * @param identityFile
-	 *            The file containing the identity file for the connection.
-	 * @throws IOException
-	 *             If any problems are encountered opening the remote shell.
-	 */
-	public void openShellToRemoteHost(String user, String host, String identityFile) throws IOException, InterruptedException, URISyntaxException {
-		
-		IPreferenceStore preferenceStore = Ec2Plugin.getDefault().getPreferenceStore();
-		
-		String sshOptions = preferenceStore.getString(PreferenceConstants.P_SSH_OPTIONS);
-		String sshCommand = preferenceStore.getString(PreferenceConstants.P_SSH_CLIENT);
-		sshCommand += " " + sshOptions + " -i " + identityFile + " " + user + "@" + host;
+    /**
+     * Opens a shell to the specified host using a platform specific terminal
+     * window.
+     * 
+     * @param user
+     *            The user to connect to the remote host as.
+     * @param host
+     *            The remote host to connect to.
+     * @param identityFile
+     *            The file containing the identity file for the connection.
+     * @throws IOException
+     *             If any problems are encountered opening the remote shell.
+     */
+    public void openShellToRemoteHost(String user, String host, String identityFile) throws IOException, InterruptedException, URISyntaxException {
+        
+        IPreferenceStore preferenceStore = Ec2Plugin.getDefault().getPreferenceStore();
+        
+        String sshOptions = preferenceStore.getString(PreferenceConstants.P_SSH_OPTIONS);
+        String sshCommand = preferenceStore.getString(PreferenceConstants.P_SSH_CLIENT);
+        sshCommand += " " + sshOptions + " -i " + identityFile + " " + user + "@" + host;
 
-		if (isMac()) {
-			URL locationUrl = 
-					FileLocator.find(Ec2Plugin.getDefault().getBundle(),new Path("/"), null);
-			URL fileUrl = FileLocator.toFileURL(locationUrl);
-			executeAsynchronousCommand(new String[] {"osascript", fileUrl.getFile() + "scripts/openMacTerminalShell.scpt", sshCommand});
-		} else if (isLinux()) {
-			String terminalCommand = preferenceStore.getString(PreferenceConstants.P_TERMINAL_EXECUTABLE);
-			
-			executeAsynchronousCommand(new String[] {terminalCommand, "-e", sshCommand});
-		} else if (isWindows()) {
-			openRemoteShellFromWindows(user, host, identityFile);
-		} else {
-			String osName = System.getProperty("os.name");
-			
-			Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
-					"Unable to determine what platform '" + osName + "' is.");
-			StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
-		}
-	}
-	
-	/*
-	 * Private Interface
-	 */
+        if (isMac()) {
+            URL locationUrl = 
+                    FileLocator.find(Ec2Plugin.getDefault().getBundle(),new Path("/"), null);
+            URL fileUrl = FileLocator.toFileURL(locationUrl);
+            executeAsynchronousCommand(new String[] {"osascript", fileUrl.getFile() + "scripts/openMacTerminalShell.scpt", sshCommand});
+        } else if (isLinux()) {
+            String terminalCommand = preferenceStore.getString(PreferenceConstants.P_TERMINAL_EXECUTABLE);
+            
+            executeAsynchronousCommand(new String[] {terminalCommand, "-e", sshCommand});
+        } else if (isWindows()) {
+            openRemoteShellFromWindows(user, host, identityFile);
+        } else {
+            String osName = System.getProperty("os.name");
+            
+            Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
+                    "Unable to determine what platform '" + osName + "' is.");
+            StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+        }
+    }
+    
+    /*
+     * Private Interface
+     */
 
     /**
      * Opens a remote shell connection from a windows host as the specified user
@@ -178,29 +178,29 @@ public class PlatformUtils {
      * @throws IOException
      *             If any problems are encountered executing the SSH client.
      */
-	private void openRemoteShellFromWindows(String user, String host, String identityFile) throws IOException, InterruptedException, URISyntaxException {
-		String puttyExecutable = Ec2Plugin.getDefault().getPreferenceStore().getString(
-				PreferenceConstants.P_PUTTY_EXECUTABLE);
+    private void openRemoteShellFromWindows(String user, String host, String identityFile) throws IOException, InterruptedException, URISyntaxException {
+        String puttyExecutable = Ec2Plugin.getDefault().getPreferenceStore().getString(
+                PreferenceConstants.P_PUTTY_EXECUTABLE);
 
-		File privateKeyFile = new File(identityFile);
-		if (!privateKeyFile.isFile()) {
-			throw new IOException("Unable to find the required OpenSSH private key '" + identityFile + "'.");
-		}
-		
-		String puttyPrivateKeyFile = translateOpenSshPrivateKeyFileToPuttyPrivateKeyFile(identityFile); 
+        File privateKeyFile = new File(identityFile);
+        if (!privateKeyFile.isFile()) {
+            throw new IOException("Unable to find the required OpenSSH private key '" + identityFile + "'.");
+        }
+        
+        String puttyPrivateKeyFile = translateOpenSshPrivateKeyFileToPuttyPrivateKeyFile(identityFile); 
 
-		File ppkFile = new File(puttyPrivateKeyFile);
+        File ppkFile = new File(puttyPrivateKeyFile);
         if (! ppkFile.exists()) {
             executeAsynchronousCommand(new String[] {getPuttyGenConversionExecutable(), "\"" + identityFile + "\"", "\"" + ppkFile.getAbsolutePath() + "\""}).waitFor();
-		}			
-		
-		String[] openShellCommand = new String[] {puttyExecutable, "-ssh", "-i", puttyPrivateKeyFile, user + "@" + host};
-		executeAsynchronousCommand(openShellCommand);
-	}
+        }            
+        
+        String[] openShellCommand = new String[] {puttyExecutable, "-ssh", "-i", puttyPrivateKeyFile, user + "@" + host};
+        executeAsynchronousCommand(openShellCommand);
+    }
 
-	/**
+    /**
      * Returns the path to the bundled puttygen conversion utility
-	 * @throws IOException 
+     * @throws IOException 
      */
     private String getPuttyGenConversionExecutable() throws URISyntaxException, IOException {
         URL conversionExe = FileLocator.resolve(FileLocator.find(Ec2Plugin.getDefault().getBundle(), new Path(PPK_CONVERTER_EXE), null));
@@ -208,30 +208,30 @@ public class PlatformUtils {
     }
 
     /**
-	 * Translates the full path to an OpenSSH private key file to a full path
-	 * for the corresponding PuTTY private key file.
-	 * 
-	 * @param identityFile
-	 *            The full path to an OpenSSH private key file.
-	 * 
-	 * @return The full path for the corresponding PuTTY private key.
-	 * 
-	 * @throws IOException
-	 *             If any problems were encountered translating the OpenSSH
-	 *             private key file path.
-	 */
-	private String translateOpenSshPrivateKeyFileToPuttyPrivateKeyFile(String identityFile) throws IOException {
-		int suffixIndex = identityFile.lastIndexOf(".");
-		if (suffixIndex < 0) {
-			throw new IOException("Unable to translate '" + identityFile + "' to a PuTTY private key file path.");
-		}
-		
-		String puttyPrivateKeyFile = identityFile.substring(0, suffixIndex);
-		puttyPrivateKeyFile = puttyPrivateKeyFile + ".ppk";
-		
-		return puttyPrivateKeyFile;
-	}
-	
+     * Translates the full path to an OpenSSH private key file to a full path
+     * for the corresponding PuTTY private key file.
+     * 
+     * @param identityFile
+     *            The full path to an OpenSSH private key file.
+     * 
+     * @return The full path for the corresponding PuTTY private key.
+     * 
+     * @throws IOException
+     *             If any problems were encountered translating the OpenSSH
+     *             private key file path.
+     */
+    private String translateOpenSshPrivateKeyFileToPuttyPrivateKeyFile(String identityFile) throws IOException {
+        int suffixIndex = identityFile.lastIndexOf(".");
+        if (suffixIndex < 0) {
+            throw new IOException("Unable to translate '" + identityFile + "' to a PuTTY private key file path.");
+        }
+        
+        String puttyPrivateKeyFile = identityFile.substring(0, suffixIndex);
+        puttyPrivateKeyFile = puttyPrivateKeyFile + ".ppk";
+        
+        return puttyPrivateKeyFile;
+    }
+    
 
     /**
      * Executes the specified command array, but does NOT wait for it to finish,

@@ -43,7 +43,6 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
-import com.amazonaws.eclipse.elasticbeanstalk.jobs.UpdateEnvironmentConfigurationJob;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.EnvironmentConfigDataModel;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -60,7 +59,7 @@ public class EnvironmentTypeConfigEditorSection extends HumanReadableConfigEdito
             + "This change will cause your environment to restart.  "
             + "and could be unavailable for several minutes.";
 
-    private static final Map<String, String> humanReadableNames = new HashMap<String, String>();
+    private static final Map<String, String> humanReadableNames = new HashMap<>();
     static {
         humanReadableNames.put("EnvironmentType", "Environment Type");
     }
@@ -93,6 +92,7 @@ public class EnvironmentTypeConfigEditorSection extends HumanReadableConfigEdito
         // After you do the confirmation, we will update the environment and refresh the layout.
         combo.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 boolean confirmation = MessageDialog.openConfirm(Display.getCurrent().getActiveShell(), "Change Environment Type",
                         CHANGE_ENVIRONMENT_TYPE_WARNING);
@@ -108,6 +108,7 @@ public class EnvironmentTypeConfigEditorSection extends HumanReadableConfigEdito
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
 
             }

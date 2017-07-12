@@ -34,7 +34,7 @@ public class ServerlessTemplate {
     @JsonProperty("Resources")
     private Map<String, TypeProperties> resources;
     
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new HashMap<>();
 
     @JsonProperty("AWSTemplateFormatVersion")
     public String getAWSTemplateFormatVersion() {
@@ -58,7 +58,7 @@ public class ServerlessTemplate {
     }
     public Map<String, TypeProperties> getResources() {
         if (resources == null) {
-            resources = new HashMap<String, TypeProperties>();
+            resources = new HashMap<>();
         }
         return resources;
     }

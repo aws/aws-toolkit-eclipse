@@ -28,7 +28,7 @@ import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.Environment
  */
 public class SessionConfigEditorSection extends HumanReadableConfigEditorSection {
 
-    private static final Map<String, String> humanReadableNames = new HashMap<String, String>();
+    private static final Map<String, String> humanReadableNames = new HashMap<>();
     static {
         humanReadableNames.put("Stickiness Cookie Expiration", "Cookie Expiration Period (seconds)");
         humanReadableNames.put("Stickiness Policy", "Enable Session Stickiness");

@@ -99,7 +99,7 @@ class NewSubscriptionAction extends Action {
             new Label(composite, SWT.NONE).setText("Subscription Protocol:");
             protocolCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
             protocolCombo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-            LinkedHashMap<String, String> protocolMap = new LinkedHashMap<String, String>();
+            LinkedHashMap<String, String> protocolMap = new LinkedHashMap<>();
             protocolMap.put("Email (plain text)", "email");
             protocolMap.put("Email (JSON)", "email-json");
             protocolMap.put("SQS", "sqs");
@@ -107,10 +107,12 @@ class NewSubscriptionAction extends Action {
             protocolMap.put("HTTPS", "https");
 
             protocolCombo.addSelectionListener(new SelectionListener() {
+                @Override
                 public void widgetSelected(SelectionEvent e) {
                     updateControls();
                 }
 
+                @Override
                 public void widgetDefaultSelected(SelectionEvent e) {}
             });
 
@@ -127,6 +129,7 @@ class NewSubscriptionAction extends Action {
             endpointText = new Text(composite, SWT.BORDER);
             endpointText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
             endpointText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     updateControls();
                 }

@@ -42,6 +42,7 @@ public class InitialSetupUtils {
 
         if (runSetupWizard) {
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     Shell shell = new Shell(Display.getDefault(), SWT.DIALOG_TRIM);
                     WizardDialog wizardDialog = new WizardDialog(shell,

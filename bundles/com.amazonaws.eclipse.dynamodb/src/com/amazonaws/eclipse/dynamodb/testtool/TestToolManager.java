@@ -265,6 +265,7 @@ public class TestToolManager {
             // it, clear out our internal state so the user can start another
             // instance.
             process.start(new Runnable() {
+                @Override
                 public void run() {
                     synchronized (TestToolManager.this) {
                         if (process == currentProcess) {
@@ -454,7 +455,7 @@ public class TestToolManager {
         final List<TestToolVersion> previous
     ) {
         List<TestToolVersion> rval =
-            new ArrayList<TestToolVersion>(previous.size());
+            new ArrayList<>(previous.size());
 
         for (TestToolVersion version : previous) {
             InstallState installState = getInstallState(version.getName());
@@ -689,7 +690,7 @@ public class TestToolManager {
      */
     private static class ManifestContentHandler extends DefaultHandler {
         private final List<TestToolVersion> versions =
-            new ArrayList<TestToolVersion>();
+            new ArrayList<>();
 
         private StringBuilder currText = new StringBuilder();
 

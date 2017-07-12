@@ -24,29 +24,29 @@ import org.eclipse.swt.widgets.Composite;
  */
 public abstract class OverviewSection {
 
-	/**
-	 * Marker interface for overview sections that support version 2 of the AWS
-	 * Toolkit for Eclipse overview page.
-	 */
-	public static interface V2 {}
-	
+    /**
+     * Marker interface for overview sections that support version 2 of the AWS
+     * Toolkit for Eclipse overview page.
+     */
+    public static interface V2 {}
+    
     /** AWS Toolkit for Eclipse UI toolkit for creating links, labels, etc. */ 
     protected final Toolkit toolkit = new Toolkit();
 
     /** Shared resources for all overview page components (images, fonts, colors, etc) */
-	protected OverviewResources resources;
+    protected OverviewResources resources;
 
-	/**
-	 * Sets the shared overview page resources for this overview section.
-	 * 
-	 * @param resources
-	 *            The shared overview page resources.
-	 */
-	public void setResources(OverviewResources resources) {
-		this.resources = resources;
-		toolkit.setResources(resources);
-	}
-	
+    /**
+     * Sets the shared overview page resources for this overview section.
+     * 
+     * @param resources
+     *            The shared overview page resources.
+     */
+    public void setResources(OverviewResources resources) {
+        this.resources = resources;
+        toolkit.setResources(resources);
+    }
+    
     /**
      * The AWS Toolkit Overview view will call this method on each overview
      * section that has registered and overviewSection extension for the

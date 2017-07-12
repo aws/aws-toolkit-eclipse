@@ -23,6 +23,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.wst.server.ui.actions.RunOnServerAction;
 
 public class DeployToElasticBeanstalkHandler extends AbstractHandler {
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().getSelection();
         if ( selection != null & selection instanceof IStructuredSelection ) {

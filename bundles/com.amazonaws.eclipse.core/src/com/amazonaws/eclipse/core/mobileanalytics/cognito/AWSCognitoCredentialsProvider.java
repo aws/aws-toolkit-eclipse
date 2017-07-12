@@ -66,6 +66,7 @@ public class AWSCognitoCredentialsProvider implements AWSCredentialsProvider {
      * is started, establishing the credentials. In either case, those
      * credentials are returned
      */
+    @Override
     public AWSSessionCredentials getCredentials() {
         if (needsNewSession()) {
             startSession();
@@ -73,6 +74,7 @@ public class AWSCognitoCredentialsProvider implements AWSCredentialsProvider {
         return sessionCredentials;
     }
 
+    @Override
     public void refresh() {
         startSession();
     }

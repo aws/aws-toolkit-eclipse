@@ -26,32 +26,33 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
  */
 public class PreferenceLinkListener implements Listener {
 
-	/** Optional Shell object to close after opening the link */
-	private Shell shellToClose;
+    /** Optional Shell object to close after opening the link */
+    private Shell shellToClose;
 
-	/**
-	 * Sets the Shell object that should be closed after a link is opened.
-	 *  
-	 * @param shell
-	 *            The Shell to close after opening the selected link.
-	 */
-	public void setShellToClose(Shell shell) {
-		shellToClose = shell;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-	 */
-	public void handleEvent(Event event) {
-		String preferencePage = event.text;
+    /**
+     * Sets the Shell object that should be closed after a link is opened.
+     *  
+     * @param shell
+     *            The Shell to close after opening the selected link.
+     */
+    public void setShellToClose(Shell shell) {
+        shellToClose = shell;
+    }
+    
+    /* (non-Javadoc)
+     * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+     */
+    @Override
+    public void handleEvent(Event event) {
+        String preferencePage = event.text;
 
-		if (shellToClose != null) {
-			shellToClose.close();
-		}
-		
-		PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
-				null, preferencePage, new String[] {preferencePage}, null);
-		dialog.open();
-	}
+        if (shellToClose != null) {
+            shellToClose.close();
+        }
+        
+        PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
+                null, preferencePage, new String[] {preferencePage}, null);
+        dialog.open();
+    }
 
 }

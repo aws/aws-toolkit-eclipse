@@ -96,6 +96,7 @@ public class Toolkit {
         link.setBackground(parent.getBackground());
 
         link.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 action.run();
             }
@@ -172,7 +173,8 @@ public class Toolkit {
        link.setBackground(parent.getBackground());
 
        link.addListener(SWT.Selection, new Listener() {
-           public void handleEvent(Event event) {
+           @Override
+        public void handleEvent(Event event) {
               PlatformUI.getWorkbench().getHelpSystem().displayHelpResource(event.text);
            }
        });
@@ -212,6 +214,7 @@ public class Toolkit {
             final IActionDelegate delegate) {
 
         final Action proxy = new Action("runAction") {
+            @Override
             public void run() {
                 delegate.run(this);
             }
@@ -222,6 +225,7 @@ public class Toolkit {
         link.setBackground(parent.getBackground());
 
         link.addListener(SWT.Selection, new Listener() {
+            @Override
             public void handleEvent(Event event) {
                 proxy.run();
             }

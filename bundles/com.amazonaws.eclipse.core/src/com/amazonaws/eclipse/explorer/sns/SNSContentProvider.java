@@ -66,6 +66,7 @@ public class SNSContentProvider extends AbstractContentProvider {
     }
 
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof SNSRootElement);
@@ -83,7 +84,7 @@ public class SNSContentProvider extends AbstractContentProvider {
                 public Object[] loadData() {
                     AmazonSNS sns = AwsToolkitCore.getClientFactory().getSNSClient();
 
-                    List<TopicNode> topicNodes = new ArrayList<TopicNode>();
+                    List<TopicNode> topicNodes = new ArrayList<>();
                     ListTopicsResult listTopicsResult = null;
 
                     do {

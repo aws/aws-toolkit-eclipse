@@ -48,7 +48,7 @@ public final class ElasticBeanstalkAnalytics {
     public static void trackDeployTotalTime(long deployTotalTime) {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_DEPLOY_APPLICATION)
-                .addMetric(METRIC_NAME_DEPLOY_TOTAL_TIME_MS, (double)deployTotalTime)
+                .addMetric(METRIC_NAME_DEPLOY_TOTAL_TIME_MS, deployTotalTime)
                 .build());
     }
 

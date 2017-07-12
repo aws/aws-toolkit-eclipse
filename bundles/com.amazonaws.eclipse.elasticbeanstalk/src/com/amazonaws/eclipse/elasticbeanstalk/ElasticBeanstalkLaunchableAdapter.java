@@ -28,7 +28,7 @@ import org.eclipse.wst.server.core.util.WebResource;
 
 public class ElasticBeanstalkLaunchableAdapter extends LaunchableAdapterDelegate {
 
-    private static final Map<String, ElasticBeanstalkHttpLaunchable> launchables = new HashMap<String, ElasticBeanstalkHttpLaunchable>();
+    private static final Map<String, ElasticBeanstalkHttpLaunchable> launchables = new HashMap<>();
 
     /**
      * Returns the launchable currently associated with the given server.
@@ -37,6 +37,7 @@ public class ElasticBeanstalkLaunchableAdapter extends LaunchableAdapterDelegate
         return launchables.get(server.getId());
     }
 
+    @Override
     public Object getLaunchable(IServer server, IModuleArtifact moduleArtifact) {
         Object serverDelegate = server.loadAdapter(ServerDelegate.class, null);
         if (serverDelegate instanceof Environment == false) {

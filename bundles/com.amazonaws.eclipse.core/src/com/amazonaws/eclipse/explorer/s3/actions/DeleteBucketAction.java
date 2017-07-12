@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Display;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.s3.S3ContentProvider;
 import com.amazonaws.eclipse.explorer.s3.util.ObjectUtils;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
 
 public class DeleteBucketAction extends Action {
@@ -75,6 +74,7 @@ public class DeleteBucketAction extends Action {
                     }
 
                     Display.getDefault().asyncExec(new Runnable() {
+                        @Override
                         public void run() {
                             S3ContentProvider.getInstance().refresh();
                         }

@@ -72,7 +72,7 @@ public class CodeCommitActionProvider extends CommonActionProvider {
         @SuppressWarnings("rawtypes")
         Iterator iterator = selection.iterator();
         boolean rootElementSelected = false;
-        List<RepositoryNameIdPair> repositories = new ArrayList<RepositoryNameIdPair>();
+        List<RepositoryNameIdPair> repositories = new ArrayList<>();
         while ( iterator.hasNext() ) {
             Object obj = iterator.next();
             if ( obj instanceof RepositoryNameIdPair ) {
@@ -170,6 +170,7 @@ public class CodeCommitActionProvider extends CommonActionProvider {
                     repositoryNameText.setMessage("100 character limit");
                     repositoryNameText.setLayoutData(gridData);
                     repositoryNameText.addModifyListener(new ModifyListener() {
+                        @Override
                         public void modifyText(ModifyEvent event) {
                             String inputRepositoryName = repositoryNameText.getText();
                             getButton(IDialogConstants.OK_ID).setEnabled(!StringUtils.isNullOrEmpty(inputRepositoryName));
@@ -304,6 +305,7 @@ public class CodeCommitActionProvider extends CommonActionProvider {
             final IEditorInput input = new RepositoryEditorInput(repository, endpoint, accountId, regionId);
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();

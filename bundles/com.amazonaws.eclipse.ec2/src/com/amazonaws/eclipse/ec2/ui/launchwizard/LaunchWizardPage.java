@@ -125,6 +125,7 @@ public class LaunchWizardPage extends WizardPage {
     /* (non-Javadoc)
      * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
      */
+    @Override
     public void createControl(Composite originalParent) {
         Composite parent = new Composite(originalParent, SWT.NONE);
 
@@ -148,6 +149,7 @@ public class LaunchWizardPage extends WizardPage {
         instanceTypeCombo = new Combo(parent, SWT.READ_ONLY);
         instanceTypeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         instanceTypeCombo.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 updateInstanceTypeInformation();
             }
@@ -168,7 +170,9 @@ public class LaunchWizardPage extends WizardPage {
 
 
         SelectionListener selectionListener = new SelectionListener() {
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 updateControls();
             }
@@ -180,6 +184,7 @@ public class LaunchWizardPage extends WizardPage {
         gridData.heightHint = 100;
         keyPairComposite.setLayoutData(gridData);
         keyPairComposite.getViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 updateControls();
             }
@@ -205,6 +210,7 @@ public class LaunchWizardPage extends WizardPage {
         gridData.heightHint = 85;
         userDataText.setLayoutData(gridData);
         userDataText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 updateControls();
             }
@@ -243,7 +249,7 @@ public class LaunchWizardPage extends WizardPage {
     private void loadInstanceProfiles() {
         ListInstanceProfilesResult listInstanceProfiles = AwsToolkitCore.getClientFactory()
                 .getIAMClient().listInstanceProfiles();
-        List<String> profileNames = new ArrayList<String>();
+        List<String> profileNames = new ArrayList<>();
         profileNames.add(NO_INSTANCE_PROFILE);
         for ( InstanceProfile profile : listInstanceProfiles.getInstanceProfiles() ) {
             profileNames.add(profile.getInstanceProfileName());

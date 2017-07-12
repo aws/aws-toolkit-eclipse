@@ -158,7 +158,8 @@ public class CloudFormationExplorerActionProvider extends CommonActionProvider {
         public void run() {
              new Job("Cancel stack update") {
 
-                 protected IStatus run(final IProgressMonitor monitor) {
+                 @Override
+                protected IStatus run(final IProgressMonitor monitor) {
                      try {
                          AmazonCloudFormation cloudFormationClient = AwsToolkitCore.getClientFactory()
                                  .getCloudFormationClient();
@@ -206,6 +207,7 @@ public class CloudFormationExplorerActionProvider extends CommonActionProvider {
             if ( path != null ) {
                 new Job("Downloading stack template") {
 
+                    @Override
                     protected IStatus run(final IProgressMonitor monitor) {
                         try {
                             AmazonCloudFormation cloudFormationClient = AwsToolkitCore.getClientFactory()

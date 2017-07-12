@@ -50,6 +50,7 @@ public class DeploymentActionConfigurationPage extends WizardPageWithOnEnterHook
                 bindingContext, AggregateValidationStatus.MAX_SEVERITY);
     }
 
+    @Override
     public void createControl(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(3, true));
@@ -95,6 +96,7 @@ public class DeploymentActionConfigurationPage extends WizardPageWithOnEnterHook
         // Bind the validation status to the wizard page message
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent arg0) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false) return;
@@ -111,7 +113,7 @@ public class DeploymentActionConfigurationPage extends WizardPageWithOnEnterHook
         });
 
         // Validation status providers
-        ChainValidator<String> customChefJsonValidator = new ChainValidator<String>(
+        ChainValidator<String> customChefJsonValidator = new ChainValidator<>(
                 customChefJsonTextObservable,
                 new JsonStringValidator("Please enter a valid JSON String", true));
         bindingContext.addValidationStatusProvider(customChefJsonValidator);

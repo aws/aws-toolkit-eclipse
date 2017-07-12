@@ -32,15 +32,18 @@ public class LambdaFunctionJarBuilder extends FatJarBuilder {
     public LambdaFunctionJarBuilder() {
     }
 
+    @Override
     public String getId() {
         return LAMBDA_FUNCTINO_JAR_BUILDER_ID;
     }
 
+    @Override
     public IManifestProvider getManifestProvider() {
         // we don't need to bundle manifest file for the function zip file
         return null;
     }
 
+    @Override
     public void writeArchive(ZipFile zip, IProgressMonitor monitor) {
 
         String zipPath = zip.getName();

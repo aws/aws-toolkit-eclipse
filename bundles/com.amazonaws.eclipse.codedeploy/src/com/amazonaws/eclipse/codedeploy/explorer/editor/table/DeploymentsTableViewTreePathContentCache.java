@@ -26,9 +26,10 @@ class DeploymentsTableViewTreePathContentCache implements TreePathContentProvide
     public DeploymentsTableViewTreePathContentCache(DeploymentGroupEditorInput editorInput) {
         this.editorInput = editorInput;
 
-        cache = new ConcurrentHashMap<TreePath, Object[]>();
+        cache = new ConcurrentHashMap<>();
     }
 
+    @Override
     public Object[] getChildren(TreePath parent) {
         if ( !cache.containsKey(parent) ) {
             cache.put(parent, loadChildren(parent));
@@ -36,6 +37,7 @@ class DeploymentsTableViewTreePathContentCache implements TreePathContentProvide
         return cache.get(parent);
     }
 
+    @Override
     public void refresh() {
         cache.clear();
     }
@@ -50,6 +52,7 @@ class DeploymentsTableViewTreePathContentCache implements TreePathContentProvide
 
             // Sort by creation data
             Collections.sort(deployments, new Comparator<DeploymentInfo>() {
+                @Override
                 public int compare(DeploymentInfo a, DeploymentInfo b) {
                     int a_to_b = a.getCreateTime().compareTo(b.getCreateTime());
                     // In descending order
@@ -75,7 +78,7 @@ class DeploymentsTableViewTreePathContentCache implements TreePathContentProvide
 
                 List<LifecycleEvent> events = deploymentInstance.getLifecycleEvents();
                 if (events == null) {
-                    events = new LinkedList<LifecycleEvent>();
+                    events = new LinkedList<>();
                 }
                 return events.toArray(new LifecycleEvent[events.size()]);
 

@@ -34,6 +34,7 @@ public final class DecorationChangeListener implements IValueChangeListener {
         updateDecoration((IStatus)observableValue.getValue());
     }
 
+    @Override
     public void handleValueChange(ValueChangeEvent event) {
         IStatus status = (IStatus)event.getObservableValue().getValue();
         updateDecoration(status);

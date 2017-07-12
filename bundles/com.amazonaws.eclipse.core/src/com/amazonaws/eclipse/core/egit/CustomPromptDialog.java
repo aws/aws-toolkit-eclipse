@@ -80,7 +80,7 @@ public class CustomPromptDialog extends TrayDialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        editingControls = new ArrayList<Control>(credentialItems.length);
+        editingControls = new ArrayList<>(credentialItems.length);
 
         Composite main = (Composite) super.createDialogArea(parent);
         GridLayout mainLayout = (GridLayout) main.getLayout();

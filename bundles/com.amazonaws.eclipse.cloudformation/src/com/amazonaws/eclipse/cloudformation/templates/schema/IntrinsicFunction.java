@@ -37,6 +37,7 @@ public class IntrinsicFunction {
         return description;
     }
 
+    @Override
     public String toString() {
         return name + " (" + parameter + "): " + description; 
     }

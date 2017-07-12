@@ -25,16 +25,10 @@ import com.fasterxml.jackson.core.JsonLocation;
  * Represents a JSON object structure in a Template document.
  */
 public class TemplateObjectNode extends TemplateNode {
-    private Map<String, TemplateNode> map = new LinkedHashMap<String, TemplateNode>();
+    private Map<String, TemplateNode> map = new LinkedHashMap<>();
 
     public TemplateObjectNode(JsonLocation startLocation) {
         setStartLocation(startLocation);
-    }
-
-    // TODO: We don't store location data for field tokens yet
-
-    public boolean isObject() {
-        return true;
     }
 
     public void put(String field, TemplateNode value) {

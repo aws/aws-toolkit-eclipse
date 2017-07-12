@@ -54,6 +54,7 @@ public class ResourcesView extends CommonNavigator {
         return viewer;
     }
 
+    @Override
     public void dispose() {
         getCommonViewer().removeOpenListener(EXPLORER_NODE_OPEN_LISTENER);
          if (accountAndRegionChangeListener != null) {
@@ -74,6 +75,7 @@ public class ResourcesView extends CommonNavigator {
                 ContentProviderRegistry.clearAllCachedResponses();
 
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         viewer.refresh();
                         viewer.collapseAll();
@@ -85,6 +87,7 @@ public class ResourcesView extends CommonNavigator {
 
          Display.getDefault().asyncExec(new Runnable() {
 
+            @Override
             public void run() {
                 AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(accountAndRegionChangeListener);
                 AwsToolkitCore.getDefault().getAccountManager().addDefaultAccountChangeListener(accountAndRegionChangeListener);
@@ -95,6 +98,7 @@ public class ResourcesView extends CommonNavigator {
     }
 
     private static final class ExplorerNodeOpenListener implements IOpenListener {
+        @Override
         public void open(OpenEvent event) {
             StructuredSelection selection = (StructuredSelection)event.getSelection();
 

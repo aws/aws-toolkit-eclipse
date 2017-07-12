@@ -23,6 +23,7 @@ import com.amazonaws.util.StringUtils;
 
 public class ServerlessTemplateFilePathValidator implements IValidator {
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
         if (StringUtils.isNullOrEmpty(s)) {

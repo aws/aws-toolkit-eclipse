@@ -67,6 +67,7 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
         this.connectionFactory = DatabaseConnectionFactory.createConnectionFactory(wizardDataModel);
     }
 
+    @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
         monitor.beginTask("Configuring database connection", 10);
 
@@ -182,7 +183,7 @@ class ConfigureRDSDBConnectionRunnable implements IRunnableWithProgress {
         monitor.worked(1);
 
         // Then make sure that it has usable permission...
-        List<String> existingSecurityGroupNames = new ArrayList<String>();
+        List<String> existingSecurityGroupNames = new ArrayList<>();
         for (DBSecurityGroupMembership groupMembership : wizardDataModel.getDbInstance().getDBSecurityGroups()) {
             existingSecurityGroupNames.add(groupMembership.getDBSecurityGroupName());
         }

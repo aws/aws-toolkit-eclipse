@@ -23,6 +23,7 @@ import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 
 public class LaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup {
 
+    @Override
     public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
         ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[1];
         tabs[0] = new ServerLaunchConfigurationTab(new String[] { ElasticBeanstalkPlugin.TOMCAT_6_SERVER_TYPE_ID, ElasticBeanstalkPlugin.TOMCAT_7_SERVER_TYPE_ID });

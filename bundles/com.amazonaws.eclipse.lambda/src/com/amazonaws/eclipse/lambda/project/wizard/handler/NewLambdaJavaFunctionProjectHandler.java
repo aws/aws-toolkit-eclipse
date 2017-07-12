@@ -25,6 +25,7 @@ import com.amazonaws.eclipse.lambda.project.wizard.NewLambdaJavaFunctionProjectW
 
 public class NewLambdaJavaFunctionProjectHandler extends AbstractHandler {
 
+    @Override
     @SuppressWarnings("restriction")
     public Object execute(ExecutionEvent event) throws ExecutionException {
         NewLambdaJavaFunctionProjectWizard newWizard = new NewLambdaJavaFunctionProjectWizard();

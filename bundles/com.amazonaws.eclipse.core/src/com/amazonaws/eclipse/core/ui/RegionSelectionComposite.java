@@ -25,7 +25,7 @@ public class RegionSelectionComposite extends Composite {
 
     private Combo regionSelectionCombo;
 
-    private List<SelectionListener> listeners = new ArrayList<SelectionListener>();
+    private List<SelectionListener> listeners = new ArrayList<>();
 
     public RegionSelectionComposite(final Composite parent, final int style) {
         this(parent, style, null);

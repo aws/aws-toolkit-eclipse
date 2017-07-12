@@ -27,10 +27,12 @@ public class QueueEditorInput extends AbstractAwsResourceEditorInput {
         this.queueUrl = queueUrl;
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_QUEUE);
     }
 
+    @Override
     public String getName() {
         int index = queueUrl.lastIndexOf('/');
         if (index > 0) return queueUrl.substring(index + 1);
@@ -41,6 +43,7 @@ public class QueueEditorInput extends AbstractAwsResourceEditorInput {
         return queueUrl;
     }
     
+    @Override
     public String getToolTipText() {
         return "Amazon SQS Queue Editor - " + getName();
     }

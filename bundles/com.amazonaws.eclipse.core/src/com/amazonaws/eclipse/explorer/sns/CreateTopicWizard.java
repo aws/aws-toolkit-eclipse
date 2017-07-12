@@ -144,6 +144,7 @@ public class CreateTopicWizard extends Wizard {
         public static TopicNameValidator INSTANCE = new TopicNameValidator();
 
         /** {@inheritDoc} */
+        @Override
         public IStatus validate(final Object value) {
             String topicName = (String) value;
 
@@ -193,6 +194,7 @@ public class CreateTopicWizard extends Wizard {
             new DisplayNameValidator();
 
         /** {@inheritDoc} */
+        @Override
         public IStatus validate(final Object value) {
             String displayName = (String) value;
 

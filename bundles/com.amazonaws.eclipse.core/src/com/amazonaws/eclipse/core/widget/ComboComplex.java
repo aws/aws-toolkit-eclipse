@@ -71,7 +71,7 @@ public class ComboComplex<T extends ComboBoxItemData> {
     }
 
     public static <T extends ComboBoxItemData> ComboComplexBuilder<T> builder() {
-        return new ComboComplexBuilder<T>();
+        return new ComboComplexBuilder<>();
     }
 
     public static class ComboComplexBuilder<T extends ComboBoxItemData> {
@@ -90,7 +90,7 @@ public class ComboComplex<T extends ComboBoxItemData> {
             if (defaultItem == null && defaultItemName != null) {
                 defaultItem = findItemByName(defaultItemName);
             }
-            return new ComboComplex<T>(composite, dataBindingContext, pojoObservableValue,
+            return new ComboComplex<>(composite, dataBindingContext, pojoObservableValue,
                     labelValue, items, defaultItem, selectionListener, comboColSpan);
         }
 

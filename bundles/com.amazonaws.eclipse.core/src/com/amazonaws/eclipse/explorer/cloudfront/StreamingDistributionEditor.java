@@ -38,18 +38,22 @@ public class StreamingDistributionEditor extends AbstractDistributionEditor {
         editorInput = (StreamingDistributionEditorInput)input;
     }
 
+    @Override
     public void refreshData() {
         new LoadDistributionInfoThread().start();
     }
 
+    @Override
     protected boolean supportsDefaultRootObjects() {
         return false;
     }
 
+    @Override
     protected String getResourceTitle() {
         return "Streaming Distribution";
     }
 
+    @Override
     protected void contributeActions(IToolBarManager toolbarManager) {
         enableDistributionAction = new EnableStreamingDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
         disableDistributionAction = new DisableStreamingDistributionAction(editorInput.getDistributionId(), editorInput.getAccountId(), this);
@@ -64,6 +68,7 @@ public class StreamingDistributionEditor extends AbstractDistributionEditor {
             final StreamingDistribution distribution = getClient().getStreamingDistribution(new GetStreamingDistributionRequest(editorInput.getDistributionId())).getStreamingDistribution();
 
             Display.getDefault().asyncExec(new Runnable() {
+                @Override
                 public void run() {
                     setText(domainNameText, distribution.getDomainName());
                     setText(distributionIdText, distribution.getId());

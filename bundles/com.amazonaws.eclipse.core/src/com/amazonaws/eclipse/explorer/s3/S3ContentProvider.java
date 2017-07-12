@@ -35,6 +35,7 @@ public class S3ContentProvider extends AbstractContentProvider {
 
     private final IOpenListener listener = new IOpenListener() {
 
+        @Override
         public void open(OpenEvent event) {
             StructuredSelection selection = (StructuredSelection)event.getSelection();
 
@@ -70,6 +71,7 @@ public class S3ContentProvider extends AbstractContentProvider {
         return instance;
     }
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement || element instanceof S3RootElement);
     }

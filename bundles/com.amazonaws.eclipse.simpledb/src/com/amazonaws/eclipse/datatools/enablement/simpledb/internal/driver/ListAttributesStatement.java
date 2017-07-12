@@ -63,7 +63,7 @@ public class ListAttributesStatement extends JdbcPreparedStatement {
 
         super.execute(queryText, startingRow, maxRows, requestSize, nextToken);
 
-        ArrayList<String> attrs = new ArrayList<String>(this.data.getAttributes());
+        ArrayList<String> attrs = new ArrayList<>(this.data.getAttributes());
         int itemNameColumn = -1;
         if (attrs.size() > 0) { // there was something in the domain
             itemNameColumn = this.data.getItemNameColumn(0);

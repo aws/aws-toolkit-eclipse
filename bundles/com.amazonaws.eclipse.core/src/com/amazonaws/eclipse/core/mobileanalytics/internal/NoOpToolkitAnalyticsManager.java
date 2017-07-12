@@ -20,19 +20,24 @@ import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuild
 
 public class NoOpToolkitAnalyticsManager implements ToolkitAnalyticsManager {
 
+    @Override
     public void startSession(boolean forceFlushEvents) {
     }
 
+    @Override
     public void endSession(boolean forceFlushEvents) {
     }
 
+    @Override
     public ToolkitEventBuilder eventBuilder() {
         return new ToolkitEventBuilder(null);
     }
 
+    @Override
     public void publishEvent(ToolkitEvent event) {
     }
 
+    @Override
     public void setEnabled(boolean enabled) {
     }
 

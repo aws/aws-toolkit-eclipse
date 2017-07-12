@@ -85,6 +85,7 @@ public class GroupSummary extends Composite {
         public void run() {
             try {
                 Display.getDefault().asyncExec(new Runnable() {
+                    @Override
                     public void run() {
                         if (group != null) {
                         groupARNLable.setText(group.getArn());

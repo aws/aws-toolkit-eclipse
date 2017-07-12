@@ -283,7 +283,7 @@ public final class LambdaAnalytics {
     public static void trackLoadBucketTimeDuration(long duration) {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addMetric(METRIC_NAME_LOAD_S3_BUCKET_TIME_DURATION_MS, (double)duration)
+                .addMetric(METRIC_NAME_LOAD_S3_BUCKET_TIME_DURATION_MS, duration)
                 .build());
     }
 
@@ -291,7 +291,7 @@ public final class LambdaAnalytics {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
                 .addBooleanMetric(METRIC_NAME_IS_CREATING_NEW_FUNCTION, isCreatingNewFunction)
-                .addMetric(METRIC_NAME_VALID_FUNCTION_HANDLER_CLASS_COUNT, (double)validFunctionHandlerClassCount)
+                .addMetric(METRIC_NAME_VALID_FUNCTION_HANDLER_CLASS_COUNT, validFunctionHandlerClassCount)
                 .build());
     }
 
@@ -310,21 +310,21 @@ public final class LambdaAnalytics {
     public static void trackUploadTotalTime(long uploadTotalTime) {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addMetric(METRIC_NAME_UPLOAD_TOTAL_TIME_DURATION_MS, (double)uploadTotalTime)
+                .addMetric(METRIC_NAME_UPLOAD_TOTAL_TIME_DURATION_MS, uploadTotalTime)
                 .build());
     }
 
     public static void trackUploadS3BucketTime(long uploadS3BucketTime) {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addMetric(METRIC_NAME_UPLOAD_S3_BUCKET_TIME_DURATION_MS, (double)uploadS3BucketTime)
+                .addMetric(METRIC_NAME_UPLOAD_S3_BUCKET_TIME_DURATION_MS, uploadS3BucketTime)
                 .build());
     }
 
     public static void trackExportedJarSize(long exportedJarSize) {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
                 .setEventType(EVENT_TYPE_UPLOAD_FUNCTION_WIZARD)
-                .addMetric(METRIC_NAME_EXPORTED_JAR_SIZE, (double)exportedJarSize)
+                .addMetric(METRIC_NAME_EXPORTED_JAR_SIZE, exportedJarSize)
                 .build());
     }
 

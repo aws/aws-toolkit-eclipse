@@ -288,8 +288,8 @@ public abstract class AbstractAmazonKinesisFirehoseDelivery {
         } catch (EntityAlreadyExistsException e) {
             LOG.info("IAM role with name " + iamRoleName + " already exists");
         } catch (MalformedPolicyDocumentException policyDocumentException){
-			LOG.error(String.format("Please check the trust policy document for malformation: %s",
-					IAM_ROLE_TRUST_POLICY_DOCUMENT));
+            LOG.error(String.format("Please check the trust policy document for malformation: %s",
+                    IAM_ROLE_TRUST_POLICY_DOCUMENT));
             throw policyDocumentException;
         }
 

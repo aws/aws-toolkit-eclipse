@@ -211,6 +211,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     /* (non-Javadoc)
      * @see com.amazonaws.eclipse.ec2.ui.IRefreshable#refreshData()
      */
+    @Override
     public void refreshData() {
         refreshInstances();
     }
@@ -228,7 +229,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      */
     public void setInstancesToList(List<String> serviceInstances) {
         if (serviceInstances == null) {
-            serviceInstances = new ArrayList<String>();
+            serviceInstances = new ArrayList<>();
         }
         this.instancesToDisplay = serviceInstances;
         this.refreshInstances();
@@ -308,9 +309,11 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     @Override
     protected void makeActions() {
         refreshAction = new Action("Refresh", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh")) {
+            @Override
             public void run() {
                 refreshInstances();
             }
+            @Override
             public String getToolTipText() {
                 return "Refresh instances";
             }
@@ -323,15 +326,18 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         createAmiAction = new CreateAmiAction(this);
 
         copyPublicDnsNameAction = new Action("Copy Public DNS Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+            @Override
             public void run() {
                 copyPublicDnsNameToClipboard(getSelectedInstance());
             }
+            @Override
             public String getToolTipText() {
                 return "Copies this instance's public DNS name to the clipboard.";
             }
         };
 
         attachNewVolumeAction = new Action("Attach New Volume...") {
+            @Override
             public void run() {
                 Instance instance = getSelectedInstance();
 
@@ -340,6 +346,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
 
                 new AttachNewVolumeThread(instance, dialog.getSize(), dialog.getSnapshotId(), dialog.getDevice()).start();
             }
+            @Override
             public String getToolTipText() {
                 return "Attaches a new Elastic Block Storage volume to this instance.";
             }
@@ -410,7 +417,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     @SuppressWarnings("unchecked")
     List<Instance> getAllSelectedInstances() {
         StructuredSelection selection = (StructuredSelection)viewer.getSelection();
-        return (List<Instance>)selection.toList();
+        return selection.toList();
     }
 
     private Instance getSelectedInstance() {
@@ -441,6 +448,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      */
     private void setInput(final List<Instance> instances, final Map<String, List<String>> securityGroupMap) {
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             @SuppressWarnings("unchecked")
             public void run() {
                 /*
@@ -459,12 +467,12 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
 
                 packColumns();
 
-                Set<String> instanceIds = new HashSet<String>();
+                Set<String> instanceIds = new HashSet<>();
                 for (Instance instance : (List<Instance>) currentSelection.toList()) {
                     instanceIds.add(instance.getInstanceId());
                 }
 
-                List<Instance> newSelectedInstances = new ArrayList<Instance>();
+                List<Instance> newSelectedInstances = new ArrayList<>();
                 for (TreeItem treeItem : viewer.getTree().getItems()) {
                     Instance instance = (Instance) treeItem.getData();
 
@@ -515,16 +523,16 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
                         describeInstancesRequest.setInstanceIds(instancesToDisplay);
                     }
 
-                    final List<Instance> allInstances = new ArrayList<Instance>();
-                    final Map<String, List<String>> securityGroupsByInstanceId = new HashMap<String, List<String>>();
+                    final List<Instance> allInstances = new ArrayList<>();
+                    final Map<String, List<String>> securityGroupsByInstanceId = new HashMap<>();
 
                     if (needsToDescribeInstances) {
                         DescribeInstancesResult response = getAwsEc2Client().describeInstances(describeInstancesRequest);
                         reservations = response.getReservations();
 
-                        noOfInstances = -1;	//Reset the value
+                        noOfInstances = -1;    //Reset the value
 
-                        Set<String> allSecurityGroups = new TreeSet<String>();
+                        Set<String> allSecurityGroups = new TreeSet<>();
 
                         for (Reservation reservation : reservations) {
                             List<Instance> instances = reservation.getInstances();
@@ -590,6 +598,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
      *
      *  @see com.amazonaws.eclipse.ec2.utils.IMenu#menuClicked(com.amazonaws.eclipse.ec2.utils.IMenu.MenuItem)
      */
+    @Override
     public void menuClicked(MenuItem menuItemSelected) {
         refreshData();
     }

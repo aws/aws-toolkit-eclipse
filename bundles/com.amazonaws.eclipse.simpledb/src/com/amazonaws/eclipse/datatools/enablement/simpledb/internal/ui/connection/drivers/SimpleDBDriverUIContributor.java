@@ -72,6 +72,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
     /**
      * @see org.eclipse.datatools.connectivity.ui.wizards.IDriverUIContributor#determineContributorCompletion()
      */
+    @Override
     public boolean determineContributorCompletion() {
         return accountValid();
     }
@@ -84,6 +85,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
     /**
      * @see org.eclipse.datatools.connectivity.ui.wizards.IDriverUIContributor#getContributedDriverUI(org.eclipse.swt.widgets.Composite, boolean)
      */
+    @Override
     public Composite getContributedDriverUI(final Composite parent, final boolean isReadOnly) {
 
         if ((this.parentComposite == null) || this.parentComposite.isDisposed() || (this.isReadOnly != isReadOnly)) {
@@ -153,6 +155,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
     /**
      * @see org.eclipse.datatools.connectivity.ui.wizards.IDriverUIContributor#getSummaryData()
      */
+    @Override
     public List<String[]> getSummaryData() {
         return Collections.emptyList();
     }
@@ -160,6 +163,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
     /**
      * @see org.eclipse.datatools.connectivity.ui.wizards.IDriverUIContributor#loadProperties()
      */
+    @Override
     public void loadProperties() {
         // Ensure that all required properties are present
         this.simpleDBConnectionUtils.initializeMissingProperties(this.properties);
@@ -189,6 +193,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
     /**
      * @see org.eclipse.datatools.connectivity.ui.wizards.IDriverUIContributor#setDialogPage(org.eclipse.jface.dialogs.DialogPage)
      */
+    @Override
     public void setDialogPage(final DialogPage parentPage) {
         this.parentPage = parentPage;
         updateErrorMessage();
@@ -197,6 +202,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
     /**
      * @see org.eclipse.datatools.connectivity.ui.wizards.IDriverUIContributor#setDriverUIContributorInformation(org.eclipse.datatools.connectivity.ui.wizards.IDriverUIContributorInformation)
      */
+    @Override
     public void setDriverUIContributorInformation(final IDriverUIContributorInformation contributorInformation) {
         this.contributorInformation = contributorInformation;
         this.properties = contributorInformation.getProperties();
@@ -205,6 +211,7 @@ public class SimpleDBDriverUIContributor implements IDriverUIContributor, Listen
     /**
      * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
      */
+    @Override
     public void handleEvent(final Event event) {
         if (!this.isReadOnly) {
             setConnectionInformation();

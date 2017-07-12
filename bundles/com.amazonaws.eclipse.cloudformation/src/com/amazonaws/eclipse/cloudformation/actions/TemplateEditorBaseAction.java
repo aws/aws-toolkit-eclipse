@@ -12,28 +12,31 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.explorer.cloudformation;
+package com.amazonaws.eclipse.cloudformation.actions;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.FileEditorInput;
 
+import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateDocument;
 import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor;
-import com.amazonaws.eclipse.cloudformation.templates.editor.TemplateEditor.TemplateDocument;
 
 /**
  * Base class for context sensitive actions in the TemplateEditor
  */
-public class TemplateEditorAction {
+abstract class TemplateEditorBaseAction implements IObjectActionDelegate {
 
     protected IPath filePath;
     protected TemplateDocument templateDocument;
 
+    @Override
     public void selectionChanged(IAction action, ISelection selection) {}
 
+    @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {
         if ( targetPart instanceof TemplateEditor ) {
             TemplateEditor templateEditor = (TemplateEditor)targetPart;

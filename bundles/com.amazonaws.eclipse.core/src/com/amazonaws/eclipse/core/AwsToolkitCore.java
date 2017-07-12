@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.core;
 
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,9 +30,7 @@ import org.eclipse.jface.dialogs.ErrorSupportProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.util.Policy;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
@@ -152,7 +149,7 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
      * Client factories for each individual account in use by the customer.
      */
     private final Map<String, AWSClientFactory> clientsFactoryByAccountId
-            = new HashMap<String, AWSClientFactory>();
+            = new HashMap<>();
 
     /** OSGI ServiceTracker object for querying details of proxy configuration */
     @SuppressWarnings("rawtypes")
@@ -443,6 +440,7 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
             // and correspondingly update current account
             PreferencePropertyChangeListener resetAccountListenr = new PreferencePropertyChangeListener() {
 
+                @Override
                 public void watchedPropertyChanged() {
                     Region newRegion = RegionUtils.getCurrentRegion();
                     accountManager.updateCurrentAccount(newRegion);

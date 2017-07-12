@@ -70,7 +70,7 @@ public class SimpleDBConnectionUtils {
     public Map<String, String> getAvailableEndpoints() {
         String endpointsPropertyValue = lookupConnectionProperty(ENDPOINTS_PROPERTY);
         if (endpointsPropertyValue != null) {
-            Map<String, String> availableEndpointsByRegionName = new LinkedHashMap<String, String>();
+            Map<String, String> availableEndpointsByRegionName = new LinkedHashMap<>();
             for (String endpointRecord : endpointsPropertyValue.split(",")) {
                 endpointRecord = endpointRecord.trim();
 
@@ -87,7 +87,7 @@ public class SimpleDBConnectionUtils {
             return availableEndpointsByRegionName;
         }
 
-        Map<String, String> defaultEndpoint = new HashMap<String, String>();
+        Map<String, String> defaultEndpoint = new HashMap<>();
         defaultEndpoint.put("US-East", SIMPLEDB_BACKUP_ENDPOINT);
         return defaultEndpoint;
     }

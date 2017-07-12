@@ -36,6 +36,7 @@ class AddGroupPolicyDialog extends AbstractAddPolicyDialog {
         shell.setText("Manage Group Permission");
     }
 
+    @Override
     protected void putPolicy(String policyName, String policyDoc) {
         iam.putGroupPolicy(new PutGroupPolicyRequest().withGroupName(group.getGroupName()).withPolicyName(policyName).withPolicyDocument(policyDoc));
     }

@@ -22,7 +22,7 @@ import java.util.Set;
  */
 public class ContentProviderRegistry {
 
-    private static Set<AbstractContentProvider> contentProviders = new HashSet<AbstractContentProvider>();
+    private static Set<AbstractContentProvider> contentProviders = new HashSet<>();
 
     private ContentProviderRegistry() {}
 

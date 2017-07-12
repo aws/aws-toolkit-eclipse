@@ -76,7 +76,7 @@ public class RemoteCommandUtils {
     public List<ShellCommandResults> executeRemoteCommand(String command, Instance instance)
             throws ShellCommandException {
 
-        List<ShellCommandResults> results = new LinkedList<ShellCommandResults>();
+        List<ShellCommandResults> results = new LinkedList<>();
         while (true) {
             logger.info("Executing remote command: " + command);
 
@@ -115,7 +115,7 @@ public class RemoteCommandUtils {
             throws RemoteFileCopyException {
 
         int totalTries = 0;
-        List<RemoteFileCopyResults> allFileCopyAttempts = new ArrayList<RemoteFileCopyResults>();
+        List<RemoteFileCopyResults> allFileCopyAttempts = new ArrayList<>();
 
         while (true) {
             logger.info("Copying file " + localFile + " to " + instance.getPublicDnsName() + ":" + remoteFile);
@@ -539,26 +539,33 @@ public class RemoteCommandUtils {
      */
     private class NullHostKeyRepository implements HostKeyRepository {
 
+        @Override
         public void add(HostKey hostkey, UserInfo ui) {}
 
+        @Override
         public int check(String host, byte[] key) {
             return NOT_INCLUDED;
         }
 
+        @Override
         public HostKey[] getHostKey() {
             return null;
         }
 
+        @Override
         public HostKey[] getHostKey(String host, String type) {
             return null;
         }
 
+        @Override
         public String getKnownHostsRepositoryID() {
             return null;
         }
 
+        @Override
         public void remove(String host, String type) {}
 
+        @Override
         public void remove(String host, String type, byte[] key) {}
     }
 

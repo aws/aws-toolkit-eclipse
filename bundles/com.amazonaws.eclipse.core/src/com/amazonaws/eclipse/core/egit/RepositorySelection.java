@@ -105,7 +105,7 @@ public class RepositorySelection {
         if (isURISelected())
             return Collections.singletonList(uri);
         if (isConfigSelected()) {
-            List<URIish> pushUris = new ArrayList<URIish>();
+            List<URIish> pushUris = new ArrayList<>();
             pushUris.addAll(config.getPushURIs());
             if (pushUris.isEmpty())
                 pushUris.add(config.getURIs().get(0));

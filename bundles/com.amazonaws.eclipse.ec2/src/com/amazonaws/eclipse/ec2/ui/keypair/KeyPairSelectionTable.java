@@ -55,7 +55,7 @@ import com.amazonaws.services.ec2.model.KeyPairInfo;
  */
 public class KeyPairSelectionTable extends SelectionTable {
 
-    private final Collection<KeyPairRefreshListener> listeners = new LinkedList<KeyPairRefreshListener>();
+    private final Collection<KeyPairRefreshListener> listeners = new LinkedList<>();
 
     @Override
     public TreeViewer getViewer() {
@@ -136,6 +136,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         /* (non-Javadoc)
          * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
          */
+        @Override
         public Object[] getElements(Object inputElement) {
             if (keyPairs == null) return null;
 
@@ -145,6 +146,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         /* (non-Javadoc)
          * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
          */
+        @Override
         @SuppressWarnings("unchecked")
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             keyPairs = (List<KeyPairInfo>)newInput;
@@ -157,6 +159,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         /* (non-Javadoc)
          * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
          */
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             if (columnIndex != 0) return null;
 
@@ -173,6 +176,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         /* (non-Javadoc)
          * @see org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
          */
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (!(element instanceof KeyPairInfo)) {
                 return "???";
@@ -187,15 +191,18 @@ public class KeyPairSelectionTable extends SelectionTable {
             return "?";
         }
 
+        @Override
         public Object[] getChildren(Object parentElement) {
             return new Object[0];
         }
 
 
+        @Override
         public Object getParent(Object element) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(Object element) {
             return false;
         }
@@ -247,6 +254,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         refreshKeyPairs();
 
         viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 updateActionsForSelection();
             }
@@ -271,6 +279,7 @@ public class KeyPairSelectionTable extends SelectionTable {
      */
     private void setInput(final List<KeyPairInfo> keyPairs) {
         Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 final KeyPairInfo previouslySelectedKeyPair = (KeyPairInfo)getSelection();
                 viewer.setInput(keyPairs);
@@ -310,6 +319,7 @@ public class KeyPairSelectionTable extends SelectionTable {
     @Override
     protected void makeActions() {
         refreshAction = new Action() {
+            @Override
             public void run() {
                 refreshKeyPairs();
             }
@@ -319,6 +329,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         refreshAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh"));
 
         createNewKeyPairAction = new Action() {
+            @Override
             public void run() {
                 CreateKeyPairDialog dialog = new CreateKeyPairDialog(Display.getCurrent().getActiveShell(), accountId);
                 if (dialog.open() != Dialog.OK) return;
@@ -330,6 +341,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         createNewKeyPairAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("add"));
 
         deleteKeyPairAction = new Action() {
+            @Override
             public void run() {
                 KeyPairInfo keyPair = (KeyPairInfo)getSelection();
                 new DeleteKeyPairThread(keyPair).start();
@@ -341,6 +353,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         deleteKeyPairAction.setEnabled(false);
 
         registerKeyPairAction = new Action() {
+            @Override
             public void run() {
                 KeyPairInfo keyPair = (KeyPairInfo)getSelection();
 
@@ -412,6 +425,7 @@ public class KeyPairSelectionTable extends SelectionTable {
                 List<KeyPairInfo> keyPairs = response.getKeyPairs();
                 setInput(keyPairs);
                 Display.getDefault().syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         for ( KeyPairRefreshListener listener : listeners ) {
                             listener.keyPairsRefreshed();

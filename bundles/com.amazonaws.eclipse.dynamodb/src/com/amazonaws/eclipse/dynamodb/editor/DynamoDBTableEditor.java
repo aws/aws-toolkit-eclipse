@@ -153,16 +153,16 @@ public class DynamoDBTableEditor extends EditorPart {
      * Data model for UI: list of scan conditions assembled by the user and a
      * set of items they've edited, added and deleted.
      */
-    private final List<ScanConditionRow> scanConditions = new LinkedList<ScanConditionRow>();
+    private final List<ScanConditionRow> scanConditions = new LinkedList<>();
     private final EditedItems editedItems = new EditedItems();
-    private final Collection<Map<String, AttributeValue>> deletedItems = new LinkedList<Map<String, AttributeValue>>();
-    private final Collection<Map<String, AttributeValue>> addedItems = new LinkedList<Map<String, AttributeValue>>();
+    private final Collection<Map<String, AttributeValue>> deletedItems = new LinkedList<>();
+    private final Collection<Map<String, AttributeValue>> addedItems = new LinkedList<>();
 
     /*
      * Table info that we fetch and store
      */
     private KeySchemaWithAttributeType tableKey;
-    final Set<String> knownAttributes = new HashSet<String>();
+    final Set<String> knownAttributes = new HashSet<>();
     private ScanResult scanResult = new ScanResult();
 
     /*
@@ -200,7 +200,7 @@ public class DynamoDBTableEditor extends EditorPart {
                         if ( editedItem.getValue().getEditedAttributes().isEmpty() ) {
                             PutItemRequest rq = new PutItemRequest().withTableName(tableEditorInput.getTableName());
                             rq.setItem(editedItem.getValue().getAttributes());
-                            Map<String, ExpectedAttributeValue> expected = new HashMap<String, ExpectedAttributeValue>();
+                            Map<String, ExpectedAttributeValue> expected = new HashMap<>();
                             for ( String attr : editedItem.getValue().getAttributes().keySet() ) {
                                 expected.put(attr, new ExpectedAttributeValue().withExists(false));
                             }
@@ -212,7 +212,7 @@ public class DynamoDBTableEditor extends EditorPart {
                             UpdateItemRequest rq = new UpdateItemRequest().withTableName(tableEditorInput
                                     .getTableName());
                             rq.setKey(editedItem.getKey());
-                            Map<String, AttributeValueUpdate> values = new HashMap<String, AttributeValueUpdate>();
+                            Map<String, AttributeValueUpdate> values = new HashMap<>();
                             for ( String attributeName : editedItem.getValue().getEditedAttributes() ) {
                                 AttributeValueUpdate update = new AttributeValueUpdate();
                                 AttributeValue attributeValue = editedItem.getValue().getAttributes()
@@ -508,7 +508,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     raf.setLength(0L);
                     raf.close();
 
-                    List<Map<String, AttributeValue>> items = new LinkedList<Map<String,AttributeValue>>();
+                    List<Map<String, AttributeValue>> items = new LinkedList<>();
 
                     for ( TableItem tableItem : viewer.getTable().getItems() ) {
                         @SuppressWarnings("unchecked")
@@ -639,6 +639,7 @@ public class DynamoDBTableEditor extends EditorPart {
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if ( table.getSelectionCount() > 0 ) {
 
@@ -727,6 +728,7 @@ public class DynamoDBTableEditor extends EditorPart {
                 final ScanResult result = scanResult;
                 Display.getDefault().asyncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         viewer.setInput(result.getItems());
                         viewer.getTable().setEnabled(true);
@@ -776,6 +778,7 @@ public class DynamoDBTableEditor extends EditorPart {
                 final ScanResult result = scanResult;
                 Display.getDefault().asyncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         contentProvider.addItems(result.getItems());
                         viewer.refresh();
@@ -798,8 +801,8 @@ public class DynamoDBTableEditor extends EditorPart {
     private class ContentProvider implements IStructuredContentProvider {
 
         private List<Map<String, AttributeValue>> input;
-        private final List<Map<String, AttributeValue>> elementList = new ArrayList<Map<String,AttributeValue>>();
-        private final List<String> columns = new ArrayList<String>();
+        private final List<Map<String, AttributeValue>> elementList = new ArrayList<>();
+        private final List<String> columns = new ArrayList<>();
 
         /**
          * Adds a single item to the table.
@@ -822,7 +825,7 @@ public class DynamoDBTableEditor extends EditorPart {
             elementList.addAll(items);
 
             // expand columns if necessary
-            List<String> columns = new LinkedList<String>();
+            List<String> columns = new LinkedList<>();
             for ( Map<String, AttributeValue> item : items ) {
                 columns.addAll(item.keySet());
             }
@@ -840,6 +843,7 @@ public class DynamoDBTableEditor extends EditorPart {
             elementList.add(new HashMap<String, AttributeValue>());
         }
 
+        @Override
         @SuppressWarnings("unchecked")
         public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
             this.input = (List<Map<String, AttributeValue>>) newInput;
@@ -864,9 +868,11 @@ public class DynamoDBTableEditor extends EditorPart {
             layout.setColumnData(column, new ColumnWeightData(10));
         }
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public Object[] getElements(final Object inputElement) {
             initializeElements();
             return this.elementList.toArray();
@@ -875,7 +881,7 @@ public class DynamoDBTableEditor extends EditorPart {
         private synchronized void initializeElements() {
             if ( elementList.isEmpty() && input != null ) {
 
-                Set<String> columns = new HashSet<String>();
+                Set<String> columns = new HashSet<>();
 
                 for ( Map<String, AttributeValue> item : input ) {
                     columns.addAll(item.keySet());
@@ -887,7 +893,7 @@ public class DynamoDBTableEditor extends EditorPart {
                     columns.remove(tableKey.getRangeKeyAttributeName());
                 }
 
-                List<String> sortedColumns = new ArrayList<String>();
+                List<String> sortedColumns = new ArrayList<>();
                 sortedColumns.addAll(columns);
                 Collections.sort(sortedColumns);
 
@@ -957,7 +963,7 @@ public class DynamoDBTableEditor extends EditorPart {
         Map<String, AttributeValue> getNewItem() {
             String hashKey = attributeValues.get(tableKey.getHashKeyAttributeName());
             String rangeKey = attributeValues.get(tableKey.getRangeKeyAttributeName());
-            Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
+            Map<String, AttributeValue> item = new HashMap<>();
             AttributeValue hashKeyAttribute = new AttributeValue();
             setAttribute(hashKeyAttribute, Arrays.asList(hashKey), tableKey.getHashKeyAttributeType());
             item.put(tableKey.getHashKeyAttributeName(), hashKeyAttribute);
@@ -984,6 +990,7 @@ public class DynamoDBTableEditor extends EditorPart {
             this.editor = editor;
         }
 
+        @Override
         public void handleEvent(final Event event) {
             if ( event.type == SWT.FocusOut && this.editorComposite != null && !this.editorComposite.isDisposed() ) {
                 Control focus = Display.getCurrent().getFocusControl();
@@ -1111,7 +1118,7 @@ public class DynamoDBTableEditor extends EditorPart {
          * Deletes all selected items from the table.
          */
         private void deleteItems() {
-            List<Integer> selectionIndices = new ArrayList<Integer>();
+            List<Integer> selectionIndices = new ArrayList<>();
             for (int i : table.getSelectionIndices()) {
                 selectionIndices.add(i);
             }
@@ -1157,6 +1164,7 @@ public class DynamoDBTableEditor extends EditorPart {
             editorComposite.editorText.setText(item.getText(column));
 
             editorComposite.editorText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(final ModifyEvent e) {
                     Text text = editorComposite.editorText;
                     int dataType = editorComposite.getSelectedDataType(false);
@@ -1169,6 +1177,7 @@ public class DynamoDBTableEditor extends EditorPart {
              * editor is being disposed. (For set type, the validation happens in MultiValueAttributeEditorDialog.)
              */
             editorComposite.editorText.addDisposeListener(new DisposeListener() {
+                @Override
                 @SuppressWarnings({ "serial", "unchecked" })
                 public void widgetDisposed(DisposeEvent e) {
                     AttributeValue updateAttributeValue = ( (Map<String, AttributeValue>)item.getData() ).get(attributeName);
@@ -1206,6 +1215,7 @@ public class DynamoDBTableEditor extends EditorPart {
                 }
             });
             editorComposite.editorText.addTraverseListener(new TraverseListener() {
+                @Override
                 public void keyTraversed(final TraverseEvent e) {
                     TextCellEditorListener.this.editorComposite.dispose();
                 }
@@ -1356,7 +1366,7 @@ public class DynamoDBTableEditor extends EditorPart {
         @SuppressWarnings("unchecked")
         Map<String, AttributeValue> dynamoDbItem = (Map<String, AttributeValue>) item.getData();
 
-        Map<String, AttributeValue> keyAttributes = new HashMap<String, AttributeValue>();
+        Map<String, AttributeValue> keyAttributes = new HashMap<>();
 
         String hashKeyAttributeName = tableKey.getHashKeyAttributeName();
         keyAttributes.put(hashKeyAttributeName, dynamoDbItem.get(hashKeyAttributeName));

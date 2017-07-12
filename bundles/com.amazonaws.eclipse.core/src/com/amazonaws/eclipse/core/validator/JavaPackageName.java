@@ -31,7 +31,7 @@ public class JavaPackageName {
     private final List<String> components;
 
     private JavaPackageName(List<String> components) {
-        this.components = new LinkedList<String>(components);
+        this.components = new LinkedList<>(components);
     }
 
     public JavaPackageName append(String component) {
@@ -40,7 +40,7 @@ public class JavaPackageName {
     }
 
     public List<String> getComponents() {
-        return new LinkedList<String>(this.components);
+        return new LinkedList<>(this.components);
     }
 
     public boolean isEmpty() {

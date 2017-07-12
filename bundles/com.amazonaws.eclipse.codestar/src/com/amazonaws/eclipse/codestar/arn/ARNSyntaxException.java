@@ -38,6 +38,7 @@ public class ARNSyntaxException extends Exception {
         return super.getMessage();
     }
 
+    @Override
     public String getMessage() {
         StringBuffer sb = new StringBuffer();
         sb.append(getReason());

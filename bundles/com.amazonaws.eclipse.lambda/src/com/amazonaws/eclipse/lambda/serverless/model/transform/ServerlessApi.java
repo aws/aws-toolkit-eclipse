@@ -56,6 +56,7 @@ public class ServerlessApi extends Resource {
     public void setVariables(Map<String, String> variables) {
         this.variables = variables;
     }
+    @Override
     public TypeProperties toTypeProperties() {
         // TODO Auto-generated method stub
         return null;

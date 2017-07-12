@@ -77,7 +77,6 @@ import com.amazonaws.eclipse.explorer.s3.actions.DeleteObjectAction;
 import com.amazonaws.eclipse.explorer.s3.actions.EditObjectPermissionsAction;
 import com.amazonaws.eclipse.explorer.s3.actions.EditObjectTagsAction;
 import com.amazonaws.eclipse.explorer.s3.actions.GeneratePresignedUrlAction;
-import com.amazonaws.eclipse.explorer.s3.dnd.KeySelectionDialog;
 import com.amazonaws.eclipse.explorer.s3.dnd.S3ObjectSummaryDropAction;
 import com.amazonaws.eclipse.explorer.s3.dnd.UploadDropAssistant;
 import com.amazonaws.eclipse.explorer.s3.dnd.UploadFilesJob;
@@ -111,17 +110,19 @@ public class S3ObjectSummaryTable extends Composite {
     private final Map<TreePath, Object[]> children;
     private final TreeViewer viewer;
 
-    private final Map<ImageDescriptor, Image> imageCache = new HashMap<ImageDescriptor, Image>();
+    private final Map<ImageDescriptor, Image> imageCache = new HashMap<>();
 
     private final class S3ObjectSummaryContentProvider implements // ITreePathContentProvider,
             ILazyTreePathContentProvider {
 
         private TreeViewer viewer;
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             this.viewer = (TreeViewer) viewer;
         }
 
+        @Override
         public void dispose() {
             for ( Image img : imageCache.values() ) {
                 img.dispose();
@@ -135,6 +136,7 @@ public class S3ObjectSummaryTable extends Composite {
          * org.eclipse.jface.viewers.ITreePathContentProvider#getParents(java
          * .lang.Object)
          */
+        @Override
         public TreePath[] getParents(Object element) {
             return null;
         }
@@ -146,6 +148,7 @@ public class S3ObjectSummaryTable extends Composite {
          * org.eclipse.jface.viewers.ILazyTreePathContentProvider#updateElement
          * (org.eclipse.jface.viewers.TreePath, int)
          */
+        @Override
         public void updateElement(TreePath parentPath, int index) {
             cacheChildren(parentPath);
 
@@ -164,6 +167,7 @@ public class S3ObjectSummaryTable extends Composite {
          * org.eclipse.jface.viewers.ILazyTreePathContentProvider#updateChildCount
          * (org.eclipse.jface.viewers.TreePath, int)
          */
+        @Override
         public void updateChildCount(TreePath treePath, int currentChildCount) {
             cacheChildren(treePath);
             Object[] objects = children.get(treePath);
@@ -185,6 +189,7 @@ public class S3ObjectSummaryTable extends Composite {
          * org.eclipse.jface.viewers.ILazyTreePathContentProvider#updateHasChildren
          * (org.eclipse.jface.viewers.TreePath)
          */
+        @Override
         public void updateHasChildren(TreePath path) {
             viewer.setHasChildren(path, path.getSegmentCount() > 0 && path.getLastSegment() instanceof IPath);
         }
@@ -236,19 +241,24 @@ public class S3ObjectSummaryTable extends Composite {
 
     private final class S3ObjectSummaryLabelProvider implements ITableLabelProvider {
 
+        @Override
         public void removeListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return true;
         }
 
+        @Override
         public void dispose() {
         }
 
+        @Override
         public void addListener(ILabelProviderListener listener) {
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if ( element == LOADING ) {
                 return "Loading...";
@@ -282,6 +292,7 @@ public class S3ObjectSummaryTable extends Composite {
             return "";
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             if ( columnIndex == 0 && element != LOADING ) {
                 if ( element instanceof IPath ) {
@@ -367,6 +378,7 @@ public class S3ObjectSummaryTable extends Composite {
 
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         // Preserve the current column widths
                         int[] colWidth = new int[viewer.getTree().getColumns().length];
@@ -446,6 +458,7 @@ public class S3ObjectSummaryTable extends Composite {
                 UploadFilesJob uploadFileJob = new UploadFilesJob(String.format("Upload files to bucket %s", bucketName),
                         bucketName, files, transferManager);
                 uploadFileJob.setRefreshRunnable(new Runnable() {
+                    @Override
                     public void run() {
                         refresh(null);
                     }
@@ -513,8 +526,8 @@ public class S3ObjectSummaryTable extends Composite {
                     prefix = ((IPath) treePath.getLastSegment()).toString();
                 }
 
-                List<S3ObjectSummary> filteredObjectSummaries = new LinkedList<S3ObjectSummary>();
-                List<String> filteredCommonPrefixes = new LinkedList<String>();
+                List<S3ObjectSummary> filteredObjectSummaries = new LinkedList<>();
+                List<String> filteredCommonPrefixes = new LinkedList<>();
                 ObjectListing listObjectsResponse = null;
 
                 AmazonS3 s3 = getS3Client();
@@ -551,6 +564,7 @@ public class S3ObjectSummaryTable extends Composite {
 
                 viewer.getTree().getDisplay().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         if ( treePath.getSegmentCount() == 0 )
                             viewer.setChildCount(treePath, objects.length);
@@ -573,6 +587,7 @@ public class S3ObjectSummaryTable extends Composite {
         menuMgr.setRemoveAllWhenShown(true);
         menuMgr.addMenuListener(new IMenuListener() {
 
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 manager.add(new DeleteObjectAction(S3ObjectSummaryTable.this));
                 manager.add(new Separator());
@@ -593,7 +608,7 @@ public class S3ObjectSummaryTable extends Composite {
      */
     public Collection<S3ObjectSummary> getSelectedObjects() {
         IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
-        List<S3ObjectSummary> summaries = new LinkedList<S3ObjectSummary>();
+        List<S3ObjectSummary> summaries = new LinkedList<>();
         Iterator<?> iter = s.iterator();
         while ( iter.hasNext() ) {
             Object next = iter.next();
@@ -611,7 +626,7 @@ public class S3ObjectSummaryTable extends Composite {
             children.clear();
             viewer.refresh();
         } else {
-            List<IPath> paths = new LinkedList<IPath>();
+            List<IPath> paths = new LinkedList<>();
             IPath p = new Path("");
             for ( String dir : prefix.split("/") ) {
                 p = p.append(dir + "/");

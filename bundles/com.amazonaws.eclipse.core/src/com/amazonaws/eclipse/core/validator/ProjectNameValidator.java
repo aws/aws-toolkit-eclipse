@@ -36,6 +36,7 @@ import com.amazonaws.util.StringUtils;
  */
 public class ProjectNameValidator implements IValidator {
 
+    @Override
     public IStatus validate(Object value) {
         String name = (String)value;
 

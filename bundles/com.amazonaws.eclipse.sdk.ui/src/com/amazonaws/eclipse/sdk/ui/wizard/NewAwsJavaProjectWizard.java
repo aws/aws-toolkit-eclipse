@@ -129,7 +129,7 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
         model.setGroupId(dataModel.getMavenConfigurationDataModel().getGroupId());
         model.setArtifactId(dataModel.getMavenConfigurationDataModel().getArtifactId());
         model.setVersion("1.0.0");  // Set a version to make Maven happy, while user doesn't need to set this.
-        List<Dependency> dependencies = new ArrayList<Dependency>();
+        List<Dependency> dependencies = new ArrayList<>();
         dependencies.add(MavenFactory.getLatestAwsSdkDependency("compile"));
         dependencies.add(MavenFactory.getAmazonKinesisClientDependency("1.2.1", "compile"));
         model.setDependencies(dependencies);

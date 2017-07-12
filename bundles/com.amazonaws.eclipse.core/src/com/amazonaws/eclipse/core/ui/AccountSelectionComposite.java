@@ -52,7 +52,7 @@ public class AccountSelectionComposite extends Composite {
 
     private Label noAccounts;
 
-    private List<SelectionListener> listeners = new LinkedList<SelectionListener>();
+    private List<SelectionListener> listeners = new LinkedList<>();
 
     /**
      * Adds a selection listener to the account selection field.
@@ -94,6 +94,7 @@ public class AccountSelectionComposite extends Composite {
 
         link.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(final SelectionEvent e) {
                 PreferencesUtil.createPreferenceDialogOn(Display.getDefault().getActiveShell(),
                         AwsAccountPreferencePage.ID, new String[] { AwsAccountPreferencePage.ID }, null).open();
@@ -108,6 +109,7 @@ public class AccountSelectionComposite extends Composite {
                 updateAccounts();
             }
 
+            @Override
             public void widgetDefaultSelected(final SelectionEvent e) {
                 widgetSelected(e);
             }
@@ -153,7 +155,7 @@ public class AccountSelectionComposite extends Composite {
         String currentAccount = this.accountSelection.getText();
 
         Map<String, String> accounts = AwsToolkitCore.getDefault().getAccountManager().getAllAccountNames();
-        List<String> accountNames = new ArrayList<String>();
+        List<String> accountNames = new ArrayList<>();
         accountNames.addAll(accounts.values());
         Collections.sort(accountNames);
         this.accountSelection.setItems(accountNames.toArray(new String[accountNames.size()]));

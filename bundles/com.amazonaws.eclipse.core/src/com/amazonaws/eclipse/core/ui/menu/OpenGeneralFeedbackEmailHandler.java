@@ -26,6 +26,7 @@ import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
  */
 public class OpenGeneralFeedbackEmailHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         EmailMessageLauncher.createEmptyFeedbackEmail().open();
         return null;

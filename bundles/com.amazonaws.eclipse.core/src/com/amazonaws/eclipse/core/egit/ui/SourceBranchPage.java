@@ -73,7 +73,7 @@ public class SourceBranchPage extends WizardPage {
 
     private Ref head;
 
-    private final List<Ref> availableRefs = new ArrayList<Ref>();
+    private final List<Ref> availableRefs = new ArrayList<>();
 
     private Label label;
 
@@ -118,6 +118,7 @@ public class SourceBranchPage extends WizardPage {
         return availableRefs.size() == refsViewer.getCheckedElements().length;
     }
 
+    @Override
     public void createControl(final Composite parent) {
         final Composite panel = new Composite(parent, SWT.NULL);
         final GridLayout layout = new GridLayout();
@@ -132,12 +133,15 @@ public class SourceBranchPage extends WizardPage {
             /*
              * Overridden to check page when refreshing is done.
              */
+            @Override
             protected WorkbenchJob doCreateRefreshJob() {
                 WorkbenchJob refreshJob = super.doCreateRefreshJob();
                 refreshJob.addJobChangeListener(new JobChangeAdapter() {
+                    @Override
                     public void done(IJobChangeEvent event) {
                         if (event.getResult().isOK()) {
                             getDisplay().asyncExec(new Runnable() {
+                                @Override
                                 public void run() {
                                     checkPage();
                                 }
@@ -152,26 +156,32 @@ public class SourceBranchPage extends WizardPage {
 
         ITreeContentProvider provider = new ITreeContentProvider() {
 
+            @Override
             public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
                 // nothing
             }
 
+            @Override
             public void dispose() {
                 // nothing
             }
 
+            @Override
             public Object[] getElements(Object input) {
                 return ((List) input).toArray();
             }
 
+            @Override
             public boolean hasChildren(Object element) {
                 return false;
             }
 
+            @Override
             public Object getParent(Object element) {
                 return null;
             }
 
+            @Override
             public Object[] getChildren(Object parentElement) {
                 return null;
             }
@@ -192,6 +202,7 @@ public class SourceBranchPage extends WizardPage {
         });
 
         refsViewer.addCheckStateListener(new ICheckStateListener() {
+            @Override
             public void checkStateChanged(CheckStateChangedEvent event) {
                 checkPage();
             }
@@ -201,6 +212,7 @@ public class SourceBranchPage extends WizardPage {
         selectB = new Button(bPanel, SWT.PUSH);
         selectB.setText(UIText.SourceBranchPage_selectAll);
         selectB.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(final SelectionEvent e) {
                 refsViewer.setAllChecked(true);
                 checkPage();
@@ -209,6 +221,7 @@ public class SourceBranchPage extends WizardPage {
         unselectB = new Button(bPanel, SWT.PUSH);
         unselectB.setText(UIText.SourceBranchPage_selectNone);
         unselectB.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(final SelectionEvent e) {
                 refsViewer.setAllChecked(false);
                 checkPage();
@@ -296,6 +309,7 @@ public class SourceBranchPage extends WizardPage {
         setErrorMessage(null);
         setMessage(null);
         label.getDisplay().asyncExec(new Runnable() {
+            @Override
             public void run() {
                 revalidateImpl(newRepoSelection);
             }
@@ -320,6 +334,7 @@ public class SourceBranchPage extends WizardPage {
                                 credentials.getUser(), credentials
                                         .getPassword()));
             getContainer().run(true, true, new IRunnableWithProgress() {
+                @Override
                 public void run(IProgressMonitor monitor)
                         throws InvocationTargetException, InterruptedException {
                     listRemoteOp.run(monitor);
@@ -357,6 +372,7 @@ public class SourceBranchPage extends WizardPage {
             }
         }
         Collections.sort(availableRefs, new Comparator<Ref>() {
+            @Override
             public int compare(final Ref o1, final Ref o2) {
                 return o1.getName().compareTo(o2.getName());
             }

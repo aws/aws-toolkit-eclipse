@@ -45,7 +45,7 @@ public class ServiceAPIUtils {
     }
 
     public static List<App> getAllJavaAppsInStack(AWSOpsWorks client, String stackId) {
-        List<App> allJavaApps = new LinkedList<App>();
+        List<App> allJavaApps = new LinkedList<>();
         for (App app : getAllAppsInStack(client, stackId)) {
             if ("java".equalsIgnoreCase(app.getType())) {
                 allJavaApps.add(app);

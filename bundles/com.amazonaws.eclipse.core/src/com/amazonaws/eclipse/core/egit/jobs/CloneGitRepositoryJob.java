@@ -69,10 +69,12 @@ public class CloneGitRepositoryJob {
     public void execute(IProgressMonitor monitor) {
 
         PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+            @Override
             public void run() {
                 try {
                     final CloneOperation cloneOperation = generateCloneOperation();
                     wizard.getContainer().run(true, true, new IRunnableWithProgress() {
+                        @Override
                         public void run(IProgressMonitor monitor)
                                 throws InvocationTargetException, InterruptedException {
                             executeCloneOperation(cloneOperation, monitor);

@@ -55,7 +55,7 @@ public class SimpleDBNavigatorActionProvider extends CommonActionProvider {
             menu.add(new CreateDomainAction());
         } else if (selection.getFirstElement() instanceof DomainNode) {
 
-            List<String> domainNames = new ArrayList<String>();
+            List<String> domainNames = new ArrayList<>();
             Iterator iterator = selection.iterator();
             while (iterator.hasNext()) {
                 Object next = iterator.next();
@@ -189,6 +189,7 @@ public class SimpleDBNavigatorActionProvider extends CommonActionProvider {
                 final Text domainNameText = new Text(composite, SWT.BORDER);
                 domainNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
                 domainNameText.addModifyListener(new ModifyListener() {
+                    @Override
                     public void modifyText(final ModifyEvent e) {
                         CreateDomainDialog.this.domainName = domainNameText.getText();
                         updateControls();

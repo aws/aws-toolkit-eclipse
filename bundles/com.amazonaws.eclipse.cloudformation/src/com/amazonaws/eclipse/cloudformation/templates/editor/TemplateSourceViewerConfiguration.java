@@ -14,10 +14,9 @@
  */
 package com.amazonaws.eclipse.cloudformation.templates.editor;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
@@ -41,25 +40,38 @@ import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 
-final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration {
+
+public final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration {
+
+    private final TemplateScanner templateScanner;
+
+    public TemplateSourceViewerConfiguration() {
+        this(CloudFormationPlugin.getDefault().getPreferenceStore());
+    }
+
+    public TemplateSourceViewerConfiguration(IPreferenceStore store) {
+        templateScanner = new TemplateScanner(store);
+    }
+
+    public void handlePropertyChange(PropertyChangeEvent event) {
+        templateScanner.resetTokens();
+    }
 
     @Override
     public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-        TemplateScanner templateScanner = new TemplateScanner();
 
         PresentationReconciler reconciler = new PresentationReconciler();
         DefaultDamagerRepairer damagerRepairer = new DefaultDamagerRepairer(templateScanner);
 
         reconciler.setDamager(damagerRepairer, IDocument.DEFAULT_CONTENT_TYPE);
         reconciler.setRepairer(damagerRepairer, IDocument.DEFAULT_CONTENT_TYPE);
-
         reconciler.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 
         return reconciler;
@@ -76,6 +88,7 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
     @Override
     public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
         return new IAnnotationHover() {
+            @Override
             public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
                 IAnnotationModel annotationModel = sourceViewer.getAnnotationModel();
                 Iterator<?> iterator = annotationModel.getAnnotationIterator();
@@ -98,33 +111,11 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
         };
     }
 
-    public static class TemplateColorProvider {
-        public static final RGB BLACK  = new RGB(0, 0, 0);
-        public static final RGB PURPLE = new RGB(127, 0, 127);
-        public static final RGB GREEN  = new RGB(63, 127, 127);
-        public static final RGB BLUE   = new RGB(42, 0, 255);
-
-
-        protected Map<RGB, Color> colorMap = new HashMap<RGB, Color>(10);
-
-        public void dispose() {
-            Iterator<Color> colors = colorMap.values().iterator();
-            while (colors.hasNext()) colors.next().dispose();
-        }
-
-        public Color getColor(RGB rgb) {
-            Color color = colorMap.get(rgb);
-            if (color == null) {
-                color = new Color(Display.getCurrent(), rgb);
-                colorMap.put(rgb, color);
-            }
-            return color;
-        }
-    }
-
     // Overriding to turn on text wrapping
+    @Override
     public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
         return new IInformationControlCreator() {
+            @Override
             public IInformationControl createInformationControl(Shell parent) {
                 return new DefaultInformationControl(parent, SWT.WRAP, null);
             }
@@ -140,19 +131,19 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
         assistant.setAutoActivationDelay(0);
         assistant.enableAutoActivation(true);
         assistant.setInformationControlCreator(getInformationControlCreator(sourceViewer));
-
-        // TODO: ???
         assistant.enablePrefixCompletion(true);
         assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
         assistant.setProposalPopupOrientation(IContentAssistant.PROPOSAL_OVERLAY);
-
         assistant.addCompletionListener(new ICompletionListener() {
+            @Override
             public void assistSessionStarted(ContentAssistEvent event) {
                 assistant.showContextInformation();
             }
 
+            @Override
             public void assistSessionEnded(ContentAssistEvent event) {}
 
+            @Override
             public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
         });
 
@@ -170,7 +161,4 @@ final class TemplateSourceViewerConfiguration extends SourceViewerConfiguration 
     public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
         return new IAutoEditStrategy[] { new TemplateAutoEditStrategy() };
     }
-
-
-
 }

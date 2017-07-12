@@ -77,6 +77,7 @@ public class StartTestToolConfigurationWizardPage extends WizardPage {
      *
      * @param parent    the parent composite to hang the controls on
      */
+    @Override
     public void createControl(final Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridDataFactory.fillDefaults().grab(true, true).applyTo(composite);
@@ -130,6 +131,7 @@ public class StartTestToolConfigurationWizardPage extends WizardPage {
                 AggregateValidationStatus.MAX_SEVERITY);
 
         aggregator.addChangeListener(new IChangeListener() {
+            @Override
             public void handleChange(final ChangeEvent event) {
                 Object value = aggregator.getValue();
                 if (!(value instanceof IStatus)) {
@@ -149,6 +151,7 @@ public class StartTestToolConfigurationWizardPage extends WizardPage {
      * A validator that ensures the input is a valid port number.
      */
     private static class PortValidator implements IValidator {
+        @Override
         public IStatus validate(final Object value) {
             if (!(value instanceof String)) {
                 return ValidationStatus.error("No port specified");

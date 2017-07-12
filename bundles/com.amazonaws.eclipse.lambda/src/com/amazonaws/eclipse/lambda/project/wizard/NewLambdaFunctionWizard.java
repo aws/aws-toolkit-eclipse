@@ -59,6 +59,7 @@ public class NewLambdaFunctionWizard extends NewElementWizard implements INewWiz
         final IProject currentProject = getCurrentProject();
         Display.getDefault().syncExec(new Runnable() {
 
+            @Override
             public void run() {
 
                 try {

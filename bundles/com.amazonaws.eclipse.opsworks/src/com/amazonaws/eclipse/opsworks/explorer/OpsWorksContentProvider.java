@@ -37,6 +37,7 @@ public class OpsWorksContentProvider extends AbstractContentProvider {
      * Abstract methods of AbstractContentProvider
      */
 
+    @Override
     public boolean hasChildren(Object element) {
         if (element instanceof AWSResourcesRootElement ||
             element instanceof OpsWorksRootNode ||
@@ -90,7 +91,7 @@ public class OpsWorksContentProvider extends AbstractContentProvider {
 
                     List<Layer> layers = ServiceAPIUtils
                             .getAllLayersInStack(client, stackId);
-                    List<LayerElementNode> layerNodes = new LinkedList<LayerElementNode>();
+                    List<LayerElementNode> layerNodes = new LinkedList<>();
                     for (Layer layer : layers) {
                         layerNodes.add(new LayerElementNode(layer));
                     }
@@ -153,6 +154,7 @@ public class OpsWorksContentProvider extends AbstractContentProvider {
 
     private final IOpenListener listener = new IOpenListener() {
 
+        @Override
         public void open(OpenEvent event) {
             StructuredSelection selection = (StructuredSelection)event.getSelection();
 

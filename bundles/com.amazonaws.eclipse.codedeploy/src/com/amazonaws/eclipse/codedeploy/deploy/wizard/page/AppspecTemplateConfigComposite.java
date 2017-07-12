@@ -79,7 +79,7 @@ class AppspecTemplateConfigComposite extends Composite {
     /**
      * UI widgets for generic parameters
      */
-    private final List<ParameterInputGroup> parameterInputGroups = new LinkedList<ParameterInputGroup>();
+    private final List<ParameterInputGroup> parameterInputGroups = new LinkedList<>();
 
     /**
      * @see #setValidationStatusChangeListener(IChangeListener)
@@ -139,7 +139,7 @@ class AppspecTemplateConfigComposite extends Composite {
      *         text of each parameter.
      */
     public Map<String, String> getAllParameterValues() {
-        Map<String, String> values = new HashMap<String, String>();
+        Map<String, String> values = new HashMap<>();
 
         if (templateModel.isUseDefaultContextPathParameter()) {
             values.put(DEPLOY_TO_ROOT_ANCHOR_TEXT,
@@ -260,7 +260,7 @@ class AppspecTemplateConfigComposite extends Composite {
         contextPathTextObservable = SWTObservables.observeText(contextPathText, SWT.Modify);
         bindingContext.bindValue(contextPathTextObservable, contextPathTextObservable);
 
-        ChainValidator<String> contextPathValidationProvider = new ChainValidator<String>(
+        ChainValidator<String> contextPathValidationProvider = new ChainValidator<>(
                 contextPathTextObservable,
                 deployToContextPathRadioButtonObservable, //enabler
                 new ContextPathValidator("Invalid context path."));
@@ -274,6 +274,7 @@ class AppspecTemplateConfigComposite extends Composite {
                 contextPathValidationProvider.getValidationStatus());
 
         contextPathText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 refreshServerUrlPreviewLabel();
             }
@@ -293,7 +294,7 @@ class AppspecTemplateConfigComposite extends Composite {
         httpPortTextObservable = SWTObservables.observeText(httpPortText, SWT.Modify);
         bindingContext.bindValue(httpPortTextObservable, httpPortTextObservable);
 
-        ChainValidator<String> httpPortValidationProvider = new ChainValidator<String>(
+        ChainValidator<String> httpPortValidationProvider = new ChainValidator<>(
                 httpPortTextObservable,
                 new ServerHttpPortValidator("Invalid HTTP port."));
         bindingContext.addValidationStatusProvider(httpPortValidationProvider);
@@ -306,6 +307,7 @@ class AppspecTemplateConfigComposite extends Composite {
                 httpPortValidationProvider.getValidationStatus());
 
         httpPortText.addModifyListener(new ModifyListener() {
+            @Override
             public void modifyText(ModifyEvent e) {
                 refreshServerUrlPreviewLabel();
             }
@@ -369,7 +371,7 @@ class AppspecTemplateConfigComposite extends Composite {
             valueInputTextObservable = SWTObservables.observeText(valueInputText, SWT.Modify);
             bindingContext.bindValue(valueInputTextObservable, valueInputTextObservable);
 
-            ChainValidator<String> paramValidationStatusProvider = new ChainValidator<String>(
+            ChainValidator<String> paramValidationStatusProvider = new ChainValidator<>(
                     valueInputTextObservable,
                     new GenericTemplateParameterValidator(parameter));
             bindingContext.addValidationStatusProvider(paramValidationStatusProvider);

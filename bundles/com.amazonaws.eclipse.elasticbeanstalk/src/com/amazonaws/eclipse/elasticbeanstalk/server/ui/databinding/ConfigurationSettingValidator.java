@@ -33,6 +33,7 @@ public class ConfigurationSettingValidator implements IValidator {
         this.configOption = configOption;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String) value;
 

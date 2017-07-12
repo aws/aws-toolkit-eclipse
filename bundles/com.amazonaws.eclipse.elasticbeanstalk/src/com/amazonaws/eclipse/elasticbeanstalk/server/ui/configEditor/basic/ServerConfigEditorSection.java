@@ -44,7 +44,7 @@ import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescript
  */
 public class ServerConfigEditorSection extends HumanReadableConfigEditorSection {
 
-    private static final Map<String, String> humanReadableNames = new HashMap<String, String>();
+    private static final Map<String, String> humanReadableNames = new HashMap<>();
     static {
         humanReadableNames.put("EC2KeyName", "Existing Key Pair");
         humanReadableNames.put("SecurityGroups", "EC2 Security Groups");
@@ -118,6 +118,7 @@ public class ServerConfigEditorSection extends HumanReadableConfigEditorSection 
         final IObservableValue modelv = model.observeEntry(option);
         final IChangeListener listener = new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 for ( int i = 0; i < keyPairWidget.getViewer().getTree().getItemCount(); i++ ) {
                     KeyPairInfo keyPair = (KeyPairInfo) keyPairWidget.getViewer().getTree().getItem(i).getData();
@@ -140,6 +141,7 @@ public class ServerConfigEditorSection extends HumanReadableConfigEditorSection 
          * the current key pair.
          */
         keyPairWidget.getKeyPairSelectionTable().addRefreshListener(new KeyPairRefreshListener() {
+            @Override
             public void keyPairsRefreshed() {
                 listener.handleChange(null);
             }

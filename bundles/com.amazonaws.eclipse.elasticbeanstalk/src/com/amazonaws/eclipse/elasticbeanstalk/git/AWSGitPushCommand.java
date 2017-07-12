@@ -159,6 +159,7 @@ public class AWSGitPushCommand {
         final File gitMetadataDirectory = repository.getIndexFile().getParentFile();
 
         FileFilter fileFilter = new FileFilter() {
+            @Override
             public boolean accept(final File file) {
                 if (file.equals(gitMetadataDirectory)) return false;
                 if (!file.getParentFile().equals(repoLocation)) return false;

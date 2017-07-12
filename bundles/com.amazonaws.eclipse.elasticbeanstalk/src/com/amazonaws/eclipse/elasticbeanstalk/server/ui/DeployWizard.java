@@ -73,7 +73,7 @@ public class DeployWizard extends WizardFragment {
     @Override
     @SuppressWarnings("rawtypes")
     public List getChildFragments() {
-        List<WizardFragment> list = new ArrayList<WizardFragment>();
+        List<WizardFragment> list = new ArrayList<>();
         if (AwsToolkitCore.getDefault().getAccountInfo().isValid()) {
             list.add(applicationSelectionPage);
             list.add(roleSelectionPage);

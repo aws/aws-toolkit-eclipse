@@ -33,10 +33,12 @@ public class TopicEditorInput extends AbstractAwsResourceEditorInput {
         this.topic = topic;
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_TOPIC);
     }
 
+    @Override
     public String getName() {
         if (name == null) {
             name = SNSContentProvider.parseTopicName(topic.getTopicArn());
@@ -44,6 +46,7 @@ public class TopicEditorInput extends AbstractAwsResourceEditorInput {
         return name;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon SNS Topic Editor - " + getName();
     }

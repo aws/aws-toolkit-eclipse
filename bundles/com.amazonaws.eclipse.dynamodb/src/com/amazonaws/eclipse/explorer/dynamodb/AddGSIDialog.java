@@ -112,7 +112,7 @@ public class AddGSIDialog extends TitleAreaDialog {
     private final IObservableValue writeCapacityModel;
     
     /** The map from each primary key name to the combo index of its attribute type **/
-    private final Map<String, Integer> primaryKeyTypes = new HashMap<String, Integer>();
+    private final Map<String, Integer> primaryKeyTypes = new HashMap<>();
 
     private Font italicFont;
     private static final long CAPACITY_UNIT_MINIMUM = 1;
@@ -191,11 +191,12 @@ public class AddGSIDialog extends TitleAreaDialog {
         new Label(indexHashKeyGroup, SWT.NONE | SWT.READ_ONLY).setText("Index Hash Key Name:");
         indexHashKeyNameText = new Text(indexHashKeyGroup, SWT.BORDER);
         bindingContext.bindValue(SWTObservables.observeText(indexHashKeyNameText, SWT.Modify), indexHashKeyNameInKeySchemaDefinitionModel);
-        ChainValidator<String> indexHashKeyNameValidationStatusProvider = new ChainValidator<String>(indexHashKeyNameInKeySchemaDefinitionModel, new NotEmptyValidator("Please provide the index hash key name"));
+        ChainValidator<String> indexHashKeyNameValidationStatusProvider = new ChainValidator<>(indexHashKeyNameInKeySchemaDefinitionModel, new NotEmptyValidator("Please provide the index hash key name"));
         bindingContext.addValidationStatusProvider(indexHashKeyNameValidationStatusProvider);
         bindingContext.bindValue(SWTObservables.observeText(indexHashKeyNameText, SWT.Modify), indexHashKeyNameInAttributeDefinitionsModel);
         indexHashKeyNameText.addModifyListener(new ModifyListener() {
             
+            @Override
             public void modifyText(ModifyEvent e) {
                 if (primaryKeyTypes.containsKey(indexHashKeyNameText.getText())
                         && indexHashKeyAttributeTypeCombo != null
@@ -229,7 +230,7 @@ public class AddGSIDialog extends TitleAreaDialog {
         indexRangeKeyAttributeLabel.setText("Index Range Key Name:");
         indexRangeKeyNameText = new Text(indexRangeKeyGroup, SWT.BORDER);
         bindingContext.bindValue(SWTObservables.observeText(indexRangeKeyNameText, SWT.Modify), indexRangeKeyNameInKeySchemaDefinitionModel);
-        ChainValidator<String> indexRangeKeyNameValidationStatusProvider = new ChainValidator<String>(
+        ChainValidator<String> indexRangeKeyNameValidationStatusProvider = new ChainValidator<>(
                 indexRangeKeyNameInKeySchemaDefinitionModel,
                 enableIndexRangeKeyModel,
                 new NotEmptyValidator("Please provide the index range key name"));
@@ -237,6 +238,7 @@ public class AddGSIDialog extends TitleAreaDialog {
         bindingContext.bindValue(SWTObservables.observeText(indexRangeKeyNameText, SWT.Modify), indexRangeKeyNameInAttributeDefinitionsModel);
         indexRangeKeyNameText.addModifyListener(new ModifyListener() {
             
+            @Override
             public void modifyText(ModifyEvent e) {
                 if (primaryKeyTypes.containsKey(indexRangeKeyNameText.getText())
                         && indexRangeKeyAttributeTypeCombo != null
@@ -281,7 +283,7 @@ public class AddGSIDialog extends TitleAreaDialog {
         indexNameText = new Text(composite, SWT.BORDER);
         GridDataFactory.fillDefaults().grab(true, false).applyTo(indexNameText);
         bindingContext.bindValue(SWTObservables.observeText(indexNameText, SWT.Modify), indexNameModel);
-        ChainValidator<String> indexNameValidationStatusProvider = new ChainValidator<String>(indexNameModel, new NotEmptyValidator("Please provide an index name"));
+        ChainValidator<String> indexNameValidationStatusProvider = new ChainValidator<>(indexNameModel, new NotEmptyValidator("Please provide an index name"));
         bindingContext.addValidationStatusProvider(indexNameValidationStatusProvider);
 
         // Projection type
@@ -292,6 +294,7 @@ public class AddGSIDialog extends TitleAreaDialog {
         bindingContext.bindValue(SWTObservables.observeSelection(projectionTypeCombo), projectionTypeModel);
         projectionTypeCombo.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 if (projectionTypeCombo.getSelectionIndex() == 2) {
                     // Enable the list for adding non-key attributes to the projection
@@ -301,6 +304,7 @@ public class AddGSIDialog extends TitleAreaDialog {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -314,6 +318,7 @@ public class AddGSIDialog extends TitleAreaDialog {
         addAttributeButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addAttributeButton.addSelectionListener(new SelectionListener() {
 
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 AddNewAttributeDialog newAttributeTable = new AddNewAttributeDialog();
                 if (newAttributeTable.open() == 0) {
@@ -326,6 +331,7 @@ public class AddGSIDialog extends TitleAreaDialog {
                 }
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
             }
         });
@@ -344,7 +350,7 @@ public class AddGSIDialog extends TitleAreaDialog {
         final Text readCapacityText = CreateTablePageUtil.newTextField(throughputGroup);
         readCapacityText.setText("" + CAPACITY_UNIT_MINIMUM);
         bindingContext.bindValue(SWTObservables.observeText(readCapacityText, SWT.Modify), readCapacityModel);
-        ChainValidator<Long> readCapacityValidationStatusProvider = new ChainValidator<Long>(
+        ChainValidator<Long> readCapacityValidationStatusProvider = new ChainValidator<>(
                 readCapacityModel, new RangeValidator(
                         "Please enter a read capacity of " + CAPACITY_UNIT_MINIMUM + " or more.", CAPACITY_UNIT_MINIMUM,
                         Long.MAX_VALUE));
@@ -361,7 +367,7 @@ public class AddGSIDialog extends TitleAreaDialog {
         minimumWriteCapacityLabel.setText("(Minimum capacity " + CAPACITY_UNIT_MINIMUM + ")");
         minimumWriteCapacityLabel.setFont(italicFont);
         bindingContext.bindValue(SWTObservables.observeText(writeCapacityText, SWT.Modify), writeCapacityModel);
-        ChainValidator<Long> writeCapacityValidationStatusProvider = new ChainValidator<Long>(
+        ChainValidator<Long> writeCapacityValidationStatusProvider = new ChainValidator<>(
                 writeCapacityModel, new RangeValidator(
                         "Please enter a write capacity of " + CAPACITY_UNIT_MINIMUM + " or more.", CAPACITY_UNIT_MINIMUM,
                         Long.MAX_VALUE));
@@ -381,6 +387,7 @@ public class AddGSIDialog extends TitleAreaDialog {
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
 
+            @Override
             public void handleChange(ChangeEvent event) {
                 Object value = aggregateValidationStatus.getValue();
                 if (value instanceof IStatus == false)
@@ -416,7 +423,7 @@ public class AddGSIDialog extends TitleAreaDialog {
      * Returns an unmodifiable list of all the AttributeDefinition of the index keys associated with this GSI.
      */
     public List<AttributeDefinition> getIndexKeyAttributeDefinitions() {
-        List<AttributeDefinition> keyAttrs = new LinkedList<AttributeDefinition>();
+        List<AttributeDefinition> keyAttrs = new LinkedList<>();
         keyAttrs.add(indexHashKeyAttributeDefinition);
         if (isEnableIndexRangeKey() ) {
             keyAttrs.add(indexRangeKeyAttributeDefinition);
@@ -466,6 +473,7 @@ public class AddGSIDialog extends TitleAreaDialog {
             menuManager.setRemoveAllWhenShown(true);
             menuManager.addMenuListener(new IMenuListener() {
 
+                @Override
                 public void menuAboutToShow(IMenuManager manager) {
                     if (viewer.getList().getSelectionCount() > 0) {
 

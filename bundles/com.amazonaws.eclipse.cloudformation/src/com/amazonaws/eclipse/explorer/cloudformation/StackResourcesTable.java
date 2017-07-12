@@ -120,7 +120,7 @@ class StackResourcesTable extends Composite {
                 DescribeStackResourcesRequest request = new DescribeStackResourcesRequest().withStackName(stackEditorInput.getStackName());
                 final List<StackResource> stackResources = getClient().describeStackResources(request).getStackResources();
 
-                List<String> instances = new LinkedList<String>();
+                List<String> instances = new LinkedList<>();
                 for (StackResource resource : stackResources) {
                     if (resource.getResourceType().equalsIgnoreCase("AWS::EC2::Instance")) {
                         instances.add(resource.getPhysicalResourceId());
@@ -129,7 +129,8 @@ class StackResourcesTable extends Composite {
                 instanceSelectionTable.setInstancesToList(instances);
 
                 Display.getDefault().asyncExec(new Runnable() {
-                   public void run() {
+                   @Override
+                public void run() {
                        viewer.setInput(stackResources.toArray(new StackResource[stackResources.size()]));
                    }
                 });
@@ -144,8 +145,10 @@ class StackResourcesTable extends Composite {
 
         private StackResource[] resources;
 
+        @Override
         public void dispose() {}
 
+        @Override
         public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             if (newInput instanceof StackResource[]) {
                 resources = (StackResource[])newInput;
@@ -154,18 +157,22 @@ class StackResourcesTable extends Composite {
             }
         }
 
+        @Override
         public Object[] getElements(Object inputElement) {
             return resources;
         }
 
+        @Override
         public Object[] getChildren(TreePath parentPath) {
             return null;
         }
 
+        @Override
         public boolean hasChildren(TreePath path) {
             return false;
         }
 
+        @Override
         public TreePath[] getParents(Object element) {
             return new TreePath[0];
         }
@@ -173,18 +180,24 @@ class StackResourcesTable extends Composite {
 
     private final class StackResourcesLabelProvider implements ITableLabelProvider {
 
+        @Override
         public void addListener(ILabelProviderListener listener) {}
+        @Override
         public void removeListener(ILabelProviderListener listener) {}
+        @Override
         public void dispose() {}
 
+        @Override
         public boolean isLabelProperty(Object element, String property) {
             return false;
         }
 
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             if (element instanceof StackResource == false) return "";
 

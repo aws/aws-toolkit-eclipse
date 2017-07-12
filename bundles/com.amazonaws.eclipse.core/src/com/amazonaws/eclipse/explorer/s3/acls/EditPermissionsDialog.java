@@ -123,10 +123,12 @@ public abstract class EditPermissionsDialog extends Dialog {
         addButton.setText("Add Grant");
         addButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_ADD));
         addButton.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 createTableItem(true);
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
                 widgetSelected(e);
             }
@@ -138,8 +140,9 @@ public abstract class EditPermissionsDialog extends Dialog {
         removeButton.setText("Remove Grants");
         removeButton.setImage(AwsToolkitCore.getDefault().getImageRegistry().get(AwsToolkitCore.IMAGE_REMOVE));
         removeButton.addSelectionListener(new SelectionListener() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
-                List<Integer> selectionIndices = new ArrayList<Integer>();
+                List<Integer> selectionIndices = new ArrayList<>();
                 for (int selectionIndex : table.getSelectionIndices()) {
                     // Skip the first two rows with group permissions
                     if (selectionIndex < 2) continue;
@@ -159,6 +162,7 @@ public abstract class EditPermissionsDialog extends Dialog {
                 table.remove(indiciesToRemove);
             }
 
+            @Override
             public void widgetDefaultSelected(SelectionEvent e) {
                 widgetSelected(e);
             }
@@ -221,6 +225,7 @@ public abstract class EditPermissionsDialog extends Dialog {
         table.addListener(SWT.MeasureItem, new Listener() {
             private Point preferredSize;
 
+            @Override
             public void handleEvent(Event event) {
                 if (preferredSize == null) {
                     Text text = new Text(table, SWT.BORDER);
@@ -256,6 +261,7 @@ public abstract class EditPermissionsDialog extends Dialog {
             final Text granteeText = new Text(table, SWT.BORDER);
             data.granteeTextbox = granteeText;
             granteeText.addModifyListener(new ModifyListener() {
+                @Override
                 public void modifyText(ModifyEvent e) {
                     String grantee = granteeText.getText();
                     if (grantee.contains("@")) {
@@ -266,8 +272,10 @@ public abstract class EditPermissionsDialog extends Dialog {
                 }
             });
             granteeText.addFocusListener(new FocusListener() {
+                @Override
                 public void focusLost(FocusEvent e) {}
 
+                @Override
                 public void focusGained(FocusEvent e) {
                     table.setSelection(item);
                 }
@@ -300,7 +308,7 @@ public abstract class EditPermissionsDialog extends Dialog {
         table.clearAll();
         table.setData("owner", startingAcl.getOwner());
 
-        Map<Grantee, Set<Permission>> permissionsByGrantee = new TreeMap<Grantee, Set<Permission>>(new GranteeComparator());
+        Map<Grantee, Set<Permission>> permissionsByGrantee = new TreeMap<>(new GranteeComparator());
         permissionsByGrantee.put(GroupGrantee.AllUsers, new HashSet<Permission>());
         permissionsByGrantee.put(GroupGrantee.AuthenticatedUsers, new HashSet<Permission>());
         for (Grant grant : startingAcl.getGrants()) {
@@ -360,7 +368,7 @@ public abstract class EditPermissionsDialog extends Dialog {
 
     static class TableItemData {
         Grantee grantee;
-        List<Button> checkboxes = new ArrayList<Button>();
+        List<Button> checkboxes = new ArrayList<>();
         Text granteeTextbox;
     }
 

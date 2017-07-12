@@ -20,6 +20,7 @@ import com.amazonaws.eclipse.explorer.AbstractContentProvider;
 
 public class EC2ContentProvider extends AbstractContentProvider {
 
+    @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
                 element instanceof EC2RootElement);

@@ -98,7 +98,7 @@ public class QueryEditor extends EditorPart {
     private TableViewer viewer;
 
     boolean dirty;
-    private Map<String, Collection<EditedAttributeValue>> editedCells = new HashMap<String, Collection<EditedAttributeValue>>();
+    private Map<String, Collection<EditedAttributeValue>> editedCells = new HashMap<>();
     private String resultDomain;
 
     private ToolBarManager toolBarManager;
@@ -118,12 +118,12 @@ public class QueryEditor extends EditorPart {
 
         String domain = this.resultDomain;
 
-        ArrayList<ReplaceableItem> items = new ArrayList<ReplaceableItem>();
+        ArrayList<ReplaceableItem> items = new ArrayList<>();
         for ( String itemName : QueryEditor.this.editedCells.keySet() ) {
 
             ReplaceableItem replaceableItem = new ReplaceableItem();
             replaceableItem.setName(itemName);
-            Collection<ReplaceableAttribute> attributes = new LinkedList<ReplaceableAttribute>();
+            Collection<ReplaceableAttribute> attributes = new LinkedList<>();
 
             for ( EditedAttributeValue editedValue : QueryEditor.this.editedCells.get(itemName) ) {
                 if ( editedValue.newValue != null ) {
@@ -347,8 +347,8 @@ public class QueryEditor extends EditorPart {
                 raf.setLength(0L);
                 raf.close();
 
-                List<SimpleDBItem> items = new LinkedList<SimpleDBItem>();
-                Set<String> columns = new LinkedHashSet<String>();
+                List<SimpleDBItem> items = new LinkedList<>();
+                Set<String> columns = new LinkedHashSet<>();
 
 
                 for ( TableItem tableItem : QueryEditor.this.viewer.getTable().getItems() ) {
@@ -465,6 +465,7 @@ public class QueryEditor extends EditorPart {
                 QueryEditor.this.resultDomain = getDomainName(query);
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         QueryEditor.this.viewer.setInput(result);
                         QueryEditor.this.viewer.getTable().setEnabled(true);
@@ -567,6 +568,7 @@ public class QueryEditor extends EditorPart {
             this.editor = editor;
         }
 
+        @Override
         public void handleEvent(final Event event) {
             if ( event.type == SWT.FocusOut && this.editorComposite != null && !this.editorComposite.isDisposed() ) {
                 Control focus = Display.getCurrent().getFocusControl();
@@ -611,12 +613,14 @@ public class QueryEditor extends EditorPart {
 
                         this.editorText.addModifyListener(new ModifyListener() {
 
+                            @Override
                             public void modifyText(final ModifyEvent e) {
                                 markModified(item, column, rowNum, TextCellEditorListener.this.editorText);
                             }
                         });
                         this.editorText.addTraverseListener(new TraverseListener() {
 
+                            @Override
                             public void keyTraversed(final TraverseEvent e) {
                                 TextCellEditorListener.this.editorComposite.dispose();
                             }
@@ -731,8 +735,8 @@ public class QueryEditor extends EditorPart {
 
         private synchronized void initializeElements() {
             if ( this.elements == null && this.input != null ) {
-                List<SimpleDBItem> items = new LinkedList<SimpleDBItem>();
-                Set<String> columns = new LinkedHashSet<String>();
+                List<SimpleDBItem> items = new LinkedList<>();
+                Set<String> columns = new LinkedHashSet<>();
 
                 for ( Item item : this.input.getItems() ) {
                     SimpleDBItem e = new SimpleDBItem(item);
@@ -769,7 +773,7 @@ public class QueryEditor extends EditorPart {
      * Marks the given tree item and column modified.
      */
     protected void markModified(final TableItem item, final int column, final int row, final Text text) {
-        List<String> values = new LinkedList<String>();
+        List<String> values = new LinkedList<>();
         values.add(text.getText());
         markModified(item, column, row, values);
     }

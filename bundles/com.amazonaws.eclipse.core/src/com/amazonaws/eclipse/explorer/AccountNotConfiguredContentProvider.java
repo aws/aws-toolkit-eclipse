@@ -32,6 +32,7 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 public class AccountNotConfiguredContentProvider
     implements ITreeContentProvider {
 
+    @Override
     public void inputChanged(final Viewer viewer,
                              final Object oldInput,
                              final Object newInput) {
@@ -41,11 +42,13 @@ public class AccountNotConfiguredContentProvider
      * This content provider contributes a child to the root element if and
      * only if there are no valid credentials configured.
      */
+    @Override
     public boolean hasChildren(final Object element) {
         return ((element instanceof AWSResourcesRootElement)
                     && !areCredentialsConfigured());
     }
 
+    @Override
     public Object[] getChildren(final Object parentElement) {
         if (parentElement instanceof AWSResourcesRootElement
                 && !areCredentialsConfigured()) {
@@ -56,14 +59,17 @@ public class AccountNotConfiguredContentProvider
         return new Object[0];
     }
 
+    @Override
     public Object[] getElements(final Object inputElement) {
         return getChildren(inputElement);
     }
 
+    @Override
     public Object getParent(final Object element) {
         return null;
     }
 
+    @Override
     public void dispose() {
     }
 

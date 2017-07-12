@@ -39,15 +39,18 @@ public class TableEditorInput implements IEditorInput {
         this.accountId = accountId;
     }
 
+    @Override
     @SuppressWarnings("rawtypes")
     public Object getAdapter(final Class adapter) {
         return null;
     }
 
+    @Override
     public boolean exists() {
         return true;
     }
 
+    @Override
     public ImageDescriptor getImageDescriptor() {
         return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_TABLE);
     }
@@ -56,14 +59,17 @@ public class TableEditorInput implements IEditorInput {
         return this.tableName;
     }
     
+    @Override
     public String getName() {
         return this.tableName;
     }
 
+    @Override
     public IPersistableElement getPersistable() {
         return null;
     }
 
+    @Override
     public String getToolTipText() {
         return "Amazon DynamoDB Table Editor - " + this.tableName;
     }

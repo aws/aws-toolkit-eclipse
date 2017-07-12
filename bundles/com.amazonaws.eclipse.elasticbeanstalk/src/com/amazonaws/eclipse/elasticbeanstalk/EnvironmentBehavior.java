@@ -137,6 +137,7 @@ public class EnvironmentBehavior extends ServerBehaviourDelegate {
             if ( currentUpdateEnvironmentJob.needsToDeployNewVersion() ) {
                 Display.getDefault().syncExec(new Runnable() {
 
+                    @Override
                     public void run() {
                         Shell shell = Display.getDefault().getActiveShell();
                         if ( shell == null )
@@ -346,6 +347,7 @@ public class EnvironmentBehavior extends ServerBehaviourDelegate {
         if ( !currentOptions.contains("-Xrunjdwp:") ) {
 
             Display.getDefault().syncExec(new Runnable() {
+                @Override
                 public void run() {
                     // Incremental deployments are automatically assigned version labels
                     boolean letUserSelectVersionLabel = !getEnvironment().getIncrementalDeployment();
@@ -375,7 +377,7 @@ public class EnvironmentBehavior extends ServerBehaviourDelegate {
 
         UpdateEnvironmentRequest rq = new UpdateEnvironmentRequest();
         rq.setEnvironmentName(getEnvironment().getEnvironmentName());
-        Collection<ConfigurationOptionSetting> outgoingSettings = new ArrayList<ConfigurationOptionSetting>();
+        Collection<ConfigurationOptionSetting> outgoingSettings = new ArrayList<>();
         outgoingSettings.add(opt);
         rq.setOptionSettings(outgoingSettings);
 

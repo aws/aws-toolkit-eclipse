@@ -34,6 +34,7 @@ public class MinMaxLengthValidator implements IValidator {
         this.fieldName = fieldName;
     }
 
+    @Override
     public IStatus validate(Object value) {
         String s = (String)value;
         if (s.length() < min || s.length() > max) {
