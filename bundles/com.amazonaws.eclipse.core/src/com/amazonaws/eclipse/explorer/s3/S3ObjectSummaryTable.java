@@ -557,7 +557,7 @@ public class S3ObjectSummaryTable extends Composite {
 
                 int i = filteredObjectSummaries.size();
                 for ( String commonPrefix : filteredCommonPrefixes ) {
-                    objects[i++] = new Path(commonPrefix);
+                    objects[i++] = new Path(null, commonPrefix);
                 }
 
                 children.put(treePath, objects);
