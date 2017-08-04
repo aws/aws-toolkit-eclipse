@@ -14,11 +14,12 @@
  */
 package com.amazonaws.eclipse.codecommit.explorer;
 
+import static com.amazonaws.eclipse.codecommit.CodeCommitUtil.nonNullString;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.layout.TreeColumnLayout;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -55,6 +56,8 @@ import com.amazonaws.eclipse.codecommit.CodeCommitPlugin;
 import com.amazonaws.eclipse.codecommit.CodeCommitUtil;
 import com.amazonaws.eclipse.codecommit.explorer.CodeCommitActionProvider.CloneRepositoryAction;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.model.Commit;
 import com.amazonaws.services.codecommit.model.GetBranchRequest;
@@ -63,8 +66,6 @@ import com.amazonaws.services.codecommit.model.GetRepositoryRequest;
 import com.amazonaws.services.codecommit.model.ListBranchesRequest;
 import com.amazonaws.services.codecommit.model.RepositoryMetadata;
 import com.amazonaws.util.StringUtils;
-
-import static com.amazonaws.eclipse.codecommit.CodeCommitUtil.nonNullString;
 
 public class RepositoryEditor extends EditorPart {
 
@@ -157,7 +158,7 @@ public class RepositoryEditor extends EditorPart {
         checkoutButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                CloneRepositoryAction.executeCloneAction(repositoryEditorInput.getAccountId(), repositoryEditorInput.getRegionId(), repositoryName);
+                new CloneRepositoryAction(repositoryEditorInput).run();
             }
         });
 
@@ -309,8 +310,9 @@ public class RepositoryEditor extends EditorPart {
         }
     }
 
-    private class RefreshAction extends Action {
+    private class RefreshAction extends AwsAction {
         public RefreshAction() {
+            super(AwsToolkitMetricType.EXPLORER_CODECOMMIT_REFRESH_REPO_EDITOR);
             this.setText("Refresh");
             this.setToolTipText("Refresh CodeCommit Repository");
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(
@@ -318,9 +320,10 @@ public class RepositoryEditor extends EditorPart {
         }
 
         @Override
-        public void run() {
+        public void doRun() {
             new LoadSummaryDataThread().start();
             new LoadBranchesThread().start();
+            actionFinished();
         }
     }
 

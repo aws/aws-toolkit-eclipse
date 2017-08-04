@@ -40,6 +40,9 @@ Bundle-ActivationPolicy: lazy
 Export-Package: com.amazonaws.eclipse.lambda.blueprint,
  com.amazonaws.eclipse.lambda.project.template,
  com.amazonaws.eclipse.lambda.project.template.data,
+ com.amazonaws.eclipse.lambda.serverless,
+ com.amazonaws.eclipse.lambda.serverless.model,
+ com.amazonaws.eclipse.lambda.serverless.model.transform,
  com.amazonaws.eclipse.lambda.serverless.template,
  freemarker.template
 Import-Package: org.eclipse.ui.navigator

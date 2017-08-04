@@ -18,9 +18,9 @@ import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -40,6 +40,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.s3.S3ObjectSummaryTable;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ResponseHeaderOverrides;
@@ -48,11 +50,12 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 /**
  * Action to generate a pre-signed URL for accessing an object.
  */
-public class GeneratePresignedUrlAction extends Action {
+public class GeneratePresignedUrlAction extends AwsAction {
 
     private final S3ObjectSummaryTable table;
 
     public GeneratePresignedUrlAction(S3ObjectSummaryTable s3ObjectSummaryTable) {
+        super(AwsToolkitMetricType.EXPLORER_S3_GENERATE_PRESIGNED_URL);
         table = s3ObjectSummaryTable;
         setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_HTML_DOC));
     }
@@ -63,23 +66,34 @@ public class GeneratePresignedUrlAction extends Action {
     }
 
     @Override
-    public void run() {
+    protected void doRun() {
         DateSelectionDialog dialog = new DateSelectionDialog(Display.getDefault().getActiveShell());
-        if ( dialog.open() == SWT.DEFAULT )
+        if ( dialog.open() != Window.OK ) {
+            actionCanceled();
+            actionFinished();
             return;
-
-        S3ObjectSummary selectedObject = table.getSelectedObjects().iterator().next();
-        GeneratePresignedUrlRequest rq = new GeneratePresignedUrlRequest(selectedObject.getBucketName(),
-                selectedObject.getKey()).withExpiration(dialog.getDate());
-        if ( dialog.getContentType() != null && dialog.getContentType().length() > 0 ) {
-            rq.setResponseHeaders(new ResponseHeaderOverrides().withContentType(dialog.getContentType()));
         }
 
-        URL presignedUrl = table.getS3Client().generatePresignedUrl(rq);
+        try {
+            S3ObjectSummary selectedObject = table.getSelectedObjects().iterator().next();
+            GeneratePresignedUrlRequest rq = new GeneratePresignedUrlRequest(selectedObject.getBucketName(),
+                    selectedObject.getKey()).withExpiration(dialog.getDate());
+            if ( dialog.getContentType() != null && dialog.getContentType().length() > 0 ) {
+                rq.setResponseHeaders(new ResponseHeaderOverrides().withContentType(dialog.getContentType()));
+            }
 
-        final Clipboard cb = new Clipboard(Display.getDefault());
-        TextTransfer textTransfer = TextTransfer.getInstance();
-        cb.setContents(new Object[] { presignedUrl.toString() }, new Transfer[] { textTransfer });
+            URL presignedUrl = table.getS3Client().generatePresignedUrl(rq);
+
+            final Clipboard cb = new Clipboard(Display.getDefault());
+            TextTransfer textTransfer = TextTransfer.getInstance();
+            cb.setContents(new Object[] { presignedUrl.toString() }, new Transfer[] { textTransfer });
+            actionSucceeded();
+        } catch (Exception e) {
+            actionFailed();
+            AwsToolkitCore.getDefault().reportException(e.getMessage(), e);
+        } finally {
+            actionFinished();
+        }
     }
 
     @Override

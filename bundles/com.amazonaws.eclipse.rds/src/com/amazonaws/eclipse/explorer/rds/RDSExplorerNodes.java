@@ -14,16 +14,15 @@
  */
 package com.amazonaws.eclipse.explorer.rds;
 
-import org.eclipse.swt.graphics.Image;
-
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.explorer.ExplorerNode;
 import com.amazonaws.eclipse.explorer.rds.RDSExplorerActionProvider.ConfigureConnectionProfileAction;
 import com.amazonaws.services.rds.model.DBInstance;
 
 public class RDSExplorerNodes {
-    public static final ExplorerNode RDS_ROOT_NODE =
-        new ExplorerNode("Amazon RDS", 1, loadImage(AwsToolkitCore.IMAGE_RDS_SERVICE), null);
+    public static final class RdsRootElement {
+        public static final RdsRootElement RDS_ROOT_NODE = new RdsRootElement();
+    }
 
     public static class DatabaseNode extends ExplorerNode {
         private final DBInstance dbInstance;
@@ -36,9 +35,5 @@ public class RDSExplorerNodes {
         public DBInstance getDBInstance() {
             return dbInstance;
         }
-    }
-
-    private static Image loadImage(final String imageId) {
-        return AwsToolkitCore.getDefault().getImageRegistry().get(imageId);
     }
 }

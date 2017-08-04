@@ -106,9 +106,11 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.ui.AbstractTableLabelProvider;
 import com.amazonaws.eclipse.dynamodb.AbstractAddNewAttributeDialog;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
@@ -403,7 +405,7 @@ public class DynamoDBTableEditor extends EditorPart {
     }
 
     private void createActions() {
-        runScanAction = new Action() {
+        runScanAction = new AwsAction(AwsToolkitMetricType.EXPLORER_DYNAMODB_RUN_SCAN) {
             @Override
             public ImageDescriptor getImageDescriptor() {
                 return AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_START);
@@ -420,8 +422,9 @@ public class DynamoDBTableEditor extends EditorPart {
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 runScan();
+                actionFinished();
             }
 
             @Override
@@ -434,7 +437,7 @@ public class DynamoDBTableEditor extends EditorPart {
         IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
         handlerService.activateHandler(runScanAction.getActionDefinitionId(), handler);
 
-        saveAction = new Action() {
+        saveAction = new AwsAction(AwsToolkitMetricType.EXPLORER_DYNAMODB_SAVE) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -447,7 +450,7 @@ public class DynamoDBTableEditor extends EditorPart {
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 getEditorSite().getPage().saveEditor(DynamoDBTableEditor.this, false);
             }
 
@@ -459,7 +462,7 @@ public class DynamoDBTableEditor extends EditorPart {
 
         handlerService.activateHandler(saveAction.getActionDefinitionId(), new ActionHandler(saveAction));
 
-        nextPageResultsAction = new Action() {
+        nextPageResultsAction = new AwsAction(AwsToolkitMetricType.EXPLORER_DYNAMODB_NEXT_PAGE) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -472,13 +475,14 @@ public class DynamoDBTableEditor extends EditorPart {
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 getNextPageResults();
+                actionFinished();
             }
 
         };
 
-        exportAsCSVAction = new Action() {
+        exportAsCSVAction = new AwsAction(AwsToolkitMetricType.EXPLORER_DYNAMODB_EXPORT_AS_CSV) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -491,14 +495,17 @@ public class DynamoDBTableEditor extends EditorPart {
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 FileDialog dialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
                 dialog.setOverwrite(true);
                 dialog.setFilterExtensions(exportExtensions);
                 String csvFile = dialog.open();
                 if (csvFile != null) {
                     writeCsvFile(csvFile);
+                } else {
+                    actionCanceled();
                 }
+                actionFinished();
             }
 
             private void writeCsvFile(final String csvFile) {
@@ -549,15 +556,17 @@ public class DynamoDBTableEditor extends EditorPart {
                     }
 
                     out.close();
+                    actionSucceeded();
 
                 } catch (Exception e) {
+                    actionFailed();
                     AwsToolkitCore.getDefault().logError("Couldn't save CSV file", e);
                 }
             }
 
         };
 
-        addNewAttributeAction = new Action() {
+        addNewAttributeAction = new AwsAction(AwsToolkitMetricType.EXPLORER_DYNAMODB_ADD_NEW_ATTRIBUTE) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -570,14 +579,18 @@ public class DynamoDBTableEditor extends EditorPart {
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 NewAttributeDialog dialog = new NewAttributeDialog();
                 if ( dialog.open() == 0 ) {
                     contentProvider.columns.add(dialog.getNewAttributeName());
                     contentProvider.createColumn(viewer.getTable(), (TableColumnLayout) viewer.getTable().getParent()
                             .getLayout(), dialog.getNewAttributeName());
                     viewer.getTable().getParent().layout();
+                    actionSucceeded();
+                } else {
+                    actionCanceled();
                 }
+                actionFinished();
             }
 
             final class NewAttributeDialog extends AbstractAddNewAttributeDialog {

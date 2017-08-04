@@ -12,7 +12,7 @@
          activeByDefault="true"
          contentProvider="com.amazonaws.eclipse.explorer.rds.RDSContentProvider"
          id="com.amazonaws.eclipse.explorer.RDSContent"
-         labelProvider="com.amazonaws.eclipse.explorer.ExplorerNodeLabelProvider"
+         labelProvider="com.amazonaws.eclipse.explorer.rds.RDSLabelProvider"
          name="Amazon RDS"
          priority="normal">
       <triggerPoints>
@@ -25,14 +25,13 @@
        -->
       <possibleChildren>
         <or>
-          <!-- TODO -->
-          <instanceof value="com.amazonaws.eclipse.explorer.s3.S3RootElement" />
+          <instanceof value="com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes$RdsRootElement" />
         </or>
       </possibleChildren>
       <actionProvider class="com.amazonaws.eclipse.explorer.rds.RDSExplorerActionProvider">
          <enablement>
             <or>
-               <instanceof value="com.amazonaws.eclipse.explorer.ExplorerNode"/>
+               <instanceof value="com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes$RdsRootElement"/>
                <instanceof value="com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes$DatabaseNode"/>
             </or>
          </enablement>

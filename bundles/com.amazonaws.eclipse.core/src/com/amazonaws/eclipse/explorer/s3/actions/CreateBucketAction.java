@@ -14,22 +14,30 @@
  */
 package com.amazonaws.eclipse.explorer.s3.actions;
 
-import org.eclipse.jface.action.Action;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
-public class CreateBucketAction extends Action {
+public class CreateBucketAction extends AwsAction {
 
     public CreateBucketAction() {
+        super(AwsToolkitMetricType.EXPLORER_S3_CREATE_BUCKET);
         setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor("add"));
         setText("Create New Bucket");
     }
 
     @Override
-    public void run() {
+    protected void doRun() {
         WizardDialog dialog = new WizardDialog(Display.getDefault().getActiveShell(), new CreateBucketWizard());
-        dialog.open();
+        if (Window.OK == dialog.open()) {
+            actionSucceeded();
+        } else {
+            actionCanceled();
+        }
+        actionFinished();
     }
 }

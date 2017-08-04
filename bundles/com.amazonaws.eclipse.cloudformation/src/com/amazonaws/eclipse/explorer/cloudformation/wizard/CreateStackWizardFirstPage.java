@@ -778,7 +778,7 @@ class CreateStackWizardFirstPage extends WizardPage {
      */
     @Override
     public boolean canFlipToNextPage() {
-        return wizard.needsSecondPage() && super.canFlipToNextPage();
+        return (wizard.needsSecondPage() || wizard.needsThirdPage()) && super.canFlipToNextPage();
     }
 
 }

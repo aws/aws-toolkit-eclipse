@@ -57,6 +57,9 @@ public class PlatformEnvironmentDataCollector {
             }
         }
 
+        Bundle awsToolkitCoreBundle = AwsToolkitCore.getDefault().getBundle();
+        data.setAwsToolkitVersion(awsToolkitCoreBundle.getVersion().toString());
+
         BundleContext ctx = AwsToolkitCore.getDefault().getBundle()
                 .getBundleContext();
         for (Bundle bundle : ctx.getBundles()) {

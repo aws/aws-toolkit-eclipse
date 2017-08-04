@@ -1,0 +1,51 @@
+{
+  "foo": "bar",
+  "foo1": {
+    "foo": "bar"
+  },
+  "Resources": {
+    "ServerlessFunction": {
+      "Type" : "AWS::Serverless::Function",
+      "foo" : "bar",
+      "Properties" : {
+        "CodeUri" : "fakeCodeUri",
+        "Handler" : "fakeHandler",
+        "Policies" : [
+          "Policy1", "Policy2"
+        ],
+        "Events" : {
+          "S3Event": {
+            "Type" : "S3",
+            "Properties" : {
+              "Bucket" : "fakeBucket"
+            }
+          }
+        }
+      }
+    },
+    "ServerlessFunction2": {
+      "Type" : "AWS::Serverless::Function",
+      "Properties" : {
+        "CodeUri" : "fakeCodeUri",
+        "Handler" : "fakeHandler",
+        "Runtime" : "fakeRuntime",
+        "MemorySize" : "100",
+        "Timeout" : "100",
+        "FunctionName" : "fakeFunctionName",
+        "Environment" : {
+          "Variables" : {
+            "key1": "value1",
+            "key2": "value2"
+          }
+        }
+      }
+    },
+    "IamRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "fakeKey": "fakeValue"
+      },
+      "foo": "bar"
+    }
+  }
+}

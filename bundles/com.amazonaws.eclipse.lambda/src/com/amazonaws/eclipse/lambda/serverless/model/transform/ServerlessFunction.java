@@ -14,15 +14,15 @@
 */
 package com.amazonaws.eclipse.lambda.serverless.model.transform;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.amazonaws.eclipse.lambda.serverless.model.Resource;
 import com.amazonaws.eclipse.lambda.serverless.model.ResourceType;
 import com.amazonaws.eclipse.lambda.serverless.model.TypeProperties;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,37 +35,48 @@ public class ServerlessFunction extends Resource {
 
     @JsonProperty("Handler")
     private String handler;
+
     @JsonProperty("Runtime")
     private String runtime;
+
     @JsonProperty("CodeUri")
     private String codeUri;
+
     @JsonProperty("Description")
     private String description;
+
     @JsonProperty("MemorySize")
     private Integer memorySize;
+
     @JsonProperty("Timeout")
     private Integer timeout;
+
     @JsonProperty("Role")
     private String role;
+
     @JsonProperty("Policies")
-    private List<String> policies;
+    private final List<String> policies = new ArrayList<>();
+
     @JsonIgnore
-    private Map<String, TypeProperties> additionalEvents;
-    // Additional properties that we don't care for now such as Environment
-    private Map<String, Object> additionalProperties = new HashMap<>();
+    // These are additional properties in the Type, Properties level.
+    private final Map<String, Object> additionalTopLevelProperties = new HashMap<>();
 
     public String getHandler() {
         return handler;
     }
+
     public void setHandler(String handler) {
         this.handler = handler;
     }
+
     public String getRuntime() {
         return runtime == null ? DEFAULT_RUNTIME : runtime;
     }
+
     public void setRuntime(String runtime) {
         this.runtime = runtime;
     }
+
     public String getCodeUri() {
         return codeUri;
     }
@@ -73,42 +84,61 @@ public class ServerlessFunction extends Resource {
     public void setCodeUri(String codeUri) {
         this.codeUri = codeUri;
     }
+
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
+
     public Integer getMemorySize() {
         return memorySize == null ? DEFAULT_MEMORY_SIZE : memorySize;
     }
+
     public void setMemorySize(Integer memorySize) {
         this.memorySize = memorySize;
     }
+
     public Integer getTimeout() {
         return timeout == null ? DEFAULT_TIMEOUT : timeout;
     }
+
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
+
     public String getRole() {
         return role;
     }
+
     public void setRole(String role) {
         this.role = role;
     }
+
+    /**
+     * @return non-null
+     */
     public List<String> getPolicies() {
         return policies;
     }
-    public void setPolicies(List<String> policies) {
-        this.policies = policies;
+
+    public void addPolicy(String policy) {
+        this.policies.add(policy);
     }
-    public Map<String, TypeProperties> getAdditionalEvents() {
-        return additionalEvents == null ? new HashMap<String, TypeProperties>() : additionalEvents;
+
+    /**
+     * @return non-null
+     */
+    public Map<String, Object> getAdditionalTopLevelProperties() {
+        return additionalTopLevelProperties;
     }
-    public void setAdditionalEvents(Map<String, TypeProperties> additionalEvents) {
-        this.additionalEvents = additionalEvents;
+
+    public void addAdditionalTopLevelProperty(String key, Object value) {
+        this.additionalTopLevelProperties.put(key, value);
     }
+
     @Override
     public TypeProperties toTypeProperties() {
         TypeProperties tp = new TypeProperties();
@@ -116,31 +146,23 @@ public class ServerlessFunction extends Resource {
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> properties = mapper.convertValue(this, Map.class);
-        properties.put("Events", additionalEvents);
-        tp.setProperties(properties);
+        for (Entry<String, Object> entry : properties.entrySet()) {
+            tp.addProperty(entry.getKey(), entry.getValue());
+        }
+
+        Map<String, Object> topLevelProperties = getAdditionalTopLevelProperties();
+        for (Entry<String, Object> entry : topLevelProperties.entrySet()) {
+            tp.addAdditionalProperty(entry.getKey(), entry.getValue());
+        }
+
         return tp;
-    }
-
-    @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    @JsonAnySetter
-    public void addAdditionalProperty(String key, Object value) {
-        this.additionalProperties.put(key, value);
-    }
-
-    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-        this.additionalProperties = additionalProperties;
     }
 
     @Override
     public String toString() {
-        return "ServerlessFunction [handler=" + handler + ", runtime=" + runtime
-                + ", codeUri=" + codeUri + ", description=" + description
-                + ", memorySize=" + memorySize + ", timeout=" + timeout
-                + ", role=" + role + ", policies=" + policies + "]";
+        return "ServerlessFunction [handler=" + handler + ", runtime=" + runtime + ", codeUri=" + codeUri
+                + ", description=" + description + ", memorySize=" + memorySize + ", timeout=" + timeout + ", role="
+                + role + ", policies=" + policies + ", getAdditionalProperties()=" + getAdditionalProperties() + "]";
     }
 
 }

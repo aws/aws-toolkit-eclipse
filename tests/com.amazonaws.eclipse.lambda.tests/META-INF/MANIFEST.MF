@@ -6,5 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Amazon Web Services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ClassPath: .
-Import-Package: org.junit
+Import-Package: com.fasterxml.jackson.core,
+ com.fasterxml.jackson.databind,
+ org.junit
 Require-Bundle: com.amazonaws.eclipse.lambda;bundle-version="1.0.0"

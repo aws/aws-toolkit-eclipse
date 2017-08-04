@@ -29,6 +29,7 @@ import org.eclipse.ui.navigator.CommonActionProvider;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.BrowserUtils;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes.RdsRootElement;
 import com.amazonaws.eclipse.rds.ImportWizard;
 import com.amazonaws.eclipse.rds.RDSDriverDefinitionConstants;
 import com.amazonaws.eclipse.rds.RDSPlugin;
@@ -42,7 +43,7 @@ public class RDSExplorerActionProvider extends CommonActionProvider {
     @Override
     public void fillContextMenu(IMenuManager menu) {
         IStructuredSelection selection = (IStructuredSelection) getContext().getSelection();
-        if (selection.getFirstElement() == RDSExplorerNodes.RDS_ROOT_NODE) {
+        if (selection.getFirstElement() instanceof RdsRootElement) {
             menu.add(new OpenRdsConsoleAction());
         }
     }

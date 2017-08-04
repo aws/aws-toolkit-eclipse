@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -42,6 +41,7 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.overview.HyperlinkHandler;
@@ -50,6 +50,7 @@ import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
 import com.amazonaws.eclipse.elasticbeanstalk.util.ElasticBeanstalkClientExtensions;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentHealthRequest;
 import com.amazonaws.services.elasticbeanstalk.model.DescribeEnvironmentHealthResult;
@@ -101,15 +102,18 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
     public void createSection(Composite parent) {
         super.createSection(parent);
 
-        getManagedForm().getForm().getToolBarManager().add(new Action("Refresh", SWT.None) {
+        getManagedForm().getForm().getToolBarManager().add(new AwsAction(
+                AwsToolkitMetricType.EXPLORER_BEANSTALK_REFRESH_ENVIRONMENT_EDITOR,
+                "Refresh", SWT.None) {
             @Override
             public ImageDescriptor getImageDescriptor() {
                 return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh");
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 refreshEnvironmentDetails();
+                actionFinished();
             }
         });
         getManagedForm().getForm().getToolBarManager().update(true);
@@ -259,7 +263,7 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
 
     /**
      * Italize all text in the StyledText. Should be called after text is set.
-     * 
+     *
      * @param styledText
      */
     private static void italizeStyledText(StyledText styledText) {
@@ -334,7 +338,7 @@ public class EnvironmentOverviewEditorSection extends ServerEditorSection {
 
         /**
          * Convert the list of causes to something that can be displayed in the Text control
-         * 
+         *
          * @param causes
          *            List of causes for non-OK health statuses
          * @return Display string

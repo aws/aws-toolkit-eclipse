@@ -39,11 +39,13 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.wst.server.ui.internal.ImageResource;
 
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.AbstractEnvironmentConfigEditorPart;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.RefreshListener;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
 
 /**
@@ -243,7 +245,9 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
             }
         }
 
-        refreshAction = new Action("Refresh", SWT.None) {
+        refreshAction = new AwsAction(
+                AwsToolkitMetricType.EXPLORER_BEANSTALK_REFRESH_ENVIRONMENT_EDITOR,
+                "Refresh", SWT.None) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -251,8 +255,9 @@ public class BasicEnvironmentConfigEditorPart extends AbstractEnvironmentConfigE
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 refresh(null);
+                actionFinished();
             }
         };
 

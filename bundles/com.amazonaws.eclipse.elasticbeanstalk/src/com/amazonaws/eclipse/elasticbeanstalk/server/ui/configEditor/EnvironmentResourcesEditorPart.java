@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -43,12 +42,14 @@ import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 import org.eclipse.wst.server.ui.internal.ImageResource;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.ec2.ui.views.instances.InstanceSelectionTable;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.sqs.AddMessageAction;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
@@ -115,22 +116,24 @@ public class EnvironmentResourcesEditorPart extends ServerEditorPart {
         instancesEditorSection.init(this.getEditorSite(), this.getEditorInput());
         instancesEditorSection.createSection(composite);
 
-        form.getToolBarManager().add(new RefreshAction());
+        form.getToolBarManager().add(new RefreshAction(AwsToolkitMetricType.EXPLORER_BEANSTALK_REFRESH_ENVIRONMENT_EDITOR));
         form.getToolBarManager().update(true);
 
         new RefreshThread().start();
     }
 
-    private class RefreshAction extends Action {
-        public RefreshAction() {
+    private class RefreshAction extends AwsAction {
+        public RefreshAction(AwsToolkitMetricType metricType) {
+            super(metricType);
             setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_REFRESH));
             setText("Refresh");
             setToolTipText("Refresh");
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             new RefreshThread().start();
+            actionFinished();
         }
     }
 

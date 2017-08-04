@@ -16,6 +16,13 @@ package com.amazonaws.eclipse.core.mobileanalytics;
 
 public final class ToolkitAnalyticsUtils {
 
+    public static void publishBooleansEvent(AwsToolkitMetricType metricType,
+            String name, Boolean value) {
+        MetricsDataModel dataModel = new MetricsDataModel(metricType);
+        dataModel.addBooleanMetric(name, value);
+        dataModel.publishEvent();
+    }
+
     public static void trackSpeedMetrics(
             final ToolkitAnalyticsManager analytics, final String eventType,
             final String metricNameTime, final long time,

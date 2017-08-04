@@ -20,23 +20,25 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.s3.S3ContentProvider;
 import com.amazonaws.eclipse.explorer.s3.util.ObjectUtils;
 import com.amazonaws.services.s3.model.Bucket;
 
-public class DeleteBucketAction extends Action {
+public class DeleteBucketAction extends AwsAction {
 
     private Collection<Bucket> buckets;
 
     public DeleteBucketAction(Collection<Bucket> buckets) {
-        super();
+        super(AwsToolkitMetricType.EXPLORER_S3_DELETE_BUCKET);
         this.buckets = buckets;
     }
 
@@ -58,10 +60,14 @@ public class DeleteBucketAction extends Action {
     }
 
     @Override
-    public void run() {
+    protected void doRun() {
         Dialog dialog = newConfirmationDialog(getText() + "?", "Are you sure you want to delete the selected buckets?");
 
-        if (dialog.open() <= 0) return;
+        if (Window.OK != dialog.open()) {
+            actionCanceled();
+            actionFinished();
+            return;
+        }
 
         new Job("Deleting Buckets") {
             @Override
@@ -80,10 +86,14 @@ public class DeleteBucketAction extends Action {
                         }
                     });
 
+                    actionSucceeded();
                     return Status.OK_STATUS;
                 } catch (Exception e) {
+                    actionFailed();
                     return new Status(IStatus.ERROR, AwsToolkitCore.getDefault().getPluginId(),
                         "Unable to delete buckets: " + e.getMessage(), e);
+                } finally {
+                    actionFinished();
                 }
             }
         }.schedule();

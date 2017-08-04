@@ -38,6 +38,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
 /**
  * Runs at startup to determine if any new AWS Toolkit components have been
@@ -132,7 +134,9 @@ public class Startup implements IStartup {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                     activeWindow.getActivePage().openEditor(input, AwsToolkitCore.OVERVIEW_EDITOR_ID);
+                    AwsAction.publishSucceededAction(AwsToolkitMetricType.OVERVIEW);
                 } catch (PartInitException e) {
+                    AwsAction.publishFailedAction(AwsToolkitMetricType.OVERVIEW);
                     AwsToolkitCore.getDefault().logError("Unable to open the AWS Toolkit Overview view.", e);
                 }
             }

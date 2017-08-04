@@ -60,8 +60,10 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
 import com.amazonaws.eclipse.dynamodb.testtool.TestToolVersion.InstallState;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
 /**
  * A table that displays the set of available DynamoDB Local Test Tool
@@ -327,10 +329,11 @@ public class TestToolVersionTable extends Composite {
      * menu.
      */
     private void createActions() {
-        installAction = new Action() {
+        installAction = new AwsAction(AwsToolkitMetricType.DYNAMODB_INSTALL_TEST_TOOL) {
             @Override
-            public void run() {
+            protected void doRun() {
                 new InstallJob(getSelection()).schedule();
+                actionFinished();
             }
         };
         installAction.setText("Install");
@@ -342,10 +345,11 @@ public class TestToolVersionTable extends Composite {
         );
         installAction.setEnabled(false);
 
-        uninstallAction = new Action() {
+        uninstallAction = new AwsAction(AwsToolkitMetricType.DYNAMODB_UNINSTALL_TEST_TOOL) {
             @Override
-            public void run() {
+            protected void doRun() {
                 new UninstallJob(getSelection()).schedule();
+                actionFinished();
             }
         };
         uninstallAction.setText("Uninstall");

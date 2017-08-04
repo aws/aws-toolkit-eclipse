@@ -17,17 +17,18 @@ package com.amazonaws.eclipse.explorer.s3.actions;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.model.KeyValueSetDataModel;
 import com.amazonaws.eclipse.core.model.KeyValueSetDataModel.Pair;
 import com.amazonaws.eclipse.core.ui.TagsEditingDialog;
 import com.amazonaws.eclipse.core.ui.TagsEditingDialog.TagsEditingDialogBuilder;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.s3.S3Constants;
 import com.amazonaws.eclipse.explorer.s3.S3ObjectSummaryTable;
 import com.amazonaws.services.s3.AmazonS3;
@@ -37,11 +38,12 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
 
-public class EditObjectTagsAction extends Action {
+public class EditObjectTagsAction extends AwsAction {
 
     private final S3ObjectSummaryTable table;
 
     public EditObjectTagsAction(S3ObjectSummaryTable s3ObjectSummaryTable) {
+        super(AwsToolkitMetricType.EXPLORER_S3_EDIT_OBJECT_TAGS);
         this.table = s3ObjectSummaryTable;
         setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_WRENCH));
         setText("Edit Tags");
@@ -53,7 +55,7 @@ public class EditObjectTagsAction extends Action {
     }
 
     @Override
-    public void run() {
+    protected void doRun() {
         final AmazonS3 s3 = table.getS3Client();
         final S3ObjectSummary selectedObject = table.getSelectedObjects().iterator().next();
         List<Tag> tags = s3.getObjectTagging(new GetObjectTaggingRequest(
@@ -75,7 +77,18 @@ public class EditObjectTagsAction extends Action {
                 .build(Display.getDefault().getActiveShell(), dataModel);
 
         if (Window.OK == dialog.open()) {
-            saveTags(s3, selectedObject.getBucketName(), selectedObject.getKey(), dataModel);
+            try {
+                saveTags(s3, selectedObject.getBucketName(), selectedObject.getKey(), dataModel);
+                actionSucceeded();
+            } catch (Exception e) {
+                actionFailed();
+                AwsToolkitCore.getDefault().reportException(e.getMessage(), e);
+            } finally {
+                actionFinished();
+            }
+        } else {
+            actionCanceled();
+            actionFinished();
         }
     }
 

@@ -178,6 +178,8 @@ public class AwsPortalFeedbackFormUtils {
             PrintWriter pw = new PrintWriter(eclipsePlatformEnv);
             pw.print("Eclipse platform version : ");
             pw.println(env.getEclipsePlatformVersion());
+            pw.print("AWS Toolkit version : ");
+            pw.println(env.getAwsToolkitVersion());
 
             pw.print("OS name : ");
             pw.println(env.getOsName());

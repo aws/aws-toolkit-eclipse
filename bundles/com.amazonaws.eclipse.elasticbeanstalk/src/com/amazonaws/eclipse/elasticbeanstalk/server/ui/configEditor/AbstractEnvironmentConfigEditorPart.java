@@ -19,15 +19,14 @@ import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.action.Action;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.forms.ManagedForm;
 import org.eclipse.wst.server.ui.editor.ServerEditorPart;
 
 import com.amazonaws.eclipse.core.ui.CancelableThread;
-
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
 /**
  * Abstract base class for editor editor parts that edit an environment
@@ -44,7 +43,7 @@ public abstract class AbstractEnvironmentConfigEditorPart extends ServerEditorPa
     protected ManagedForm managedForm;
     protected Environment environment;
     protected boolean dirty = false;
-    protected Action refreshAction;
+    protected AwsAction refreshAction;
 
     // Data model and binding context
     protected EnvironmentConfigDataModel model;

@@ -17,10 +17,11 @@ package com.amazonaws.eclipse.lambda.serverless.model.transform;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.amazonaws.eclipse.lambda.serverless.model.AdditionalProperties;
 import com.amazonaws.eclipse.lambda.serverless.model.TypeProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ServerlessModel {
+public class ServerlessModel extends AdditionalProperties {
     private static final String DEFAULT_AWS_TEMPLATE_FORMAT_VERSION = "2010-09-09";
     private static final String DEFAULT_TRANSFORM = "AWS::Serverless-2016-10-31";
 
@@ -29,19 +30,17 @@ public class ServerlessModel {
     private String transform;
     private String description;
 
-    private Map<String, ServerlessFunction> serverlessFunctions;
+    private final Map<String, ServerlessFunction> serverlessFunctions = new HashMap<>();
     // Unrecognized resources
-    private Map<String, TypeProperties> additionalResources;
+    private final Map<String, TypeProperties> additionalResources = new HashMap<>();
 
-    // Unrecognized template properties
-    private Map<String, Object> additionalProperties = new HashMap<>();
-
+    /**
+     * @return non-null
+     */
     public Map<String, ServerlessFunction> getServerlessFunctions() {
-        if (serverlessFunctions == null) {
-            serverlessFunctions = new HashMap<>();
-        }
         return serverlessFunctions;
     }
+
     @JsonProperty("AWSTemplateFormatVersion")
     public String getAWSTemplateFormatVersion() {
         if (awsTemplateFormatVersion == null) {
@@ -49,42 +48,43 @@ public class ServerlessModel {
         }
         return awsTemplateFormatVersion;
     }
+
     @JsonProperty("AWSTemplateFormatVersion")
     public void setAWSTemplateFormatVersion(String awsTemplateFormatVersion) {
         this.awsTemplateFormatVersion = awsTemplateFormatVersion;
     }
+
     public String getTransform() {
         if (transform == null) {
             transform = DEFAULT_TRANSFORM;
         }
         return transform;
     }
+
     public void setTransform(String transform) {
         this.transform = transform;
     }
+
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
-    public void setServerlessFunctions(Map<String, ServerlessFunction> serverlessFunctions) {
-        this.serverlessFunctions = serverlessFunctions;
+
+    public void addServerlessFunction(String key, ServerlessFunction serverlessFunction) {
+        this.serverlessFunctions.put(key, serverlessFunction);
     }
+
+    /**
+     * @return non-null
+     */
     public Map<String, TypeProperties> getAdditionalResources() {
-        if (additionalResources == null) {
-            additionalResources = new HashMap<>();
-        }
         return additionalResources;
     }
-    public void setAdditionalResources(
-            Map<String, TypeProperties> additionalResources) {
-        this.additionalResources = additionalResources;
-    }
-    public Map<String, Object> getAdditionalProperties() {
-        return additionalProperties;
-    }
-    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-        this.additionalProperties = additionalProperties;
+
+    public void addAdditionalResource(String key, TypeProperties additionalResource) {
+        this.additionalResources.put(key, additionalResource);
     }
 }

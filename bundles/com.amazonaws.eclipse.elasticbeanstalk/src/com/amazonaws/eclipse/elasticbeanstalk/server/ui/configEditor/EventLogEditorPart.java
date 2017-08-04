@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -25,7 +24,9 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.wst.server.ui.editor.ServerEditorPart;
 import org.eclipse.wst.server.ui.internal.ImageResource;
 
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
 @SuppressWarnings("restriction")
 public class EventLogEditorPart extends ServerEditorPart {
@@ -54,14 +55,17 @@ public class EventLogEditorPart extends ServerEditorPart {
         eventLog.init(this.getEditorSite(), this.getEditorInput());
         eventLog.createSection(columnComp);
 
-        managedForm.getForm().getToolBarManager().add(new Action("Refresh", SWT.None) {
+        managedForm.getForm().getToolBarManager().add(new AwsAction(
+                AwsToolkitMetricType.EXPLORER_BEANSTALK_REFRESH_ENVIRONMENT_EDITOR,
+                "Refresh", SWT.None) {
             @Override
             public ImageDescriptor getImageDescriptor() {
                 return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh");
             }
             @Override
-            public void run() {
+            protected void doRun() {
                 eventLog.refresh();
+                actionFinished();
             }
         });
         managedForm.getForm().getToolBarManager().update(true);

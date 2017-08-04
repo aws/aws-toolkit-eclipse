@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.codecommit.explorer;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -54,9 +53,11 @@ import com.amazonaws.eclipse.codecommit.CodeCommitAnalytics.EventResult;
 import com.amazonaws.eclipse.codecommit.CodeCommitPlugin;
 import com.amazonaws.eclipse.codecommit.wizard.CloneRepositoryWizard;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.DeleteResourceConfirmationDialog;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
 import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.model.CreateRepositoryRequest;
@@ -94,15 +95,16 @@ public class CodeCommitActionProvider extends CommonActionProvider {
         }
     }
 
-    private static class CreateRepositoryAction extends Action {
+    private static class CreateRepositoryAction extends AwsAction {
         public CreateRepositoryAction() {
+            super(AwsToolkitMetricType.EXPLORER_CODECOMMIT_CREATE_REPO);
             this.setText("Create Repository");
             this.setToolTipText("Create a secure repository to store and share your code.");
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_ADD));
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             NewRepositoryDialog dialog = new NewRepositoryDialog(Display.getDefault().getActiveShell());
             if (Window.OK == dialog.open()) {
                 AWSCodeCommit client = CodeCommitPlugin.getCurrentCodeCommitClient();
@@ -111,15 +113,16 @@ public class CodeCommitActionProvider extends CommonActionProvider {
                         .withRepositoryName(dialog.getRepositoryName())
                         .withRepositoryDescription(dialog.getRepositoryDescription()));
                     ContentProviderRegistry.refreshAllContentProviders();
-                    CodeCommitAnalytics.trackCreateRepository(EventResult.SUCCEEDED);
+                    actionSucceeded();
 
                 } catch (Exception e) {
-                    CodeCommitAnalytics.trackCreateRepository(EventResult.FAILED);
+                    actionFailed();
                     CodeCommitPlugin.getDefault().reportException("Failed to create repository!", e);
                 }
             } else {
-                CodeCommitAnalytics.trackCreateRepository(EventResult.CANCELED);
+                actionCanceled();
             }
+            actionFinished();
         }
 
         private static class NewRepositoryDialog extends TitleAreaDialog {
@@ -217,11 +220,26 @@ public class CodeCommitActionProvider extends CommonActionProvider {
 
     }
 
-    public static class CloneRepositoryAction extends Action {
-        private final RepositoryNameIdPair repository;
+    public static class CloneRepositoryAction extends AwsAction {
+        private final String accountId;
+        private final String regionId;
+        private final String repositoryName;
 
         public CloneRepositoryAction(RepositoryNameIdPair repository) {
-            this.repository = repository;
+            this(null, null, repository.getRepositoryName());
+        }
+
+        public CloneRepositoryAction(RepositoryEditorInput repositoryEditorInput) {
+            this(repositoryEditorInput.getAccountId(),
+                    repositoryEditorInput.getRegionId(),
+                    repositoryEditorInput.getRepository().getRepositoryName());
+        }
+
+        private CloneRepositoryAction(String accountId, String regionId, String repositoryName) {
+            super(AwsToolkitMetricType.EXPLORER_CODECOMMIT_CLONE_REPO);
+            this.accountId = accountId;
+            this.regionId = regionId;
+            this.repositoryName = repositoryName;
 
             this.setText("Clone Repository");
             this.setToolTipText("Create a secure repository to store and share your code.");
@@ -229,25 +247,26 @@ public class CodeCommitActionProvider extends CommonActionProvider {
         }
 
         @Override
-        public void run() {
-            executeCloneAction(null, null, repository.getRepositoryName());
-        }
-
-        public static void executeCloneAction(String accountId, String regionId, String repositoryName) {
+        protected void doRun() {
             try {
                 WizardDialog dialog = new WizardDialog(Display.getDefault().getActiveShell(),
                         new CloneRepositoryWizard(accountId, regionId, repositoryName));
                 dialog.open();
-            } catch (URISyntaxException e) {
+                actionSucceeded();
+            } catch (Exception e) {
                 CodeCommitPlugin.getDefault().reportException(e.getMessage(), e);
+                actionFailed();
+            } finally {
+                actionFinished();
             }
         }
     }
 
-    private static class DeleteRepositoryAction extends Action {
+    private static class DeleteRepositoryAction extends AwsAction {
         private final RepositoryNameIdPair repository;
 
         public DeleteRepositoryAction(RepositoryNameIdPair repository) {
+            super(AwsToolkitMetricType.EXPLORER_CODECOMMIT_DELETE_REPO);
             this.repository = repository;
 
             this.setText("Delete Repository");
@@ -256,10 +275,11 @@ public class CodeCommitActionProvider extends CommonActionProvider {
         }
 
         @Override
-        public void run() {
+        public void doRun() {
             Dialog dialog = new DeleteResourceConfirmationDialog(Display.getDefault().getActiveShell(), repository.getRepositoryName(), "repository");
             if (dialog.open() != Window.OK) {
-                CodeCommitAnalytics.trackDeleteRepository(EventResult.CANCELED);
+                actionCanceled();
+                actionFinished();
                 return;
             }
 
@@ -272,10 +292,12 @@ public class CodeCommitActionProvider extends CommonActionProvider {
 
                     try {
                         codecommit.deleteRepository(new DeleteRepositoryRequest().withRepositoryName(repository.getRepositoryName()));
-                        CodeCommitAnalytics.trackDeleteRepository(EventResult.SUCCEEDED);
+                        actionSucceeded();
                     } catch (Exception e) {
                         status = new Status(IStatus.ERROR, CodeCommitPlugin.getDefault().getPluginId(), e.getMessage(), e);
-                        CodeCommitAnalytics.trackDeleteRepository(EventResult.FAILED);
+                        actionFailed();
+                    } finally {
+                        actionFinished();
                     }
 
                     ContentProviderRegistry.refreshAllContentProviders();
@@ -288,16 +310,17 @@ public class CodeCommitActionProvider extends CommonActionProvider {
         }
     }
 
-    public static class OpenRepositoryEditorAction extends Action {
+    public static class OpenRepositoryEditorAction extends AwsAction {
         private final RepositoryNameIdPair repository;
 
         public OpenRepositoryEditorAction(RepositoryNameIdPair repository) {
+            super(AwsToolkitMetricType.EXPLORER_CODECOMMIT_OPEN_REPO_EDITOR);
             this.repository = repository;
 
             this.setText("Open in CodeCommit Repository Editor");
         }
         @Override
-        public void run() {
+        public void doRun() {
             String endpoint = RegionUtils.getCurrentRegion().getServiceEndpoint(ServiceAbbreviations.CODECOMMIT);
             String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
             String regionId = RegionUtils.getCurrentRegion().getId();
@@ -310,10 +333,12 @@ public class CodeCommitActionProvider extends CommonActionProvider {
                     try {
                         IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                         activeWindow.getActivePage().openEditor(input, RepositoryEditor.ID);
-                        CodeCommitAnalytics.trackOpenRepositoryEditor(EventResult.SUCCEEDED);
+                        actionSucceeded();
                     } catch (PartInitException e) {
-                        CodeCommitAnalytics.trackOpenRepositoryEditor(EventResult.FAILED);
+                        actionFailed();
                         CodeCommitPlugin.getDefault().logError("Unable to open the AWS CodeCommit Repository Editor.", e);
+                    } finally {
+                        actionFinished();
                     }
                 }
             });

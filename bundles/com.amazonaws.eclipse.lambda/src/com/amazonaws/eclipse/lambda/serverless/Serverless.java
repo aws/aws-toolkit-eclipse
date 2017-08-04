@@ -14,15 +14,17 @@
 */
 package com.amazonaws.eclipse.lambda.serverless;
 
+import static com.amazonaws.eclipse.lambda.serverless.model.ResourceType.AWS_SERVERLESS_FUNCTION;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.amazonaws.eclipse.lambda.serverless.model.EventSourceType;
-import com.amazonaws.eclipse.lambda.serverless.model.ResourceType;
 import com.amazonaws.eclipse.lambda.serverless.model.ServerlessTemplate;
 import com.amazonaws.eclipse.lambda.serverless.model.TypeProperties;
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessFunction;
@@ -49,12 +51,15 @@ public class Serverless {
     }
 
     public static ServerlessModel load(String templatePath) throws JsonParseException, JsonMappingException, IOException {
-        File serverlessFile = new File(templatePath);
-        return load(serverlessFile);
+        return load(new File(templatePath));
     }
 
     public static ServerlessModel load(File templateFile) throws JsonParseException, JsonMappingException, IOException {
-        ServerlessTemplate serverlessTemplate = MAPPER.readValue(templateFile, ServerlessTemplate.class);
+        return load(new FileInputStream(templateFile));
+    }
+
+    public static ServerlessModel load(InputStream templateInput) throws JsonParseException, JsonMappingException, IOException {
+        ServerlessTemplate serverlessTemplate = MAPPER.readValue(templateInput, ServerlessTemplate.class);
         return convert(serverlessTemplate);
     }
 
@@ -67,7 +72,7 @@ public class Serverless {
 
     /**
      * Make this raw Serverless model to one that could be recognized by CloudFormation.
-     * 
+     *
      * @param model - The raw Serverless model.
      * @param packagePrefix - The package prefix holding all the Lambda Functions.
      * @param filePath - The zipped jar file path. It should be a s3 path since CloudFormation only support this.
@@ -82,23 +87,25 @@ public class Serverless {
         return model;
     }
 
-    private static ServerlessTemplate convert(ServerlessModel model) {
+    public static ServerlessTemplate convert(ServerlessModel model) {
         ServerlessTemplate template = new ServerlessTemplate();
         template.setAWSTemplateFormatVersion(model.getAWSTemplateFormatVersion());
         template.setDescription(model.getDescription());
         template.setTransform(model.getTransform());
-        template.setAdditionalProperties(model.getAdditionalProperties());
-        Map<String, TypeProperties> resources = new HashMap<>();
-        resources.putAll(model.getAdditionalResources());
+        for (Entry<String, Object> entry : model.getAdditionalProperties().entrySet()) {
+            template.addAdditionalProperty(entry.getKey(), entry.getValue());
+        }
+        for (Entry<String, TypeProperties> entry : model.getAdditionalResources().entrySet()) {
+            template.addResource(entry.getKey(), entry.getValue());
+        }
 
         // Put Serverless resources to the map.
         for (Entry<String, ServerlessFunction> entry : model.getServerlessFunctions().entrySet()) {
             String resourceLogicalId = entry.getKey();
             ServerlessFunction serverlessFunction = entry.getValue();
-            resources.put(resourceLogicalId, serverlessFunction.toTypeProperties());
+            template.addResource(resourceLogicalId, serverlessFunction.toTypeProperties());
         }
-        
-        template.setResources(resources);
+
         return template;
     }
 
@@ -107,9 +114,9 @@ public class Serverless {
         model.setAWSTemplateFormatVersion(template.getAWSTemplateFormatVersion());
         model.setDescription(template.getDescription());
         model.setTransform(template.getTransform());
-        model.setAdditionalProperties(template.getAdditionalProperties());
-
-        if (template.getResources() == null) return model;
+        for (Entry<String, Object> entry : template.getAdditionalProperties().entrySet()) {
+            model.addAdditionalProperty(entry.getKey(), entry.getValue());
+        }
 
         for (Entry<String, TypeProperties> entry : template.getResources().entrySet()) {
             String key = entry.getKey();
@@ -122,47 +129,28 @@ public class Serverless {
 
     /**
      * Convert a general representation of a resource to a modeled resource and put it to ServerlessModel.
-     * 
+     *
      * @param model The Serverless model in which the converted resource will be put.
      * @param resourceLogicalId The logical id for the resource.
      * @param resource The general representation for the resource.
      */
     private static void convertResource(ServerlessModel model, String resourceLogicalId, TypeProperties resource) {
-        ResourceType type = ResourceType.fromValue(resource.getType());
 
-        switch (type) {
-        case AWS_SERVERLESS_FUNCTION:
-            ServerlessFunction function = convertServerlessFunction(resource.getProperties());
-            model.getServerlessFunctions().put(resourceLogicalId, function);
-            break;
-        // Unrecognized resources put to additionalResources
-        default:
-            model.getAdditionalResources().put(resourceLogicalId, resource);
-            break;
+        String type = resource.getType();
+        if (AWS_SERVERLESS_FUNCTION.getType().equals(type)) {
+            ServerlessFunction function = convertServerlessFunction(resource);
+            model.addServerlessFunction(resourceLogicalId, function);
+        } else {
+            // Unrecognized resources put to additionalResources
+            model.addAdditionalResource(resourceLogicalId, resource);
         }
     }
 
-    private static ServerlessFunction convertServerlessFunction(Map<String, Object> resource) {
+    private static ServerlessFunction convertServerlessFunction(TypeProperties tp) {
+        Map<String, Object> resource = tp.getProperties();
         ServerlessFunction function = MAPPER.convertValue(resource, ServerlessFunction.class);
-        Object eventsObject = resource.get("Events");
-        if (eventsObject != null) {
-            Map<String, TypeProperties> events = convert((Map<String, Object>) eventsObject);
-            Map<String, TypeProperties> additionalEvents = new HashMap<>();
-            for (Entry<String, TypeProperties> entry : events.entrySet()) {
-                String eventLogicalId = entry.getKey();
-                TypeProperties event = entry.getValue();
-                EventSourceType eventSourceType = EventSourceType
-                        .fromValue(event.getType());
-                switch (eventSourceType) {
-                // TODO: Treating all the events as additional event for
-                // now. Need to add Api Event handler to better handle this
-                // event.
-                default:
-                    additionalEvents.put(eventLogicalId, event);
-                    break;
-                }
-            }
-            function.setAdditionalEvents(additionalEvents);
+        for (Entry<String, Object> entry : tp.getAdditionalProperties().entrySet()) {
+            function.addAdditionalTopLevelProperty(entry.getKey(), entry.getValue());
         }
         return function;
     }

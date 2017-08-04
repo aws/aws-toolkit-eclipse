@@ -46,7 +46,11 @@ import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
  */
 public class CreateStackWizard extends Wizard {
 
-    CreateStackWizardDataModel dataModel;
+    private CreateStackWizardDataModel dataModel;
+
+    private CreateStackWizardFirstPage firstPage;
+    private CreateStackWizardSecondPage secondPage;
+    private CreateStackWizardThirdPage thirdPage;
 
     public CreateStackWizard() {
         this(null, null, null);
@@ -167,6 +171,10 @@ public class CreateStackWizard extends Wizard {
         return needsSecondPage;
     }
 
+    public boolean needsThirdPage() {
+        return Mode.EstimateCost != dataModel.getMode();
+    }
+
     private CreateStackRequest getCreateStackRequest() {
         CreateStackRequest rq = new CreateStackRequest();
         rq.setDisableRollback(!dataModel.getRollbackOnFailure());
@@ -208,10 +216,17 @@ public class CreateStackWizard extends Wizard {
 
     @Override
     public void addPages() {
-        addPage(new CreateStackWizardFirstPage(this));
-        addPage(new CreateStackWizardSecondPage(this.getDataModel()));
+        if (firstPage == null) {
+            firstPage = new CreateStackWizardFirstPage(this);
+        }
+        if (secondPage == null) {
+            secondPage = new CreateStackWizardSecondPage(this.getDataModel());
+        }
+        addPage(firstPage);
+        addPage(secondPage);
         if (Mode.EstimateCost != dataModel.getMode()) {
-            addPage(new CreateStackWizardThirdPage(this.getDataModel()));
+            thirdPage = new CreateStackWizardThirdPage(this.getDataModel());
+            addPage(thirdPage);
         }
     }
 
@@ -221,16 +236,31 @@ public class CreateStackWizard extends Wizard {
 
     @Override
     public int getPageCount() {
-        return needsSecondPage ? 2 : 1;
+        return (needsSecondPage() ? 2 : 1) + (needsThirdPage() ? 1 : 0);
     }
 
     @Override
     public IWizardPage[] getPages() {
-        if ( needsSecondPage ) {
+        if (needsSecondPage()) {
             return super.getPages();
         } else {
-            return new IWizardPage[] { super.getStartingPage() };
+            List<IWizardPage> wizardPages = new ArrayList<>(super.getPageCount());
+            for (IWizardPage wizardPage : super.getPages()) {
+                if (wizardPage instanceof CreateStackWizardSecondPage) {
+                    continue;
+                }
+                wizardPages.add(wizardPage);
+            }
+            return wizardPages.toArray(new IWizardPage[0]);
         }
+    }
+
+    @Override
+    public IWizardPage getNextPage(IWizardPage currentPage) {
+        if (currentPage == firstPage && needsSecondPage()) {
+            return secondPage;
+        }
+        return thirdPage;
     }
 
     /**
@@ -238,7 +268,7 @@ public class CreateStackWizard extends Wizard {
      */
     @Override
     public boolean canFinish() {
-        if ( needsSecondPage )
+        if (needsSecondPage())
             return super.canFinish();
         else
             return getPages()[0].isPageComplete();

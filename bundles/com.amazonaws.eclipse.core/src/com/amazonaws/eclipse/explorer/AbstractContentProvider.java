@@ -14,6 +14,9 @@
  */
 package com.amazonaws.eclipse.explorer;
 
+import static com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType.EXPLORER_LOADING;
+import static com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsUtils.publishBooleansEvent;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -200,6 +204,10 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
                 backgroundJobFactory.startBackgroundContentUpdateJob(parentElement);
             }
 
+            if (!(parentElement instanceof AWSResourcesRootElement)) {
+                publishBooleansEvent(EXPLORER_LOADING, parentElement.getClass().getSimpleName(), true);
+            }
+
             return cachedResponses.get(parentElement);
         }
 
@@ -212,6 +220,7 @@ public abstract class AbstractContentProvider implements ITreeContentProvider, I
         if (children == null) {
             children = Loading.LOADING;
         }
+
         return children;
     }
 

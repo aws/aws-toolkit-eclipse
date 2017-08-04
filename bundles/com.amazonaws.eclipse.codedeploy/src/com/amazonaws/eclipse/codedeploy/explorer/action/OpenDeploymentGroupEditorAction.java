@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.codedeploy.explorer.action;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -25,10 +24,12 @@ import com.amazonaws.eclipse.codedeploy.CodeDeployPlugin;
 import com.amazonaws.eclipse.codedeploy.explorer.editor.DeploymentGroupEditor;
 import com.amazonaws.eclipse.codedeploy.explorer.editor.DeploymentGroupEditorInput;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
-public class OpenDeploymentGroupEditorAction extends Action {
+public class OpenDeploymentGroupEditorAction extends AwsAction {
 
     private final String applicationName;
     private final String deploymentGroupName;
@@ -36,6 +37,7 @@ public class OpenDeploymentGroupEditorAction extends Action {
 
     public OpenDeploymentGroupEditorAction(String applicationName,
             String deploymentGroupName, Region region) {
+        super(AwsToolkitMetricType.EXPLORER_CODEDEPLOY_OPEN_DEPLOYMENT_GROUP);
         this.applicationName = applicationName;
         this.deploymentGroupName = deploymentGroupName;
         this.region = region;
@@ -44,7 +46,7 @@ public class OpenDeploymentGroupEditorAction extends Action {
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         String endpoint = region.getServiceEndpoint(ServiceAbbreviations.CODE_DEPLOY);
         String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
 
@@ -59,10 +61,13 @@ public class OpenDeploymentGroupEditorAction extends Action {
                             .getActiveWorkbenchWindow();
                     activeWindow.getActivePage().openEditor(input,
                             DeploymentGroupEditor.ID);
-
+                    actionSucceeded();
                 } catch (PartInitException e) {
                     CodeDeployPlugin.getDefault().reportException(
                             "Unable to open the Deployment Group editor", e);
+                    actionFailed();
+                } finally {
+                    actionFinished();
                 }
             }
         });

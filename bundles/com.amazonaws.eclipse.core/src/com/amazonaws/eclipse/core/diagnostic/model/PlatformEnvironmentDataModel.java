@@ -36,6 +36,7 @@ public class PlatformEnvironmentDataModel {
 
     /* Eclipse plugin bundles */
     private String eclipsePlatformVersion;
+    private String awsToolkitVersion;
     private List<Bundle> installedBundles = new LinkedList<>();
 
     public String getOsName() {
@@ -94,6 +95,14 @@ public class PlatformEnvironmentDataModel {
         this.eclipsePlatformVersion = eclipsePlatformVersion;
     }
 
+    public String getAwsToolkitVersion() {
+        return awsToolkitVersion;
+    }
+
+    public void setAwsToolkitVersion(String awsToolkitVersion) {
+        this.awsToolkitVersion = awsToolkitVersion;
+    }
+
     public List<Bundle> getInstalledBundles() {
         return new LinkedList<>(installedBundles);
     }
@@ -112,6 +121,8 @@ public class PlatformEnvironmentDataModel {
 
         pw.print("Eclipse platform version : ");
         pw.println(getEclipsePlatformVersion());
+        pw.print("AWS Toolkit version : ");
+        pw.println(getAwsToolkitVersion());
 
         pw.print("OS name : ");
         pw.println(getOsName());

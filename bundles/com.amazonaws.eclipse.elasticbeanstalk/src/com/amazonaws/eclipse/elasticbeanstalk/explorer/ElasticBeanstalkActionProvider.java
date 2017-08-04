@@ -33,9 +33,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.navigator.CommonActionProvider;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
@@ -83,10 +85,11 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
     }
 
 
-    private static class TerminateEnvironmentsAction extends Action {
+    private static class TerminateEnvironmentsAction extends AwsAction {
         private final List<EnvironmentDescription> environments;
 
         public TerminateEnvironmentsAction(List<EnvironmentDescription> environments) {
+            super(AwsToolkitMetricType.EXPLORER_BEANSTALK_TERMINATE_ENVIRONMENT);
             this.environments = environments;
 
             this.setText("Terminate Environment");
@@ -95,9 +98,13 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             Dialog dialog = newConfirmationDialog("Terminate selected environments?", "Are you sure you want to terminate the selected AWS Elastic Beanstalk environments?");
-            if (dialog.open() != 0) return;
+            if (dialog.open() != 0) {
+                actionCanceled();
+                actionFinished();
+                return;
+            }
 
             Job terminateEnvironmentsJob = new Job("Terminating Environments") {
                 @Override
@@ -120,7 +127,11 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
                         for (Exception error : errors) {
                             ((MultiStatus)status).add(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Unable to terminate environment", error));
                         }
+                        actionFailed();
+                    } else {
+                        actionSucceeded();
                     }
+                    actionFinished();
 
                     ContentProviderRegistry.refreshAllContentProviders();
 
@@ -133,10 +144,11 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
 
     }
 
-    private static class DeleteApplicationAction extends Action {
+    private static class DeleteApplicationAction extends AwsAction {
         private final List<ApplicationDescription> applications;
 
         public DeleteApplicationAction(List<ApplicationDescription> applications) {
+            super(AwsToolkitMetricType.EXPLORER_BEANSTALK_DELETE_APPLICATION);
             this.applications = applications;
 
             this.setText("Delete Application");
@@ -145,9 +157,13 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             Dialog dialog = newConfirmationDialog("Delete selected application?", "Are you sure you want to delete the selected AWS Elastic Beanstalk applications?");
-            if (dialog.open() != 0) return;
+            if (dialog.open() != 0) {
+                actionCanceled();
+                actionFinished();
+                return;
+            }
 
             Job deleteApplicationsJob = new Job("Delete Applications") {
                 @Override
@@ -170,7 +186,11 @@ public class ElasticBeanstalkActionProvider extends CommonActionProvider {
                         for (Exception error : errors) {
                             ((MultiStatus)status).add(new Status(Status.ERROR, ElasticBeanstalkPlugin.PLUGIN_ID, "Unable to delete application", error));
                         }
+                        actionFailed();
+                    } else {
+                        actionSucceeded();
                     }
+                    actionFinished();
 
                     ContentProviderRegistry.refreshAllContentProviders();
 

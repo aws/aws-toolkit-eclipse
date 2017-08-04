@@ -24,7 +24,6 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
@@ -41,12 +40,14 @@ import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.wst.server.ui.internal.ImageResource;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.elasticbeanstalk.ConfigurationOptionConstants;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.ExportConfigurationJob;
 import com.amazonaws.eclipse.elasticbeanstalk.jobs.UpdateEnvironmentConfigurationJob;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.configEditor.basic.AdvancedEnvironmentTypeConfigEditorSection;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.elasticbeanstalk.AWSElasticBeanstalk;
 import com.amazonaws.services.elasticbeanstalk.model.ApplicationDescription;
 import com.amazonaws.services.elasticbeanstalk.model.ConfigurationOptionDescription;
@@ -67,8 +68,8 @@ import com.amazonaws.services.elasticbeanstalk.model.ValidationMessage;
 @SuppressWarnings("restriction")
 public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditorPart implements RefreshListener {
 
-    private Action exportTemplateAction;
-    private Action importTemplateAction;
+    private AwsAction exportTemplateAction;
+    private AwsAction importTemplateAction;
 
     private Composite leftColumnComp;
     private Composite rightColumnComp;
@@ -123,20 +124,25 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
         rightColumnComp.setLayout(layout);
         rightColumnComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL));
 
-        refreshAction = new Action("Refresh", SWT.None) {
+        refreshAction = new AwsAction(
+                AwsToolkitMetricType.EXPLORER_BEANSTALK_REFRESH_ENVIRONMENT_EDITOR,
+                "Refresh", SWT.None) {
             @Override
             public ImageDescriptor getImageDescriptor() {
                 return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("refresh");
             }
             @Override
-            public void run() {
+            protected void doRun() {
                 refresh(null);
+                actionFinished();
             }
         };
 
         managedForm.getForm().getToolBarManager().add(refreshAction);
 
-        exportTemplateAction = new Action("Export current values as template", SWT.None) {
+        exportTemplateAction = new AwsAction(
+                AwsToolkitMetricType.EXPLORER_BEANSTALK_EXPORT_TEMPLATE,
+                "Export current values as template", SWT.None) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -144,12 +150,15 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 exportAsTemplate();
+                actionFinished();
             }
         };
 
-        importTemplateAction = new Action("Import template values into editor", SWT.None) {
+        importTemplateAction = new AwsAction(
+                AwsToolkitMetricType.EXPLORER_BEANSTALK_IMPORT_TEMPLATE,
+                "Import template values into editor", SWT.None) {
 
             @Override
             public ImageDescriptor getImageDescriptor() {
@@ -157,8 +166,9 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             }
 
             @Override
-            public void run() {
+            protected void doRun() {
                 importTemplate();
+                actionFinished();
             }
 
         };

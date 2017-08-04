@@ -14,5 +14,5 @@
 */
 package com.amazonaws.eclipse.lambda.serverless.model;
 
-public abstract class Resource implements TypePropertyable {
+public abstract class Resource extends AdditionalProperties implements TypePropertyable {
 }

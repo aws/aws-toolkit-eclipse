@@ -18,7 +18,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -39,8 +38,10 @@ import org.eclipse.ui.part.EditorPart;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.s3.acls.EditBucketPermissionsDialog;
 import com.amazonaws.eclipse.explorer.s3.acls.EditPermissionsDialog;
 import com.amazonaws.services.s3.AmazonS3;
@@ -104,16 +105,18 @@ public class BucketEditor extends EditorPart {
         form.getToolBarManager().update(true);
     }
 
-    private class RefreshAction extends Action {
+    private class RefreshAction extends AwsAction {
         public RefreshAction() {
+            super(AwsToolkitMetricType.EXPLORER_S3_REFRESH_BUCKET_EDITOR);
             this.setText("Refresh");
             this.setToolTipText("Refresh bucket contents");
             this.setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor(AwsToolkitCore.IMAGE_REFRESH));
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             objectSummaryTable.refresh(null);
+            actionFinished();
         }
     }
 

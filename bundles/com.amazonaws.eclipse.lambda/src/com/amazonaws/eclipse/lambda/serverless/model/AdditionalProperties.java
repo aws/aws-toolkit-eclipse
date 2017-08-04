@@ -1,5 +1,5 @@
 /*
-* Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+* Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License").
 * You may not use this file except in compliance with the License.
@@ -17,31 +17,24 @@ package com.amazonaws.eclipse.lambda.serverless.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 
-public class TypeProperties extends AdditionalProperties {
-    @JsonProperty("Type")
-    private String type;
+public class AdditionalProperties {
 
-    @JsonProperty("Properties")
-    private final Map<String, Object> properties = new HashMap<>();
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
+    private final Map<String, Object> additionalProperties = new HashMap<>();
 
     /**
      * @return non-null
      */
-    public Map<String, Object> getProperties() {
-        return properties;
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
     }
 
-    public void addProperty(String key, Object value) {
-        this.properties.put(key, value);
+    @JsonAnySetter
+    public void addAdditionalProperty(String key, Object value) {
+        this.additionalProperties.put(key, value);
     }
+
 }

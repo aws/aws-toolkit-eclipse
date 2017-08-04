@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.explorer.s3;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -22,19 +21,22 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
-public class OpenBucketEditorAction extends Action {
+public class OpenBucketEditorAction extends AwsAction {
 
     private final String bucketName;
 
     public OpenBucketEditorAction(String bucketName) {
+        super(AwsToolkitMetricType.EXPLORER_S3_OPEN_BUCKET_EDITOR);
         this.bucketName = bucketName;
 
         this.setText("Open in S3 Bucket Editor");
     }
 
     @Override
-    public void run() {
+    protected void doRun() {
         String endpoint = AwsToolkitCore.getClientFactory().getS3BucketEndpoint(bucketName);
         String accountId = AwsToolkitCore.getDefault().getCurrentAccountId();
 
@@ -46,8 +48,12 @@ public class OpenBucketEditorAction extends Action {
                 try {
                     IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                     activeWindow.getActivePage().openEditor(input, "com.amazonaws.eclipse.explorer.s3.bucketEditor");
+                    actionSucceeded();
                 } catch (PartInitException e) {
+                    actionFailed();
                     AwsToolkitCore.getDefault().logError("Unable to open the Amazon S3 bucket editor", e);
+                } finally {
+                    actionFinished();
                 }
             }
         });

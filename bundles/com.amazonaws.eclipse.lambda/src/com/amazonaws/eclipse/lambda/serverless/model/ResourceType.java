@@ -21,7 +21,6 @@ public enum ResourceType {
     AWS_S3_BUCKET("AWS::S3::Bucket"),
     AWS_DYNAMODB_TABLE("AWS::DynamoDB::Table"),
     AWS_SERVERLESS_SIMPLE_TABLE("AWS::Serverless::SimpleTable");
-    //TODO: Ideally, we should add all the resources supported by CloudFormation
 
     private String value;
 
@@ -29,22 +28,12 @@ public enum ResourceType {
         this.value = value;
     }
 
-    public static ResourceType fromValue(String value) {
-        if (value == null || "".equals(value)) {
-            throw new IllegalArgumentException("Value cannot be null or empty!");
-        }
-
-        for (ResourceType enumEntry : ResourceType.values()) {
-            if (enumEntry.toString().equals(value)) {
-                return enumEntry;
-            }
-        }
-
-        throw new IllegalArgumentException("Cannot create enum from " + value + " value!");
+    public String getType() {
+        return this.value;
     }
 
     @Override
     public String toString() {
-        return this.value;
+        return getType();
     }
 }

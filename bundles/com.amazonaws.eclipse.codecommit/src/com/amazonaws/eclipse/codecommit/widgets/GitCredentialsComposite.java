@@ -184,7 +184,7 @@ public class GitCredentialsComposite extends Composite {
                     if (StringUtils.isNullOrEmpty(userName)) {
                         if (!MessageDialog.openConfirm(getShell(), AUTO_CREATE_GIT_CREDENTIALS_TILTE,
                                 String.format("Your profile is using root AWS credentials. AWS CodeCommit requires specific CodeCommit credentials from an IAM user. "
-                                + "The toolkit can create an IAM user with CodeCommit credentials and associate the credentials with the %s Toolit profile.\n\n"
+                                + "The toolkit can create an IAM user with CodeCommit credentials and associate the credentials with the %s Toolkit profile.\n\n"
                                 + "Proceed to try and create an IAM user with credentials and associate with the %s Toolkit profile?", profileName, profileName))) {
                             return;
                         }

@@ -14,7 +14,6 @@
  */
 package com.amazonaws.eclipse.explorer.rds;
 
-import static com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes.RDS_ROOT_NODE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +24,7 @@ import com.amazonaws.eclipse.explorer.AWSResourcesRootElement;
 import com.amazonaws.eclipse.explorer.AbstractContentProvider;
 import com.amazonaws.eclipse.explorer.Loading;
 import com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes.DatabaseNode;
+import com.amazonaws.eclipse.explorer.rds.RDSExplorerNodes.RdsRootElement;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.model.DBInstance;
 
@@ -33,16 +33,16 @@ public class RDSContentProvider extends AbstractContentProvider {
     @Override
     public boolean hasChildren(Object element) {
         return (element instanceof AWSResourcesRootElement ||
-                element == RDS_ROOT_NODE);
+                element instanceof RdsRootElement);
     }
 
     @Override
     public Object[] loadChildren(Object parentElement) {
         if ( parentElement instanceof AWSResourcesRootElement) {
-            return new Object[] { RDS_ROOT_NODE };
+            return new Object[] { RdsRootElement.RDS_ROOT_NODE };
         }
 
-        if ( parentElement == RDS_ROOT_NODE) {
+        if ( parentElement instanceof RdsRootElement) {
             new DataLoaderThread(parentElement) {
                 @Override
                 public Object[] loadData() {

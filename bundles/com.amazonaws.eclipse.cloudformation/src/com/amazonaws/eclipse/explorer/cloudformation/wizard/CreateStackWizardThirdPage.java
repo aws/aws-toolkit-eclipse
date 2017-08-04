@@ -75,4 +75,9 @@ public class CreateStackWizardThirdPage extends WizardPage {
                 .build(parent, dataModel.getTagModel());
     }
 
+    @Override
+    public boolean canFlipToNextPage() {
+        return false;
+    }
+
 }

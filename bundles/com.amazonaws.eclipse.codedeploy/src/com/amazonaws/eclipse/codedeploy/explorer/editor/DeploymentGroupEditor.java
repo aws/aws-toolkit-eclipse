@@ -34,6 +34,8 @@ import org.eclipse.ui.part.EditorPart;
 import com.amazonaws.eclipse.codedeploy.explorer.editor.table.DeploymentsTableView;
 import com.amazonaws.eclipse.codedeploy.explorer.image.CodeDeployExplorerImages;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
 import com.amazonaws.services.codedeploy.model.AutoScalingGroup;
 import com.amazonaws.services.codedeploy.model.DeploymentGroupInfo;
@@ -99,8 +101,9 @@ public class DeploymentGroupEditor extends EditorPart {
         form.getToolBarManager().update(true);
     }
 
-    private class RefreshAction extends Action {
+    private class RefreshAction extends AwsAction {
         public RefreshAction() {
+            super(AwsToolkitMetricType.EXPLORER_CODEDEPLOY_REFRESH_DEPLOYMENT_GROUP_EDITOR);
             this.setText("Refresh");
             this.setToolTipText("Refresh deployment history");
             this.setImageDescriptor(AwsToolkitCore.getDefault()
@@ -109,8 +112,9 @@ public class DeploymentGroupEditor extends EditorPart {
         }
 
         @Override
-        public void run() {
+        protected void doRun() {
             deploymentsTable.refreshAsync();
+            actionFinished();
         }
     }
 

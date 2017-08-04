@@ -17,11 +17,9 @@ package com.amazonaws.eclipse.lambda.serverless.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ServerlessTemplate {
+public class ServerlessTemplate extends AdditionalProperties {
     @JsonProperty("AWSTemplateFormatVersion")
     private String AWSTemplateFormatVersion;
 
@@ -32,51 +30,42 @@ public class ServerlessTemplate {
     private String description;
 
     @JsonProperty("Resources")
-    private Map<String, TypeProperties> resources;
-    
-    private Map<String, Object> additionalProperties = new HashMap<>();
+    private final Map<String, TypeProperties> resources = new HashMap<>();
 
     @JsonProperty("AWSTemplateFormatVersion")
     public String getAWSTemplateFormatVersion() {
         return AWSTemplateFormatVersion;
     }
+
     @JsonProperty("AWSTemplateFormatVersion")
     public void setAWSTemplateFormatVersion(String aWSTemplateFormatVersion) {
         AWSTemplateFormatVersion = aWSTemplateFormatVersion;
     }
+
     public String getTransform() {
         return transform;
     }
+
     public void setTransform(String transform) {
         this.transform = transform;
     }
+
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
+
+    /**
+     * @return non-null
+     */
     public Map<String, TypeProperties> getResources() {
-        if (resources == null) {
-            resources = new HashMap<>();
-        }
         return resources;
     }
-    public void setResources(Map<String, TypeProperties> resources) {
-        this.resources = resources;
-    }
 
-    @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    @JsonAnySetter
-    public void addAdditionalProperty(String key, Object value) {
-        this.additionalProperties.put(key, value);
-    }
-
-    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-        this.additionalProperties = additionalProperties;
+    public void addResource(String key, TypeProperties resource) {
+        this.resources.put(key, resource);
     }
 }

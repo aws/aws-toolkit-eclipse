@@ -14,22 +14,24 @@
  */
 package com.amazonaws.eclipse.dynamodb.editor;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
 
 /**
  * Opens up the custom query editor on a given domain
  */
-public class OpenTableEditorAction extends Action {
+public class OpenTableEditorAction extends AwsAction {
 
     private final String tableName;
 
     public OpenTableEditorAction(final String domainName) {
+        super(AwsToolkitMetricType.EXPLORER_DYNAMODB_OPEN_TABLE_EDITOR);
         this.tableName = domainName;
         setText("Open Query Editor");
         setToolTipText("Opens the query editor to run queries against this domain");
@@ -37,16 +39,17 @@ public class OpenTableEditorAction extends Action {
 
 
     @Override
-    public void run() {
+    protected void doRun() {
         try {
             IWorkbenchPage workbenchPage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
             workbenchPage.openEditor(new TableEditorInput(this.tableName, AwsToolkitCore.getDefault()
                     .getCurrentAccountId()), DynamoDBTableEditor.ID);
+            actionSucceeded();
         } catch ( PartInitException e ) {
+            actionFailed();
             AwsToolkitCore.getDefault().logError(e.getMessage(), e);
+        } finally {
+            actionFinished();
         }
     }
-
-
-
 }
