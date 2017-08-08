@@ -37,7 +37,7 @@ public class ${handlerClassName} implements RequestHandler<S3Event, String> {
             e.printStackTrace();
             context.getLogger().log(String.format(
                 "Error getting object %s from bucket %s. Make sure they exist and"
-                + " your bucket is in the same region as this function.", bucket, key));
+                + " your bucket is in the same region as this function.", key, bucket));
             throw e;
         }
     }
