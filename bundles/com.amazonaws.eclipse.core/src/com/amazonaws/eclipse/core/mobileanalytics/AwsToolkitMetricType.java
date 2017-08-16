@@ -20,6 +20,7 @@ package com.amazonaws.eclipse.core.mobileanalytics;
 public enum AwsToolkitMetricType {
     /* AWS Overview Events */
     OVERVIEW("Overview"),
+    OVERVIEW_OPEN_LINK_ITEM("Overview-OpenLinkItem"),
     /* AWS Explorer Events */
     EXPLORER_LOADING("Explorer-Loading"),
     /* Explorer Dynamodb Actions */
@@ -36,7 +37,7 @@ public enum AwsToolkitMetricType {
     EXPLORER_CODECOMMIT_REFRESH_REPO_EDITOR("Explorer-CodeCommitRefreshRepoEditor"),
     EXPLORER_CODECOMMIT_CREATE_REPO("Explorer-CodeCommitCreateRepo"),
     EXPLORER_CODECOMMIT_CLONE_REPO("Explorer-CodeCommitCloneRepo"),
-    EXPLORER_CODECOMMIT_DELETE_REPO("Explorer_CodeCommitDeleteRepo"),
+    EXPLORER_CODECOMMIT_DELETE_REPO("Explorer-CodeCommitDeleteRepo"),
     EXPLORER_CODECOMMIT_OPEN_REPO_EDITOR("Explorer-CodeCommitOpenRepoEditor"),
     /* Explorer Beanstalk Actions */
     EXPLORER_BEANSTALK_OPEN_ENVIRONMENT_EDITOR("Explorer-BeanstalkOpenEnvironmentEditor"),
@@ -54,9 +55,34 @@ public enum AwsToolkitMetricType {
     EXPLORER_S3_GENERATE_PRESIGNED_URL("Explorer-S3GeneratePresignedUrl"),
     EXPLORER_S3_EDIT_OBJECT_TAGS("Explorer-S3EditObjectTags"),
     EXPLORER_S3_EDIT_OBJECT_PERMISSIONS("Explorer-S3EditObjectPermissions"),
+    /* Explorer EC2 Actions */
+    EXPLORER_EC2_OPEN_VIEW("Explorer-Ec2OpenView"),
+    EXPLORER_EC2_OPEN_AMIS_VIEW("Explorer-Ec2OpenAmisView"),
+    EXPLORER_EC2_OPEN_INSTANCES_VIEW("Explorer-Ec2OpenInstancesView"),
+    EXPLORER_EC2_OPEN_EBS_VIEW("Explorer-Ec2OpenEbsView"),
+    EXPLORER_EC2_OPEN_SECURITY_GROUPS_VIEW("Explorer-Ec2OpenSecurityGroupsView"),
+    EXPLORER_EC2_SELECT_SECURITY_GROUP("Explorer-Ec2SelectSecurityGroup"),
+    EXPLORER_EC2_NEW_SECURITY_GROUP("Explorer-Ec2NewSecurityGroup"),
+    EXPLORER_EC2_DELETE_SECURITY_GROUP("Explorer-Ec2DeleteSecurityGroup"),
+    EXPLORER_EC2_ADD_PERMISSIONS_TO_SECURITY_GROUP("Explorer-Ec2AddPermissionsToSecurityGroup"),
+    EXPLORER_EC2_REMOVE_PERMISSIONS_FROM_SECURITY_GROUP("Explorer-Ec2RemovePermissionsFromSecurityGroup"),
+    EXPLORER_EC2_REFRESH_SECURITY_GROUP("Explorer-Ec2RefreshSecurityGroup"),
+    EXPLORER_EC2_OPEN_SHELL_ACTION("Explorer-Ec2OpenShellAction"),
+    EXPLORER_EC2_OPEN_SHELL_DIALOG_ACTION("Explorer-Ec2OpenShellDialogAction"),
+    EXPLORER_EC2_REBOOT_ACTION("Explorer-Ec2RebootAction"),
+    EXPLORER_EC2_TERMINATE_ACTION("Explorer-Ec2TerminateAction"),
+    EXPLORER_EC2_CREATE_AMI_ACTION("Explorer-Ec2CreateAmiAction"),
+    EXPLORER_EC2_COPY_PUBLIC_DNS_NAME_ACTION("Explorer-Ec2CopyPublicDnsNameAction"),
+    EXPLORER_EC2_ATTACH_NEW_VOLUME_ACTION("Explorer-Ec2AttachNewVolumeAction"),
+    EXPLORER_EC2_START_INSTANCES_ACTION("Explorer-Ec2StartInstancesAction"),
+    EXPLORER_EC2_STOP_INSTANCES_ACTION("Explorer-Ec2StopInstancesAction"),
+    /* Aws level Events */
+    AWS_NEW_JAVA_PROJECT_WIZARD("Aws-NewJavaProjectWizard"),
     /* Dynamodb Events */
     DYNAMODB_INSTALL_TEST_TOOL("Dynamodb-InstallTestTool"),
     DYNAMODB_UNINSTALL_TEST_TOOL("Dynamodb-UninstallTestTool"),
+    /* Ec2 Events */
+    EC2_LAUNCH_INSTANCES("Ec2-LaunchInstances"),
     /* Lambda Events */
     LAMBDA_NEW_LAMBDA_FUNCTION_WIZARD("Lambda-NewLambdaFunctionWizard"),
     LAMBDA_NEW_LAMBDA_PROJECT_WIZARD("Lambda-NewLambdaProjectWizard"),

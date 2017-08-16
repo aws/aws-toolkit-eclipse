@@ -33,6 +33,8 @@ import org.eclipse.ui.actions.WorkspaceModifyOperation;
 public abstract class AbstractAwsProjectWizard extends AbstractAwsWizard implements INewWizard {
     protected IStructuredSelection selection;
     protected IWorkbench workbench;
+    private long actionStartTimeMilli;
+    private long actionEndTimeMilli;
 
     protected AbstractAwsProjectWizard(String windowTitle) {
         super(windowTitle);
@@ -47,6 +49,7 @@ public abstract class AbstractAwsProjectWizard extends AbstractAwsWizard impleme
     @Override
     public final boolean performFinish() {
         beforeExecution();
+        actionStartTimeMilli = System.currentTimeMillis();
 
         IRunnableWithProgress runnable = new IRunnableWithProgress() {
             @Override
@@ -58,6 +61,7 @@ public abstract class AbstractAwsProjectWizard extends AbstractAwsWizard impleme
                     protected void execute(IProgressMonitor monitor) throws CoreException,
                             InvocationTargetException, InterruptedException {
                         IStatus status = doFinish(monitor);
+                        actionEndTimeMilli = System.currentTimeMillis();
                         afterExecution(status);
                         if (status.getSeverity() == IStatus.ERROR) {
                             throw new InvocationTargetException(status.getException(), status.getMessage());
@@ -83,6 +87,10 @@ public abstract class AbstractAwsProjectWizard extends AbstractAwsWizard impleme
         }
 
         return status.isOK();
+    }
+
+    protected long getActionExecutionTimeMillis() {
+        return actionEndTimeMilli - actionStartTimeMilli;
     }
 
     protected abstract AbstractAwsPlugin getPlugin();

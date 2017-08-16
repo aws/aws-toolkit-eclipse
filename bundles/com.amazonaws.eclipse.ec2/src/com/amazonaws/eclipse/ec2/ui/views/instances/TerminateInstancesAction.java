@@ -14,39 +14,44 @@
  */
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
-final class TerminateInstancesAction extends Action {
-    
+final class TerminateInstancesAction extends AwsAction {
+
     private final InstanceSelectionTable instanceSelectionTable;
 
     /**
      * @param instanceSelectionTable
      */
     TerminateInstancesAction(InstanceSelectionTable instanceSelectionTable) {
-        super();
+        super(AwsToolkitMetricType.EXPLORER_EC2_TERMINATE_ACTION);
         this.instanceSelectionTable = instanceSelectionTable;
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
 
         messageBox.setText("Terminate selected instances?");
         messageBox.setMessage("If you continue, you won't be able to access these instances again.");
 
         // Bail out if the user cancels...
-        if (messageBox.open() == SWT.CANCEL) return;
-
-        new TerminateInstancesThread(this.instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
+        if (messageBox.open() == SWT.CANCEL) {
+            actionCanceled();
+        } else {
+            new TerminateInstancesThread(this.instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
+            actionSucceeded();
+        }
+        actionFinished();
     }
-    
+
     @Override
     public ImageDescriptor getImageDescriptor() {
         return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("terminate");

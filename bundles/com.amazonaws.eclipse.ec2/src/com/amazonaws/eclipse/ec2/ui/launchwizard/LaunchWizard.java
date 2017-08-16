@@ -26,9 +26,12 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 import com.amazonaws.eclipse.ec2.Ec2InstanceLauncher;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.ui.views.instances.InstanceView;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
 /**
  * Wizard for launching EC2 instances.
@@ -44,13 +47,24 @@ public class LaunchWizard extends Wizard {
     /** The EC2 AMI being launched by this wizard */
     private Image image;
 
+    /** The source action triggering this Wizard */
+    private final String actionSource;
+
     /**
      * Creates a new launch wizard. Since no AMI has been specified in this
      * constructor form, the wizard will include an extra page at the beginning
      * to allow the user to select an AMI.
      */
     public LaunchWizard() {
-        this(null);
+        this(null, "Default");
+    }
+
+    public LaunchWizard(String actionSource) {
+        this(null, actionSource);
+    }
+
+    public LaunchWizard(Image image) {
+        this(image, "Default");
     }
 
     /**
@@ -59,8 +73,9 @@ public class LaunchWizard extends Wizard {
      * @param image
      *            The AMI this launch wizard will launch.
      */
-    public LaunchWizard(Image image) {
+    public LaunchWizard(Image image, String actionSource) {
         this.image = image;
+        this.actionSource = actionSource;
 
         if (image == null) {
             amiSelectionWizardPage = new AmiSelectionWizardPage();
@@ -117,7 +132,9 @@ public class LaunchWizard extends Wizard {
         try {
             launcher.launch();
             activateInstanceView();
+            publishMetrics(AwsAction.SUCCEEDED);
         } catch (Exception e) {
+            publishMetrics(AwsAction.FAILED);
             String message = "Unable to launch instances: " + e.getMessage();
             Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID, message, e);
             StatusManager.getManager().handle(status, StatusManager.LOG);
@@ -131,6 +148,19 @@ public class LaunchWizard extends Wizard {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean performCancel() {
+        publishMetrics(AwsAction.CANCELED);
+        return super.performCancel();
+    }
+
+    private void publishMetrics(String endResult) {
+        MetricsDataModel metricsDataModel = new MetricsDataModel(AwsToolkitMetricType.EC2_LAUNCH_INSTANCES);
+        metricsDataModel.addAttribute("ActionSource", actionSource);
+        metricsDataModel.addAttribute(AwsAction.END_RESULT, endResult);
+        metricsDataModel.publishEvent();
     }
 
     private void activateInstanceView() {

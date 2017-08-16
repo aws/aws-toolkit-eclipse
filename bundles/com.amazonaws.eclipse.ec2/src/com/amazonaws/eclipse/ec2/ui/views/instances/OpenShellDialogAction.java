@@ -14,12 +14,13 @@
  */
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.services.ec2.model.Instance;
 
 public class OpenShellDialogAction extends OpenShellAction {
     public OpenShellDialogAction(InstanceSelectionTable instanceSelectionTable) {
-        super(instanceSelectionTable);
+        super(AwsToolkitMetricType.EXPLORER_EC2_OPEN_SHELL_DIALOG_ACTION, instanceSelectionTable);
 
         this.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("console"));
         this.setText("Open Shell As...");
@@ -27,12 +28,24 @@ public class OpenShellDialogAction extends OpenShellAction {
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         OpenShellDialog openShellDialog = new OpenShellDialog();
-        if (openShellDialog.open() < 0) return;
+        if (openShellDialog.open() < 0) {
+            actionCanceled();
+            actionFinished();
+            return;
+        }
 
         for (final Instance instance : instanceSelectionTable.getAllSelectedInstances()) {
-            openInstanceShell(instance, openShellDialog.getUserName());
+            try {
+                openInstanceShell(instance, openShellDialog.getUserName());
+                actionSucceeded();
+            } catch (Exception e) {
+                actionFailed();
+                Ec2Plugin.getDefault().reportException("Unable to open a shell to the selected instance: " + e.getMessage(), e);
+            } finally {
+                actionFinished();
+            }
         }
     }
 }

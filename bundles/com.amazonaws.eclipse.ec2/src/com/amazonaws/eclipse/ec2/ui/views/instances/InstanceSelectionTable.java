@@ -43,6 +43,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.InstanceType;
@@ -54,6 +55,7 @@ import com.amazonaws.eclipse.ec2.utils.DynamicMenuAction;
 import com.amazonaws.eclipse.ec2.utils.IMenu;
 import com.amazonaws.eclipse.ec2.utils.MenuAction;
 import com.amazonaws.eclipse.ec2.utils.MenuHandler;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
@@ -246,6 +248,7 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
     @Override
     protected void createColumns() {
         newColumn("Instance ID", 10);
+        newColumn("Instance Name", 10);
         newColumn("Public DNS Name", 15);
         newColumn("Image ID", 10);
         newColumn("Root Device Type", 10);
@@ -325,10 +328,14 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
         openShellDialogAction = new OpenShellDialogAction(this);
         createAmiAction = new CreateAmiAction(this);
 
-        copyPublicDnsNameAction = new Action("Copy Public DNS Name", Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
+        copyPublicDnsNameAction = new AwsAction(
+                AwsToolkitMetricType.EXPLORER_EC2_COPY_PUBLIC_DNS_NAME_ACTION,
+                "Copy Public DNS Name",
+                Ec2Plugin.getDefault().getImageRegistry().getDescriptor("clipboard")) {
             @Override
-            public void run() {
+            public void doRun() {
                 copyPublicDnsNameToClipboard(getSelectedInstance());
+                actionFinished();
             }
             @Override
             public String getToolTipText() {
@@ -336,15 +343,21 @@ public class InstanceSelectionTable extends SelectionTable implements IRefreshab
             }
         };
 
-        attachNewVolumeAction = new Action("Attach New Volume...") {
+        attachNewVolumeAction = new AwsAction(
+                AwsToolkitMetricType.EXPLORER_EC2_ATTACH_NEW_VOLUME_ACTION,
+                "Attach New Volume...") {
             @Override
-            public void run() {
+            public void doRun() {
                 Instance instance = getSelectedInstance();
 
                 CreateNewVolumeDialog dialog = new CreateNewVolumeDialog(Display.getCurrent().getActiveShell(), instance);
-                if (dialog.open() != IDialogConstants.OK_ID) return;
-
-                new AttachNewVolumeThread(instance, dialog.getSize(), dialog.getSnapshotId(), dialog.getDevice()).start();
+                if (dialog.open() != IDialogConstants.OK_ID) {
+                    actionCanceled();
+                } else {
+                    new AttachNewVolumeThread(instance, dialog.getSize(), dialog.getSnapshotId(), dialog.getDevice()).start();
+                    actionSucceeded();
+                }
+                actionFinished();
             }
             @Override
             public String getToolTipText() {

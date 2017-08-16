@@ -26,7 +26,7 @@ import com.amazonaws.eclipse.sdk.ui.wizard.NewAwsJavaProjectWizard;
 public class NewAwsJavaProjectHandler extends AbstractHandler {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        NewAwsJavaProjectWizard newWizard = new NewAwsJavaProjectWizard();
+        NewAwsJavaProjectWizard newWizard = new NewAwsJavaProjectWizard("Menu");
         newWizard.init(PlatformUI.getWorkbench(), null);
         WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), newWizard);
         return dialog.open();

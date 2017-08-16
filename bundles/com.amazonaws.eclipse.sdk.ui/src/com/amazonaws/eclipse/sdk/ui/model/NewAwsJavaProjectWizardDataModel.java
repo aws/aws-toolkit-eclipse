@@ -18,16 +18,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.eclipse.core.AccountInfo;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.core.model.ProjectNameDataModel;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
 
 public class NewAwsJavaProjectWizardDataModel {
-
+    private String actionSource;
     private final ProjectNameDataModel projectNameDataModel = new ProjectNameDataModel();
     private final MavenConfigurationDataModel mavenConfigurationDataModel = new MavenConfigurationDataModel();
     private AccountInfo accountInfo;
     private final List<SdkSample> sdkSamples = new ArrayList<>();
+    private String endResult;
+    private Long actionExecutionTimeMillis;
 
     public AccountInfo getAccountInfo() {
         return accountInfo;
@@ -47,4 +52,40 @@ public class NewAwsJavaProjectWizardDataModel {
         return projectNameDataModel;
     }
 
+    public String getActionSource() {
+        return actionSource;
+    }
+
+    public void setActionSource(String actionSource) {
+        this.actionSource = actionSource;
+    }
+
+    public void actionFailed() {
+        endResult = AwsAction.FAILED;
+    }
+
+    public void actionSucceeded() {
+        endResult = AwsAction.SUCCEEDED;
+    }
+
+    public void actionCanceled() {
+        endResult = AwsAction.CANCELED;
+    }
+
+    public void publishMetrics() {
+        MetricsDataModel metricsDataModel = new MetricsDataModel(AwsToolkitMetricType.AWS_NEW_JAVA_PROJECT_WIZARD);
+        metricsDataModel.addAttribute("ActionSource", actionSource);
+        for (SdkSample sample: sdkSamples) {
+            metricsDataModel.addBooleanMetric(sample.getName(), true);
+        }
+        metricsDataModel.addAttribute(AwsAction.END_RESULT, endResult);
+        if (actionExecutionTimeMillis != null) {
+            metricsDataModel.addMetric("ExecutionTimeMillis", (double) actionExecutionTimeMillis);
+        }
+        metricsDataModel.publishEvent();
+    }
+
+    public void setActionExecutionTimeMillis(Long actionExecutionTimeMillis) {
+        this.actionExecutionTimeMillis = actionExecutionTimeMillis;
+    }
 }

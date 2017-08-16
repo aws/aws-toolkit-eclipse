@@ -15,16 +15,17 @@
 package com.amazonaws.eclipse.explorer;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.resource.ImageDescriptor;
 
 import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 
 public abstract class AwsAction extends Action {
-    private static final String END_RESULT = "EndResult";
-    private static final String PERFORMED = "Performed";
-    private static final String SUCCEEDED = "Succeeded";
-    private static final String FAILED = "Failed";
-    private static final String CANCELED = "Canceled";
+    public static final String END_RESULT = "EndResult";
+    public static final String PERFORMED = "Performed";
+    public static final String SUCCEEDED = "Succeeded";
+    public static final String FAILED = "Failed";
+    public static final String CANCELED = "Canceled";
 
     private final MetricsDataModel metricsDataModel;
 
@@ -32,9 +33,19 @@ public abstract class AwsAction extends Action {
         metricsDataModel = new MetricsDataModel(metricType);
     }
 
+    protected AwsAction(AwsToolkitMetricType metricType, String text) {
+        super(text);
+        this.metricsDataModel = new MetricsDataModel(metricType);
+    }
+
     protected AwsAction(AwsToolkitMetricType metricType, String text, int style) {
         super(text, style);
-        this.metricsDataModel= new MetricsDataModel(metricType);
+        this.metricsDataModel = new MetricsDataModel(metricType);
+    }
+
+    protected AwsAction(AwsToolkitMetricType metricType, String text, ImageDescriptor image) {
+        super(text, image);
+        this.metricsDataModel = new MetricsDataModel(metricType);
     }
 
     private final void actionPerformed() {
@@ -73,5 +84,10 @@ public abstract class AwsAction extends Action {
     // Helper method to publish a succeeded action metric immediately
     public static void publishSucceededAction(AwsToolkitMetricType metricType) {
         new MetricsDataModel(metricType).addAttribute(END_RESULT, SUCCEEDED).publishEvent();
+    }
+
+    // Helper method to publish a performed action metric immediately
+    public static void publishPerformedAction(AwsToolkitMetricType metricType) {
+        new MetricsDataModel(metricType).addAttribute(END_RESULT, PERFORMED).publishEvent();
     }
 }

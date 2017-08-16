@@ -14,25 +14,26 @@
  */
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.eclipse.explorer.AwsAction;
 
-final class RebootInstancesAction extends Action {
+final class RebootInstancesAction extends AwsAction {
 
     private final InstanceSelectionTable instanceSelectionTable;
 
     RebootInstancesAction(InstanceSelectionTable instanceSelectionTable) {
-        super();
+        super(AwsToolkitMetricType.EXPLORER_EC2_REBOOT_ACTION);
         this.instanceSelectionTable = instanceSelectionTable;
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
 
         messageBox.setText("Reboot selected instances?");
@@ -40,9 +41,13 @@ final class RebootInstancesAction extends Action {
                 "until they finish rebooting.");
 
         // Bail out if the user cancels...
-        if (messageBox.open() == SWT.CANCEL) return;
-
-        new RebootInstancesThread(instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
+        if (messageBox.open() == SWT.CANCEL) {
+            actionCanceled();
+        } else {
+            new RebootInstancesThread(instanceSelectionTable, instanceSelectionTable.getAllSelectedInstances()).start();
+            actionSucceeded();
+        }
+        actionFinished();
     }
 
     @Override

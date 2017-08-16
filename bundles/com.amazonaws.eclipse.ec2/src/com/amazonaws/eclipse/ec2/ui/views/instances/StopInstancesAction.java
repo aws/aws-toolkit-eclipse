@@ -19,13 +19,14 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.StopInstancesRequest;
@@ -33,7 +34,7 @@ import com.amazonaws.services.ec2.model.StopInstancesRequest;
 /**
  * Action to stop an EBS-backed instance.
  */
-public class StopInstancesAction extends Action {
+public class StopInstancesAction extends AwsAction {
 
     private final InstanceSelectionTable instanceSelectionTable;
 
@@ -49,6 +50,7 @@ public class StopInstancesAction extends Action {
      *            The volume to attach.
      */
     public StopInstancesAction(InstanceSelectionTable instanceSelectionTable) {
+        super(AwsToolkitMetricType.EXPLORER_EC2_STOP_INSTANCES_ACTION);
         this.instanceSelectionTable = instanceSelectionTable;
     }
 
@@ -73,7 +75,7 @@ public class StopInstancesAction extends Action {
      * @see org.eclipse.jface.action.Action#run()
      */
     @Override
-    public void run() {
+    public void doRun() {
 
         final List<String> instanceIds = new ArrayList<>();
         for ( Instance instance : instanceSelectionTable.getAllSelectedInstances() ) {
@@ -89,10 +91,14 @@ public class StopInstancesAction extends Action {
                     AmazonEC2 ec2 = Ec2Plugin.getDefault().getDefaultEC2Client();
                     ec2.stopInstances(request);
                     instanceSelectionTable.refreshInstances();
+                    actionSucceeded();
                 } catch ( Exception e ) {
+                    actionFailed();
                     Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID, "Unable to stop instances: "
                             + e.getMessage());
                     StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+                } finally {
+                    actionFinished();
                 }
             }
         }.start();

@@ -14,30 +14,33 @@
  */
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.ui.SetupAwsAccountAction;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.ec2.model.Instance;
 
-final class CreateAmiAction extends Action {
+final class CreateAmiAction extends AwsAction {
 
     private final InstanceSelectionTable instanceSelectionTable;
 
     public CreateAmiAction(InstanceSelectionTable instanceSelectionTable) {
+        super(AwsToolkitMetricType.EXPLORER_EC2_CREATE_AMI_ACTION);
         this.instanceSelectionTable = instanceSelectionTable;
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         for ( Instance instance : instanceSelectionTable.getAllSelectedInstances() ) {
             createAmiFromInstance(instance);
+            actionFinished();
         }
     }
 
@@ -79,7 +82,7 @@ final class CreateAmiAction extends Action {
         BundleJob job = new BundleJob(instance, s3Bucket, bundleName);
         job.schedule();
     }
-    
+
     @Override
     public ImageDescriptor getImageDescriptor() {
         return Ec2Plugin.getDefault().getImageRegistry().getDescriptor("bundle");

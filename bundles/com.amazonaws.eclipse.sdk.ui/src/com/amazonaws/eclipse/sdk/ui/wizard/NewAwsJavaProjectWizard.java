@@ -64,6 +64,7 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
     private static final String DEFAULT_ARTIFACT_ID = "samples";
 
     private final NewAwsJavaProjectWizardDataModel dataModel = new NewAwsJavaProjectWizardDataModel();
+    private final String actionSource;
     private NewAwsJavaProjectWizardPageOne pageOne;
     private IProject project;
 
@@ -78,7 +79,12 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
     }
 
     public NewAwsJavaProjectWizard() {
+        this("Default");
+    }
+
+    public NewAwsJavaProjectWizard(String actionSource) {
         super("New AWS Java Project");
+        this.actionSource = actionSource;
         initDataModel();
     }
 
@@ -87,6 +93,7 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
         MavenConfigurationDataModel mavenDataModel = dataModel.getMavenConfigurationDataModel();
         mavenDataModel.setGroupId(DEFAULT_GROUP_ID);
         mavenDataModel.setArtifactId(DEFAULT_ARTIFACT_ID);
+        dataModel.setActionSource(actionSource);
     }
 
     private void addSamplesToProject()
@@ -228,8 +235,27 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
     }
 
     @Override
+    protected void afterExecution(IStatus status) {
+        super.afterExecution(status);
+        if (status.isOK()) {
+            dataModel.actionSucceeded();
+        } else {
+            dataModel.actionFailed();
+        }
+        dataModel.setActionExecutionTimeMillis(Long.valueOf(getActionExecutionTimeMillis()));
+        dataModel.publishMetrics();
+    }
+
+    @Override
     protected String getJobTitle() {
         return "Creating AWS Java Project";
+    }
+
+    @Override
+    public boolean performCancel() {
+        dataModel.actionCanceled();
+        dataModel.publishMetrics();
+        return super.performCancel();
     }
 
     @Override

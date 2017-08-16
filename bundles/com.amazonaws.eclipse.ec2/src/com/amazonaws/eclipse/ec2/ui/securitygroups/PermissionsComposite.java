@@ -33,8 +33,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
@@ -174,22 +176,24 @@ public class PermissionsComposite extends SelectionTable {
                     builder.append(", ");
                 }
 
-                builder.append(s.getUserId() + ":" + s.getGroupName());
+                builder.append(s.getUserId() + ":" + (s.getGroupName() == null ? s.getGroupId() : s.getGroupName()));
             }
             return builder.toString();
         }
 
         private String formatPortRange(IpPermission ipPermission) {
-            int fromPort = ipPermission.getFromPort();
-            int toPort = ipPermission.getToPort();
+            Integer fromPort = ipPermission.getFromPort();
+            Integer toPort = ipPermission.getToPort();
 
-            if (fromPort == toPort) {
+            if (fromPort == null || toPort == null) {
+                return "";
+            } else if (fromPort.intValue() == toPort.intValue()) {
                 return Integer.toString(fromPort);
             } else {
                 return fromPort + " - " + toPort;
             }
         }
-        
+
         @Override
         public Object[] getChildren(Object parentElement) {
             return new Object[0];
@@ -233,9 +237,8 @@ public class PermissionsComposite extends SelectionTable {
                     return;
                 }
 
-                String groupName = selectedSecurityGroup.getGroupName();
-
-                new RefreshPermissionsThread(groupName).start();
+                String groupId = selectedSecurityGroup.getGroupId();
+                new RefreshPermissionsThread(groupId).start();
             }
         });
     }
@@ -297,26 +300,31 @@ public class PermissionsComposite extends SelectionTable {
      */
     @Override
     protected void makeActions() {
-        addPermissionAction = new Action() {
+        addPermissionAction = new AwsAction(AwsToolkitMetricType.EXPLORER_EC2_ADD_PERMISSIONS_TO_SECURITY_GROUP) {
             @Override
-            public void run() {
+            public void doRun() {
                 String securityGroup = securityGroupSelectionComposite.getSelectedSecurityGroup().getGroupName();
 
                 EditSecurityGroupPermissionEntryDialog dialog = new EditSecurityGroupPermissionEntryDialog(Display.getCurrent().getActiveShell(), securityGroup);
-                if (dialog.open() != IDialogConstants.OK_ID) return;
-
-                new AuthorizePermissionsThread(securityGroup, dialog).start();
+                if (dialog.open() != IDialogConstants.OK_ID) {
+                    actionCanceled();
+                } else {
+                    new AuthorizePermissionsThread(securityGroup, dialog).start();
+                    actionSucceeded();
+                }
+                actionFinished();
             }
         };
         addPermissionAction.setText("Add Permissions...");
         addPermissionAction.setToolTipText("Add new permissions to the selected security group");
         addPermissionAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("add"));
 
-        removePermissionAction = new Action() {
+        removePermissionAction = new AwsAction(AwsToolkitMetricType.EXPLORER_EC2_REMOVE_PERMISSIONS_FROM_SECURITY_GROUP) {
             @Override
-            public void run() {
+            public void doRun() {
                 String securityGroup = securityGroupSelectionComposite.getSelectedSecurityGroup().getGroupName();
                 new RevokePermissionsThread(securityGroup, getSelectedIpPermission()).start();
+                actionFinished();
             }
         };
         removePermissionAction.setText("Remove Permissions");
@@ -363,19 +371,19 @@ public class PermissionsComposite extends SelectionTable {
      * EC2 security group.
      */
     private class RefreshPermissionsThread extends Thread {
-        private final String groupName;
+        private final String groupId;
 
         /**
          * Creates a new RefreshPermissionsThread ready to be started to query
          * the permissions in the specified EC2 security group and update the
          * permissions list widget.
          *
-         * @param groupName
+         * @param groupId
          *            The EC2 security group whose permissions are to be
          *            refreshed.
          */
-        public RefreshPermissionsThread(String groupName) {
-            this.groupName = groupName;
+        public RefreshPermissionsThread(String groupId) {
+            this.groupId = groupId;
         }
 
         /* (non-Javadoc)
@@ -385,10 +393,9 @@ public class PermissionsComposite extends SelectionTable {
         public void run() {
             try {
 
-                DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest();
-                request.withGroupNames(groupName);
+                DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest()
+                        .withGroupIds(groupId);
                 DescribeSecurityGroupsResult response = getAwsEc2Client().describeSecurityGroups(request);
-
                 List<SecurityGroup> securityGroups = response.getSecurityGroups();
 
                 if (securityGroups.isEmpty()) return;

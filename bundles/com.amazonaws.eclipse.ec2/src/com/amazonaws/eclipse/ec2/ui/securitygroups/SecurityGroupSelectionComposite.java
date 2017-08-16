@@ -31,8 +31,10 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.ui.SelectionTable;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest;
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest;
@@ -138,33 +140,39 @@ public class SecurityGroupSelectionComposite extends SelectionTable {
      */
     @Override
     protected void makeActions() {
-        createSecurityGroupAction = new Action() {
+        createSecurityGroupAction = new AwsAction(AwsToolkitMetricType.EXPLORER_EC2_NEW_SECURITY_GROUP) {
             @Override
-            public void run() {
+            public void doRun() {
                 final CreateSecurityGroupDialog dialog = new CreateSecurityGroupDialog(Display.getCurrent().getActiveShell());
-                if (dialog.open() != Dialog.OK) return;
-
-                new CreateSecurityGroupThread(dialog.getSecurityGroupName(), dialog.getSecurityGroupDescription()).start();
+                if (dialog.open() != Dialog.OK) {
+                    actionCanceled();
+                } else {
+                    new CreateSecurityGroupThread(dialog.getSecurityGroupName(), dialog.getSecurityGroupDescription()).start();
+                    actionSucceeded();
+                }
+                actionFinished();
             }
         };
         createSecurityGroupAction.setText("New Group...");
         createSecurityGroupAction.setToolTipText("Create a new security group");
         createSecurityGroupAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("add"));
 
-        deleteSecurityGroupAction = new Action() {
+        deleteSecurityGroupAction = new AwsAction(AwsToolkitMetricType.EXPLORER_EC2_DELETE_SECURITY_GROUP) {
             @Override
-            public void run() {
+            public void doRun() {
                 new DeleteSecurityGroupThread(getSelectedSecurityGroup()).start();
+                actionFinished();
             }
         };
         deleteSecurityGroupAction.setText("Delete Group");
         deleteSecurityGroupAction.setToolTipText("Delete security group");
         deleteSecurityGroupAction.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("remove"));
 
-        refreshSecurityGroupsAction = new Action() {
+        refreshSecurityGroupsAction = new AwsAction(AwsToolkitMetricType.EXPLORER_EC2_REFRESH_SECURITY_GROUP) {
             @Override
-            public void run() {
+            public void doRun() {
                 refreshSecurityGroups();
+                actionFinished();
             }
         };
         refreshSecurityGroupsAction.setText("Refresh");

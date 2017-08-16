@@ -31,6 +31,7 @@ import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.TagFormatter;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Tag;
 
 /**
  * Label and content provider for the EC2 Instance table.
@@ -39,16 +40,17 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
         implements ITreeContentProvider, ITableLabelProvider {
 
     static final int INSTANCE_ID_COLUMN = 0;
-    static final int PUBLIC_DNS_COLUMN = 1;
-    static final int IMAGE_ID_COLUMN = 2;
-    static final int ROOT_DEVICE_COLUMN = 3;
-    static final int STATE_COLUMN = 4;
-    static final int INSTANCE_TYPE_COLUMN = 5;
-    static final int AVAILABILITY_ZONE_COLUMN = 6;
-    static final int KEY_NAME_COLUMN = 7;
-    static final int LAUNCH_TIME_COLUMN = 8;
-    static final int SECURITY_GROUPS_COLUMN = 9;
-    static final int TAGS_COLUMN = 10;
+    static final int INSTANCE_NAME_COLUMN = 1;
+    static final int PUBLIC_DNS_COLUMN = 2;
+    static final int IMAGE_ID_COLUMN = 3;
+    static final int ROOT_DEVICE_COLUMN = 4;
+    static final int STATE_COLUMN = 5;
+    static final int INSTANCE_TYPE_COLUMN = 6;
+    static final int AVAILABILITY_ZONE_COLUMN = 7;
+    static final int KEY_NAME_COLUMN = 8;
+    static final int LAUNCH_TIME_COLUMN = 9;
+    static final int SECURITY_GROUPS_COLUMN = 10;
+    static final int TAGS_COLUMN = 11;
 
     private final DateFormat dateFormat;
     private KeyPairManager keyPairManager = new KeyPairManager();
@@ -121,6 +123,8 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
         switch (index) {
         case INSTANCE_ID_COLUMN:
             return instance.getInstanceId();
+        case INSTANCE_NAME_COLUMN:
+            return getInstanceName(instance);
         case PUBLIC_DNS_COLUMN:
             return instance.getPublicDnsName();
         case ROOT_DEVICE_COLUMN:
@@ -146,7 +150,6 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
         default:
             return "???";
         }
-
     }
 
     /* (non-Javadoc)
@@ -248,6 +251,18 @@ class ViewContentAndLabelProvider extends BaseLabelProvider
     @Override
     public boolean hasChildren(Object element) {
         return false;
+    }
+
+    private String getInstanceName(Instance instance) {
+        List<Tag> tags = instance.getTags();
+        if (tags != null && !tags.isEmpty()) {
+            for (Tag tag : tags) {
+                if (tag.getKey().equals("Name")) {
+                    return tag.getValue();
+                }
+            }
+        }
+        return "";
     }
 }
 

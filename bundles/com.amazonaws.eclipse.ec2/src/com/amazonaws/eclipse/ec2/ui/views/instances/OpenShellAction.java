@@ -14,26 +14,29 @@
  */
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.PlatformUtils;
 import com.amazonaws.eclipse.ec2.keypairs.KeyPairManager;
 import com.amazonaws.eclipse.ec2.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.ec2.ui.SetupExternalToolsAction;
+import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.ec2.model.Instance;
 
-class OpenShellAction extends Action {
+class OpenShellAction extends AwsAction {
 
     protected final InstanceSelectionTable instanceSelectionTable;
 
     public OpenShellAction(InstanceSelectionTable instanceSelectionTable) {
+        this(AwsToolkitMetricType.EXPLORER_EC2_OPEN_SHELL_ACTION, instanceSelectionTable);
+    }
+
+    protected OpenShellAction(AwsToolkitMetricType metricType, InstanceSelectionTable instanceSelectionTable) {
+        super(metricType);
         this.instanceSelectionTable = instanceSelectionTable;
 
         this.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("console"));
@@ -42,50 +45,52 @@ class OpenShellAction extends Action {
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         for ( final Instance instance : instanceSelectionTable.getAllSelectedInstances() ) {
-            openInstanceShell(instance);
+            try {
+                openInstanceShell(instance);
+                actionSucceeded();
+            } catch (Exception e) {
+                actionFailed();
+                Ec2Plugin.getDefault().reportException("Unable to open a shell to the selected instance: " + e.getMessage(), e);
+            } finally {
+                actionFinished();
+            }
         }
     }
 
-    protected void openInstanceShell(Instance instance) {
+    protected void openInstanceShell(Instance instance) throws Exception {
         openInstanceShell(instance, null);
     }
 
-    protected void openInstanceShell(Instance instance, String user) {
+    protected void openInstanceShell(Instance instance, String user) throws Exception {
         PlatformUtils platformUtils = new PlatformUtils();
 
-        try {
-            KeyPairManager keyPairManager = new KeyPairManager();
+        KeyPairManager keyPairManager = new KeyPairManager();
 
-            String keyName = instance.getKeyName();
-            String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(AwsToolkitCore.getDefault().getCurrentAccountId(), keyName);
+        String keyName = instance.getKeyName();
+        String keyPairFilePath = keyPairManager.lookupKeyPairPrivateKeyFile(AwsToolkitCore.getDefault().getCurrentAccountId(), keyName);
 
-            if (user == null) {
-                user = Ec2Plugin.getDefault().getPreferenceStore().getString(PreferenceConstants.P_SSH_USER);
-            }
-
-            if ( keyPairFilePath == null ) {
-                throw new Exception("Unable to locate the private key file for the selected key '" + keyName + "'");
-            }
-
-            if ( !platformUtils.isSshClientConfigured() ) {
-                String message = "Your SSH client doesn't appear to be configured correctly yet.  Would you like to configure it now?";
-
-                if ( MessageDialog.openQuestion(Display.getCurrent().getActiveShell(), "SSH Client Configuration",
-                        message) ) {
-                    new SetupExternalToolsAction().run();
-                }
-
-                return;
-            }
-
-            platformUtils.openShellToRemoteHost(user, instance.getPublicDnsName(), keyPairFilePath);
-        } catch ( Exception e ) {
-            Status status = new Status(IStatus.ERROR, Ec2Plugin.PLUGIN_ID,
-                    "Unable to open a shell to the selected instance: " + e.getMessage(), e);
-            StatusManager.getManager().handle(status, StatusManager.SHOW | StatusManager.LOG);
+        if (user == null) {
+            user = Ec2Plugin.getDefault().getPreferenceStore().getString(PreferenceConstants.P_SSH_USER);
         }
+
+        if ( keyPairFilePath == null ) {
+            throw new Exception("Unable to locate the private key file for the selected key '" + keyName + "'");
+        }
+
+        if ( !platformUtils.isSshClientConfigured() ) {
+            String message = "Your SSH client doesn't appear to be configured correctly yet.  Would you like to configure it now?";
+
+            if ( MessageDialog.openQuestion(Display.getCurrent().getActiveShell(), "SSH Client Configuration",
+                    message) ) {
+                new SetupExternalToolsAction().run();
+            }
+
+            return;
+        }
+
+        platformUtils.openShellToRemoteHost(user, instance.getPublicDnsName(), keyPairFilePath);
     }
 
 }

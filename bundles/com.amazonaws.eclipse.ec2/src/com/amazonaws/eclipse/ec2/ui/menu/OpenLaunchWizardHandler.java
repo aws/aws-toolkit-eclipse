@@ -25,7 +25,7 @@ import com.amazonaws.eclipse.ec2.ui.launchwizard.LaunchWizard;
 public class OpenLaunchWizardHandler extends AbstractHandler {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), new LaunchWizard());
+        WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), new LaunchWizard("Menu"));
         return dialog.open();
     }
 }

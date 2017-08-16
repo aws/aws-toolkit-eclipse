@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.AwsUrls;
+import com.amazonaws.eclipse.core.OpenLinkAction;
 import com.amazonaws.eclipse.core.ui.overview.OverviewSection;
 import com.amazonaws.eclipse.sdk.ui.wizard.NewAwsJavaProjectWizard;
 
@@ -45,14 +46,14 @@ public class SdkOverviewSection extends OverviewSection implements OverviewSecti
         Composite resourcesSection = toolkit.newSubSection(parent, "Additional Resources");
         toolkit.newListItem(resourcesSection,
                 "AWS SDK for Java Developer Guide",
-                SDK_FOR_JAVA_DEVELOPER_GUIDE_URL, null);
+                SDK_FOR_JAVA_DEVELOPER_GUIDE_URL, new OpenLinkAction("SdkForJavaDevGuide"));
     }
 
     /** Action to open the New AWS Java Project wizard in a dialog */
     private static final IAction openNewAwsJavaProjectAction = new Action() {
         @Override
         public void run() {
-            NewAwsJavaProjectWizard newWizard = new NewAwsJavaProjectWizard();
+            NewAwsJavaProjectWizard newWizard = new NewAwsJavaProjectWizard("Overview");
             newWizard.init(PlatformUI.getWorkbench(), null);
             WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(), newWizard);
             dialog.open();
