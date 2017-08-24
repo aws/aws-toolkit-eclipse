@@ -52,7 +52,7 @@ public class DeleteObjectAction extends AwsAction {
     }
 
     private Dialog newConfirmationDialog(String title, String message) {
-        return new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"No", "Yes"}, 1);
+        return new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"Yes", "No"}, 1);
     }
 
     @Override
