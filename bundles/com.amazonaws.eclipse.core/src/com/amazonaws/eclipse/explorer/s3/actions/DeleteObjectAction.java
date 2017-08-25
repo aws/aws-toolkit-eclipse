@@ -58,7 +58,7 @@ public class DeleteObjectAction extends AwsAction {
     @Override
     protected void doRun() {
         Dialog dialog = newConfirmationDialog(getText() + "?", "Are you sure you want to delete the selected objects?");
-        if (dialog.open() != Window.OK) {
+        if (dialog.open() != 1) {
             actionCanceled();
             actionFinished();
             return;

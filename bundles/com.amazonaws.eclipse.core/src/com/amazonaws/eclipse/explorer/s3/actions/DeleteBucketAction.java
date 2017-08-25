@@ -63,7 +63,7 @@ public class DeleteBucketAction extends AwsAction {
     protected void doRun() {
         Dialog dialog = newConfirmationDialog(getText() + "?", "Are you sure you want to delete the selected buckets?");
 
-        if (Window.OK != dialog.open()) {
+        if (dialog.open() != 1) {
             actionCanceled();
             actionFinished();
             return;
