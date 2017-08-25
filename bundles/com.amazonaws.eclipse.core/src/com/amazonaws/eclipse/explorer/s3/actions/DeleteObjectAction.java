@@ -52,13 +52,13 @@ public class DeleteObjectAction extends AwsAction {
     }
 
     private Dialog newConfirmationDialog(String title, String message) {
-        return new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"Yes", "No"}, 1);
+        return new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"No", "Yes"}, 1);
     }
 
     @Override
     protected void doRun() {
         Dialog dialog = newConfirmationDialog(getText() + "?", "Are you sure you want to delete the selected objects?");
-        if (dialog.open() != Window.OK) {
+        if (dialog.open() != 1) {
             actionCanceled();
             actionFinished();
             return;
