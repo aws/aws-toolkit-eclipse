@@ -15,6 +15,9 @@
 package com.amazonaws.eclipse.core.diagnostic.ui;
 
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -45,13 +48,14 @@ import org.eclipse.ui.statushandlers.AbstractStatusAreaProvider;
 import org.eclipse.ui.statushandlers.StatusAdapter;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.diagnostic.model.ErrorReportDataModel;
-import com.amazonaws.eclipse.core.diagnostic.utils.AwsPortalFeedbackFormUtils;
+import com.amazonaws.eclipse.core.diagnostic.utils.AwsErrorReportUtils;
 import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
 import com.amazonaws.eclipse.core.diagnostic.utils.PlatformEnvironmentDataCollector;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.ui.EmailLinkListener;
 import com.amazonaws.eclipse.core.ui.overview.Toolkit;
+import com.amazonaws.services.errorreport.model.ErrorDataModel;
+import com.amazonaws.services.errorreport.model.ErrorReportDataModel;
 
 /**
  * A custom AbstractStatusAreaProvider implementation that provides additional
@@ -215,34 +219,30 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
                     @Override
                     protected IStatus run(IProgressMonitor arg0) {
 
-                        final ErrorReportDataModel errorData = new ErrorReportDataModel();
-
-                        // Error data directly available from the error status
-                        errorData.setBug(status.getException());
-                        errorData.setStatusMessage(status.getMessage());
-
-                        // User-input data (email, description)
-                        errorData.setUserEmail(userEmail);
-                        errorData.setUserDescription(userDescription);
-
-                        // System collected data
-                        errorData.setPlatformEnv(PlatformEnvironmentDataCollector.getData());
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+                        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+                        final ErrorReportDataModel errorReportDataModel = new ErrorReportDataModel()
+                                .error(new ErrorDataModel()
+                                        .stackTrace(AwsErrorReportUtils.getStackTraceFromThrowable(status.getException()))
+                                        .errorMessage(status.getMessage()))
+                                .platformData(PlatformEnvironmentDataCollector.getData())
+                                .userEmail(userEmail)
+                                .userDescription(userDescription)
+                                .timeOfError(sdf.format(new Date()));
 
                         try {
-                            AwsPortalFeedbackFormUtils.reportBugToAws(errorData);
+                            AwsErrorReportUtils.reportBugToAws(errorReportDataModel);
                         } catch (Exception error) {
-
                             // Show a message box with mailto: link as fallback
                             Display.getDefault().asyncExec(new Runnable() {
                                 @Override
                                 public void run() {
-                                    showFailureDialog(Display.getDefault().getActiveShell(), errorData);
+                                    showFailureDialog(Display.getDefault().getActiveShell(), errorReportDataModel);
                                 }
                             });
 
                             AwsToolkitCore.getDefault().logInfo(
                                     "Unable to send error report. " + error.getMessage());
-
                             return Status.CANCEL_STATUS;
                         }
 

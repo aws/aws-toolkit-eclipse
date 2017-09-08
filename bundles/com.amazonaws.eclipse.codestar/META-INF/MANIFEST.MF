@@ -36,7 +36,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.m2e.core;bundle-version="1.5.1",
  com.amazonaws.eclipse.codecommit;bundle-version="1.0.0",
  com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.amazonaws.eclipse.codecommit.credentials,
  com.amazonaws.eclipse.codecommit.widgets
 Bundle-ActivationPolicy: lazy

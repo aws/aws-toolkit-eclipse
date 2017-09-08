@@ -7,7 +7,9 @@ Bundle-ClassPath: etc/,
  icons/,
  .,
  lib/aws-java-sdk-mobile-analytics-1.11.21.jar,
- lib/jsoup-1.7.3.jar
+ lib/jsoup-1.7.3.jar,
+ lib/errorreport-1.0.0.jar,
+ lib/aws-java-sdk-opensdk-1.11.130.jar
 Bundle-Activator: com.amazonaws.eclipse.core.AwsToolkitCore
 Bundle-Vendor: Amazon Web Services
 Export-Package: com.amazonaws.eclipse.core,
@@ -67,6 +69,6 @@ Require-Bundle: org.eclipse.swt,
  org.eclipse.equinox.security;bundle-version="1.2.0",
  org.eclipse.core.databinding.property,
  com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.jdt.launching

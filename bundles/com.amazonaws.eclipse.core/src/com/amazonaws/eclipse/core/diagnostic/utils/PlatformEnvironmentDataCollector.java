@@ -15,59 +15,35 @@
 package com.amazonaws.eclipse.core.diagnostic.utils;
 
 import org.eclipse.core.runtime.Platform;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.diagnostic.model.PlatformEnvironmentDataModel;
+import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
+import com.amazonaws.services.errorreport.model.PlatformDataModel;
 
 /**
  * This class collects all the platform runtime environment data upon its
  * initialization.
  */
-public class PlatformEnvironmentDataCollector {
+final public class PlatformEnvironmentDataCollector {
 
-    private static PlatformEnvironmentDataModel data;
+    private static final PlatformDataModel DATA = getPlatformDataModel(Constants.AWS_TOOLKIT_FOR_ECLIPSE_PRODUCT_NAME);
+    private static final PlatformDataModel DATA_TEST = getPlatformDataModel(Constants.AWS_TOOLKIT_FOR_ECLIPSE_PRODUCT_NAME_TEST);
 
-    static {
-        data = collectData();
+    public static PlatformDataModel getData() {
+        return AwsToolkitCore.DEBUG_MODE ? DATA_TEST : DATA;
     }
 
-    public static PlatformEnvironmentDataModel getData() {
-        return data;
+    private static PlatformDataModel getPlatformDataModel(final String productName) {
+        return new PlatformDataModel()
+                .awsProduct(productName)
+                .awsProductVersion(AwsToolkitCore.getDefault().getBundle().getVersion().toString())
+                .language("Java")
+                .languageVersion(System.getProperty("java.version"))
+                .languageVmName(System.getProperty("java.vm.name"))
+                .osArch(System.getProperty("os.arch"))
+                .osName(System.getProperty("os.name"))
+                .osVersion(System.getProperty("os.version"))
+                .platform("Eclipse")
+                .platformVersion(Platform.getBundle("org.eclipse.platform").getVersion().toString());
     }
-
-    private static PlatformEnvironmentDataModel collectData() {
-        PlatformEnvironmentDataModel data = new PlatformEnvironmentDataModel();
-
-        data.setOsName(        System.getProperty("os.name")        );
-        data.setOsVersion(     System.getProperty("os.version")     );
-        data.setOsArch(        System.getProperty("os.arch")        );
-        data.setJavaVmName(    System.getProperty("java.vm.name")   );
-        data.setJavaVmVersion( System.getProperty("java.vm.version"));
-        data.setJavaVersion(   System.getProperty("java.version")   );
-
-        Bundle mainPlatformBundle = Platform.getBundle("org.eclipse.platform");
-
-        if (mainPlatformBundle != null) {
-            Object eclipsePlatformVersion = mainPlatformBundle.getHeaders()
-                    .get("Bundle-Version");
-            if (eclipsePlatformVersion instanceof String) {
-                data.setEclipsePlatformVersion((String)eclipsePlatformVersion);
-            }
-        }
-
-        Bundle awsToolkitCoreBundle = AwsToolkitCore.getDefault().getBundle();
-        data.setAwsToolkitVersion(awsToolkitCoreBundle.getVersion().toString());
-
-        BundleContext ctx = AwsToolkitCore.getDefault().getBundle()
-                .getBundleContext();
-        for (Bundle bundle : ctx.getBundles()) {
-            data.addInstalledBundle(bundle);
-        }
-
-        return data;
-    }
-
-    private PlatformEnvironmentDataCollector() {}
 }

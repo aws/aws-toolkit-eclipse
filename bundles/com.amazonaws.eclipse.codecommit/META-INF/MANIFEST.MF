@@ -20,7 +20,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.databinding;bundle-version="1.4.2",
  org.eclipse.ui.ide;bundle-version="3.10.2",
  com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.core.databinding.beans,
  org.eclipse.core.resources,

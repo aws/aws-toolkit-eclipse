@@ -524,7 +524,7 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
     }
 
     // TODO: any better way to check debug mode?
-    private static final boolean DEBUG_MODE = false;
+    public static final boolean DEBUG_MODE = false;
 
     private ToolkitAnalyticsManager initializeToolkitAnalyticsManager() {
 

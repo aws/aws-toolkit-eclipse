@@ -35,7 +35,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.m2e.maven.runtime;bundle-version="1.5.1",
  org.eclipse.m2e.archetype.common;bundle-version="1.5.1",
  com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.amazonaws.eclipse.lambda.blueprint,
  com.amazonaws.eclipse.lambda.project.template,

@@ -16,6 +16,7 @@ package com.amazonaws.eclipse.core.mobileanalytics.cognito.identity;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
@@ -61,10 +62,10 @@ public class ToolkitCachedCognitoIdentityIdProvider implements AWSCognitoIdentit
         this.identityPoolId = identityPoolId;
         this.prefStore = prefStore;
 
-        AmazonCognitoIdentityClient cognitoIdentityClient = new AmazonCognitoIdentityClient(
-                new AnonymousAWSCredentials());
-        cognitoIdentityClient.configureRegion(Constants.COGNITO_IDENTITY_SERVICE_REGION);
-        this.cognitoIdentityClient = cognitoIdentityClient;
+        this.cognitoIdentityClient = AmazonCognitoIdentityClient.builder()
+                .withRegion(Constants.COGNITO_IDENTITY_SERVICE_REGION)
+                .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+                .build();
     }
 
     @Override

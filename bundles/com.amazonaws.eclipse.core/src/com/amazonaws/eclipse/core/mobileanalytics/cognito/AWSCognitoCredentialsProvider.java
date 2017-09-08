@@ -18,11 +18,13 @@ import java.util.Date;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSSessionCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.eclipse.core.mobileanalytics.cognito.identity.AWSCognitoIdentityIdProvider;
 import com.amazonaws.eclipse.core.mobileanalytics.cognito.identity.ToolkitCachedCognitoIdentityIdProvider;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.AmazonCognitoIdentity;
 import com.amazonaws.services.cognitoidentity.AmazonCognitoIdentityClient;
 import com.amazonaws.services.cognitoidentity.model.GetCredentialsForIdentityRequest;
@@ -52,13 +54,17 @@ public class AWSCognitoCredentialsProvider implements AWSCredentialsProvider {
     private volatile Date sessionCredentialsExpiration;
 
     public AWSCognitoCredentialsProvider(
-            AWSCognitoIdentityIdProvider identityIdProvider) {
+            AWSCognitoIdentityIdProvider identityIdProvider, Regions region) {
         this.identityIdProvider = identityIdProvider;
+        this.cognitoIdentityClient = AmazonCognitoIdentityClient.builder()
+                .withRegion(region)
+                .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+                .build();
+    }
 
-        AmazonCognitoIdentityClient cognitoIdentityClient = new AmazonCognitoIdentityClient(
-                new AnonymousAWSCredentials());
-        cognitoIdentityClient.configureRegion(Constants.COGNITO_IDENTITY_SERVICE_REGION);
-        this.cognitoIdentityClient = cognitoIdentityClient;
+    public AWSCognitoCredentialsProvider(
+            AWSCognitoIdentityIdProvider identityIdProvider) {
+        this(identityIdProvider, Constants.COGNITO_IDENTITY_SERVICE_REGION);
     }
 
     /**

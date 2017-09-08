@@ -17,6 +17,12 @@ package com.amazonaws.eclipse.core.mobileanalytics.internal;
 import com.amazonaws.regions.Regions;
 
 public class Constants {
+    /**
+     * API Gateway endpoint for ErrorReport service.
+     */
+    public static final String ERROR_REPORT_SERVICE_ENDPOINT = "https://hshkx4p74l.execute-api.us-east-1.amazonaws.com/";
+    public static final String AWS_TOOLKIT_FOR_ECLIPSE_PRODUCT_NAME = "aws-toolkit-for-eclipse";
+    public static final String AWS_TOOLKIT_FOR_ECLIPSE_PRODUCT_NAME_TEST = "aws-toolkit-for-eclipse-test";
 
     /*
      * Prod setup

@@ -35,7 +35,7 @@ Require-Bundle: org.eclipse.ui,
  com.jcraft.jsch;bundle-version="0.1.41",
  org.eclipse.ui.ide,
  com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.jdt.core,
  org.eclipse.jdt.launching
