@@ -3,8 +3,8 @@
   "* **Support Lambda function versioning and alias**",
   "",
   "  * Upload Lambda function to AWS with alias and S3 Server-Side-Encryption.",
-  "![LambdaVersioningEncryption-upload](https://s3.amazonaws.com/aws-eclipse-toolkit/eclipse/release/LambdaVersioningEncryption-upload.gif)
-  ",
+  "![LambdaVersioningEncryption-upload](https://s3.amazonaws.com/aws-eclipse-toolkit/eclipse/release/LambdaVersioningEncryption-upload.gif)",
+  "",
   "  * Check the result in AWS Lambda and Amazon S3 in AWS console.",
   "![LambdaVersioningEncryption-result](https://s3.amazonaws.com/aws-eclipse-toolkit/eclipse/release/LambdaVersioningEncryption-result.gif)",
   "",
