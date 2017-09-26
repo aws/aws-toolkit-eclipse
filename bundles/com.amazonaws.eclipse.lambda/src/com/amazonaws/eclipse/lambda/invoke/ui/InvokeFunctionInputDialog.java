@@ -16,16 +16,18 @@ package com.amazonaws.eclipse.lambda.invoke.ui;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo;
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newFillingLabel;
+import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newRadioButton;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -47,6 +49,8 @@ import org.eclipse.swt.widgets.Text;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
+import com.amazonaws.eclipse.lambda.ui.LambdaJavaProjectUtil;
+import com.amazonaws.eclipse.lambda.upload.wizard.util.UploadFunctionUtil;
 
 public class InvokeFunctionInputDialog extends Dialog {
 
@@ -56,21 +60,25 @@ public class InvokeFunctionInputDialog extends Dialog {
     private static final int PREFERRED_HEIGHT = 400;
 
     private final IProject project;
+    private final IJavaElement selectedJavaElement;
     private final LambdaFunctionProjectMetadata md;
 
+    private Combo lambdaHandlerCombo;
+    private Button jsonInputFileButton;
     private Combo jsonInputFileCombo;
     private String suggestedInputBoxContent;
+    private Button jsonInputButton;
     private Text inputBox;
     private Button showLiveLogButton;
 
     private static final String LOADING = "Loading...";
     private static final String NONE_FOUND = "None found";
 
-    public InvokeFunctionInputDialog(Shell parentShell, IProject project, LambdaFunctionProjectMetadata md) {
+    public InvokeFunctionInputDialog(Shell parentShell, IJavaElement selectedJavaElement, LambdaFunctionProjectMetadata md) {
         super(parentShell);
-        this.project = project;
+        this.project = selectedJavaElement.getJavaProject().getProject();
+        this.selectedJavaElement = selectedJavaElement;
         this.md = md;
-        this.md.setLastInvokeHandler(md.getLastDeploymentHandler());
     }
 
     public boolean isInputBoxContentModified() {
@@ -80,48 +88,77 @@ public class InvokeFunctionInputDialog extends Dialog {
     @Override
     protected Control createDialogArea(Composite parent) {
       Composite container = (Composite) super.createDialogArea(parent);
-      container.setLayout(new GridLayout(2, false));
 
-      newFillingLabel(container, "Select one of the JSON files as input: ", 1);
-      jsonInputFileCombo = newCombo(container, 1);
-      jsonInputFileCombo.addSelectionListener(new SelectionAdapter() {
-          @Override
-          public void widgetSelected(SelectionEvent e) {
-              LambdaAnalytics.trackInputJsonFileSelectionChange();
-              onJsonFileSelectionChange();
-          }
-      });
-
-      newFillingLabel(container, "Or enter the JSON input for your function", 2);
-
-      inputBox = new Text(container, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-      GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-      gridData.horizontalSpan = 2;
-      inputBox.setLayoutData(gridData);
-
-      inputBox.addModifyListener(new ModifyListener() {
-          @Override
-        public void modifyText(ModifyEvent e) {
-              md.setLastInvokeInput(inputBox.getText());
-          }
-      });
-      if (md.getLastInvokeInput() != null) {
-          inputBox.setText(md.getLastInvokeInput());
-      }
-
-      showLiveLogButton = new Button(container, SWT.CHECK);
-      showLiveLogButton.setText("Show live log");
-      showLiveLogButton.addSelectionListener(new SelectionAdapter() {
-          @Override
-          public void widgetSelected(SelectionEvent event) {
-              md.setLastInvokeShowLiveLog(showLiveLogButton.getSelection());
-          }
-      });
-      showLiveLogButton.setSelection(md.getLastInvokeShowLiveLog());
-
-      loadJsonFilesAsync(md.getLastInvokeInput() == null);
+      initUI(container);
+      initDefaultValue();
 
       return container;
+    }
+
+    @Override
+    protected boolean isResizable() {
+        return true;
+    }
+
+    private void initUI(Composite container) {
+        container.setLayout(new GridLayout(2, true));
+
+        newFillingLabel(container, "Select one of the Lambda Handlers to invoke:", 1);
+        lambdaHandlerCombo = newCombo(container, 1);
+        lambdaHandlerCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onLambdaHandlerComboSelected();
+            }
+        });
+
+        jsonInputFileButton = newRadioButton(container, "Select one of the JSON files as input: ", 1, false, new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onJsonInputFileButtonSelected();
+            }
+        });
+        jsonInputFileCombo = newCombo(container, 1);
+        jsonInputFileCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                LambdaAnalytics.trackInputJsonFileSelectionChange();
+                onJsonFileSelectionChange();
+            }
+        });
+
+        jsonInputButton = newRadioButton(container, "Enter the JSON input for your function", 2, false, new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onJsonInputButtonSelected();
+            }
+        });
+
+        inputBox = new Text(container, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+        GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gridData.horizontalSpan = 2;
+        inputBox.setLayoutData(gridData);
+
+        inputBox.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                md.setLastInvokeInput(inputBox.getText());
+            }
+        });
+
+        showLiveLogButton = new Button(container, SWT.CHECK);
+        showLiveLogButton.setText("Show live log");
+        showLiveLogButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                md.setLastInvokeShowLiveLog(showLiveLogButton.getSelection());
+            }
+        });
+    }
+
+    private void initDefaultValue() {
+        loadLambdaHandlerAsync();
+        loadJsonFilesAsync();
     }
 
     @Override
@@ -132,54 +169,99 @@ public class InvokeFunctionInputDialog extends Dialog {
     }
 
     @Override
-    protected void configureShell(Shell newShell) {
-      super.configureShell(newShell);
-      newShell.setText(md.getLastDeploymentFunctionName() + " Lambda Function Input");
-    }
-
-    @Override
     protected Point getInitialSize() {
       return new Point(PREFERRED_WIDTH, PREFERRED_HEIGHT);
     }
 
-    private void loadJsonFilesAsync(final boolean showJsonFile) {
-        Display.getDefault().syncExec(new Runnable() {
+    private void loadLambdaHandlerAsync() {
+         Display.getDefault().syncExec(() -> {
+             lambdaHandlerCombo.setItems(new String[] {LOADING});
+             lambdaHandlerCombo.select(0);
+             lambdaHandlerCombo.setEnabled(false);
+         });
 
-            @Override
-            public void run() {
-                jsonInputFileCombo.setItems(new String[] {LOADING});
-                jsonInputFileCombo.select(0);
-                jsonInputFileCombo.setEnabled(false);
-            }
+         Display.getDefault().asyncExec(() -> {
+             Set<String> handlerClasses = UploadFunctionUtil.findValidHandlerClass(project);
+
+             if (handlerClasses == null || handlerClasses.isEmpty()) {
+                 lambdaHandlerCombo.setItems(new String[] {NONE_FOUND});
+                 lambdaHandlerCombo.select(0);
+                 disableAllTheWidegets();
+             } else {
+                 lambdaHandlerCombo.removeAll();
+                 for (String handlerClass : handlerClasses) {
+                     lambdaHandlerCombo.add(handlerClass);
+                 }
+
+                 // The current selected element has the highest priority for this invoke.
+                 String defaultHandler = LambdaJavaProjectUtil.figureOutDefaultLambdaHandler(selectedJavaElement, handlerClasses);
+
+                 // If the current selected element is not a valid handler, then we choose the last deployed handler.
+                 if (defaultHandler == null || !handlerClasses.contains(defaultHandler)) {
+                     defaultHandler = md.getLastDeploymentHandler();
+                 }
+
+                 // If the last deployed handler is not valid, we choose the last invoked handler.
+                 if (defaultHandler == null) {
+                     defaultHandler = md.getLastInvokeHandler();
+                 }
+
+                 // If the last deployed handler is not valid, we choose a random handler from the valid handler set.
+                 if (defaultHandler == null || !handlerClasses.contains(defaultHandler)) {
+                     defaultHandler = handlerClasses.iterator().next();
+                 }
+                 lambdaHandlerCombo.select(lambdaHandlerCombo.indexOf(defaultHandler));
+                 onLambdaHandlerComboSelected();
+                 lambdaHandlerCombo.setEnabled(true);
+             }
+         });
+    }
+
+    private void disableAllTheWidegets() {
+        lambdaHandlerCombo.setEnabled(false);
+        jsonInputFileButton.setEnabled(false);
+        jsonInputButton.setEnabled(false);
+        jsonInputFileCombo.setEnabled(false);
+        inputBox.setEnabled(false);
+        showLiveLogButton.setEnabled(false);
+    }
+
+    private void loadJsonFilesAsync() {
+        Display.getDefault().syncExec(() -> {
+            jsonInputFileCombo.setItems(new String[] {LOADING});
+            jsonInputFileCombo.select(0);
+            jsonInputFileCombo.setEnabled(false);
         });
 
-        Display.getDefault().asyncExec(new Runnable() {
+        Display.getDefault().asyncExec(() -> {
+            List<IFile> jsonFiles = null;
 
-            @Override
-            public void run() {
-                List<IFile> jsonFiles = null;
-                try {
-                    jsonFiles = findJsonFiles(project);
-                } catch (CoreException e) {
-                    LambdaPlugin.getDefault().logWarning(
-                            "Failed to search for .json files in the project", e);
+            try {
+                jsonFiles = findJsonFiles(project);
+            } catch (CoreException e) {
+                LambdaPlugin.getDefault().logWarning(
+                        "Failed to search for .json files in the project", e);
+            }
+
+            if (jsonFiles == null || jsonFiles.isEmpty()) {
+                jsonInputFileCombo.setItems(new String[] {NONE_FOUND});
+                jsonInputFileCombo.select(0);
+                jsonInputFileCombo.setEnabled(false);
+                jsonInputFileButton.setEnabled(false);
+                jsonInputButton.setEnabled(true);
+                jsonInputButton.setSelection(true);
+            } else {
+                jsonInputFileCombo.removeAll();
+                for (IFile jsonFile : jsonFiles) {
+                    jsonInputFileCombo.add(jsonFile.getFullPath().toOSString());
+                    jsonInputFileCombo.setData(jsonFile.getFullPath().toOSString(), jsonFile);
                 }
-
-                if (jsonFiles == null || jsonFiles.isEmpty()) {
-                    jsonInputFileCombo.setItems(new String[] {NONE_FOUND});
-                    jsonInputFileCombo.select(0);
-                    jsonInputFileCombo.setEnabled(false);
-
-                } else {
-                    jsonInputFileCombo.removeAll();
-                    for (IFile jsonFile : jsonFiles) {
-                        jsonInputFileCombo.add(jsonFile.getFullPath().toOSString());
-                        jsonInputFileCombo.setData(jsonFile.getFullPath().toOSString(), jsonFile);
-                    }
-                    jsonInputFileCombo.select(0);
-                    jsonInputFileCombo.setEnabled(true);
-                    if (showJsonFile) onJsonFileSelectionChange();
+                int index = jsonInputFileCombo.indexOf(md.getLastInvokeJsonFile());
+                if (index < 0) {
+                    index = 0;
                 }
+                jsonInputFileCombo.select(index);
+                onJsonFileSelectionChange();
             }
         });
     }
@@ -187,22 +269,68 @@ public class InvokeFunctionInputDialog extends Dialog {
     private List<IFile> findJsonFiles(IProject project) throws CoreException {
         final List<IFile> jsonFiles = new LinkedList<>();
 
-        project.accept(new IResourceVisitor() {
-            @Override
-            public boolean visit(IResource res) throws CoreException {
-                if (res instanceof IFile) {
-                    IFile file = (IFile)res;
-                    if (file.getName().endsWith(".json")) {
+        project.accept((res) -> {
+            if (res instanceof IFile) {
+                IFile file = (IFile) res;
+                IPath fullPath = file.getFullPath();
+                if (file.getName().endsWith(".json")) {
+                    // Skip hidden folder or files
+                    int i = 0;
+                    while (i < fullPath.segmentCount()) {
+                        if (fullPath.segment(i).startsWith(".")) {
+                            break;
+                        }
+                        ++i;
+                    }
+                    if (i == fullPath.segmentCount()) {
                         jsonFiles.add(file);
                     }
                 }
-                return true;
             }
+            return true;
         });
         return jsonFiles;
     }
 
+    private void onLambdaHandlerComboSelected() {
+        String handlerClass = lambdaHandlerCombo.getItem(lambdaHandlerCombo.getSelectionIndex());
+        md.setLastInvokeHandler(handlerClass);
+        jsonInputFileButton.setSelection(md.getLastInvokeSelectJsonFile());
+        int index = jsonInputFileCombo.indexOf(md.getLastInvokeJsonFile());
+        if (index < 0) {
+            index = 0;
+        }
+        jsonInputFileCombo.select(index);
+        onJsonInputFileButtonSelected();
+        jsonInputButton.setSelection(md.getLastInvokeSelectJsonInput());
+        onJsonInputButtonSelected();
+        showLiveLogButton.setSelection(md.getLastInvokeShowLiveLog());
+    }
+
+    private void onJsonInputFileButtonSelected() {
+        jsonInputFileCombo.setEnabled(jsonInputFileButton.getSelection());
+        inputBox.setEditable(!jsonInputFileButton.getSelection());
+        md.setLastInvokeSelectJsonFile(jsonInputFileButton.getSelection());
+        md.setLastInvokeSelectJsonInput(!jsonInputFileButton.getSelection());
+        if (jsonInputFileButton.getSelection()) {
+            onJsonFileSelectionChange();
+        }
+    }
+
+    private void onJsonInputButtonSelected() {
+        jsonInputFileCombo.setEnabled(!jsonInputButton.getSelection());
+        inputBox.setEditable(jsonInputButton.getSelection());
+        md.setLastInvokeSelectJsonFile(jsonInputButton.getSelection());
+        md.setLastInvokeSelectJsonInput(!jsonInputButton.getSelection());
+        if (jsonInputButton.getSelection()) {
+            inputBox.setText(md.getLastInvokeInput());
+        }
+     }
+
     private void onJsonFileSelectionChange() {
+        if (jsonInputFileButton.getSelection() == false) {
+            return;
+        }
         IFile file = (IFile) jsonInputFileCombo.getData(jsonInputFileCombo.getText());
         if (file == null) {
             return;
@@ -211,10 +339,10 @@ public class InvokeFunctionInputDialog extends Dialog {
             String fileContent = IOUtils.toString(file.getContents());
             inputBox.setText(fileContent);
             suggestedInputBoxContent = fileContent;
+            md.setLastInvokeJsonFile(jsonInputFileCombo.getText());
             md.setLastInvokeInput(fileContent);
         } catch (Exception ignored) {
             return;
         }
     }
-
 }

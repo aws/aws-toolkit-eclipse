@@ -22,6 +22,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
@@ -38,11 +39,13 @@ import com.amazonaws.eclipse.lambda.upload.wizard.util.UploadFunctionUtil;
 public class UploadFunctionWizard extends AbstractAwsJobWizard {
 
     private final IProject project;
+    private final IJavaElement selectedJavaElement;
     private UploadFunctionWizardDataModel dataModel;
 
-    public UploadFunctionWizard(IProject project) {
+    public UploadFunctionWizard(IJavaElement selectedJavaElement) {
         super("Upload Function to AWS Lambda");
-        this.project = project;
+        this.project = selectedJavaElement.getJavaProject().getProject();
+        this.selectedJavaElement = selectedJavaElement;
         initDataModel();
     }
 
@@ -86,13 +89,16 @@ public class UploadFunctionWizard extends AbstractAwsJobWizard {
                           + "] since the content is invalid.");
         }
 
-        dataModel = new UploadFunctionWizardDataModel(project,
-                handlerClasses, md);
+        dataModel = new UploadFunctionWizardDataModel(project, selectedJavaElement, handlerClasses, md);
+
+        if (md != null && md.getLastDeploymentHandler() != null) {
+            dataModel.setHandler(md.getLastDeploymentHandler());
+        }
     }
 
     @Override
     protected IStatus doFinish(IProgressMonitor monitor) {
-        LambdaAnalytics.trackMetrics(dataModel.isCreatingNewFunction(),
+        LambdaAnalytics.trackMetrics(dataModel.getFunctionDataModel().isCreateNewResource(),
                 dataModel.getRequestHandlerImplementerClasses().size());
 
         monitor.beginTask("Uploading AWS Lambda Function Project [" +
@@ -123,5 +129,4 @@ public class UploadFunctionWizard extends AbstractAwsJobWizard {
     protected String getJobTitle() {
         return "Uploading function code to Lambda";
     }
-
 }

@@ -19,22 +19,23 @@ import java.util.Arrays;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.swt.widgets.Composite;
 
-import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
 import com.amazonaws.eclipse.core.ui.SelectOrInputComposite;
-import com.amazonaws.eclipse.lambda.model.SelectOrInputStackDataModel;
-import com.amazonaws.eclipse.lambda.project.wizard.page.validator.StackNameValidator;
-import com.amazonaws.services.cloudformation.model.StackSummary;
+import com.amazonaws.eclipse.databinding.NotEmptyValidator;
+import com.amazonaws.eclipse.lambda.model.LambdaFunctionAliasesScopeParam;
+import com.amazonaws.eclipse.lambda.model.SelectOrInputFunctionAliasDataModel;
+import com.amazonaws.services.lambda.model.AliasConfiguration;
 
-public class SelectOrInputStackComposite extends SelectOrInputComposite<StackSummary, SelectOrInputStackDataModel, AwsResourceScopeParamBase> {
+public class SelectOrInputFunctionAliasComposite
+        extends SelectOrInputComposite<AliasConfiguration, SelectOrInputFunctionAliasDataModel, LambdaFunctionAliasesScopeParam> {
 
-    public SelectOrInputStackComposite(
+    public SelectOrInputFunctionAliasComposite(
             Composite parent,
             DataBindingContext bindingContext,
-            SelectOrInputStackDataModel dataModel) {
+            SelectOrInputFunctionAliasDataModel dataModel) {
 
         super(parent, bindingContext, dataModel,
-                "Choose an existing Stack:",
-                "Create a new Stack:",
-                Arrays.asList(new StackNameValidator()));
+                "Choose an existing function alias:",
+                "Create a new function alias:",
+                Arrays.asList(new NotEmptyValidator("Alias name must not be empty")));
     }
 }

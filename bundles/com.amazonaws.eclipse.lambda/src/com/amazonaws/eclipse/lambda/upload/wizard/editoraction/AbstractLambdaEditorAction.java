@@ -14,9 +14,9 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard.editoraction;
 
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.internal.ui.javaeditor.EditorUtility;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IObjectActionDelegate;
@@ -25,7 +25,7 @@ import org.eclipse.ui.IWorkbenchPart;
 @SuppressWarnings("restriction")
 public abstract class AbstractLambdaEditorAction implements IObjectActionDelegate {
 
-    protected IJavaProject javaProject;
+    protected IJavaElement selectedJavaElement;
 
     @Override
     public void selectionChanged(IAction action, ISelection selection) {
@@ -37,6 +37,6 @@ public abstract class AbstractLambdaEditorAction implements IObjectActionDelegat
             return;
         }
         JavaEditor javaEditor = (JavaEditor)targetPart;
-        javaProject = EditorUtility.getJavaProject(javaEditor.getEditorInput());
+        selectedJavaElement = JavaUI.getEditorInputJavaElement(javaEditor.getEditorInput());
     }
 }

@@ -27,10 +27,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -38,7 +36,6 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
@@ -46,7 +43,11 @@ import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.invoke.logs.CloudWatchLogsUtils;
 import com.amazonaws.eclipse.lambda.invoke.ui.InvokeFunctionInputDialog;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata.LambdaFunctionDeploymentMetadata;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata.LambdaFunctionInvokeMetadata;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata.LambdaFunctionMetadata;
 import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
+import com.amazonaws.eclipse.lambda.ui.LambdaJavaProjectUtil;
 import com.amazonaws.eclipse.lambda.upload.wizard.handler.UploadFunctionToLambdaCommandHandler;
 import com.amazonaws.eclipse.lambda.upload.wizard.util.FunctionJarExportHelper;
 import com.amazonaws.services.lambda.AWSLambda;
@@ -64,29 +65,12 @@ public class InvokeFunctionHandler extends AbstractHandler {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
-        ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)
-                .getActivePage().getSelection();
-
-        if (selection instanceof IStructuredSelection) {
-            IStructuredSelection structurredSelection = (IStructuredSelection)selection;
-            Object firstSeleciton = structurredSelection.getFirstElement();
-
-            IProject selectedProject = null;
-
-            if (firstSeleciton instanceof IProject) {
-                selectedProject = (IProject) firstSeleciton;
-            } else if (firstSeleciton instanceof IJavaProject) {
-                selectedProject = ((IJavaProject) firstSeleciton).getProject();
-            } else {
-                LambdaPlugin.getDefault().logInfo(
-                        "Invalid selection: " + firstSeleciton + " is not a project.");
-                return null;
-            }
-
+        IJavaElement selectedJavaElement = LambdaJavaProjectUtil.getSelectedJavaElementFromCommandEvent(event);
+        if (selectedJavaElement != null) {
             LambdaAnalytics.trackInvokeDialogOpenedFromProjectContextMenu();
 
             try {
-                invokeLambdaFunctionProject(selectedProject);
+                invokeLambdaFunctionProject(selectedJavaElement);
             } catch (Exception e) {
                 LambdaPlugin.getDefault().reportException(
                         "Failed to launch upload function wizard.", e);
@@ -96,9 +80,10 @@ public class InvokeFunctionHandler extends AbstractHandler {
         return null;
     }
 
-    public static void invokeLambdaFunctionProject(IProject project) {
+    public static void invokeLambdaFunctionProject(IJavaElement selectedJavaElement) {
 
         LambdaFunctionProjectMetadata md = null;
+        IProject project = selectedJavaElement.getJavaProject().getProject();
         try {
             md = ProjectMetadataManager.loadLambdaProjectMetadata(project);
         } catch (IOException e) {
@@ -109,13 +94,11 @@ public class InvokeFunctionHandler extends AbstractHandler {
         if (md != null) {
             // Invoke related properties are to be populated within inputDialog
             InvokeFunctionInputDialog inputDialog = new InvokeFunctionInputDialog(
-                    Display.getCurrent().getActiveShell(), project, md);
+                    Display.getCurrent().getActiveShell(), selectedJavaElement, md);
             int retCode = inputDialog.open();
 
             if (retCode == InvokeFunctionInputDialog.INVOKE_BUTTON_ID) {
-                String input = md.getLastInvokeInput();
                 boolean showLiveLog = md.getLastInvokeShowLiveLog();
-
                 boolean isProjectDirty = LambdaPlugin.getDefault()
                         .getProjectChangeTracker().isProjectDirty(project);
                 boolean isInvokeInputModified = inputDialog.isInputBoxContentModified();
@@ -124,27 +107,29 @@ public class InvokeFunctionHandler extends AbstractHandler {
                 LambdaAnalytics.trackIsInvokeInputModified(isInvokeInputModified);
                 LambdaAnalytics.trackIsShowLiveLog(showLiveLog);
 
+                if (!md.isLastInvokedHandlerDeployed()) {
+                    askForDeploymentFirst(selectedJavaElement);
+                    return;
+                }
                 if (isProjectDirty) {
-                    invokeAfterRepeatingLastDeployment(input, project, md);
+                    invokeAfterRepeatingLastDeployment(project, md);
                 } else {
-                    invokeWithoutDeployment(input, project, md);
+                    invokeWithoutDeployment(project, md);
                 }
             } else {
                 LambdaAnalytics.trackInvokeCanceled();
             }
 
         } else {
-            askForDeploymentFirst(project);
+            askForDeploymentFirst(selectedJavaElement);
         }
     }
 
-    private static void invokeAfterRepeatingLastDeployment(final String invokeInput,
-            final IProject project, final LambdaFunctionProjectMetadata metadata) {
+    private static void invokeAfterRepeatingLastDeployment(final IProject project, final LambdaFunctionProjectMetadata metadata) {
         _doInvoke(project, metadata, true);
     }
 
-    private static void invokeWithoutDeployment(final String invokeInput,
-            final IProject project, final LambdaFunctionProjectMetadata metadata) {
+    private static void invokeWithoutDeployment(final IProject project, final LambdaFunctionProjectMetadata metadata) {
         _doInvoke(project, metadata, false);
     }
 
@@ -152,18 +137,17 @@ public class InvokeFunctionHandler extends AbstractHandler {
             final LambdaFunctionProjectMetadata metadata,
             final boolean updateFunctionCode) {
 
-        String lastDeploymentFunctionName = metadata.getLastDeploymentFunctionName();
+        String handlerToBeInvoked = metadata.getLastInvokeHandler();
 
         MessageConsole lambdaConsole = getOrCreateLambdaConsoleIfNotExist(
-                lastDeploymentFunctionName + " Lambda Console");
+                handlerToBeInvoked + " Lambda Console");
         lambdaConsole.clearConsole();
         ConsolePlugin.getDefault().getConsoleManager().showConsoleView(lambdaConsole);
         final MessageConsoleStream lambdaOutput = lambdaConsole.newMessageStream();
         final MessageConsoleStream lambdaError = lambdaConsole.newMessageStream();
         lambdaError.setColor(new Color(Display.getDefault(), 255, 0, 0));
 
-        new Job("Running " + lastDeploymentFunctionName + " on Lambda...") {
-
+        new Job("Running " + handlerToBeInvoked + " on Lambda...") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
@@ -186,12 +170,18 @@ public class InvokeFunctionHandler extends AbstractHandler {
             MessageConsoleStream lambdaOutput,
             MessageConsoleStream lambdaError) throws IOException {
 
+        String handlerToBeInvoked = metadata.getLastInvokeHandler();
+        LambdaFunctionMetadata functionMetadata = metadata.getHandlerMetadata().get(handlerToBeInvoked);
+        assert (functionMetadata != null && functionMetadata.getDeployment() != null && functionMetadata.getInvoke() != null);
+
+        LambdaFunctionDeploymentMetadata deploymentMetadata = functionMetadata.getDeployment();
+        LambdaFunctionInvokeMetadata invokeMetadata = functionMetadata.getInvoke();
         AWSLambda lambda = AwsToolkitCore.getClientFactory().getLambdaClientByRegion(
-                metadata.getLastDeploymentRegion().getId());
-        String funcName = metadata.getLastDeploymentFunctionName();
-        String bucketName = metadata.getLastDeploymentBucketName();
-        String invokeInput = metadata.getLastInvokeInput();
-        boolean showLiveLog = metadata.getLastInvokeShowLiveLog();
+                deploymentMetadata.getRegionId());
+        String funcName = deploymentMetadata.getAwsLambdaFunctionName();
+        String bucketName = deploymentMetadata.getAwsS3BucketName();
+        String invokeInput = invokeMetadata.getInvokeInput();
+        boolean showLiveLog = invokeMetadata.isShowLiveLog();
 
         if (updateFunctionCode) {
             updateFunctionCode(lambda, project, funcName, bucketName, lambdaOutput);
@@ -316,7 +306,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
         return result;
     }
 
-    private static void askForDeploymentFirst(IProject project) {
+    private static void askForDeploymentFirst(IJavaElement selectedJavaElement) {
         MessageDialog dialog = new MessageDialog(
                 Display.getCurrent().getActiveShell(),
                 "Function not uploaded yet", null,
@@ -327,7 +317,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
         if (result == 0) {
             LambdaAnalytics.trackUploadWizardOpenedBeforeFunctionInvoke();
-            UploadFunctionToLambdaCommandHandler.doUploadFunctionProjectToLambda(project);
+            UploadFunctionToLambdaCommandHandler.doUploadFunctionProjectToLambda(selectedJavaElement);
         }
     }
 

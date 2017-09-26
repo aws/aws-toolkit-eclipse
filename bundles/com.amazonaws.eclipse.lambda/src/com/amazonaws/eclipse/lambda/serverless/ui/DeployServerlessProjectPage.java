@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.CancelableThread;
@@ -164,11 +165,15 @@ public class DeployServerlessProjectPage extends WizardPage {
         Region currentSelectedRegion = regionComposite.getCurrentSelectedRegion();
         if (bucketComposite != null) {
             String defaultBucket = dataModel.getMetadata().getLastDeploymentBucket(currentSelectedRegion.getId());
-            bucketComposite.refreshBucketsInRegion(currentSelectedRegion, defaultBucket);
+            bucketComposite.refreshComposite(new AwsResourceScopeParamBase(
+                    AwsToolkitCore.getDefault().getCurrentAccountId(),
+                    currentSelectedRegion.getId()), defaultBucket);
         }
         if (stackComposite != null) {
-            String defaultStackName = dataModel.getMetadata().getLastDeploymentStack();
-            stackComposite.refreshInRegion(currentSelectedRegion, defaultStackName);
+            String defaultStackName = dataModel.getMetadata().getLastDeploymentStack(currentSelectedRegion.getId());
+            stackComposite.refreshComposite(new AwsResourceScopeParamBase(
+                    AwsToolkitCore.getDefault().getCurrentAccountId(),
+                    currentSelectedRegion.getId()), defaultStackName);
         }
     }
 

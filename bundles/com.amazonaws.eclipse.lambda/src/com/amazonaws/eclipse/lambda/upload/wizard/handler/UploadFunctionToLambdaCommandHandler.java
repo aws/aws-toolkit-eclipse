@@ -17,18 +17,14 @@ package com.amazonaws.eclipse.lambda.upload.wizard.handler;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
-import com.amazonaws.eclipse.lambda.LambdaPlugin;
+import com.amazonaws.eclipse.lambda.ui.LambdaJavaProjectUtil;
 import com.amazonaws.eclipse.lambda.upload.wizard.UploadFunctionWizard;
 
 public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
@@ -36,33 +32,15 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
-        ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)
-                .getActivePage().getSelection();
-
-        if (selection instanceof IStructuredSelection) {
-            IStructuredSelection structurredSelection = (IStructuredSelection)selection;
-            Object firstSeleciton = structurredSelection.getFirstElement();
-
-            IProject selectedProject = null;
-
-            if (firstSeleciton instanceof IProject) {
-                selectedProject = (IProject) firstSeleciton;
-            } else if (firstSeleciton instanceof IJavaProject) {
-                selectedProject = ((IJavaProject) firstSeleciton).getProject();
-            } else {
-                LambdaPlugin.getDefault().logInfo(
-                        "Invalid selection: " + firstSeleciton + " is not a project.");
-                return null;
-            }
-
+        IJavaElement selectedJavaElement = LambdaJavaProjectUtil.getSelectedJavaElementFromCommandEvent(event);
+        if (selectedJavaElement != null) {
             LambdaAnalytics.trackUploadWizardOpenedFromProjectContextMenu();
-            doUploadFunctionProjectToLambda(selectedProject);
+            doUploadFunctionProjectToLambda(selectedJavaElement);
         }
-
         return null;
     }
 
-    public static void doUploadFunctionProjectToLambda(IProject project) {
+    public static void doUploadFunctionProjectToLambda(IJavaElement selectedJavaElement) {
 
         if (!WorkbenchUtils.openSaveFilesDialog(PlatformUI.getWorkbench())) {
             return;
@@ -70,8 +48,7 @@ public class UploadFunctionToLambdaCommandHandler extends AbstractHandler {
 
         WizardDialog wizardDialog = new WizardDialog(
                 Display.getCurrent().getActiveShell(),
-                new UploadFunctionWizard(project));
+                new UploadFunctionWizard(selectedJavaElement));
         wizardDialog.open();
     }
-
 }

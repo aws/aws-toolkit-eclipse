@@ -75,6 +75,8 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingCli
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
+import com.amazonaws.services.kms.AWSKMS;
+import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClient;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
@@ -265,6 +267,10 @@ public class AWSClientFactory {
 
     public AWSLogs getLogsClient() {
         return getLogsClientByRegion(RegionUtils.getCurrentRegion().getId());
+    }
+
+    public AWSKMS getKmsClient() {
+        return getKmsClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     /*
@@ -480,6 +486,11 @@ public class AWSClientFactory {
     public AWSLogs getLogsClientByRegion(String regionId) {
         return getOrCreateClientByRegion(ServiceAbbreviations.LOGS, regionId,
                 AWSLogsClientBuilder.standard(), AWSLogs.class);
+    }
+
+    public AWSKMS getKmsClientByRegion(String regionId) {
+        return getOrCreateClientByRegion(ServiceAbbreviations.KMS, regionId,
+                AWSKMSClientBuilder.standard(), AWSKMS.class);
     }
 
     @Deprecated

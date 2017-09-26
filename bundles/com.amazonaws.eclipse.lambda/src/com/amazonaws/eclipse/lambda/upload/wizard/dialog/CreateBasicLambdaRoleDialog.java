@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
 import com.amazonaws.eclipse.core.ui.dialogs.AbstractInputDialog;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.AttachRolePolicyRequest;
@@ -28,7 +29,8 @@ import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
 import com.amazonaws.services.identitymanagement.model.CreateRoleResult;
 import com.amazonaws.services.identitymanagement.model.Role;
 
-public class CreateBasicLambdaRoleDialog extends AbstractInputDialog {
+public class CreateBasicLambdaRoleDialog extends AbstractInputDialog<Role> {
+    private final AwsResourceScopeParamBase param;
 
     private static final String BASIC_ROLE_POLICY =
             "{" +
@@ -61,7 +63,7 @@ public class CreateBasicLambdaRoleDialog extends AbstractInputDialog {
 
     private Role createdRole;
 
-    public CreateBasicLambdaRoleDialog(Shell parentShell) {
+    public CreateBasicLambdaRoleDialog(Shell parentShell, AwsResourceScopeParamBase param) {
         super(
                 parentShell,
                 "Create Role",
@@ -69,15 +71,12 @@ public class CreateBasicLambdaRoleDialog extends AbstractInputDialog {
                 "Creating the Role...",
                 "Role Name:",
                 "lambda_basic_execution");
-    }
-
-    public Role getCreatedRole() {
-        return createdRole;
+        this.param = param;
     }
 
     @Override
     protected void performFinish(String input) {
-        AmazonIdentityManagement iam = AwsToolkitCore.getClientFactory()
+        AmazonIdentityManagement iam = AwsToolkitCore.getClientFactory(param.getAccountId())
                 .getIAMClient();
 
         CreateRoleResult result = iam.createRole(new CreateRoleRequest()
@@ -116,4 +115,8 @@ public class CreateBasicLambdaRoleDialog extends AbstractInputDialog {
                 + UUID.randomUUID().toString();
     }
 
+    @Override
+    public Role getCreatedResource() {
+        return createdRole;
+    }
 }

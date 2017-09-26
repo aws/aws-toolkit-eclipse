@@ -23,8 +23,14 @@ import com.amazonaws.eclipse.core.regions.Region;
  */
 public abstract class RegionalizedValidator implements IValidator {
     protected Region region;
+    // Any additional error message to be shown.
+    protected String errorMessage;
 
     public void setRegion(Region region) {
         this.region = region;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

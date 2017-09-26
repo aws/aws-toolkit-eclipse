@@ -19,26 +19,22 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
-import com.amazonaws.eclipse.core.model.SelectOrCreateBucketDataModel;
+import com.amazonaws.eclipse.core.model.SelectOrCreateKmsKeyDataModel;
+import com.amazonaws.eclipse.core.model.SelectOrCreateKmsKeyDataModel.KmsKey;
 import com.amazonaws.eclipse.core.ui.dialogs.AbstractInputDialog;
-import com.amazonaws.eclipse.core.ui.dialogs.CreateS3BucketDialog;
-import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.eclipse.core.ui.dialogs.CreateKmsKeyDialog;
 
-/**
- * A basic composite that includes a combo box and a button which could be used to select
- * a bucket from the combo box, or create a new one by the button.
- */
-public class SelectOrCreateBucketComposite extends SelectOrCreateComposite<Bucket, SelectOrCreateBucketDataModel, AwsResourceScopeParamBase> {
+public class SelectOrCreateKmsKeyComposite extends SelectOrCreateComposite<KmsKey, SelectOrCreateKmsKeyDataModel, AwsResourceScopeParamBase> {
 
-    public SelectOrCreateBucketComposite(
+    public SelectOrCreateKmsKeyComposite(
             Composite parent,
             DataBindingContext bindingContext,
-            SelectOrCreateBucketDataModel dataModel) {
-        super(parent, bindingContext, dataModel, "S3 Bucket:");
+            SelectOrCreateKmsKeyDataModel dataModel) {
+        super(parent, bindingContext, dataModel, "KMS Key:");
     }
 
     @Override
-    protected AbstractInputDialog<Bucket> createResourceDialog(AwsResourceScopeParamBase param) {
-        return new CreateS3BucketDialog(Display.getCurrent().getActiveShell(), param);
+    protected AbstractInputDialog<KmsKey> createResourceDialog(AwsResourceScopeParamBase param) {
+        return new CreateKmsKeyDialog(Display.getCurrent().getActiveShell(), param);
     }
 }

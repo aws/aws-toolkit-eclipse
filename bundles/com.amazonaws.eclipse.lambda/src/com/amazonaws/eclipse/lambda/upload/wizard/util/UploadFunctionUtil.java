@@ -28,21 +28,31 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeHierarchy;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
+import com.amazonaws.eclipse.lambda.LambdaConstants;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
 import com.amazonaws.eclipse.lambda.project.wizard.util.FunctionProjectUtil;
 import com.amazonaws.eclipse.lambda.upload.wizard.model.UploadFunctionWizardDataModel;
+import com.amazonaws.services.kms.model.KeyListEntry;
 import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.model.CreateAliasRequest;
 import com.amazonaws.services.lambda.model.CreateFunctionRequest;
 import com.amazonaws.services.lambda.model.CreateFunctionResult;
 import com.amazonaws.services.lambda.model.FunctionCode;
+import com.amazonaws.services.lambda.model.UpdateAliasRequest;
 import com.amazonaws.services.lambda.model.UpdateFunctionCodeRequest;
+import com.amazonaws.services.lambda.model.UpdateFunctionCodeResult;
 import com.amazonaws.services.lambda.model.UpdateFunctionConfigurationResult;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 
 public class UploadFunctionUtil {
 
@@ -54,25 +64,35 @@ public class UploadFunctionUtil {
             final IProgressMonitor monitor, int totalUnitOfWork)
             throws IOException {
         monitor.subTask("Exporting Lambda function project...");
+        //TODO provide an option to generate the Jar with Maven
         File jarFile = FunctionJarExportHelper.exportProjectToJarFile(
                 dataModel.getProject(), true);
         monitor.worked((int)(totalUnitOfWork * 0.2));
 
-        AWSLambda client = AwsToolkitCore.getClientFactory().getLambdaClientByRegion(dataModel.getRegion().getId());
+        AWSLambda client = AwsToolkitCore.getClientFactory().getLambdaClientByRegion(
+                dataModel.getRegionDataModel().getRegion().getId());
 
         monitor.subTask("Uploading function code to S3...");
-        String bucketName = dataModel.getFunctionConfigPageDataModel().getBucketName();
-        // TODO use non-random key name
-        //String randomKeyName = UUID.randomUUID().toString();
-        String randomKeyName = dataModel.isCreatingNewFunction() ?
-                dataModel.getNewFunctionName() : dataModel.getExistingFunction().getFunctionName();
+        String bucketName = dataModel.getS3BucketDataModel().getBucketName();
+        String randomKeyName = dataModel.getFunctionDataModel().getFunctionName();
         randomKeyName += ".zip";
         AmazonS3 s3 = AwsToolkitCore.getClientFactory()
                 .getS3ClientForBucket(bucketName);
 
         LambdaAnalytics.trackExportedJarSize(jarFile.length());
         long startTime = System.currentTimeMillis();
-        s3.putObject(bucketName, randomKeyName, jarFile);
+
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, randomKeyName, jarFile);
+        if (dataModel.getFunctionConfigPageDataModel().isS3Encryption()) {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+            putObjectRequest.setMetadata(metadata);
+        } else if (dataModel.getFunctionConfigPageDataModel().isKmsEncryption()) {
+            KeyListEntry key = dataModel.getKmsKeyDataModel().getExistingResource().getKey();
+            putObjectRequest.withSSEAwsKeyManagementParams(new SSEAwsKeyManagementParams(key.getKeyId()));
+        }
+
+        s3.putObject(putObjectRequest);
         long uploadTime = System.currentTimeMillis() - startTime;
 
         LambdaAnalytics.trackUploadS3BucketTime(uploadTime);
@@ -82,8 +102,9 @@ public class UploadFunctionUtil {
 
         String functionName;
         String functionArn;
+        String functionVersion;
 
-        if (dataModel.isCreatingNewFunction()) {
+        if (dataModel.getFunctionDataModel().isCreateNewResource()) {
             monitor.subTask("Creating new Lambda function...");
 
             CreateFunctionRequest createReq = dataModel.toCreateFunctionRequest();
@@ -96,6 +117,7 @@ public class UploadFunctionUtil {
 
             functionName = createResult.getFunctionName();
             functionArn = createResult.getFunctionArn();
+            functionVersion = createResult.getVersion();
             LambdaPlugin.getDefault().logInfo(
                     "Function " + functionArn + " created.");
 
@@ -106,31 +128,53 @@ public class UploadFunctionUtil {
                             .toUpdateFunctionConfigRequest());
 
             functionName = updateConfigResult.getFunctionName();
+            updateConfigResult.getVersion();
 
             monitor.subTask("Updating function code");
-            client.updateFunctionCode(new UpdateFunctionCodeRequest()
+            UpdateFunctionCodeResult updateFunctionCodeResult = client.updateFunctionCode(new UpdateFunctionCodeRequest()
                     .withFunctionName(functionName)
                     .withS3Bucket(bucketName)
-                    .withS3Key(randomKeyName));
+                    .withS3Key(randomKeyName)
+                    .withPublish(dataModel.getFunctionConfigPageDataModel().isPublishNewVersion()));
 
             functionArn = updateConfigResult.getFunctionArn();
+            functionVersion = updateFunctionCodeResult.getVersion();
             LambdaPlugin.getDefault().logInfo(
                     "Function " + functionArn + " updated.");
+        }
+        if (dataModel.getFunctionConfigPageDataModel().isPublishNewVersion()
+                && dataModel.getFunctionConfigPageDataModel().isCreateNewVersionAlias()) {
+            if (dataModel.getFunctionAliasDataModel().isCreateNewResource()) {
+                client.createAlias(new CreateAliasRequest()
+                    .withFunctionName(functionName)
+                    .withFunctionVersion(functionVersion)
+                    .withName(dataModel.getFunctionAliasDataModel().getNewResourceName()));
+            } else if (dataModel.getFunctionAliasDataModel().isSelectExistingResource()) {
+                client.updateAlias(new UpdateAliasRequest()
+                        .withFunctionName(functionName)
+                        .withName(dataModel.getFunctionAliasDataModel().getExistingResource().getName())
+                        .withFunctionVersion(functionVersion));
+            }
         }
         monitor.worked((int)(totalUnitOfWork * 0.2));
 
         monitor.subTask("Saving project metadata");
         LambdaFunctionProjectMetadata md = dataModel.getProjectMetadataBeforeUpload();
-        md.setLastDeploymentHandler(dataModel.getFunctionConfigPageDataModel().getHandler());
-        md.setLastDeploymentRegion(dataModel.getRegion().getId());
+        md.setLastDeploymentHandler(dataModel.getHandler());
+        md.setLastDeploymentRegion(dataModel.getRegionDataModel().getRegion().getId());
         md.setLastDeploymentFunctionName(functionName);
         md.setLastDeploymentBucketName(bucketName);
-        md.setLastDeploymentRoleName(dataModel.getFunctionConfigPageDataModel().getRole().getRoleName());
+        md.setLastDeploymentRoleName(dataModel.getLambdaRoleDataModel().getExistingResource().getRoleName());
         ProjectMetadataManager.saveLambdaProjectMetadata(dataModel.getProject(), md);
         FunctionProjectUtil.refreshProject(dataModel.getProject());
+
+        // Refresh the decorator
+        Display.getDefault().asyncExec( () -> {
+            PlatformUI.getWorkbench().getDecoratorManager().update(LambdaConstants.LAMBDA_PROJECT_DECORATOR_ID);
+        });
+
         monitor.worked((int)(totalUnitOfWork * 0.2));
         LambdaPlugin.getDefault().logInfo("Project metadata saved.");
-
         LambdaPlugin.getDefault().logInfo("Upload complete! Funtion arn " + functionArn);
     }
 
@@ -174,7 +218,6 @@ public class UploadFunctionUtil {
             if (type == null) {
                 return Collections.emptySet();
             }
-
             ITypeHierarchy typeHierarchy = type.newTypeHierarchy(javaProject, null);
 
             Set<String> allHandlerImplementers = new HashSet<>();

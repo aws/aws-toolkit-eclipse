@@ -24,7 +24,6 @@ public class RunOnLambdaAction extends AbstractLambdaEditorAction {
     @Override
     public void run(IAction action) {
         LambdaAnalytics.trackInvokeDialogOpenedFromEditorContextMenu();
-        InvokeFunctionHandler.invokeLambdaFunctionProject(javaProject.getProject());
+        InvokeFunctionHandler.invokeLambdaFunctionProject(selectedJavaElement);
     }
-
 }

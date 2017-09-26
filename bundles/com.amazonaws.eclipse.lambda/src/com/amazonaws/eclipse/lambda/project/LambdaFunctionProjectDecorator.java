@@ -15,12 +15,14 @@
 package com.amazonaws.eclipse.lambda.project;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
+import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata.LambdaFunctionDeploymentMetadata;
 import com.amazonaws.eclipse.lambda.project.metadata.ProjectMetadataManager;
 
 /**
@@ -35,22 +37,31 @@ public class LambdaFunctionProjectDecorator implements ILabelDecorator {
         return null;
     }
 
+    /**
+     * Decorate handler class java file with the remote AWS Lambda function name.
+     */
     @Override
     public String decorateText(String text, Object element) {
+        if (element instanceof ICompilationUnit) {
+            ICompilationUnit compilationUnit = (ICompilationUnit) element;
+            IProject project = compilationUnit.getJavaProject().getProject();
 
-        IProject project = null;
-        if (element instanceof IProject) {
-            project = (IProject)element;
-        } else if (element instanceof IJavaProject) {
-            project = ((IJavaProject)element).getProject();
-        }
-
-        if (project != null) {
+            if (project == null) {
+                return null;
+            }
             try {
                 LambdaFunctionProjectMetadata md = ProjectMetadataManager.loadLambdaProjectMetadata(project);
-                if (md != null && md.getLastDeploymentFunctionName() != null) {
-                    return text + " [" + md.getLastDeploymentFunctionName() + "]";
+                if (md == null) {
+                    return null;
                 }
+                for (IType type : compilationUnit.getTypes()) {
+                    if (md.getHandlerMetadata().containsKey(type.getFullyQualifiedName())) {
+                        LambdaFunctionDeploymentMetadata deployment = md.getHandlerMetadata().get(type.getFullyQualifiedName())
+                                .getDeployment();
+                        return text + " [" + (deployment == null ? "" : deployment.getAwsLambdaFunctionName()) + "]";
+                    }
+                }
+                return null;
             } catch (Exception e) {
                 return null;
             }

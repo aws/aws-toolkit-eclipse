@@ -49,6 +49,19 @@ public class WizardWidgetFactory {
         return group;
     }
 
+    public static Composite newComposite(Composite parent, int colspan, int cols) {
+        return newComposite(parent, colspan, cols, false);
+    }
+
+    public static Composite newComposite(Composite parent, int colspan, int cols, boolean columnsEqualWidth) {
+        Composite composite = new Composite(parent, SWT.NONE);
+        GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gridData.horizontalSpan = colspan;
+        composite.setLayoutData(gridData);
+        composite.setLayout(new GridLayout(cols, columnsEqualWidth));
+        return composite;
+    }
+
     public static SashForm newSashForm(Composite parent, int colspan, int cols) {
         SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
         GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -104,15 +117,20 @@ public class WizardWidgetFactory {
         return label;
     }
 
-    public static Link newLink(Composite composite, Listener linkListener, String linkText, int colspan) {
+    public static Link newLink(Composite composite, Listener linkListener, String linkText, int colspan, int widthHint, int heightHint) {
         Link link = new Link(composite, SWT.WRAP);
         link.setText(linkText);
         link.addListener(SWT.Selection, linkListener);
         GridData data = new GridData(SWT.FILL, SWT.TOP, true, false);
         data.horizontalSpan = colspan;
-        data.widthHint = 100;
+        data.widthHint = widthHint;
+        data.heightHint = heightHint;
         link.setLayoutData(data);
         return link;
+    }
+
+    public static Link newLink(Composite composite, Listener linkListener, String linkText, int colspan) {
+        return newLink(composite, linkListener, linkText, colspan, 100, SWT.DEFAULT);
     }
 
     public static Combo newCombo(Composite parent) {

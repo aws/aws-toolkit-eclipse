@@ -17,51 +17,46 @@ package com.amazonaws.eclipse.core.ui.dialogs;
 import org.eclipse.swt.widgets.Shell;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 
-public class CreateS3BucketDialog extends AbstractInputDialog {
+public class CreateS3BucketDialog extends AbstractInputDialog<Bucket> {
 
-    private final Region region;
+    private final AwsResourceScopeParamBase param;
     private Bucket createdBucket;
-    private String createdBucketName;
 
-    public CreateS3BucketDialog(Shell parentShell, Region region) {
+    public CreateS3BucketDialog(Shell parentShell, AwsResourceScopeParamBase param) {
         super(
                 parentShell,
                 "Create Bucket",
-                "Create an S3 bucket in " + region.getName() + " region",
+                "Create an S3 bucket in " + RegionUtils.getRegion(param.getRegionId()) + " region",
                 "Creating the Bucket...",
                 "Bucket Name:",
-                "lambda-function-bucket-" + region.getId() + "-" + System.currentTimeMillis());
+                "lambda-function-bucket-" + param.getRegionId() + "-" + System.currentTimeMillis());
 
-        this.region = region;
-    }
-
-    public String getCreatedBucketName() {
-        return createdBucketName;
+        this.param = param;
     }
 
     public Bucket getCreatedBucket() {
-        return createdBucket;
+        return getCreatedResource();
     }
 
     @Override
     protected void performFinish(String input) {
-        AmazonS3 s3 = AwsToolkitCore.getClientFactory().getS3ClientByRegion(region.getId());
+        AmazonS3 s3 = AwsToolkitCore.getClientFactory(param.getAccountId())
+                .getS3ClientByRegion(param.getRegionId());
 
-        String s3RegionName = null;
-        String awsRegionId = region.getId();
-        if (awsRegionId.equalsIgnoreCase("us-east-1")) {
-            s3RegionName = null; // us_standard
-        } else {
-            s3RegionName = awsRegionId;
-        }
+        String regionId = param.getRegionId();
+        String s3RegionName = regionId.equalsIgnoreCase("us-east-1") ? null : regionId;
 
         createdBucket = s3.createBucket(new CreateBucketRequest(input, s3RegionName));
-        createdBucketName = input;
     }
 
+    @Override
+    public Bucket getCreatedResource() {
+        return createdBucket;
+    }
 }

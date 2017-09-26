@@ -21,20 +21,20 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
 import com.amazonaws.eclipse.core.ui.SelectOrInputComposite;
-import com.amazonaws.eclipse.lambda.model.SelectOrInputStackDataModel;
-import com.amazonaws.eclipse.lambda.project.wizard.page.validator.StackNameValidator;
-import com.amazonaws.services.cloudformation.model.StackSummary;
+import com.amazonaws.eclipse.databinding.NotEmptyValidator;
+import com.amazonaws.eclipse.lambda.model.SelectOrInputFunctionDataModel;
+import com.amazonaws.services.lambda.model.FunctionConfiguration;
 
-public class SelectOrInputStackComposite extends SelectOrInputComposite<StackSummary, SelectOrInputStackDataModel, AwsResourceScopeParamBase> {
+public class SelectOrInputFunctionComposite
+        extends SelectOrInputComposite<FunctionConfiguration, SelectOrInputFunctionDataModel, AwsResourceScopeParamBase> {
 
-    public SelectOrInputStackComposite(
+    public SelectOrInputFunctionComposite(
             Composite parent,
             DataBindingContext bindingContext,
-            SelectOrInputStackDataModel dataModel) {
-
+            SelectOrInputFunctionDataModel dataModel) {
         super(parent, bindingContext, dataModel,
-                "Choose an existing Stack:",
-                "Create a new Stack:",
-                Arrays.asList(new StackNameValidator()));
+                "Choose an existing Lambda function:",
+                "Create a new Lambda function:",
+                Arrays.asList(new NotEmptyValidator("Please provide a Lambda name")));
     }
 }

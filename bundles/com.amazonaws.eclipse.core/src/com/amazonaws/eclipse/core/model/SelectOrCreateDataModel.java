@@ -17,25 +17,20 @@ package com.amazonaws.eclipse.core.model;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-import com.amazonaws.eclipse.core.ui.SelectOrInputComposite;
+import com.amazonaws.eclipse.core.ui.SelectOrCreateComposite;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * Data model for {@link SelectOrInputComposite} which is intended to be extended by a
+ * Data model for {@link SelectOrCreateComposite} which is intended to be extended by a
  * subclass with a concrete type for the generic type T.
  */
-public abstract class SelectOrInputDataModel<T, P extends AbstractAwsResourceScopeParam<P>>
-        implements AwsResourceMetadata<T, P> {
+public abstract class SelectOrCreateDataModel<T, P extends AbstractAwsResourceScopeParam<P>> implements AwsResourceMetadata<T, P> {
+
     public static final String P_EXISTING_RESOURCE = "existingResource";
-    public static final String P_NEW_RESOURCE_NAME = "newResourceName";
-    public static final String P_SELECT_EXISTING_RESOURCE = "selectExistingResource";
-    public static final String P_CREATE_NEW_RESOURCE = "createNewResource";
 
     @JsonIgnore
     private T existingResource;
-    private String newResourceName;
-    private boolean selectExistingResource = false;
-    private boolean createNewResource = true;
+    private boolean createNewResource = false;
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -57,33 +52,11 @@ public abstract class SelectOrInputDataModel<T, P extends AbstractAwsResourceSco
         this.pcs.firePropertyChange(P_EXISTING_RESOURCE, oldValue, existingResource);
     }
 
-    public String getNewResourceName() {
-        return newResourceName;
-    }
-
-    public void setNewResourceName(String newResourceName) {
-        String oldValue = this.newResourceName;
-        this.newResourceName = newResourceName;
-        this.pcs.firePropertyChange(P_NEW_RESOURCE_NAME, oldValue, newResourceName);
-    }
-
-    public boolean isSelectExistingResource() {
-        return selectExistingResource;
-    }
-
-    public void setSelectExistingResource(boolean selectExistingResource) {
-        boolean oldValue = this.selectExistingResource;
-        this.selectExistingResource = selectExistingResource;
-        this.pcs.firePropertyChange(P_SELECT_EXISTING_RESOURCE, oldValue, selectExistingResource);
-    }
-
     public boolean isCreateNewResource() {
         return createNewResource;
     }
 
     public void setCreateNewResource(boolean createNewResource) {
-        boolean oldValue = this.createNewResource;
         this.createNewResource = createNewResource;
-        this.pcs.firePropertyChange(P_CREATE_NEW_RESOURCE, oldValue, createNewResource);
     }
 }

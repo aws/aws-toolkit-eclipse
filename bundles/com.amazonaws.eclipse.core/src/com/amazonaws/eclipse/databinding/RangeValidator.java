@@ -36,7 +36,7 @@ public class RangeValidator implements IValidator {
 
     @Override
     public IStatus validate(Object value) {
-        Long s = (Long) value;
+        Long s = (value instanceof String) ? Long.parseLong((String)value) : (Long) value;
         if (s == null || s < minValue || s > maxValue)
             return ValidationStatus.error(message);
         return ValidationStatus.ok();

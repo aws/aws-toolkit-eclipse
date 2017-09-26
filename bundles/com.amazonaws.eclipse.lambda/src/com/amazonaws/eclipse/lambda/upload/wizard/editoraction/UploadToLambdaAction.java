@@ -25,7 +25,6 @@ public class UploadToLambdaAction extends AbstractLambdaEditorAction {
     public void run(IAction action) {
         LambdaAnalytics.trackUploadWizardOpenedFromEditorContextMenu();
         UploadFunctionToLambdaCommandHandler
-                .doUploadFunctionProjectToLambda(javaProject.getProject());
+                .doUploadFunctionProjectToLambda(selectedJavaElement);
     }
-
 }

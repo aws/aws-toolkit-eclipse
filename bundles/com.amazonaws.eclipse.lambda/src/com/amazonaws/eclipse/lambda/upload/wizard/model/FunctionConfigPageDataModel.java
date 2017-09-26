@@ -14,22 +14,25 @@
  */
 package com.amazonaws.eclipse.lambda.upload.wizard.model;
 
-import com.amazonaws.services.identitymanagement.model.Role;
-
 public class FunctionConfigPageDataModel {
 
     public static final String P_DESCRIPTION = "description";
-    public static final String P_HANDLER = "handler";
-    public static final String P_BUCKET_NAME = "bucketName";
     public static final String P_MEMORY = "memory";
     public static final String P_TIMEOUT = "timeout";
+    public static final String P_PUBLISH_NEW_VERSION = "publishNewVersion";
+    public static final String P_CREATE_NEW_VERSION_ALIAS = "createNewVersionAlias";
+    public static final String P_NONE_ENCRYPTION = "noneEncryption";
+    public static final String P_S3_ENCRYPTION = "s3Encryption";
+    public static final String P_KMS_ENCRYPTION = "kmsEncryption";
 
     private String description;
-    private String handler;
-    private Role role;
-    private String bucketName;
+    private boolean publishNewVersion;
+    private boolean createNewVersionAlias;
     private Long memory;
     private Long timeout;
+    private boolean noneEncryption = true;
+    private boolean s3Encryption = false;
+    private boolean kmsEncryption = false;
 
     public String getDescription() {
         return description;
@@ -39,28 +42,20 @@ public class FunctionConfigPageDataModel {
         this.description = description;
     }
 
-    public String getHandler() {
-        return handler;
+    public boolean isPublishNewVersion() {
+        return publishNewVersion;
     }
 
-    public void setHandler(String handler) {
-        this.handler = handler;
+    public void setPublishNewVersion(boolean publishNewVersion) {
+        this.publishNewVersion = publishNewVersion;
     }
 
-    public Role getRole() {
-        return role;
+    public boolean isCreateNewVersionAlias() {
+        return createNewVersionAlias;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public String getBucketName() {
-        return bucketName;
-    }
-
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
+    public void setCreateNewVersionAlias(boolean createNewVersionAlias) {
+        this.createNewVersionAlias = createNewVersionAlias;
     }
 
     public Long getMemory() {
@@ -77,5 +72,29 @@ public class FunctionConfigPageDataModel {
 
     public void setTimeout(Long timeout) {
         this.timeout = timeout;
+    }
+
+    public boolean isNoneEncryption() {
+        return noneEncryption;
+    }
+
+    public void setNoneEncryption(boolean noneEncryption) {
+        this.noneEncryption = noneEncryption;
+    }
+
+    public boolean isS3Encryption() {
+        return s3Encryption;
+    }
+
+    public void setS3Encryption(boolean s3Encryption) {
+        this.s3Encryption = s3Encryption;
+    }
+
+    public boolean isKmsEncryption() {
+        return kmsEncryption;
+    }
+
+    public void setKmsEncryption(boolean kmsEncryption) {
+        this.kmsEncryption = kmsEncryption;
     }
 }

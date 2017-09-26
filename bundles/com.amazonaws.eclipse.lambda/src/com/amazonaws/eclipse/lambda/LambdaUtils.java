@@ -15,11 +15,15 @@
 package com.amazonaws.eclipse.lambda;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.model.AliasConfiguration;
 import com.amazonaws.services.lambda.model.FunctionConfiguration;
+import com.amazonaws.services.lambda.model.ListAliasesRequest;
+import com.amazonaws.services.lambda.model.ListAliasesResult;
 import com.amazonaws.services.lambda.model.ListFunctionsRequest;
 import com.amazonaws.services.lambda.model.ListFunctionsResult;
 
@@ -44,6 +48,23 @@ public class LambdaUtils {
             request.setMarker(result.getNextMarker());
         } while (result.getNextMarker() != null);
         return newItems;
+    }
+
+    public static List<AliasConfiguration> listFunctionAlias(String accountId, String regionId, String functionName) {
+        if (functionName == null) {
+            return Collections.emptyList();
+        }
+        AWSLambda lambdaClient = AwsToolkitCore.getClientFactory(accountId).getLambdaClientByRegion(regionId);
+        List<AliasConfiguration> aliasList = new ArrayList<>();
+
+        ListAliasesRequest request = new ListAliasesRequest().withFunctionName(functionName);
+        ListAliasesResult result = null;
+        do {
+            result = lambdaClient.listAliases(request);
+            aliasList.addAll(result.getAliases());
+            request.setMarker(result.getNextMarker());
+        } while (result.getNextMarker() != null);
+        return aliasList;
     }
 
     public interface FunctionConfigurationConverter<T> {

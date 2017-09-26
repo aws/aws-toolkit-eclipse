@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard.model;
 
+import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.core.model.ProjectNameDataModel;
 import com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel;
@@ -53,13 +54,12 @@ public class LambdaFunctionWizardDataModel {
         this.showReadmeFile = showReadmeFile;
     }
 
-    //TODO use the latest version of Java SDK
     public PomFileTemplateData collectPomTemplateData() {
         PomFileTemplateData pomData = new PomFileTemplateData();
         pomData.setGroupId(mavenConfigurationDataModel.getGroupId());
         pomData.setArtifactId(mavenConfigurationDataModel.getArtifactId());
         pomData.setVersion("1.0.0");
-        pomData.setAwsJavaSdkVersion("1.11.124");
+        pomData.setAwsJavaSdkVersion(MavenFactory.getLatestJavaSdkVersion());
         return pomData;
     }
 }

@@ -14,57 +14,59 @@
  */
 package com.amazonaws.eclipse.core.model;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.util.List;
 
+import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.util.S3BucketUtil;
 import com.amazonaws.services.s3.model.Bucket;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class SelectOrCreateBucketDataModel {
-    public static final String P_BUCKET = "bucket";
+public class SelectOrCreateBucketDataModel extends SelectOrCreateDataModel<Bucket, AwsResourceScopeParamBase> {
 
-    public static final Bucket LOADING = new Bucket("Loading...");
-    public static final Bucket NONE_FOUND = new Bucket("None found");
-
-    private String bucketName;
-    @JsonIgnore
-    private Bucket bucket;
-    private Boolean createNewBucket;
-
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
-    }
-
-    public Bucket getBucket() {
-        return bucket;
-    }
-
-    public void setBucket(Bucket bucket) {
-        Bucket oldValue = this.bucket;
-        this.bucket = bucket;
-        this.bucketName = bucket.getName();
-        this.pcs.firePropertyChange(P_BUCKET, oldValue, bucket);
-    }
+    private static final String RESOURCE_TYPE = "Bucket";
+    private static final Bucket LOADING = new Bucket("Loading...");
+    private static final Bucket NONE_FOUND = new Bucket("None found");
+    private static final Bucket ERROR = new Bucket("Error Loading Buckets");
 
     public String getBucketName() {
-        return bucketName;
+        return this.getExistingResource().getName();
     }
 
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
+    @Override
+    public Bucket getLoadingItem() {
+        return LOADING;
     }
 
-    public Boolean getCreateNewBucket() {
-        return createNewBucket;
+    @Override
+    public Bucket getNotFoundItem() {
+        return NONE_FOUND;
     }
 
-    public void setCreateNewBucket(Boolean createNewBucket) {
-        this.createNewBucket = createNewBucket;
+    @Override
+    public Bucket getErrorItem() {
+        return ERROR;
+    }
+
+    @Override
+    public String getResourceType() {
+        return RESOURCE_TYPE;
+    }
+
+    @Override
+    public String getDefaultResourceName() {
+        return "lambda-function-bucket-" + System.currentTimeMillis();
+    }
+
+    @Override
+    public List<Bucket> loadAwsResources(AwsResourceScopeParamBase param) {
+        return S3BucketUtil.listBucketsInRegion(
+                AwsToolkitCore.getClientFactory(param.getAccountId()).getS3ClientByRegion(param.getRegionId()),
+                RegionUtils.getRegion(param.getRegionId()));
+    }
+
+    @Override
+    public String getResourceName(Bucket resource) {
+        return resource.getName();
     }
 }

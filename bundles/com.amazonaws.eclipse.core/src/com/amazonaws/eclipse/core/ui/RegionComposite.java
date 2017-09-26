@@ -18,12 +18,14 @@ import static com.amazonaws.util.ValidationUtils.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoProperties;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -38,6 +40,7 @@ import com.amazonaws.eclipse.core.widget.ComboViewerComplex;
  * A reusable composite for Region selection.
  */
 public class RegionComposite extends Composite {
+    private static final Region DEFAULT_REGION = RegionUtils.getRegion("us-east-1");
     private final DataBindingContext bindingContext;
     private final RegionDataModel dataModel;
     private final String serviceName;
@@ -77,8 +80,8 @@ public class RegionComposite extends Composite {
                 .bindingContext(bindingContext)
                 .labelValue(labelValue)
                 .items(regions)
-                .defaultItem(dataModel.getRegion())
-                .listeners(listeners)
+                .defaultItem(Optional.ofNullable(dataModel.getRegion()).orElse(DEFAULT_REGION))
+                .addListeners(listeners)
                 .pojoObservableValue(PojoProperties.value(RegionDataModel.class, RegionDataModel.P_REGION, Region.class).observe(dataModel))
                 .labelProvider(new LabelProvider() {
                     @Override
@@ -92,6 +95,10 @@ public class RegionComposite extends Composite {
                 })
                 .comboSpan(2)
                 .build();
+    }
+
+    public void selectAwsRegion(Region region) {
+        regionComboComplex.getComboViewer().setSelection(new StructuredSelection(Optional.ofNullable(region).orElse(DEFAULT_REGION)));
     }
 
     public static RegionCompositeBuilder builder() {

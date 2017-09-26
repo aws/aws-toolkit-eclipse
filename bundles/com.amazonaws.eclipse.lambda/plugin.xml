@@ -142,11 +142,7 @@
            <visibleWhen checkEnabled="false">
               <with variable="selection">
                   <iterate ifEmpty="false">
-                      <adapt type="org.eclipse.core.resources.IProject">
-                          <test forcePluginActivation="true"
-                                property="org.eclipse.core.resources.projectNature"
-                                value="org.eclipse.jdt.core.javanature"/>
-                      </adapt>
+                      <adapt type="org.eclipse.jdt.core.IOpenable" />
                   </iterate>
                </with>
             </visibleWhen>
@@ -161,11 +157,7 @@
            <visibleWhen checkEnabled="false">
               <with variable="selection">
                   <iterate ifEmpty="false">
-                      <adapt type="org.eclipse.core.resources.IProject">
-                          <test forcePluginActivation="true"
-                                property="org.eclipse.core.resources.projectNature"
-                                value="org.eclipse.jdt.core.javanature"/>
-                      </adapt>
+                      <adapt type="org.eclipse.jdt.core.IOpenable"/>
                   </iterate>
                </with>
             </visibleWhen>
@@ -225,7 +217,6 @@
         </objectContribution>
     </extension>
 
-
   <extension point="org.eclipse.ui.commands">
      <command id="com.amazonaws.eclipse.lambda.uploadFunctionToLambda"
             name="Upload function to AWS Lambda"
@@ -257,10 +248,7 @@
             state="true"
             class="com.amazonaws.eclipse.lambda.project.LambdaFunctionProjectDecorator">
         <enablement>
-            <or>
-                <objectClass name="org.eclipse.core.resources.IProject" />
-                <objectClass name="org.eclipse.jdt.core.IJavaProject" />
-            </or>
+            <objectClass name="org.eclipse.jdt.core.IJavaElement" />
         </enablement>
      </decorator>
   </extension>

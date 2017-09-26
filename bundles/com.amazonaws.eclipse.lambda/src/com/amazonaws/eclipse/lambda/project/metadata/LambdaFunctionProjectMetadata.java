@@ -30,11 +30,19 @@ public class LambdaFunctionProjectMetadata {
     private String lastDeploymentHandler;
     private String lastInvokeHandler;
 
-    private Map<String, LambdaFunctionMetadata> handlerMetadata;
+    private final Map<String, LambdaFunctionMetadata> handlerMetadata = new HashMap<>();
 
     /**
      * Helper methods for getting and setting last deployment metadata according to {@link #lastDeploymentHandler} field.
      */
+
+    /**
+     * Whether the chosen Lambda handler is deployed yet or not.
+     */
+    public boolean isLastInvokedHandlerDeployed() {
+        LambdaFunctionMetadata metadata = handlerMetadata.get(lastInvokeHandler);
+        return metadata == null ? false : metadata.getDeployment() != null;
+    }
 
     @JsonIgnore
     public Region getLastDeploymentRegion() {
@@ -92,9 +100,6 @@ public class LambdaFunctionProjectMetadata {
      * Create the path to the target {@link LambdaFunctionDeploymentMetadata} in the Pojo if it is null and return it.
      */
     private LambdaFunctionDeploymentMetadata getLastDeployment() {
-        if (handlerMetadata == null) {
-            handlerMetadata = new HashMap<>();
-        }
         if (lastDeploymentHandler != null) {
             LambdaFunctionMetadata functionMetadata = handlerMetadata.get(lastDeploymentHandler);
             if (functionMetadata == null) {
@@ -112,11 +117,24 @@ public class LambdaFunctionProjectMetadata {
     /**
      * Helper methods for getting and setting last invoke metadata according to {@link #lastInvokeHandler} field.
      */
+    @JsonIgnore
+    public boolean getLastInvokeSelectJsonInput() {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        return lastInvoke == null ? false : lastInvoke.isSelectJsonInput();
+    }
+
+    @JsonIgnore
+    public void setLastInvokeSelectJsonInput(boolean selectJsonInput) {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        if (lastInvoke != null) {
+            lastInvoke.setSelectJsonInput(selectJsonInput);
+        }
+    }
 
     @JsonIgnore
     public String getLastInvokeInput() {
         LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
-        return lastInvoke == null ? null : lastInvoke.getInvokeInput();
+        return lastInvoke == null ? "" : lastInvoke.getInvokeInput();
     }
 
     @JsonIgnore
@@ -141,13 +159,38 @@ public class LambdaFunctionProjectMetadata {
         }
     }
 
+    @JsonIgnore
+    public boolean getLastInvokeSelectJsonFile() {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        return lastInvoke == null ? true : lastInvoke.isSelectJsonFile();
+    }
+
+    @JsonIgnore
+    public void setLastInvokeSelectJsonFile(boolean selectJsonFile) {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        if (lastInvoke != null) {
+            lastInvoke.setSelectJsonFile(selectJsonFile);
+        }
+    }
+
+    @JsonIgnore
+    public String getLastInvokeJsonFile() {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        return lastInvoke == null ? "" : lastInvoke.getInvokeJsonFile();
+    }
+
+    @JsonIgnore
+    public void setLastInvokeJsonFile(String invokeJsonFile) {
+        LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
+        if (lastInvoke != null) {
+            lastInvoke.setInvokeJsonFile(invokeJsonFile);
+        }
+    }
+
     /**
      * Create the path to the target {@link LambdaFunctionInvokeMetadata} in the Pojo if it is null and return it.
      */
     private LambdaFunctionInvokeMetadata getLastInvoke() {
-        if (handlerMetadata == null) {
-            handlerMetadata = new HashMap<>();
-        }
         if (lastInvokeHandler != null) {
             LambdaFunctionMetadata functionMetadata = handlerMetadata.get(lastInvokeHandler);
             if (functionMetadata == null) {
@@ -172,10 +215,6 @@ public class LambdaFunctionProjectMetadata {
 
     public Map<String, LambdaFunctionMetadata> getHandlerMetadata() {
         return handlerMetadata;
-    }
-
-    public void setHandlerMetadata(Map<String, LambdaFunctionMetadata> handlerMetadata) {
-        this.handlerMetadata = handlerMetadata;
     }
 
     public String getLastInvokeHandler() {
@@ -209,6 +248,9 @@ public class LambdaFunctionProjectMetadata {
         }
     }
 
+    /**
+     * Data Model for deploying a Lambda function.
+     */
     public static class LambdaFunctionDeploymentMetadata {
         private String regionId;
         private String awsLambdaFunctionName;
@@ -255,17 +297,41 @@ public class LambdaFunctionProjectMetadata {
         }
     }
 
+    /**
+     * Data model for invoking a Lambda function.
+     */
     public static class LambdaFunctionInvokeMetadata {
-        // The test Json file as input
+        // Select a Json file as input
+        private boolean selectJsonFile = true;
+        private String invokeJsonFile;
+        // Select a Json content as input
+        private boolean selectJsonInput = false;
         private String invokeInput;
-        // Whether show live log in the console.
-        private boolean showLiveLog;
+        private boolean showLiveLog = true;
 
+        public String getInvokeJsonFile() {
+            return invokeJsonFile == null ? "" : invokeJsonFile;
+        }
+        public void setInvokeJsonFile(String invokeJsonFile) {
+            this.invokeJsonFile = invokeJsonFile;
+        }
+        public boolean isSelectJsonInput() {
+            return selectJsonInput;
+        }
+        public void setSelectJsonInput(boolean selectJsonInput) {
+            this.selectJsonInput = selectJsonInput;
+        }
         public String getInvokeInput() {
-            return invokeInput;
+            return invokeInput == null ? "" : invokeInput;
         }
         public void setInvokeInput(String invokeInput) {
             this.invokeInput = invokeInput;
+        }
+        public boolean isSelectJsonFile() {
+            return selectJsonFile;
+        }
+        public void setSelectJsonFile(boolean selectJsonFile) {
+            this.selectJsonFile = selectJsonFile;
         }
         public boolean isShowLiveLog() {
             return showLiveLog;
@@ -274,5 +340,4 @@ public class LambdaFunctionProjectMetadata {
             this.showLiveLog = showLiveLog;
         }
     }
-
 }

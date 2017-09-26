@@ -18,50 +18,58 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IJavaElement;
 
-import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.model.RegionDataModel;
+import com.amazonaws.eclipse.core.model.SelectOrCreateBucketDataModel;
+import com.amazonaws.eclipse.core.model.SelectOrCreateKmsKeyDataModel;
 import com.amazonaws.eclipse.lambda.ServiceApiUtils;
+import com.amazonaws.eclipse.lambda.model.SelectOrCreateBasicLambdaRoleDataModel;
+import com.amazonaws.eclipse.lambda.model.SelectOrInputFunctionAliasDataModel;
+import com.amazonaws.eclipse.lambda.model.SelectOrInputFunctionDataModel;
 import com.amazonaws.eclipse.lambda.project.metadata.LambdaFunctionProjectMetadata;
 import com.amazonaws.services.lambda.model.CreateFunctionRequest;
-import com.amazonaws.services.lambda.model.FunctionConfiguration;
 import com.amazonaws.services.lambda.model.UpdateFunctionConfigurationRequest;
 
 public class UploadFunctionWizardDataModel {
-
-    public static final String P_REGION = "region";
-    public static final String P_IS_CREATING_NEW_FUNCTION = "creatingNewFunction";
-    public static final String P_NEW_FUNCTION_NAME = "newFunctionName";
+    public static final String P_HANDLER = "handler";
 
     private final IProject project;
+    private final IJavaElement selectedJavaElement;
     private final List<String> requestHandlerImplementerClasses;
     private final LambdaFunctionProjectMetadata projectMetadataBeforeUpload;
 
-    /* Page 1*/
-    private Region region;
-    private boolean isCreatingNewFunction;
-    private FunctionConfiguration existingFunction;
-    private String newFunctionName;
+    /* Page 1 */
+    private String handler;
+    private final RegionDataModel regionDataModel = new RegionDataModel();
+    private final SelectOrInputFunctionDataModel functionDataModel = new SelectOrInputFunctionDataModel();
 
     /* Page 2 */
-    private FunctionConfigPageDataModel functionConfigPageDataModel;
+    private final SelectOrCreateBasicLambdaRoleDataModel lambdaRoleDataModel = new SelectOrCreateBasicLambdaRoleDataModel();
+    private final SelectOrInputFunctionAliasDataModel functionAliasDataModel = new SelectOrInputFunctionAliasDataModel();
+    private final SelectOrCreateBucketDataModel s3BucketDataModel = new SelectOrCreateBucketDataModel();
+    private final SelectOrCreateKmsKeyDataModel kmsKeyDataModel = new SelectOrCreateKmsKeyDataModel();
+    private final FunctionConfigPageDataModel functionConfigPageDataModel = new FunctionConfigPageDataModel();;
 
     public CreateFunctionRequest toCreateFunctionRequest() {
+
         return new CreateFunctionRequest()
-                .withFunctionName(newFunctionName)
+                .withFunctionName(functionDataModel.getFunctionName())
                 .withRuntime(ServiceApiUtils.JAVA_8)
                 .withDescription(functionConfigPageDataModel.getDescription())
-                .withHandler(functionConfigPageDataModel.getHandler())
-                .withRole(functionConfigPageDataModel.getRole().getArn())
+                .withHandler(getHandler())
+                .withRole(getLambdaRoleDataModel().getExistingResource().getArn())
                 .withMemorySize(functionConfigPageDataModel.getMemory().intValue())
-                .withTimeout(functionConfigPageDataModel.getTimeout().intValue());
+                .withTimeout(functionConfigPageDataModel.getTimeout().intValue())
+                .withPublish(functionConfigPageDataModel.isPublishNewVersion());
     }
 
     public UpdateFunctionConfigurationRequest toUpdateFunctionConfigRequest() {
         return new UpdateFunctionConfigurationRequest()
-                .withFunctionName(existingFunction.getFunctionName())
+                .withFunctionName(functionDataModel.getFunctionName())
                 .withDescription(functionConfigPageDataModel.getDescription())
-                .withHandler(functionConfigPageDataModel.getHandler())
-                .withRole(functionConfigPageDataModel.getRole().getArn())
+                .withHandler(getHandler())
+                .withRole(getLambdaRoleDataModel().getExistingResource().getArn())
                 .withMemorySize(functionConfigPageDataModel.getMemory().intValue())
                 .withTimeout(functionConfigPageDataModel.getTimeout().intValue());
     }
@@ -76,10 +84,12 @@ public class UploadFunctionWizardDataModel {
      *            the existing persistent metadata for this project
      */
     public UploadFunctionWizardDataModel(IProject project,
+            IJavaElement selectedJavaElement,
             List<String> requestHandlerImplementerClasses,
             LambdaFunctionProjectMetadata projectMetadataBeforeUpload) {
 
         this.project = project;
+        this.selectedJavaElement = selectedJavaElement;
         this.projectMetadataBeforeUpload = projectMetadataBeforeUpload == null ?
                 new LambdaFunctionProjectMetadata() : projectMetadataBeforeUpload;
 
@@ -89,8 +99,6 @@ public class UploadFunctionWizardDataModel {
         }
         this.requestHandlerImplementerClasses = Collections
                 .unmodifiableList(requestHandlerImplementerClasses);
-
-        this.functionConfigPageDataModel = new FunctionConfigPageDataModel();
     }
 
     public IProject getProject() {
@@ -105,45 +113,39 @@ public class UploadFunctionWizardDataModel {
         return projectMetadataBeforeUpload;
     }
 
-    public Region getRegion() {
-        return region;
-    }
-
-    public void setRegion(Region region) {
-        this.region = region;
-    }
-
-    public boolean isCreatingNewFunction() {
-        return isCreatingNewFunction;
-    }
-
-    public void setCreatingNewFunction(boolean isCreatingNewFunction) {
-        this.isCreatingNewFunction = isCreatingNewFunction;
-    }
-
-    public FunctionConfiguration getExistingFunction() {
-        return existingFunction;
-    }
-
-    public void setExistingFunction(FunctionConfiguration existingFunction) {
-        this.existingFunction = existingFunction;
-    }
-
-    public String getNewFunctionName() {
-        return newFunctionName;
-    }
-
-    public void setNewFunctionName(String newFunctionName) {
-        this.newFunctionName = newFunctionName;
-    }
-
     public FunctionConfigPageDataModel getFunctionConfigPageDataModel() {
         return functionConfigPageDataModel;
     }
 
-    public void setFunctionConfigPageDataModel(
-            FunctionConfigPageDataModel functionConfigPageDataModel) {
-        this.functionConfigPageDataModel = functionConfigPageDataModel;
+    public String getHandler() {
+        return handler;
     }
 
+    public void setHandler(String handler) {
+        this.handler = handler;
+    }
+
+    public SelectOrCreateBasicLambdaRoleDataModel getLambdaRoleDataModel() {
+        return lambdaRoleDataModel;
+    }
+
+    public SelectOrInputFunctionAliasDataModel getFunctionAliasDataModel() {
+        return functionAliasDataModel;
+    }
+
+    public RegionDataModel getRegionDataModel() {
+        return regionDataModel;
+    }
+
+    public SelectOrInputFunctionDataModel getFunctionDataModel() {
+        return functionDataModel;
+    }
+
+    public SelectOrCreateBucketDataModel getS3BucketDataModel() {
+        return s3BucketDataModel;
+    }
+
+    public SelectOrCreateKmsKeyDataModel getKmsKeyDataModel() {
+        return kmsKeyDataModel;
+    }
 }

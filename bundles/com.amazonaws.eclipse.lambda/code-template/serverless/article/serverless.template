@@ -103,7 +103,7 @@
     },
     "ArticleBucket": {
       "Type": "AWS::S3::Bucket",
-      "Condition" : "CreateBucketTable",
+      "Condition" : "CreateArticleBucket",
       "Properties": {
       }
     }

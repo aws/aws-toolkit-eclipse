@@ -18,12 +18,14 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newCombo
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLabel;
 import static com.amazonaws.util.ValidationUtils.assertNotNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
+import org.eclipse.core.databinding.observable.value.WritableValue;
 import org.eclipse.core.databinding.validation.IValidator;
 import org.eclipse.jface.databinding.viewers.IViewerObservableValue;
 import org.eclipse.jface.databinding.viewers.ViewerProperties;
@@ -44,15 +46,16 @@ import com.amazonaws.eclipse.databinding.ChainValidator;
 public class ComboViewerComplex<T> {
 
     private final ComboViewer comboViewer;
+    private final IObservableValue enabler = new WritableValue();
 
-    private ComboViewerComplex(
+    protected ComboViewerComplex(
             Composite parent,
             ILabelProvider labelProvider,
             Collection<T> items,
             T defaultItem,
             DataBindingContext bindingContext,
             IObservableValue pojoObservableValue,
-            IValidator validator,
+            List<IValidator> validators,
             String labelValue,
             int comboSpan,
             List<ISelectionChangedListener> listeners) {
@@ -67,19 +70,18 @@ public class ComboViewerComplex<T> {
         IViewerObservableValue viewerObservableValue = ViewerProperties.singleSelection().observe(comboViewer);
         bindingContext.bindValue(viewerObservableValue, pojoObservableValue);
 
-        if (validator != null) {
-            ChainValidator<T> comboViewerValidationStatusProvider = new ChainValidator<>(viewerObservableValue, validator);
-            bindingContext.addValidationStatusProvider(comboViewerValidationStatusProvider);
-        }
+        enabler.setValue(true);
+        ChainValidator<T> validatorChain = new ChainValidator<>(viewerObservableValue, enabler, validators);
+        bindingContext.addValidationStatusProvider(validatorChain);
 
-        if (defaultItem != null) {
+        if (defaultItem != null && items.contains(defaultItem)) {
             comboViewer.setSelection(new StructuredSelection(defaultItem));
+        } else if (!items.isEmpty()) {
+            comboViewer.setSelection(new StructuredSelection(items.iterator().next()));
         }
 
-        if (listeners != null && !listeners.isEmpty()) {
-            for (ISelectionChangedListener listener : listeners) {
-                comboViewer.addSelectionChangedListener(listener);
-            }
+        for (ISelectionChangedListener listener : listeners) {
+            comboViewer.addSelectionChangedListener(listener);
         }
     }
 
@@ -87,85 +89,107 @@ public class ComboViewerComplex<T> {
         return this.comboViewer;
     }
 
+    public void setEnabled(boolean enabled) {
+        comboViewer.getCombo().setEnabled(enabled);
+        enabler.setValue(enabled);
+    }
+
     public static <T> ComboViewerComplexBuilder<T> builder() {
         return new ComboViewerComplexBuilder<>();
     }
 
-    public static final class ComboViewerComplexBuilder<T> {
-        private Composite parent;
-        private ILabelProvider labelProvider;
-        private Collection<T> items = Collections.emptyList();
-        private T defaultItem;
-        private DataBindingContext bindingContext;
-        private IObservableValue pojoObservableValue;
-        private IValidator validator;
-        private String labelValue;
-        private int comboSpan = 1;
-        private List<ISelectionChangedListener> listeners;
-
-        public ComboViewerComplex<T> build() {
-            validateParameters();
+    public static class ComboViewerComplexBuilder<T> extends ComboViewerComplexBuilderBase<T, ComboViewerComplex<T>, ComboViewerComplexBuilder<T>>{
+        @Override
+        protected ComboViewerComplex<T> newType() {
             return new ComboViewerComplex<>(
                     parent, labelProvider, items, defaultItem,
-                    bindingContext, pojoObservableValue, validator,
+                    bindingContext, pojoObservableValue, validators,
                     labelValue, comboSpan, listeners);
         }
+    }
 
-        public ComboViewerComplexBuilder<T> composite(Composite parent) {
+    public static abstract class ComboViewerComplexBuilderBase<T, TypeToBuild extends ComboViewerComplex<T>, TypeBuilder extends ComboViewerComplexBuilderBase<T, TypeToBuild, TypeBuilder>> {
+        protected Composite parent;
+        protected ILabelProvider labelProvider;
+        protected Collection<T> items = new ArrayList<>();
+        protected T defaultItem;
+        protected DataBindingContext bindingContext;
+        protected IObservableValue pojoObservableValue;
+        protected List<IValidator> validators = new ArrayList<>();
+        protected String labelValue;
+        protected int comboSpan = 1;
+        protected List<ISelectionChangedListener> listeners = new ArrayList<>();
+
+        protected abstract TypeToBuild newType();
+
+        public TypeToBuild build() {
+            validateParameters();
+            return newType();
+        }
+
+        public TypeBuilder composite(Composite parent) {
             this.parent = parent;
-            return this;
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> labelProvider(ILabelProvider labelProvider) {
+        public TypeBuilder labelProvider(ILabelProvider labelProvider) {
             this.labelProvider = labelProvider;
-            return this;
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> items(Collection<T> items) {
-            this.items = items;
-            return this;
+        public TypeBuilder items(Collection<T> items) {
+            this.items.addAll(items);
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> defaultItem(T defaultItme) {
+        public TypeBuilder defaultItem(T defaultItme) {
             this.defaultItem = defaultItme;
-            return this;
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> bindingContext(DataBindingContext bindingContext) {
+        public TypeBuilder bindingContext(DataBindingContext bindingContext) {
             this.bindingContext = bindingContext;
-            return this;
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> validator(IValidator validator) {
-            this.validator = validator;
-            return this;
+        public TypeBuilder addValidators(IValidator... validators) {
+            this.validators.addAll(Arrays.asList(validators));
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> pojoObservableValue(IObservableValue pojoObservableValue) {
+        public TypeBuilder pojoObservableValue(IObservableValue pojoObservableValue) {
             this.pojoObservableValue = pojoObservableValue;
-            return this;
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> labelValue(String labelValue) {
+        public TypeBuilder labelValue(String labelValue) {
             this.labelValue = labelValue;
-            return this;
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> comboSpan(int comboSpan) {
+        public TypeBuilder comboSpan(int comboSpan) {
             this.comboSpan = comboSpan;
-            return this;
+            return getBuilder();
         }
 
-        public ComboViewerComplexBuilder<T> listeners(List<ISelectionChangedListener> listeners) {
-            this.listeners = listeners;
-            return this;
+        public TypeBuilder addListeners(ISelectionChangedListener... listeners) {
+            return addListeners(Arrays.asList(listeners));
         }
 
-        private void validateParameters() {
+        public TypeBuilder addListeners(List<ISelectionChangedListener> listeners) {
+            this.listeners.addAll(listeners);
+            return getBuilder();
+        }
+
+        @SuppressWarnings("unchecked")
+        private TypeBuilder getBuilder() {
+            return (TypeBuilder)this;
+        }
+
+        protected void validateParameters() {
             assertNotNull(parent, "Parent composite");
             assertNotNull(labelProvider, "LabelProvider");
             assertNotNull(pojoObservableValue, "PojoObservableValue");
-            assertNotNull(items, "Item collection");
         }
     }
 }

@@ -24,6 +24,6 @@ public class DeployServerlessAction extends AbstractLambdaEditorAction{
     @Override
     public void run(IAction action) {
         LambdaAnalytics.trackUploadWizardOpenedFromEditorContextMenu();
-        DeployServerlessProjectHandler.doDeployServerlessTemplate(javaProject.getProject());
+        DeployServerlessProjectHandler.doDeployServerlessTemplate(selectedJavaElement.getJavaProject().getProject());
     }
 }

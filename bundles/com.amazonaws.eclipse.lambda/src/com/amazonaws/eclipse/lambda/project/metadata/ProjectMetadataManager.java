@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IPath;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -38,6 +39,10 @@ public class ProjectMetadataManager {
     private static final String SERVERLESS_PROJECT_METADATA_FILE = "com.amazonaws.eclipse.serverless.project.json";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static {
+        MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
 
     /**
      * This function overrides all the existing metadata for the Lambda project.

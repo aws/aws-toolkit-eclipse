@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-public abstract class AbstractInputDialog extends TitleAreaDialog {
+public abstract class AbstractInputDialog<T> extends TitleAreaDialog {
 
     private final String title;
     private final String message;
@@ -54,6 +54,11 @@ public abstract class AbstractInputDialog extends TitleAreaDialog {
      * Display.syncExec or Display.asyncExec.
      */
     protected abstract void performFinish(String input);
+
+    /**
+     * Return the newly created resource.
+     */
+    public abstract T getCreatedResource();
 
     protected AbstractInputDialog(Shell parentShell, String title,
             String message, String messageDuringAction, String inputFieldLabel,

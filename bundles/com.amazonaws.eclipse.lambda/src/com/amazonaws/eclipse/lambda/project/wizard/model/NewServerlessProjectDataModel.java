@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.model.ImportFileDataModel;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.core.model.ProjectNameDataModel;
@@ -129,13 +130,12 @@ public class NewServerlessProjectDataModel {
         return handlers;
     }
 
-    //TODO version should be modified
     public PomFileTemplateData getServerlessPomTemplateData() {
         PomFileTemplateData data = new PomFileTemplateData();
         data.setGroupId(mavenConfigurationDataModel.getGroupId());
         data.setArtifactId(mavenConfigurationDataModel.getArtifactId());
         data.setVersion("1.0.0");
-        data.setAwsJavaSdkVersion("1.11.124");
+        data.setAwsJavaSdkVersion(MavenFactory.getLatestJavaSdkVersion());
         return data;
     }
 

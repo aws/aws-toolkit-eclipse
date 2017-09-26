@@ -47,6 +47,7 @@ public class TextComplex {
     private ControlDecoration controlDecoration;
     private ISWTObservableValue swtObservableValue;
     private final IObservableValue enabler = new WritableValue();
+    private final ChainValidator<String> validatorChain;
 
     private TextComplex(
             Composite composite,
@@ -58,21 +59,23 @@ public class TextComplex {
             String labelValue,
             String defaultValue,
             int textColSpan,
-            int labelColSpan) {
+            int labelColSpan,
+            String textMessage) {
 
         if (createLabel) newLabel(composite, labelValue, labelColSpan);
         text = newText(composite, "", textColSpan);
+        text.setMessage(textMessage);
         controlDecoration = newControlDecoration(text, "");
 
         swtObservableValue = SWTObservables.observeText(text, SWT.Modify);
         dataBindingContext.bindValue(swtObservableValue, pojoObservableValue);
 
         enabler.setValue(true);
-        ChainValidator<String> handlerPackageValidator = new ChainValidator<>(
+        validatorChain = new ChainValidator<>(
                 swtObservableValue, enabler, validators);
-        dataBindingContext.addValidationStatusProvider(handlerPackageValidator);
+        dataBindingContext.addValidationStatusProvider(validatorChain);
         new DecorationChangeListener(controlDecoration,
-                handlerPackageValidator.getValidationStatus());
+                validatorChain.getValidationStatus());
         if (modifyListener != null) text.addModifyListener(modifyListener);
         swtObservableValue.setValue(defaultValue);
     }
@@ -102,6 +105,7 @@ public class TextComplex {
         private IObservableValue pojoObservableValue;
         private List<IValidator> validators = new ArrayList<>();
         private String labelValue;
+        private String textMessage = "";
 
         private ModifyListener modifyListener;
         private boolean createLabel = true;
@@ -114,7 +118,7 @@ public class TextComplex {
 
             return new TextComplex(
                     composite, dataBindingContext, pojoObservableValue, validators, modifyListener,
-                    createLabel, labelValue, defaultValue, textColSpan, labelColSpan);
+                    createLabel, labelValue, defaultValue, textColSpan, labelColSpan, textMessage);
         }
 
         public TextComplexBuilder composite(Composite composite) {
@@ -175,6 +179,11 @@ public class TextComplex {
 
         public TextComplexBuilder labelColSpan(int labelColSpan) {
             this.labelColSpan = labelColSpan;
+            return this;
+        }
+
+        public TextComplexBuilder textMessage(String textMessage) {
+            this.textMessage = textMessage;
             return this;
         }
 

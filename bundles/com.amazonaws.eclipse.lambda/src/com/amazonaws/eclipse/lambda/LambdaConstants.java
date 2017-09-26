@@ -22,6 +22,10 @@ public class LambdaConstants {
     public static final String LAMBDA_EXECUTION_ROLE_DOC_URL = "https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#lambda-intro-execution-role";
     public static final String LAMBDA_REQUEST_HANDLER_DOC_URL = "https://docs.aws.amazon.com/lambda/latest/dg/java-programming-model-req-resp.html";
     public static final String LAMBDA_STREAM_REQUEST_HANDLER_DOC_URL = "https://docs.aws.amazon.com/lambda/latest/dg/java-handler-io-type-stream.html";
+    public static final String LAMBDA_FUNCTION_VERSIONING_AND_ALIASES_URL = "http://docs.aws.amazon.com/lambda/latest/dg/versioning-aliases.html";
+    public static final String LAMBDA_FUNCTION_ENCRYPTION_URL = "http://docs.aws.amazon.com/AmazonS3/latest/dev/serv-side-encryption.html";
+
+    public static final String LAMBDA_PROJECT_DECORATOR_ID = "com.amazonaws.eclipse.lambda.project.lambdaFunctionProjectDecorator";
 
     public static final WebLinkListener webLinkListener = new WebLinkListener();
 

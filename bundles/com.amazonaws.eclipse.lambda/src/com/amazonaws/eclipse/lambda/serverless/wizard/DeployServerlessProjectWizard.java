@@ -331,8 +331,6 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
 
         if (metadata != null) {
             dataModel.getRegionDataModel().setRegion(RegionUtils.getRegion(metadata.getLastDeploymentRegionId()));
-            dataModel.getBucketDataModel().setBucketName(metadata.getLastDeploymentBucket());
-            dataModel.getStackDataModel().setStackName(metadata.getLastDeploymentStack());
         }
 
         if (metadata == null || metadata.getLastDeploymentRegionId() == null) {

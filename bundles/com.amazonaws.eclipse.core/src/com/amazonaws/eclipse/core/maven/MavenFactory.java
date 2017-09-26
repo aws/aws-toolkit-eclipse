@@ -151,6 +151,10 @@ public class MavenFactory {
         return getJunitDependency(DEFAULT_JUNIT_VERSION, "test");
     }
 
+    public static String getLatestJavaSdkVersion() {
+        return getLatestArtifactVersion(AWS_JAVA_SDK_GROUP_NAME, AWS_JAVA_SDK_ARTIFACT_NAME);
+    }
+
     private static Dependency getLatestArtifactDependency(String groupId, String artifactId, String scope, String type, String defaultVersion) {
         String version = getLatestArtifactVersion(groupId, artifactId);
         if (version == null) {
