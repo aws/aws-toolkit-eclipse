@@ -19,7 +19,7 @@
       <unit id="org.eclipse.swtbot.ide.feature.group" version="2.6.0.201706141832" />
       <unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.6.0.201706141832" />
       <unit id="org.eclipse.swtbot.feature.group" version="2.6.0.201706141832" />
-      <repository location="http://download.eclipse.org/releases/oxygen/"/>
+      <repository location="http://download.eclipse.org/releases/oxygen/201706281000"/>
     </location>
     <location includeMode="planner" includeAllPlatforms="false"
       includeSource="true" includeConfigurePhase="false" type="InstallableUnit">

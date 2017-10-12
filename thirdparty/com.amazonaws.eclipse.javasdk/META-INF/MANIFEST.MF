@@ -171,7 +171,7 @@ Bundle-Name: AWS Toolkit for Eclipse Java SDK Bundle
 Bundle-Version: 1.11.130
 Built-By: zhaoxiz
 Bundle-ManifestVersion: 2
-Bnd-LastModified: 1504630313552
+Bnd-LastModified: 1507767784574
 Created-By: Apache Maven Bundle Plugin
 Tool: Bnd-0.0.357
 Build-Jdk: 1.8.0_141

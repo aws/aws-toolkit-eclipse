@@ -25,7 +25,9 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
+import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.core.ui.preferences.AwsToolkitPreferencePage;
+import com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory;
 
 public class ToolkitAnalyticsPreferencePage extends AwsToolkitPreferencePage
         implements IWorkbenchPreferencePage {
@@ -53,12 +55,15 @@ public class ToolkitAnalyticsPreferencePage extends AwsToolkitPreferencePage
         gridData.widthHint = 300;
         composite.setLayoutData(gridData);
 
-        analyticsEnabledButton = new Button(composite, SWT.CHECK | SWT.MULTI | SWT.WRAP);
-        analyticsEnabledButton.setText(
+        WizardWidgetFactory.newLink(composite, new WebLinkListener(), String.format(
                 "By leaving this box checked, you agree that AWS may anonymously " +
                 "collect analytics about your usage of AWS Toolkit. AWS will handle " +
-                "all information received in accordance with the AWS Privacy Policy " +
-                "(http://aws.amazon.com/privacy/)");
+                "all information received in accordance with the <a href=\"%s\">AWS Privacy Policy</a>.",
+                "http://aws.amazon.com/privacy/"),
+                1);
+
+        analyticsEnabledButton = new Button(composite, SWT.CHECK | SWT.MULTI | SWT.WRAP);
+        analyticsEnabledButton.setText("Enable anonymous collection of analytics");
         analyticsEnabledButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         analyticsEnabledButton.setSelection(getPreferenceStore().getBoolean(
                 PreferenceConstants.P_TOOLKIT_ANALYTICS_COLLECTION_ENABLED));

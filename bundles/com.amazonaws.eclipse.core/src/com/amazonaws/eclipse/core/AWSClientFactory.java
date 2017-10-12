@@ -120,10 +120,12 @@ public class AWSClientFactory {
     /** Manages the cached client objects by region. **/
     private CachedClients cachedClients = new CachedClients();
 
+    private final String accountId;
+
     /**
      * The account info for accessing the user's credentials.
      */
-    private final AccountInfo accountInfo;
+    private AccountInfo accountInfo;
 
     /**
      * Constructs a client factory that uses the given account identifier to
@@ -133,24 +135,22 @@ public class AWSClientFactory {
 
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
 
+        this.accountId = accountId;
         accountInfo = plugin.getAccountManager().getAccountInfo(accountId);
 
-        plugin.getProxyService().addProxyChangeListener(new IProxyChangeListener() {
-            @Override
-            public void proxyInfoChanged(IProxyChangeEvent event) {
-                cachedClientsByEndpoint.invalidateClients();
-                cachedClients.invalidateClients();
-            }
-        });
+        plugin.getProxyService().addProxyChangeListener(this::onProxyChange);
+        plugin.getAccountManager().addAccountInfoChangeListener(this::onAccountInfoChange);
+    }
 
-        plugin.getAccountManager().addAccountInfoChangeListener(new AccountInfoChangeListener() {
-            @Override
-            public void onAccountInfoChange() {
-                cachedClientsByEndpoint.invalidateClients();
-                cachedClients.invalidateClients();
-            }
+    private void onProxyChange(IProxyChangeEvent e) {
+        onAccountInfoChange();
+    }
 
-        });
+    private void onAccountInfoChange() {
+        // When the system AWS accounts refresh, we need to refresh the member variable accountInfo as well in case it is still referencing the previous credentials.
+        accountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(accountId);
+        cachedClientsByEndpoint.invalidateClients();
+        cachedClients.invalidateClients();
     }
 
     // Returns an anonymous S3 client in us-east-1 region for fetching public-read files.

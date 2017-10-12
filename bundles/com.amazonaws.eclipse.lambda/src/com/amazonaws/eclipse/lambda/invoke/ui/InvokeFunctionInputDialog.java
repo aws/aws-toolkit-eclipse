@@ -115,7 +115,7 @@ public class InvokeFunctionInputDialog extends Dialog {
         jsonInputFileButton = newRadioButton(container, "Select one of the JSON files as input: ", 1, false, new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                onJsonInputFileButtonSelected();
+                onRadioButtonSelected();
             }
         });
         jsonInputFileCombo = newCombo(container, 1);
@@ -130,7 +130,7 @@ public class InvokeFunctionInputDialog extends Dialog {
         jsonInputButton = newRadioButton(container, "Enter the JSON input for your function", 2, false, new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                onJsonInputButtonSelected();
+                onRadioButtonSelected();
             }
         });
 
@@ -247,9 +247,9 @@ public class InvokeFunctionInputDialog extends Dialog {
                 jsonInputFileCombo.setItems(new String[] {NONE_FOUND});
                 jsonInputFileCombo.select(0);
                 jsonInputFileCombo.setEnabled(false);
-                jsonInputFileButton.setEnabled(false);
-                jsonInputButton.setEnabled(true);
                 jsonInputButton.setSelection(true);
+                jsonInputFileButton.setSelection(false);
+                onRadioButtonSelected();
             } else {
                 jsonInputFileCombo.removeAll();
                 for (IFile jsonFile : jsonFiles) {
@@ -296,36 +296,22 @@ public class InvokeFunctionInputDialog extends Dialog {
         String handlerClass = lambdaHandlerCombo.getItem(lambdaHandlerCombo.getSelectionIndex());
         md.setLastInvokeHandler(handlerClass);
         jsonInputFileButton.setSelection(md.getLastInvokeSelectJsonFile());
-        int index = jsonInputFileCombo.indexOf(md.getLastInvokeJsonFile());
-        if (index < 0) {
-            index = 0;
-        }
-        jsonInputFileCombo.select(index);
-        onJsonInputFileButtonSelected();
-        jsonInputButton.setSelection(md.getLastInvokeSelectJsonInput());
-        onJsonInputButtonSelected();
+        jsonInputButton.setSelection(!md.getLastInvokeSelectJsonFile());
+        onRadioButtonSelected();
         showLiveLogButton.setSelection(md.getLastInvokeShowLiveLog());
     }
 
-    private void onJsonInputFileButtonSelected() {
+    private void onRadioButtonSelected() {
         jsonInputFileCombo.setEnabled(jsonInputFileButton.getSelection());
-        inputBox.setEditable(!jsonInputFileButton.getSelection());
+        inputBox.setEditable(jsonInputButton.getSelection());
         md.setLastInvokeSelectJsonFile(jsonInputFileButton.getSelection());
-        md.setLastInvokeSelectJsonInput(!jsonInputFileButton.getSelection());
+        md.setLastInvokeSelectJsonInput(jsonInputButton.getSelection());
         if (jsonInputFileButton.getSelection()) {
             onJsonFileSelectionChange();
-        }
-    }
-
-    private void onJsonInputButtonSelected() {
-        jsonInputFileCombo.setEnabled(!jsonInputButton.getSelection());
-        inputBox.setEditable(jsonInputButton.getSelection());
-        md.setLastInvokeSelectJsonFile(jsonInputButton.getSelection());
-        md.setLastInvokeSelectJsonInput(!jsonInputButton.getSelection());
-        if (jsonInputButton.getSelection()) {
+        } else if (jsonInputButton.getSelection()) {
             inputBox.setText(md.getLastInvokeInput());
         }
-     }
+    }
 
     private void onJsonFileSelectionChange() {
         if (jsonInputFileButton.getSelection() == false) {

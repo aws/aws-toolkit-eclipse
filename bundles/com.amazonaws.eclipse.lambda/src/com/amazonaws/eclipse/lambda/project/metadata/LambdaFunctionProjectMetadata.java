@@ -162,7 +162,7 @@ public class LambdaFunctionProjectMetadata {
     @JsonIgnore
     public boolean getLastInvokeSelectJsonFile() {
         LambdaFunctionInvokeMetadata lastInvoke = getLastInvoke();
-        return lastInvoke == null ? true : lastInvoke.isSelectJsonFile();
+        return lastInvoke == null ? false : lastInvoke.isSelectJsonFile();
     }
 
     @JsonIgnore
