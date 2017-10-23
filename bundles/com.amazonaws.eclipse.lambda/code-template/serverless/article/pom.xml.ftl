@@ -30,14 +30,6 @@
             <goals>
               <goal>shade</goal>
             </goals>
-            <configuration>
-              <artifactSet>
-                <excludes>
-                  <exclude>com.amazonaws:aws-lambda-java-events</exclude>
-                  <exclude>com.amazonaws:aws-lambda-java-core</exclude>
-                </excludes>
-              </artifactSet>
-            </configuration>
           </execution>
         </executions>
       </plugin>

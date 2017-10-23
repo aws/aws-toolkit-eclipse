@@ -44,7 +44,7 @@ public class ProjectNameComposite extends Composite {
                 .composite(this)
                 .dataBindingContext(context)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, ProjectNameDataModel.P_PROJECT_NAME))
-                .validator(new ProjectNameValidator())
+                .addValidator(new ProjectNameValidator())
                 .defaultValue(dataModel.getProjectName())
                 .labelValue("Project name:")
                 .build();

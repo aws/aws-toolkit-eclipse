@@ -4,7 +4,9 @@
     "HelloWorld": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
-        "Handler": "HelloWorld"
+        "Handler": "${packageName}.HelloWorld",
+        "Runtime" : "java8",
+        "CodeUri" : "./target/${artifactId}-${version}.jar"
       }
     }
   }

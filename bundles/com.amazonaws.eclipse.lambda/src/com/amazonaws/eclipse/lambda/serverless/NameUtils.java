@@ -22,8 +22,11 @@ public class NameUtils {
     public static final String SERVERLESS_INPUT_CLASS_NAME = "ServerlessInput";
     public static final String SERVERLESS_OUTPUT_CLASS_NAME = "ServerlessOutput";
 
-    public static String toHandlerClassName(String operationName) {
-        return capitalizeWord(operationName);
+    /*
+     * Transform the handler name (may or may not be the FQCN) to the class name.
+     */
+    public static String toHandlerClassName(String handlerName) {
+        return capitalizeWord(handlerName.substring(handlerName.lastIndexOf(".") + 1));
     }
 
     public static String toModelClassName(String modelName) {

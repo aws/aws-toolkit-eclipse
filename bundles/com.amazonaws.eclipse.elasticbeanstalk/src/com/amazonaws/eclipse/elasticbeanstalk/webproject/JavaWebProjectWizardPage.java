@@ -132,7 +132,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
     private void createMavenConfigurationComposite(Composite composite) {
         Group group = newGroup(composite, "Maven configuration");
         this.mavenConfigurationComposite = new MavenConfigurationComposite(
-                group, bindingContext, dataModel.getMavenConfigurationDataModel(), null, null, true);
+                group, bindingContext, dataModel.getMavenConfigurationDataModel());
     }
 
     private void createSessionManagerGroup(Composite composite) {

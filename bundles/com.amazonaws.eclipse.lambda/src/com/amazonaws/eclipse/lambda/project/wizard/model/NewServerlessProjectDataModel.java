@@ -14,8 +14,9 @@
 */
 package com.amazonaws.eclipse.lambda.project.wizard.model;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,7 @@ import com.amazonaws.eclipse.lambda.blueprint.ServerlessBlueprint;
 import com.amazonaws.eclipse.lambda.blueprint.ServerlessBlueprintsConfig;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.template.data.PomFileTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.SamFileTemplateData;
 import com.amazonaws.eclipse.lambda.serverless.NameUtils;
 import com.amazonaws.eclipse.lambda.serverless.Serverless;
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessFunction;
@@ -37,6 +39,8 @@ import com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplat
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import freemarker.template.TemplateException;
+
 /**
  * Serverless project creation data model. It also manages all other models throughout this stage, such as
  * ServerlessModel, freemarker template models.
@@ -44,7 +48,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public class NewServerlessProjectDataModel {
 
     /* These constants must be the same to the Pojo property names */
-    public static final String P_PACKAGE_PREFIX = "packagePrefix";
     public static final String P_BLUEPRINT_NAME = "blueprintName";
     public static final String P_USE_BLUEPRINT = "useBlueprint";
     public static final String P_USE_SERVERLESS_TEMPLATE_FILE = "useServerlessTemplateFile";
@@ -56,7 +59,6 @@ public class NewServerlessProjectDataModel {
     private final MavenConfigurationDataModel mavenConfigurationDataModel = new MavenConfigurationDataModel();
     private final ImportFileDataModel importFileDataModel = new ImportFileDataModel();
 
-    private String packagePrefix = "com.amazonaws.serverless.demo";
     private ServerlessBlueprint selectedBlueprint = BLUEPRINTS_CONFIG.getBlueprints()
             .get(BLUEPRINTS_CONFIG.getDefaultBlueprint());
     private String blueprintName = selectedBlueprint.getDisplayName();
@@ -73,12 +75,6 @@ public class NewServerlessProjectDataModel {
     }
     public ImportFileDataModel getImportFileDataModel() {
         return importFileDataModel;
-    }
-    public String getPackagePrefix() {
-        return packagePrefix;
-    }
-    public void setPackagePrefix(String packagePrefix) {
-        this.packagePrefix = packagePrefix;
     }
 
     public String getBlueprintName() {
@@ -106,25 +102,31 @@ public class NewServerlessProjectDataModel {
         this.useServerlessTemplateFile = useServerlessTemplateFile;
     }
     public ServerlessDataModelTemplateData getServerlessDataModelTemplateData()
-            throws JsonParseException, JsonMappingException, IOException {
+            throws JsonParseException, JsonMappingException, IOException, TemplateException {
         buildServerlessModel();
         ServerlessDataModelTemplateData data = new ServerlessDataModelTemplateData();
-        data.setPackageName(NameUtils.toModelPackageName(packagePrefix));
+        data.setPackageName(NameUtils.toModelPackageName(mavenConfigurationDataModel.getPackageName()));
         data.setServerlessInputClassName(NameUtils.SERVERLESS_INPUT_CLASS_NAME);
         data.setServerlessOutputClassName(NameUtils.SERVERLESS_OUTPUT_CLASS_NAME);
         return data;
     }
 
     public List<ServerlessHandlerTemplateData> getServerlessHandlerTemplateData()
-            throws JsonParseException, JsonMappingException, IOException {
+            throws JsonParseException, JsonMappingException, IOException, TemplateException {
         buildServerlessModel();
         List<ServerlessHandlerTemplateData> handlers = new ArrayList<>();
         for (ServerlessFunction function : serverlessModel.getServerlessFunctions().values()) {
             ServerlessHandlerTemplateData template = new ServerlessHandlerTemplateData();
-            template.setPackageName(NameUtils.toHandlerPackageName(packagePrefix));
-            template.setClassName(NameUtils.toHandlerClassName(function.getHandler()));
-            template.setInputFqcn(NameUtils.toServerlessInputModelFqcn(packagePrefix));
-            template.setOutputFqcn(NameUtils.toServerlessOutputModelFqcn(packagePrefix));
+            String handlerName = function.getHandler();
+            int lastDotIndex = handlerName.lastIndexOf(".");
+            if (lastDotIndex < 0) {
+                template.setPackageName(NameUtils.toHandlerPackageName(mavenConfigurationDataModel.getPackageName()));
+            } else {
+                template.setPackageName(handlerName.substring(0, lastDotIndex));
+            }
+            template.setClassName(NameUtils.toHandlerClassName(handlerName));
+            template.setInputFqcn(NameUtils.toServerlessInputModelFqcn(mavenConfigurationDataModel.getPackageName()));
+            template.setOutputFqcn(NameUtils.toServerlessOutputModelFqcn(mavenConfigurationDataModel.getPackageName()));
             handlers.add(template);
         }
         return handlers;
@@ -134,18 +136,26 @@ public class NewServerlessProjectDataModel {
         PomFileTemplateData data = new PomFileTemplateData();
         data.setGroupId(mavenConfigurationDataModel.getGroupId());
         data.setArtifactId(mavenConfigurationDataModel.getArtifactId());
-        data.setVersion("1.0.0");
+        data.setVersion(mavenConfigurationDataModel.getVersion());
         data.setAwsJavaSdkVersion(MavenFactory.getLatestJavaSdkVersion());
         return data;
     }
 
-    private void buildServerlessModel() throws JsonParseException, JsonMappingException, IOException {
+    public SamFileTemplateData getServerlessSamTemplateData() {
+        SamFileTemplateData data = new SamFileTemplateData();
+        data.setPackageName(NameUtils.toHandlerPackageName(mavenConfigurationDataModel.getPackageName()));
+        data.setArtifactId(mavenConfigurationDataModel.getArtifactId());
+        data.setVersion(mavenConfigurationDataModel.getVersion());
+        return data;
+    }
+
+    private void buildServerlessModel() throws JsonParseException, JsonMappingException, IOException, TemplateException {
         if (serverlessModel != null) return;
         if (isUseBlueprint()) {
             ServerlessBlueprint blueprint = getSelectedBlueprint();
-            File serverlessFile = CodeTemplateManager.getInstance().getServerlessSamFile(blueprint);
-            serverlessModel = Serverless.load(serverlessFile);
-            importFileDataModel.setFilePath(serverlessFile.getAbsolutePath());
+            String content = CodeTemplateManager.processTemplateWithData(
+                    CodeTemplateManager.getInstance().getServerlessSamTemplate(blueprint), getServerlessSamTemplateData());
+            serverlessModel = Serverless.load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
         } else {
             serverlessModel = Serverless.load(importFileDataModel.getFilePath());
         }

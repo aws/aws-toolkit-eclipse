@@ -31,7 +31,6 @@ import com.amazonaws.util.StringUtils;
 /**
  * A helper class used to perform common Maven related operations.
  */
-@SuppressWarnings("restriction")
 public class MavenFactory {
 
     private static final String MAVEN_SOURCE_FOLDER = "src/main/java";
@@ -191,11 +190,10 @@ public class MavenFactory {
 
     /**
      * Assume package name from the group id and artifact id: concatenating them with a dot '.'.
-     * Return null if the parameter is not valid.
+     * Return empty string if the parameter is not valid.
      */
     public static String assumePackageName(String groupId, String artifactId) {
-
         return StringUtils.isNullOrEmpty(groupId) || StringUtils.isNullOrEmpty(artifactId)
-                ? null : groupId + "." + artifactId;
+                ? "" : groupId + "." + artifactId;
     }
 }

@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.lambda.project.wizard.page;
 
+import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel.P_SHOW_README_FILE;
 
 import org.eclipse.core.databinding.AggregateValidationStatus;
@@ -28,6 +29,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 
 import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.ui.MavenConfigurationComposite;
@@ -99,15 +101,14 @@ public class NewLambdaJavaFunctionProjectWizardPageOne extends WizardPage {
     }
 
     protected void createMavenConfigurationComposite(Composite composite) {
+        Group group = newGroup(composite, "Maven configuration");
         mavenConfigurationComposite = new MavenConfigurationComposite(
-                composite, dataBindingContext, dataModel.getMavenConfigurationDataModel(),
-                mavenModifyListener, mavenModifyListener);
+                group, dataBindingContext, dataModel.getMavenConfigurationDataModel());
     }
 
     protected void createLambdaFunctionComposite(Composite composite) {
         lambdaFunctionComposite = new LambdaFunctionComposite(
                 composite, dataModel.getLambdaFunctionDataModel(), dataBindingContext);
-        lambdaFunctionComposite.createPackageNameControl();
         lambdaFunctionComposite.createClassNameControl();
         lambdaFunctionComposite.createInputTypeControl();
         lambdaFunctionComposite.createSeparator();

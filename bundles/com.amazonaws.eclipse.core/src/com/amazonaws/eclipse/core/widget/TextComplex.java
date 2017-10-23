@@ -136,12 +136,6 @@ public class TextComplex {
             return this;
         }
 
-        @Deprecated
-        public TextComplexBuilder validator(IValidator validator) {
-            this.validators.add(validator);
-            return this;
-        }
-
         public TextComplexBuilder addValidator(IValidator validator) {
             this.validators.add(validator);
             return this;

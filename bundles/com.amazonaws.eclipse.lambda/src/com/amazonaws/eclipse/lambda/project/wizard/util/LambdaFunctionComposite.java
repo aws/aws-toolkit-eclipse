@@ -19,7 +19,6 @@ import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
 import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_CLASS_NAME;
 import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_INPUT_TYPE;
-import static com.amazonaws.eclipse.lambda.model.LambdaFunctionDataModel.P_PACKAGE_NAME;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -48,7 +47,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 
-import com.amazonaws.eclipse.core.validator.PackageNameValidator;
 import com.amazonaws.eclipse.core.widget.ComboComplex;
 import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.databinding.NotEmptyValidator;
@@ -115,24 +113,12 @@ public class LambdaFunctionComposite {
         inputComposite.setLayout(inputCompLayout);
     }
 
-    public void createPackageNameControl() {
-        this.packageNameComplex = TextComplex.builder()
-                .composite(inputComposite)
-                .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_PACKAGE_NAME))
-                .validator(new PackageNameValidator("Package name must be provided!"))
-                .labelValue("Package Name:")
-                .defaultValue(dataModel.getPackageName())
-                .textColSpan(2)
-                .build();
-    }
-
     public void createClassNameControl() {
         this.classNameComplex = TextComplex.builder()
                 .composite(inputComposite)
                 .dataBindingContext(dataBindingContext)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_CLASS_NAME))
-                .validator(new NotEmptyValidator("Please provide a valid class name for the handler"))
+                .addValidator(new NotEmptyValidator("Please provide a valid class name for the handler"))
                 .labelValue("Class Name:")
                 .defaultValue(dataModel.getClassName())
                 .textColSpan(2)

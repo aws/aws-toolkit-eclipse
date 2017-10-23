@@ -9,4 +9,5 @@ Bundle-ClassPath: .
 Import-Package: com.fasterxml.jackson.core,
  com.fasterxml.jackson.databind,
  org.junit
-Require-Bundle: com.amazonaws.eclipse.lambda;bundle-version="1.0.0"
+Require-Bundle: com.amazonaws.eclipse.lambda;bundle-version="1.0.0",
+ com.amazonaws.eclipse.core;bundle-version="2.3.1"

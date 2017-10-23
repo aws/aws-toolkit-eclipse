@@ -62,7 +62,7 @@ public class ImportFileComposite extends Composite {
                 .dataBindingContext(context)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_FILE_PATH))
                 .labelValue("Import:")
-                .validator(filePathValidator)
+                .addValidator(filePathValidator)
                 .defaultValue(dataModel.getFilePath())
                 .build();
 

@@ -51,10 +51,13 @@ import com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplat
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import freemarker.template.TemplateException;
+
 public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
 
     private static final String DEFAULT_GROUP_ID = "com.serverless";
     private static final String DEFAULT_ARTIFACT_ID = "demo";
+    private static final String DEFAULT_VERSION = "1.0.0";
     private static final String DEFAULT_PACKAGE_NAME = MavenFactory.assumePackageName(DEFAULT_GROUP_ID, DEFAULT_ARTIFACT_ID);
 
     private final NewServerlessProjectDataModel dataModel = new NewServerlessProjectDataModel();
@@ -82,7 +85,6 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
 
     @Override
     protected IStatus doFinish(IProgressMonitor monitor) {
-
         LambdaAnalytics.trackServerlessProjectSelection(dataModel);
         final String projectName = dataModel.getProjectNameDataModel().getProjectName();
         final Model mavenModel = getModel();
@@ -146,12 +148,12 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
 
     private static IFile findHandlerClassFile(IProject project,
             NewServerlessProjectDataModel dataModel)
-                    throws JsonParseException, JsonMappingException, IOException {
+                    throws JsonParseException, JsonMappingException, IOException, TemplateException {
 
         IPath handlerPath = new Path("");
         List<ServerlessHandlerTemplateData> templates = dataModel.getServerlessHandlerTemplateData();
         if (templates == null || templates.isEmpty()) {
-            handlerPath = handlerPath.append(CodeTemplateManager.SERVERLESS_BLUEPRINT_SAM_NAME);
+            handlerPath = handlerPath.append(CodeTemplateManager.SAM_FILE_NAME);
         } else {
             ServerlessHandlerTemplateData template = templates.get(0);
             handlerPath = handlerPath.append(MavenFactory.getMavenSourceFolder());
@@ -168,12 +170,13 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
     protected void initDataModel() {
         dataModel.getMavenConfigurationDataModel().setGroupId(DEFAULT_GROUP_ID);
         dataModel.getMavenConfigurationDataModel().setArtifactId(DEFAULT_ARTIFACT_ID);
-        dataModel.setPackagePrefix(DEFAULT_PACKAGE_NAME);
+        dataModel.getMavenConfigurationDataModel().setVersion(DEFAULT_VERSION);
+        dataModel.getMavenConfigurationDataModel().setPackageName(DEFAULT_PACKAGE_NAME);
     }
 
     private void saveMetadata() {
         ServerlessProjectMetadata metadata = new ServerlessProjectMetadata();
-        metadata.setPackagePrefix(dataModel.getPackagePrefix());
+        metadata.setPackagePrefix(dataModel.getMavenConfigurationDataModel().getPackageName());
         try {
             ProjectMetadataManager.saveServerlessProjectMetadata(project, metadata);
         } catch (IOException e) {

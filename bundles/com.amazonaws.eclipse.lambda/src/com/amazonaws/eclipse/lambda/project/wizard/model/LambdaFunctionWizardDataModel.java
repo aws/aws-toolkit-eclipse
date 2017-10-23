@@ -58,7 +58,7 @@ public class LambdaFunctionWizardDataModel {
         PomFileTemplateData pomData = new PomFileTemplateData();
         pomData.setGroupId(mavenConfigurationDataModel.getGroupId());
         pomData.setArtifactId(mavenConfigurationDataModel.getArtifactId());
-        pomData.setVersion("1.0.0");
+        pomData.setVersion(mavenConfigurationDataModel.getVersion());
         pomData.setAwsJavaSdkVersion(MavenFactory.getLatestJavaSdkVersion());
         return pomData;
     }

@@ -57,7 +57,8 @@ public class CodeTemplateManager {
     private static final String SERVERLESS_OUTPUT_MODEL_PATH = String.format("%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, "serverless-output.ftl");
     private static final String SERVERLESS_HANDLER_CLASS_PATH = String.format("%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, "serverless-handler.ftl");
 
-    public static final String SERVERLESS_BLUEPRINT_SAM_NAME = "serverless.template";
+    public static final String SAM_FILE_NAME = "serverless.template";
+    public static final String SERVERLESS_BLUEPRINT_SAM_NAME = "serverless.template.ftl";
     private static final String SERVERLESS_BLUEPRINT_POM_NAME = "pom.xml.ftl";
 
     private static final String TEST_RESOURCES_BASE_DIR = "test-resource";
@@ -171,9 +172,12 @@ public class CodeTemplateManager {
         return getTemplate(String.format("%s/%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), templatePath));
     }
 
-    public File getServerlessSamFile(ServerlessBlueprint blueprint) {
-        return getFile(String.format("%s/%s/%s",
-                SERVERLESS_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(), SERVERLESS_BLUEPRINT_SAM_NAME));
+    /**
+     * Template data model {@link #com.amazonaws.eclipse.lambda.project.template.data.SamFileTemplateData}
+     */
+    public Template getServerlessSamTemplate(ServerlessBlueprint blueprint) {
+        return getTemplate(String.format("%s/%s/%s", SERVERLESS_BLUEPRINTS_BASE_DIR, blueprint.getBaseDir(),
+                SERVERLESS_BLUEPRINT_SAM_NAME));
     }
 
     /**

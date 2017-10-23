@@ -14,9 +14,7 @@
  */
 package com.amazonaws.eclipse.lambda.model;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
+import com.amazonaws.eclipse.core.model.AbstractAwsToolkitDataModel;
 import com.amazonaws.eclipse.lambda.blueprint.BlueprintsProvider;
 import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprint;
 import com.amazonaws.eclipse.lambda.blueprint.LambdaBlueprintsConfig;
@@ -25,16 +23,16 @@ import com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplat
 /**
  * Data model for Lambda function composite.
  */
-public class LambdaFunctionDataModel {
+public class LambdaFunctionDataModel extends AbstractAwsToolkitDataModel {
 
-    public static final String P_PACKAGE_NAME = "packageName";
+    private static final String P_PACKAGE_NAME = "packageName";
     public static final String P_CLASS_NAME = "className";
     public static final String P_INPUT_TYPE = "inputType";
 
     private static final LambdaBlueprintsConfig BLUEPRINTS_CONFIG = BlueprintsProvider.provideLambdaBlueprints();
 
-    private String packageName = "com.amazonaws.lambda.demo";
     private String className = "LambdaFunctionHandler";
+    private String packageName = "com.amazonaws.lambda.demo";
 
     private LambdaBlueprint selectedBlueprint = BLUEPRINTS_CONFIG.getBlueprints()
             .get(BLUEPRINTS_CONFIG.getDefaultBlueprint());
@@ -55,24 +53,12 @@ public class LambdaFunctionDataModel {
         return data;
     }
 
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
-    }
-
     public String getPackageName() {
         return packageName;
     }
 
     public void setPackageName(String packageName) {
-        String oldValue = this.getPackageName();
-        this.packageName = packageName;
-        this.pcs.firePropertyChange(P_PACKAGE_NAME, oldValue, packageName);
+        this.setProperty(P_PACKAGE_NAME, packageName, this::getPackageName, (newValue) -> this.packageName = newValue);
     }
 
     public String getClassName() {
@@ -80,9 +66,7 @@ public class LambdaFunctionDataModel {
     }
 
     public void setClassName(String className) {
-        String oldValue = this.getClassName();
-        this.className = className;
-        this.pcs.firePropertyChange(P_CLASS_NAME, oldValue, className);
+        this.setProperty(P_CLASS_NAME, className, this::getClassName, (newValue) -> this.className = newValue);
     }
 
     public String getInputType() {
@@ -90,10 +74,8 @@ public class LambdaFunctionDataModel {
     }
 
     public void setInputType(String inputType) {
-        String oldValue = this.getInputType();
-        this.inputType = inputType;
+        this.setProperty(P_INPUT_TYPE, inputType, this::getInputType, (newValue) -> this.inputType = newValue);
         this.selectedBlueprint = getLambdaBlueprint(inputType);
-        this.pcs.firePropertyChange(P_INPUT_TYPE, oldValue, inputType);
     }
 
     public LambdaBlueprint getSelectedBlueprint() {

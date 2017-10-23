@@ -19,27 +19,30 @@ import com.amazonaws.eclipse.core.maven.MavenFactory;
 /**
  * Data model for Maven project configuration composite.
  */
-public class MavenConfigurationDataModel {
+public class MavenConfigurationDataModel extends AbstractAwsToolkitDataModel {
 
     public static final String P_GROUP_ID = "groupId";
     public static final String P_ARTIFACT_ID = "artifactId";
     public static final String P_PACKAGE_NAME = "packageName";
     public static final String P_VERSION = "version";
 
-    private String groupId;
-    private String artifactId;
-    private String version;
-    private String packageName;
+    private String groupId = "com.amazonaws";
+    private String artifactId = "samples";
+    private String version = "1.0.0";
+    private String packageName = MavenFactory.assumePackageName(groupId, artifactId);
 
     public String getGroupId() {
         return groupId;
     }
+
     public void setGroupId(String groupId) {
         this.groupId = groupId;
     }
+
     public String getArtifactId() {
         return artifactId;
     }
+
     public void setArtifactId(String artifactId) {
         this.artifactId = artifactId;
     }
@@ -47,15 +50,16 @@ public class MavenConfigurationDataModel {
     public String getVersion() {
         return version;
     }
+
     public void setVersion(String version) {
         this.version = version;
     }
+
     public void setPackageName(String packageName) {
-        this.packageName = packageName;
+        this.setProperty(P_PACKAGE_NAME, packageName, this::getPackageName, (newValue) -> this.packageName = newValue);
     }
 
     public String getPackageName() {
-        return packageName != null ? packageName
-                : MavenFactory.assumePackageName(groupId, artifactId);
+        return packageName;
     }
 }

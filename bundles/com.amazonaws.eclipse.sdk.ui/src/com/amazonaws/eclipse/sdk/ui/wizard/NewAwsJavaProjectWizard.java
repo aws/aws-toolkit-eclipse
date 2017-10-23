@@ -62,6 +62,8 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
 
     private static final String DEFAULT_GROUP_ID = "com.amazonaws";
     private static final String DEFAULT_ARTIFACT_ID = "samples";
+    private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String DEFAULT_PACKAGE_NAME = MavenFactory.assumePackageName(DEFAULT_GROUP_ID, DEFAULT_ARTIFACT_ID);
 
     private final NewAwsJavaProjectWizardDataModel dataModel = new NewAwsJavaProjectWizardDataModel();
     private final String actionSource;
@@ -93,6 +95,8 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
         MavenConfigurationDataModel mavenDataModel = dataModel.getMavenConfigurationDataModel();
         mavenDataModel.setGroupId(DEFAULT_GROUP_ID);
         mavenDataModel.setArtifactId(DEFAULT_ARTIFACT_ID);
+        mavenDataModel.setVersion(DEFAULT_VERSION);
+        mavenDataModel.setPackageName(DEFAULT_PACKAGE_NAME);
         dataModel.setActionSource(actionSource);
     }
 
@@ -135,7 +139,7 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
         model.setModelVersion(MavenFactory.getMavenModelVersion());
         model.setGroupId(dataModel.getMavenConfigurationDataModel().getGroupId());
         model.setArtifactId(dataModel.getMavenConfigurationDataModel().getArtifactId());
-        model.setVersion("1.0.0");  // Set a version to make Maven happy, while user doesn't need to set this.
+        model.setVersion(dataModel.getMavenConfigurationDataModel().getVersion());
         List<Dependency> dependencies = new ArrayList<>();
         dependencies.add(MavenFactory.getLatestAwsSdkDependency("compile"));
         dependencies.add(MavenFactory.getAmazonKinesisClientDependency("1.2.1", "compile"));

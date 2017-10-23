@@ -121,7 +121,7 @@ public class GitCredentialsComposite extends Composite {
                 .composite(this)
                 .dataBindingContext(dataBindingContext)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_USERNAME))
-                .validator(usernameValidator == null ? new NotEmptyValidator("User name must be provided!") : usernameValidator)
+                .addValidator(usernameValidator == null ? new NotEmptyValidator("User name must be provided!") : usernameValidator)
                 .labelValue("User name:")
                 .defaultValue(dataModel.getUsername())
                 .build();
@@ -130,7 +130,7 @@ public class GitCredentialsComposite extends Composite {
                 .composite(this)
                 .dataBindingContext(dataBindingContext)
                 .pojoObservableValue(PojoObservables.observeValue(dataModel, P_PASSWORD))
-                .validator(passwordValidator == null ? new NotEmptyValidator("Password must be provided!") : passwordValidator)
+                .addValidator(passwordValidator == null ? new NotEmptyValidator("Password must be provided!") : passwordValidator)
                 .labelValue("Password: ")
                 .defaultValue(dataModel.getPassword())
                 .build();

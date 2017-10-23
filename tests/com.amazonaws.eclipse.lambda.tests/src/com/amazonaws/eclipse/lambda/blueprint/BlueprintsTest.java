@@ -1,13 +1,17 @@
 package com.amazonaws.eclipse.lambda.blueprint;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +19,9 @@ import org.junit.Test;
 import com.amazonaws.eclipse.lambda.project.template.CodeTemplateManager;
 import com.amazonaws.eclipse.lambda.project.template.data.LambdaBlueprintTemplateData;
 import com.amazonaws.eclipse.lambda.project.template.data.PomFileTemplateData;
+import com.amazonaws.eclipse.lambda.project.template.data.SamFileTemplateData;
+import com.amazonaws.eclipse.lambda.serverless.Serverless;
+import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessModel;
 import com.amazonaws.eclipse.lambda.serverless.template.ServerlessDataModelTemplateData;
 import com.amazonaws.eclipse.lambda.serverless.template.ServerlessHandlerTemplateData;
 
@@ -28,6 +35,7 @@ public class BlueprintsTest {
     private ServerlessDataModelTemplateData serverlessDataModelTemplateData;
     private ServerlessHandlerTemplateData serverlessHandlerTemplateData;
     private PomFileTemplateData pomFileTemplateData;
+    private SamFileTemplateData samFileTemplateData;
 
     @Before
     public void setUp() {
@@ -35,6 +43,7 @@ public class BlueprintsTest {
         serverlessDataModelTemplateData = mockServerlessDataModelTemplateData();
         serverlessHandlerTemplateData = mockServerlessHandlerTemplateData();
         pomFileTemplateData = mockPomFileTemplateData();
+        samFileTemplateData = mockSamFileTemplateData();
     }
 
     // Assert all the needed files exist and the templates are valid with the mocked data.
@@ -98,7 +107,8 @@ public class BlueprintsTest {
         for (Entry<String, ServerlessBlueprint> entry : blueprints.entrySet()) {
             ServerlessBlueprint blueprint = entry.getValue();
             assertNotNull(blueprint.getDisplayName());
-            assertFilesExist(manager.getServerlessSamFile(blueprint));
+
+            assertSamTemplateValid(samFileTemplateData, manager, blueprint);
             assertTemplatesValid(pomFileTemplateData, manager.getServerlessPomFile(blueprint));
 
             Map<String, String> handlers = blueprint.getHandlerTemplatePaths();
@@ -145,6 +155,14 @@ public class BlueprintsTest {
         return pomFileTemplateData;
     }
 
+    private SamFileTemplateData mockSamFileTemplateData() {
+        SamFileTemplateData data = new SamFileTemplateData();
+        data.setPackageName("com.foo");
+        data.setArtifactId("bar");
+        data.setVersion("1.0.0");
+        return data;
+    }
+
     private void assertTemplatesValid(Object dataModel, Template... templates) {
         for (Template template : templates) {
             try {
@@ -153,6 +171,23 @@ public class BlueprintsTest {
             } catch (TemplateException | IOException e) {
                 fail(template.getName());
             }
+        }
+    }
+
+    /*
+     * Assert all the lambda functions defined in the sam file have the corresponding template file.
+     */
+    private void assertSamTemplateValid(Object dataModel, CodeTemplateManager manager, ServerlessBlueprint blueprint) {
+        Template samTemplate = manager.getServerlessSamTemplate(blueprint);
+        try {
+            String content = CodeTemplateManager.processTemplateWithData(samTemplate, dataModel);
+            assertStringNotEmpty(content);
+            ServerlessModel model = Serverless.load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
+            Set<String> physicalIds = model.getServerlessFunctions().keySet();
+            Set<String> pathIds = blueprint.getHandlerTemplatePaths().keySet();
+            assertEquals(physicalIds, pathIds);
+        } catch (TemplateException | IOException e) {
+            fail(samTemplate.getName());
         }
     }
 

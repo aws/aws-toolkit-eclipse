@@ -50,6 +50,8 @@ public class NewLambdaJavaFunctionProjectWizard extends AbstractAwsProjectWizard
 
     private static final String DEFAULT_GROUP_ID = "com.amazonaws.lambda";
     private static final String DEFAULT_ARTIFACT_ID = "demo";
+    private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String DEFAULT_PACKAGE_NAME = MavenFactory.assumePackageName(DEFAULT_GROUP_ID, DEFAULT_ARTIFACT_ID);
 
     private final LambdaFunctionWizardDataModel dataModel = new LambdaFunctionWizardDataModel();
     private NewLambdaJavaFunctionProjectWizardPageOne pageOne;
@@ -145,8 +147,14 @@ public class NewLambdaJavaFunctionProjectWizard extends AbstractAwsProjectWizard
     @Override
     protected void initDataModel() {
         MavenConfigurationDataModel mavenDataModel = dataModel.getMavenConfigurationDataModel();
+        // Bind the package name property from the maven config model to Lambda config model to show the template code changes in the preview.
+        mavenDataModel.addPropertyChangeListener((e) -> {
+            dataModel.getLambdaFunctionDataModel().setPackageName(mavenDataModel.getPackageName());
+        });
         mavenDataModel.setGroupId(DEFAULT_GROUP_ID);
         mavenDataModel.setArtifactId(DEFAULT_ARTIFACT_ID);
+        mavenDataModel.setVersion(DEFAULT_VERSION);
+        mavenDataModel.setPackageName(DEFAULT_PACKAGE_NAME);
         dataModel.setShowReadmeFile(LambdaPlugin.getDefault().getPreferenceStore()
               .getBoolean(LambdaPlugin.PREF_K_SHOW_README_AFTER_CREATE_NEW_PROJECT));
     }

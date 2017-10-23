@@ -1,8 +1,12 @@
 {
   "current": [
+    "* Refine the Maven configuration component to have consistent behavior.",
+    "* Update AWS logo."
+  ],
+  "v201710120027": [
     "* **Resolving Issues: #50, #82.**"
   ],
-  "v201709262229 ": [
+  "v201709262229": [
     "* **Support Lambda function versioning and alias**",
     "",
     "  * Upload Lambda function to AWS with alias and S3 Server-Side-Encryption.",
@@ -22,12 +26,12 @@
     "",
     "* **Resolving Issue: #56, #58, #66, #72.**"
   ],
-  "201709081818 ": [
+  "v201709081818": [
     "* Merge Pull Request: #81",
     "* Resolving Issues: #80",
     "* Move the bug report to the ErrorReport platform."
   ],
-  "v201708161930 ": [
+  "v201708161930": [
     "* Merge Pull Request: #78",
     "* Resolving Issues: #25, #61, #71, and #77",
     "* Adding more metrics for AWS Overview Editor, Amazon EC2 Explorer, and Create a new AWS Java Project."

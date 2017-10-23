@@ -15,7 +15,6 @@
 package com.amazonaws.eclipse.lambda.project.wizard.page;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newSashForm;
-import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_PACKAGE_PREFIX;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_USE_BLUEPRINT;
 import static com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel.P_USE_SERVERLESS_TEMPLATE_FILE;
 
@@ -38,22 +37,19 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 
-import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.ui.ImportFileComposite;
 import com.amazonaws.eclipse.core.ui.MavenConfigurationComposite;
 import com.amazonaws.eclipse.core.ui.ProjectNameComposite;
-import com.amazonaws.eclipse.core.validator.PackageNameValidator;
+import com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory;
 import com.amazonaws.eclipse.core.widget.RadioButtonComplex;
-import com.amazonaws.eclipse.core.widget.TextComplex;
 import com.amazonaws.eclipse.lambda.blueprint.BlueprintsProvider;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
 import com.amazonaws.eclipse.lambda.serverless.ui.FormBrowser;
@@ -70,7 +66,6 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
     //Composite modules in this page.
     private ProjectNameComposite projectNameComposite;
     private MavenConfigurationComposite mavenConfigurationComposite;
-    private TextComplex packageNameComplex;
     private ImportFileComposite importFileComposite;
 
     private TableViewer blueprintSelectionViewer;
@@ -78,12 +73,6 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
 
     private RadioButtonComplex useBlueprintButtonComplex;
     private RadioButtonComplex useServerlessTemplateButtonComplex;
-    private ModifyListener mavenModifyListener = new ModifyListener() {
-        @Override
-        public void modifyText(ModifyEvent arg0) {
-            onMavenConfigurationChange();
-        }
-    };
 
     public NewServerlessProjectWizardPageOne(NewServerlessProjectDataModel dataModel) {
         super(PAGE_NAME);
@@ -110,7 +99,6 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
 
         createProjectNameComposite(composite);
         createMavenConfigurationComposite(composite);
-        createPackagePrefixTextSection(composite);
         createUseBlueprintButtonSection(composite);
         createBlueprintsSelectionSection(composite);
         createUseServerlessTemplateButtonSection(composite);
@@ -126,9 +114,9 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
     }
 
     protected void createMavenConfigurationComposite(Composite composite) {
+        Group group = WizardWidgetFactory.newGroup(composite, "Maven Configuration");
         mavenConfigurationComposite = new MavenConfigurationComposite(
-                composite, bindingContext, dataModel.getMavenConfigurationDataModel(),
-                mavenModifyListener, mavenModifyListener);
+                group, bindingContext, dataModel.getMavenConfigurationDataModel());
     }
 
     private void initialize() {
@@ -223,21 +211,6 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
         importFileComposite.setEnabled(enabled);
     }
 
-    private void createPackagePrefixTextSection(Composite parent) {
-        Composite group = new Composite(parent, SWT.NONE);
-        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        group.setLayout(new GridLayout(2, false));
-
-        this.packageNameComplex = TextComplex.builder()
-                .composite(group)
-                .dataBindingContext(bindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_PACKAGE_PREFIX))
-                .validator(new PackageNameValidator("Package name must be provided!"))
-                .labelValue("Package Name:")
-                .defaultValue(dataModel.getPackagePrefix())
-                .build();
-    }
-
     private void populateValidationStatus() {
 
         IStatus status = getValidationStatus();
@@ -264,14 +237,6 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
         while (iterator.hasNext()) {
             Binding binding = (Binding)iterator.next();
             binding.updateTargetToModel();
-        }
-    }
-
-    private void onMavenConfigurationChange() {
-        if (packageNameComplex != null) {
-            String groupId = dataModel.getMavenConfigurationDataModel().getGroupId();
-            String artifactId = dataModel.getMavenConfigurationDataModel().getArtifactId();
-            packageNameComplex.setText(MavenFactory.assumePackageName(groupId, artifactId));
         }
     }
 }

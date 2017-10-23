@@ -31,6 +31,7 @@ public class ServerlessModel extends AdditionalProperties {
     private String description;
 
     private final Map<String, ServerlessFunction> serverlessFunctions = new HashMap<>();
+    private final Map<String, String> serverlessFunctionPhysicalIds = new HashMap<>();
     // Unrecognized resources
     private final Map<String, TypeProperties> additionalResources = new HashMap<>();
 
@@ -47,6 +48,10 @@ public class ServerlessModel extends AdditionalProperties {
             awsTemplateFormatVersion = DEFAULT_AWS_TEMPLATE_FORMAT_VERSION;
         }
         return awsTemplateFormatVersion;
+    }
+
+    public Map<String, String> getServerlessFunctionPhysicalIds() {
+        return serverlessFunctionPhysicalIds;
     }
 
     @JsonProperty("AWSTemplateFormatVersion")
@@ -75,6 +80,7 @@ public class ServerlessModel extends AdditionalProperties {
 
     public void addServerlessFunction(String key, ServerlessFunction serverlessFunction) {
         this.serverlessFunctions.put(key, serverlessFunction);
+        this.serverlessFunctionPhysicalIds.put(serverlessFunction.getHandler(), key);
     }
 
     /**

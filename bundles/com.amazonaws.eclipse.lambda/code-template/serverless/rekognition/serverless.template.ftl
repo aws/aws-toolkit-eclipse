@@ -28,7 +28,9 @@
     "TagImage": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
-        "Handler": "TagImage",
+        "Handler": "${packageName}.TagImage",
+        "Runtime" : "java8",
+        "CodeUri" : "./target/${artifactId}-${version}.jar",
         "Policies": [
           "AmazonS3FullAccess",
           "AmazonRekognitionFullAccess"

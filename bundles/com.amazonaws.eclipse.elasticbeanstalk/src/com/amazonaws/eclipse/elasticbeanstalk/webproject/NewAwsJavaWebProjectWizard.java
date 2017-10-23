@@ -24,6 +24,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkAnalytics;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
@@ -36,6 +37,7 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
     private static final String DEFAULT_GROUP_ID = "com.amazonaws.beanstalk";
     private static final String DEFAULT_ARTIFACT_ID = "webproject";
     private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String DEFAULT_PACKAGE_NAME = MavenFactory.assumePackageName(DEFAULT_GROUP_ID, DEFAULT_ARTIFACT_ID);
 
     private NewAwsJavaWebProjectDataModel dataModel = new NewAwsJavaWebProjectDataModel();
 
@@ -77,6 +79,7 @@ public class NewAwsJavaWebProjectWizard extends Wizard implements INewWizard {
         mavenConfig.setGroupId(DEFAULT_GROUP_ID);
         mavenConfig.setArtifactId(DEFAULT_ARTIFACT_ID);
         mavenConfig.setVersion(DEFAULT_VERSION);
+        mavenConfig.setPackageName(DEFAULT_PACKAGE_NAME);
     }
 
     /*

@@ -32,7 +32,9 @@
     "GetArticle": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
-        "Handler": "GetArticle",
+        "Handler": "${packageName}.GetArticle",
+        "Runtime" : "java8",
+        "CodeUri" : "./target/${artifactId}-${version}.jar",
         "Policies": [
           "AmazonDynamoDBReadOnlyAccess",
           "AmazonS3ReadOnlyAccess"
@@ -57,7 +59,9 @@
     "PutArticle": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
-        "Handler": "PutArticle",
+        "Handler": "${packageName}.PutArticle",
+        "Runtime" : "java8",
+        "CodeUri" : "./target/${artifactId}-${version}.jar",
         "Policies": [
           "AmazonDynamoDBFullAccess",
           "AmazonS3FullAccess"

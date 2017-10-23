@@ -210,9 +210,10 @@ public class FunctionProjectUtil {
     }
 
     private static void emitServerlessSam(IProject project, NewServerlessProjectDataModel dataModel)
-            throws FileNotFoundException, IOException, CoreException {
-        File samFile = CodeTemplateManager.getInstance().getServerlessSamFile(dataModel.getSelectedBlueprint());
-        addFileToProject(project, samFile.getName(), samFile);
+            throws FileNotFoundException, IOException, CoreException, TemplateException {
+        addFileToProject(project, CodeTemplateManager.SAM_FILE_NAME,
+                CodeTemplateManager.processTemplateWithData(CodeTemplateManager.getInstance().getServerlessSamTemplate(dataModel.getSelectedBlueprint()),
+                        dataModel.getServerlessSamTemplateData()));
     }
 
     private static void emitServerlessPom(IProject project, NewServerlessProjectDataModel dataModel)
@@ -232,7 +233,7 @@ public class FunctionProjectUtil {
     }
 
     public static File getServerlessTemplateFile(IProject project) {
-        return getProjectDirectory(project, CodeTemplateManager.SERVERLESS_BLUEPRINT_SAM_NAME).toFile();
+        return getProjectDirectory(project, CodeTemplateManager.SAM_FILE_NAME).toFile();
     }
 
     private static void addSourceClassToProject(IProject project,
