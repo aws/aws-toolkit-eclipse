@@ -74,8 +74,8 @@ public class LambdaFunctionDataModel extends AbstractAwsToolkitDataModel {
     }
 
     public void setInputType(String inputType) {
-        this.setProperty(P_INPUT_TYPE, inputType, this::getInputType, (newValue) -> this.inputType = newValue);
         this.selectedBlueprint = getLambdaBlueprint(inputType);
+        this.setProperty(P_INPUT_TYPE, inputType, this::getInputType, (newValue) -> this.inputType = newValue);
     }
 
     public LambdaBlueprint getSelectedBlueprint() {

@@ -29,6 +29,8 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.osgi.framework.Bundle;
 
+import com.amazonaws.eclipse.core.util.BundleUtils;
+
 public class SdkSamplesManager {
 
     public static List<SdkSample> getSamples() {
@@ -74,9 +76,7 @@ public class SdkSamplesManager {
         Bundle bundle = JavaSdkPlugin.getDefault().getBundle();
         File file = null;
         try {
-            URL resolvedFileUrl = FileLocator.toFileURL(bundle.getEntry("samples"));
-            URI resolvedUri = new URI(resolvedFileUrl.getProtocol(), resolvedFileUrl.getPath(), null);
-            file = new File(resolvedUri);
+            file = BundleUtils.getFileFromBundle(bundle, "samples");
         } catch (IOException e) {
             throw new RuntimeException("Failed to find plugin bundle root.", e);
         } catch (URISyntaxException e) {

@@ -19,6 +19,8 @@ import static com.amazonaws.eclipse.core.util.JavaProjectUtils.setDefaultJreToPr
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
@@ -47,6 +49,7 @@ import com.amazonaws.eclipse.core.AccountInfo;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.maven.MavenFactory;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
+import com.amazonaws.eclipse.core.util.BundleUtils;
 import com.amazonaws.eclipse.core.validator.JavaPackageName;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 
@@ -175,16 +178,19 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
         final String PACKAGE_NAME_PLACEHOLDER = "{PACKAGE_NAME}";
 
         Bundle bundle = ElasticBeanstalkPlugin.getDefault().getBundle();
-        URL url = FileLocator.resolve(bundle.getEntry("/"));
-        IPath templateRoot = new Path(url.getFile(), "templates");
-
+        File templateRoot = null;
+        try {
+            templateRoot = BundleUtils.getFileFromBundle(bundle, "templates");
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to load templates from ElasticBeanstalk bundle.", e);
+        }
         AccountInfo currentAccountInfo = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo(dataModel.getAccountId());
         File pomFile = project.getFile("pom.xml").getLocation().toFile();
         MavenConfigurationDataModel mavenConfig = dataModel.getMavenConfigurationDataModel();
 
         switch (dataModel.getProjectTemplate()) {
         case WORKER:
-            replacePomFile(templateRoot.append("worker/pom.xml").toFile(),
+            replacePomFile(new File(templateRoot, "worker/pom.xml"),
                     mavenConfig.getGroupId(), mavenConfig.getArtifactId(), mavenConfig.getVersion(), pomFile);
             String packageName = dataModel.getMavenConfigurationDataModel().getPackageName();
 
@@ -194,7 +200,7 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
                 location = location.append(component);
             }
 
-            FileUtils.copyDirectory(templateRoot.append("worker/src").toFile(),
+            FileUtils.copyDirectory(new File(templateRoot, "worker/src"),
                     location.toFile());
 
             File workerServlet = location.append("WorkerServlet.java").toFile();
@@ -205,19 +211,19 @@ final class CreateNewAwsJavaWebProjectRunnable implements IRunnableWithProgress 
 
             location = project.getFile("src/main/webapp").getLocation();
             FileUtils.copyDirectory(
-                templateRoot.append("worker/WebContent/").toFile(),
+                new File(templateRoot, "worker/WebContent/"),
                 location.toFile());
             File webXml = location.append("WEB-INF/web.xml").toFile();
             replaceStringInFile(webXml, PACKAGE_NAME_PLACEHOLDER, packageName);
             break;
 
         case DEFAULT:
-            replacePomFile(templateRoot.append("basic/pom.xml").toFile(),
+            replacePomFile(new File(templateRoot, "basic/pom.xml"),
                     mavenConfig.getGroupId(), mavenConfig.getArtifactId(), mavenConfig.getVersion(), pomFile);
 
             location = project.getFile("src/main/webapp").getLocation();
             FileUtils.copyDirectory(
-                templateRoot.append("basic/WebContent").toFile(),
+                new File(templateRoot, "basic/WebContent"),
                 location.toFile());
 
             File indexJsp = location.append("index.jsp").toFile();

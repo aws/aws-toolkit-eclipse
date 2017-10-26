@@ -25,7 +25,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 import org.eclipse.core.databinding.DataBindingContext;
-import org.eclipse.core.databinding.beans.PojoObservables;
+import org.eclipse.core.databinding.beans.PojoProperties;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaSourceViewer;
 import org.eclipse.jdt.internal.ui.text.SimpleJavaSourceViewerConfiguration;
@@ -117,7 +117,7 @@ public class LambdaFunctionComposite {
         this.classNameComplex = TextComplex.builder()
                 .composite(inputComposite)
                 .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_CLASS_NAME))
+                .pojoObservableValue(PojoProperties.value(LambdaFunctionDataModel.class, P_CLASS_NAME).observe(dataModel))
                 .addValidator(new NotEmptyValidator("Please provide a valid class name for the handler"))
                 .labelValue("Class Name:")
                 .defaultValue(dataModel.getClassName())
@@ -129,7 +129,7 @@ public class LambdaFunctionComposite {
         this.inputTypeComplex = ComboComplex.<LambdaBlueprint> builder()
                 .composite(inputComposite)
                 .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_INPUT_TYPE))
+                .pojoObservableValue(PojoProperties.value(LambdaFunctionDataModel.class, P_INPUT_TYPE).observe(dataModel))
                 .labelValue("Input Type:")
                 .items(lambdaBlueprintConfig.getBlueprints().values())
                 .defaultItemName(dataModel.getInputType())

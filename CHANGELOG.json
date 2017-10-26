@@ -1,5 +1,8 @@
 {
   "current": [
+    "* Update Java SDK samples."
+  ],
+  "v201710231659": [
     "* Refine the Maven configuration component to have consistent behavior.",
     "* Update AWS logo."
   ],
