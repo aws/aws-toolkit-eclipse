@@ -18,10 +18,14 @@ import org.eclipse.core.databinding.validation.IValidator;
 import org.eclipse.core.databinding.validation.ValidationStatus;
 import org.eclipse.core.runtime.IStatus;
 
+import com.amazonaws.eclipse.core.validator.StringLengthValidator;
+
 /**
  * IValidator implementation that tests that a string for length constraints.
  * Excludes the range specified.
+ * @deprecated to {@link StringLengthValidator}
  */
+@Deprecated
 public class MinMaxLengthValidator implements IValidator {
     private final String message = "%s must be %d to %d characters in length.";
     private final int min;

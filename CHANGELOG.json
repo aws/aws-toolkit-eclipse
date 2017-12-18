@@ -1,5 +1,14 @@
 {
   "current": [
+    "**Support AWS SAM Local to locally debug Lambda functions and AWS Gateway**",
+    "",
+    "* Debug Lambda Function",
+    "![debug-lambda-function](https://s3.amazonaws.com/aws-eclipse-toolkit/eclipse/release/debug-lambda-function.gif)",
+    "",
+    "* Debug API Gateway",
+    "![debug-api-gateway](https://s3.amazonaws.com/aws-eclipse-toolkit/eclipse/release/debug-api-gateway.gif)"
+  ],
+  "v201710260046": [
     "* Update Java SDK samples."
   ],
   "v201710231659": [

@@ -158,6 +158,7 @@ public class WizardWidgetFactory {
         GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         gridData.horizontalSpan = colspan;
         comboViewer.getCombo().setLayoutData(gridData);
+
         return comboViewer;
     }
 

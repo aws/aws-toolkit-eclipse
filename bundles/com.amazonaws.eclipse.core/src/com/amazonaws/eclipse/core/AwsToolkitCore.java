@@ -523,8 +523,9 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
         Policy.setErrorSupportProvider(awsProvider);
     }
 
-    // TODO: any better way to check debug mode?
-    public static final boolean DEBUG_MODE = false;
+    public boolean isDebugMode() {
+        return getBundleVersion().contains("qualifier");
+    }
 
     private ToolkitAnalyticsManager initializeToolkitAnalyticsManager() {
 
@@ -535,7 +536,7 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
 
         if (enabled) {
             try {
-                if (DEBUG_MODE) {
+                if (isDebugMode()) {
                     toReturn = new ToolkitAnalyticsManagerImpl(
                             AWSCognitoCredentialsProvider.TEST_PROVIDER,
                             ClientContextConfig.TEST_CONFIG);

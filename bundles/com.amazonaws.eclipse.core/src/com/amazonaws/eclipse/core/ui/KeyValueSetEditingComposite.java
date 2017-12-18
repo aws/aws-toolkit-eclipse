@@ -426,23 +426,17 @@ public class KeyValueSetEditingComposite extends Composite {
             GridLayout layout = new GridLayout(2, false);
             container.setLayout(layout);
 
-            keyText = TextComplex.builder()
-                    .composite(container)
-                    .dataBindingContext(dataBindingContext)
+            keyText = TextComplex.builder(container, dataBindingContext, PojoObservables.observeValue(pairModel, Pair.P_KEY))
                     .labelValue(keyLabel)
                     .defaultValue(pairModel.getKey())
-                    .pojoObservableValue(PojoObservables.observeValue(pairModel, Pair.P_KEY))
                     .addValidator(new NotEmptyValidator("The key name cannot be empty."))
                     .addValidator(new KeyNotDuplicateValidator(pairSet, pairModel, "This field must not contain duplicate items."))
                     .addValidators(keyValidators)
                     .build();
 
-            valueText = TextComplex.builder()
-                    .composite(container)
-                    .dataBindingContext(dataBindingContext)
+            valueText = TextComplex.builder(container, dataBindingContext, PojoObservables.observeValue(pairModel, Pair.P_VALUE))
                     .labelValue(valueLabel)
                     .defaultValue(pairModel.getValue())
-                    .pojoObservableValue(PojoObservables.observeValue(pairModel, Pair.P_VALUE))
                     .addValidators(valueValidators)
                     .build();
 

@@ -62,8 +62,8 @@ public class RegionComposite extends Composite {
         this.serviceName = serviceName;
         this.labelValue = labelValue;
         this.listeners = listeners;
-        this.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        this.setLayout(new GridLayout(3, true));
+        this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        this.setLayout(new GridLayout(3, false));
         createControl();
     }
 
@@ -110,7 +110,7 @@ public class RegionComposite extends Composite {
         private DataBindingContext bindingContext;
         private RegionDataModel dataModel;
         private String serviceName;
-        private String labelValue = "Select Regions:";
+        private String labelValue = "Select region:";
         private final List<ISelectionChangedListener> listeners = new ArrayList<>();
 
         public RegionComposite build() {

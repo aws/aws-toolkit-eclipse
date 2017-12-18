@@ -15,6 +15,7 @@
 package com.amazonaws.eclipse.lambda.serverless.model;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,7 +25,7 @@ public class ServerlessTemplate extends AdditionalProperties {
     private String AWSTemplateFormatVersion;
 
     @JsonProperty("Transform")
-    private String transform;
+    private List<String> transform;
 
     @JsonProperty("Description")
     private String description;
@@ -42,11 +43,11 @@ public class ServerlessTemplate extends AdditionalProperties {
         AWSTemplateFormatVersion = aWSTemplateFormatVersion;
     }
 
-    public String getTransform() {
+    public List<String> getTransform() {
         return transform;
     }
 
-    public void setTransform(String transform) {
+    public void setTransform(List<String> transform) {
         this.transform = transform;
     }
 

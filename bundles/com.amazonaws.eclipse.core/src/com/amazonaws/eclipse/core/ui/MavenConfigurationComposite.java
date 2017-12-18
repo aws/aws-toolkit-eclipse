@@ -14,10 +14,14 @@
  */
 package com.amazonaws.eclipse.core.ui;
 
+import static com.amazonaws.eclipse.core.model.MavenConfigurationDataModel.P_ARTIFACT_ID;
+import static com.amazonaws.eclipse.core.model.MavenConfigurationDataModel.P_GROUP_ID;
+import static com.amazonaws.eclipse.core.model.MavenConfigurationDataModel.P_PACKAGE_NAME;
+import static com.amazonaws.eclipse.core.model.MavenConfigurationDataModel.P_VERSION;
+
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -45,43 +49,31 @@ public class MavenConfigurationComposite extends Composite {
     }
 
     private void createControl(DataBindingContext context, MavenConfigurationDataModel dataModel) {
-        groupIdComplex = TextComplex.builder()
-                .composite(this)
-                .dataBindingContext(context)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, MavenConfigurationDataModel.P_GROUP_ID))
+        groupIdComplex = TextComplex.builder(this, context, PojoObservables.observeValue(dataModel, P_GROUP_ID))
                 .addValidator(new NotEmptyValidator("Group ID must be provided!"))
-                .modifyListener((e) -> {
+                .modifyListener(e -> {
                     onMavenConfigurationChange();
                 })
                 .labelValue("Group ID:")
                 .defaultValue(dataModel.getGroupId())
                 .build();
 
-        artifactIdComplex = TextComplex.builder()
-                .composite(this)
-                .dataBindingContext(context)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel,  MavenConfigurationDataModel.P_ARTIFACT_ID))
+        artifactIdComplex = TextComplex.builder(this, context, PojoObservables.observeValue(dataModel,  P_ARTIFACT_ID))
                 .addValidator(new NotEmptyValidator("Artifact ID must be provided!"))
-                .modifyListener((e) -> {
+                .modifyListener(e -> {
                     onMavenConfigurationChange();
                 })
                 .labelValue("Artifact ID:")
                 .defaultValue(dataModel.getArtifactId())
                 .build();
 
-        versionComplex = TextComplex.builder()
-                .composite(this)
-                .dataBindingContext(context)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, MavenConfigurationDataModel.P_VERSION))
+        versionComplex = TextComplex.builder(this, context, PojoObservables.observeValue(dataModel, P_VERSION))
                 .addValidator(new NotEmptyValidator("Version must be provided!"))
                 .labelValue("Version:")
                 .defaultValue(dataModel.getVersion())
                 .build();
 
-        packageComplex = TextComplex.builder()
-                .composite(this)
-                .dataBindingContext(context)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, MavenConfigurationDataModel.P_PACKAGE_NAME))
+        packageComplex = TextComplex.builder(this, context, PojoObservables.observeValue(dataModel, P_PACKAGE_NAME))
                 .addValidator(new PackageNameValidator("Package name must be provided!"))
                 .labelValue("Package name:")
                 .defaultValue(dataModel.getPackageName())

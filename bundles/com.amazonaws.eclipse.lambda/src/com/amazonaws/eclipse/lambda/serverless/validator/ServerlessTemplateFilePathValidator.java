@@ -14,27 +14,44 @@
 */
 package com.amazonaws.eclipse.lambda.serverless.validator;
 
+import java.io.IOException;
+
 import org.eclipse.core.databinding.validation.IValidator;
 import org.eclipse.core.databinding.validation.ValidationStatus;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 
+import com.amazonaws.eclipse.core.util.PluginUtils;
 import com.amazonaws.eclipse.lambda.serverless.Serverless;
+import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessModel;
 import com.amazonaws.util.StringUtils;
 
 public class ServerlessTemplateFilePathValidator implements IValidator {
-
     @Override
     public IStatus validate(Object value) {
-        String s = (String)value;
-        if (StringUtils.isNullOrEmpty(s)) {
-            return ValidationStatus.error("Serverless template file path must be provided!");
-        }
+        String filePath = (String) value;
+
         try {
-            Serverless.load(s);
+            validateFilePath(filePath);
         } catch (Exception e) {
             return ValidationStatus.error(e.getMessage());
         }
         return ValidationStatus.ok();
     }
 
+    public ServerlessModel validateFilePath(String filePath) {
+        if (StringUtils.isNullOrEmpty(filePath)) {
+            throw new IllegalArgumentException("Serverless template file path must be provided!");
+        }
+        try {
+            filePath = PluginUtils.variablePluginReplace(filePath);
+            ServerlessModel model = Serverless.load(filePath);
+            if (model.getAdditionalResources().isEmpty() && model.getServerlessFunctions().isEmpty()) {
+                throw new IllegalArgumentException("Serverless template file is not valid, you need to define at least one AWS Resource.");
+            }
+            return model;
+        } catch (IOException | CoreException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
 }

@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.databinding.observable.value.WritableValue;
@@ -44,7 +45,6 @@ import com.amazonaws.eclipse.databinding.ChainValidator;
  * and binds it to the model.
  */
 public class ComboViewerComplex<T> {
-
     private final ComboViewer comboViewer;
     private final IObservableValue enabler = new WritableValue();
 
@@ -59,6 +59,7 @@ public class ComboViewerComplex<T> {
             String labelValue,
             int comboSpan,
             List<ISelectionChangedListener> listeners) {
+
         if (labelValue != null) {
             newLabel(parent, labelValue);
         }
@@ -68,7 +69,7 @@ public class ComboViewerComplex<T> {
         comboViewer.setInput(items);
 
         IViewerObservableValue viewerObservableValue = ViewerProperties.singleSelection().observe(comboViewer);
-        bindingContext.bindValue(viewerObservableValue, pojoObservableValue);
+        Binding binding = bindingContext.bindValue(viewerObservableValue, pojoObservableValue);
 
         enabler.setValue(true);
         ChainValidator<T> validatorChain = new ChainValidator<>(viewerObservableValue, enabler, validators);
@@ -83,6 +84,12 @@ public class ComboViewerComplex<T> {
         for (ISelectionChangedListener listener : listeners) {
             comboViewer.addSelectionChangedListener(listener);
         }
+        comboViewer.getCombo().addDisposeListener(e -> {
+            bindingContext.removeBinding(binding);
+            bindingContext.removeValidationStatusProvider(validatorChain);
+            viewerObservableValue.dispose();
+            validatorChain.dispose();
+        });
     }
 
     public ComboViewer getComboViewer() {
@@ -92,6 +99,13 @@ public class ComboViewerComplex<T> {
     public void setEnabled(boolean enabled) {
         comboViewer.getCombo().setEnabled(enabled);
         enabler.setValue(enabled);
+    }
+
+    public void selectItem(T item) {
+        Collection<T> items = (Collection<T>) comboViewer.getInput();
+        if (item != null && items.contains(item)) {
+            comboViewer.setSelection(new StructuredSelection(item));
+        }
     }
 
     public static <T> ComboViewerComplexBuilder<T> builder() {

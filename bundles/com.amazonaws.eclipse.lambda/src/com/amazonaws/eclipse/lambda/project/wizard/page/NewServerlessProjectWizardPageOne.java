@@ -203,8 +203,9 @@ public class NewServerlessProjectWizardPageOne extends WizardPage {
     }
 
     private void createServerlessTemplateImportSection(Composite parent) {
-        importFileComposite = new ImportFileComposite(
-                parent, bindingContext, dataModel.getImportFileDataModel(), new ServerlessTemplateFilePathValidator());
+        importFileComposite = ImportFileComposite.builder(parent, bindingContext, dataModel.getImportFileDataModel())
+                .filePathValidator(new ServerlessTemplateFilePathValidator())
+                .build();
     }
 
     private void setServerlessTemplateImportSectionEnabled(boolean enabled) {

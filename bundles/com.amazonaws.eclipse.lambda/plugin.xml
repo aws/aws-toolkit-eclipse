@@ -2,6 +2,7 @@
 <?eclipse version="3.2"?>
 <plugin>
 
+  <!-- Lambda Explorer -->
   <extension point="org.eclipse.ui.navigator.navigatorContent">
     <navigatorContent
          activeByDefault="true"
@@ -34,6 +35,7 @@
     </navigatorContent>
   </extension>
 
+  <!-- Lambda Function Editor -->
   <extension point="org.eclipse.ui.editors">
      <editor class="com.amazonaws.eclipse.explorer.lambda.FunctionEditor"
              default="false"
@@ -43,6 +45,7 @@
      </editor>
   </extension>
 
+  <!-- New Wizards -->
    <extension point="org.eclipse.ui.newWizards">
       <wizard
             canFinishEarly="false"
@@ -94,7 +97,7 @@
       </perspectiveExtension>
    </extension>
 
-   <!-- Lambda Java Project Wizard -->
+   <!-- Toolbar AWS Icon Dropdown Box -->
    <extension point="org.eclipse.ui.menus">
       <menuContribution locationURI="menu:com.amazonaws.eclipse.toolbar.dropDownMenu?after=java">
          <command commandId="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectCommand"
@@ -112,27 +115,39 @@
      </menuContribution>
    </extension>
 
-   <extension point="org.eclipse.ui.commands">
-      <command id="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectCommand"
-            name="New AWS Lambda Java Project"
-            defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaJavaFunctionProjectHandler"
-            categoryId="com.amazonaws.commands.category">
-      </command>
-      <command id="com.amazonaws.eclipse.lambda.newLambdaFunctionCommand"
-            name="New AWS Lambda Function"
-            defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaFunctionHandler"
-            categoryId="com.amazonaws.commands.category">
-      </command>
-      <command id="com.amazonaws.eclipse.lambda.NewServerlessProjectCommand"
-            name="New AWS Serverless Project"
-            defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewServerlessProjectHandler"
-            categoryId="com.amazonaws.commands.category">
-      </command>
-   </extension>
-
-   <!-- Upload Function to Lambda -->
-   <!-- Right click on project -->
+  <!-- Right Click on Project Explorer View -->
   <extension point="org.eclipse.ui.menus">
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+         <command
+              commandId="com.amazonaws.eclipse.lambda.runSamLocal"
+              id="com.amazonaws.eclipse.lambda.runSamLocalMenuItem"
+              label="Run on AWS SAM Local..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <adapt type="org.eclipse.jdt.core.IOpenable"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
+     <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
+         <command
+              commandId="com.amazonaws.eclipse.lambda.debugSamLocal"
+              id="com.amazonaws.eclipse.lambda.debugSamLocalMenuItem"
+              label="Debug on AWS SAM Local..."
+              style="push">
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                  <iterate ifEmpty="false">
+                      <adapt type="org.eclipse.jdt.core.IOpenable"/>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+     </menuContribution>
+
      <menuContribution locationURI="popup:com.amazonaws.eclipse.popup.menu?after=additions">
         <command
               commandId="com.amazonaws.eclipse.lambda.uploadFunctionToLambda"
@@ -184,7 +199,7 @@
      </menuContribution>
    </extension>
 
-   <!-- Right click on editor view -->
+   <!-- Right Click on Editor -->
     <extension point="org.eclipse.ui.popupMenus">
         <objectContribution
             adaptable="true"
@@ -208,38 +223,74 @@
                 id="com.amazonaws.eclipse.lambda.editor.uploadFunctionAction"
                 label="Upload function to AWS Lambda..."
                 menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
-
             <action class="com.amazonaws.eclipse.lambda.serverless.wizard.editoraction.DeployServerlessAction"
                 enablesFor="1"
                 id="com.amazonaws.eclipse.lambda.editor.DeployServerlessAction"
                 label="Deploy Serverless Project..."
                 menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
+            <action class="com.amazonaws.eclipse.lambda.serverless.wizard.editoraction.SamLocalAction$RunSamLocalAction"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.lambda.editor.runSamLocalAction"
+                label="Run on AWS SAM Local..."
+                menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
+            <action class="com.amazonaws.eclipse.lambda.serverless.wizard.editoraction.SamLocalAction$DebugSamLocalAction"
+                enablesFor="1"
+                id="com.amazonaws.eclipse.lambda.editor.debugSamLocalAction"
+                label="Debug on AWS SAM Local..."
+                menubarPath="com.amazonaws.eclipse.lambda.editor.contextMenu/group" />
         </objectContribution>
     </extension>
 
-  <extension point="org.eclipse.ui.commands">
+   <extension point="org.eclipse.ui.commands">
+     <!-- Command for Creating a new Lambda Java Project -->
+     <command id="com.amazonaws.eclipse.lambda.newLambdaJavaFunctionProjectCommand"
+           name="New AWS Lambda Java Project"
+           defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaJavaFunctionProjectHandler"
+           categoryId="com.amazonaws.commands.category">
+     </command>
+     <!-- Command for Creating a new Lambda Java Handler -->
+     <command id="com.amazonaws.eclipse.lambda.newLambdaFunctionCommand"
+           name="New AWS Lambda Function"
+           defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewLambdaFunctionHandler"
+           categoryId="com.amazonaws.commands.category">
+     </command>
+     <!-- Command for Creating a new SAM Java Project -->
+     <command id="com.amazonaws.eclipse.lambda.NewServerlessProjectCommand"
+           name="New AWS Serverless Project"
+           defaultHandler="com.amazonaws.eclipse.lambda.project.wizard.handler.NewServerlessProjectHandler"
+           categoryId="com.amazonaws.commands.category">
+     </command>
+     <!-- Command for Uploading a Lambda Java Handler to AWS Lambda -->
      <command id="com.amazonaws.eclipse.lambda.uploadFunctionToLambda"
             name="Upload function to AWS Lambda"
             defaultHandler="com.amazonaws.eclipse.lambda.upload.wizard.handler.UploadFunctionToLambdaCommandHandler"
             categoryId="com.amazonaws.commands.category">
-      </command>
-  </extension>
-
-  <extension point="org.eclipse.ui.commands">
+     </command>
+     <!-- Command for Invoking an AWS Lambda Function -->
      <command id="com.amazonaws.eclipse.lambda.invokeFunction"
             name="Invoke Function"
             defaultHandler="com.amazonaws.eclipse.lambda.invoke.handler.InvokeFunctionHandler"
             categoryId="com.amazonaws.commands.category">
-      </command>
-  </extension>
-
-  <extension point="org.eclipse.ui.commands">
+     </command>
+     <!-- Command for Deploying a SAM Java Project -->
      <command id="com.amazonaws.eclipse.lambda.DeployServerlessProject"
             name="Deploy Serverless Project"
             defaultHandler="com.amazonaws.eclipse.lambda.serverless.handler.DeployServerlessProjectHandler"
             categoryId="com.amazonaws.commands.category">
-      </command>
-  </extension>
+     </command>
+     <!-- Command for Running Lambda/API Gateway locally -->
+     <command id="com.amazonaws.eclipse.lambda.runSamLocal"
+            name="Run on AWS SAM Local"
+            defaultHandler="com.amazonaws.eclipse.lambda.serverless.handler.SamLocalHandler$RunSamLocalHandler"
+            categoryId="com.amazonaws.commands.category">
+     </command>
+     <!-- Command for Debugging Lambda/API Gateway locally -->
+     <command id="com.amazonaws.eclipse.lambda.debugSamLocal"
+            name="Debug on AWS SAM Local"
+            defaultHandler="com.amazonaws.eclipse.lambda.serverless.handler.SamLocalHandler$DebugSamLocalHandler"
+            categoryId="com.amazonaws.commands.category">
+     </command>
+   </extension>
 
   <!-- Lambda Project Decorator -->
   <extension point="org.eclipse.ui.decorators">
@@ -251,6 +302,136 @@
             <objectClass name="org.eclipse.jdt.core.IJavaElement" />
         </enablement>
      </decorator>
+  </extension>
+
+ <!-- AWS SAM Local Launcher -->
+  <extension
+        point="org.eclipse.debug.core.launchConfigurationTypes">
+     <launchConfigurationType
+           id="com.amazonaws.eclipse.lambda.launching.samLocal"
+           delegate="com.amazonaws.eclipse.lambda.launching.SamLocalDelegate"
+           name="AWS SAM Local"
+           modes="run,debug">
+     </launchConfigurationType>
+  </extension>
+
+  <extension
+        point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+     <launchConfigurationTypeImage
+          id="com.amazonaws.eclipse.lambda.launching.samLocalTypeImage"
+          configTypeID="com.amazonaws.eclipse.lambda.launching.samLocal"
+          icon="icons/sam-local.png">
+    </launchConfigurationTypeImage>
+  </extension>
+
+  <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            id="com.amazonaws.eclipse.lambda.launching.samLocalTabGroup"
+            type="com.amazonaws.eclipse.lambda.launching.samLocal"
+            class="com.amazonaws.eclipse.lambda.launching.SamLocalTabGroup">
+            <launchMode
+                  mode="debug"
+                  perspective="org.eclipse.debug.ui.DebugPerspective"
+                  description="Run your Serverless application locally for quick development and testing">
+            </launchMode>
+            <launchMode
+                  mode="run"
+                  description="Run your Serverless application locally for quick development and testing">
+            </launchMode>
+      </launchConfigurationTabGroup>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            id="com.amazonaws.eclipse.lambda.launching.samLocalShortcut"
+            class="com.amazonaws.eclipse.lambda.launching.SamLocalExecution"
+            icon="icons/sam-local.png"
+            label="AWS SAM Local"
+            modes="run,debug">
+            <contextualLaunch>
+            <enablement>
+                <count
+                      value="1">
+                </count>
+            </enablement>
+        </contextualLaunch>
+      </shortcut>
+   </extension>
+
+   <!-- The processType is referenced by others. It is also defined in the code at com.amazonaws.eclipse.lambda.launching.SamLocalConstants.ProcessType -->
+   <extension point="org.eclipse.debug.ui.consoleLineTrackers">
+      <consoleLineTracker id="com.amazonaws.eclipse.lambda.launching.samLocalConsoleLineTracker"
+            class="com.amazonaws.eclipse.lambda.launching.SamLocalConsoleLineTracker"
+            processType="sam_local"/>
+   </extension>
+
+  <extension point="org.eclipse.debug.ui.consoleColorProviders">
+    <consoleColorProvider
+       id="com.amazonaws.eclipse.lambda.launching.samLocalConsoleColorProvider"
+       class="com.amazonaws.eclipse.lambda.launching.SamLocalConsoleColorProvider"
+       processType="sam_local">
+    </consoleColorProvider>
+  </extension>
+
+  <!-- SAM Local preference page -->
+  <extension point="org.eclipse.ui.preferencePages">
+    <page
+      category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
+      class="com.amazonaws.eclipse.lambda.preferences.SamLocalPreferencePage"
+      id="com.amazonaws.eclipse.lambda.preferences.SamLocalPreferencePage"
+      name="AWS SAM Local">
+    </page>
+  </extension>
+
+  <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="com.amazonaws.eclipse.lambda.preferences.PreferenceInitializer" />
+  </extension>
+
+  <extension
+      point="org.eclipse.ui.console.consolePatternMatchListeners">
+      <consolePatternMatchListener
+            class="org.eclipse.jdt.internal.debug.ui.console.JavaConsoleTracker"
+            regex="\(\w*${java_extensions_regex}\S*\)"
+            qualifier="${java_extensions_regex}"
+            id="org.eclipse.jdt.debug.ui.JavaConsoleTracker">
+         <enablement>
+            <or>
+               <test property="org.eclipse.debug.ui.processTypeTest" value="sam_local"/>
+            </or>
+         </enablement>
+      </consolePatternMatchListener>
+      <consolePatternMatchListener
+            class="org.eclipse.jdt.internal.debug.ui.console.JavaNativeConsoleTracker"
+            regex="\(Native Method\)"
+            qualifier="Native Method"
+            id="org.eclipse.jdt.debug.ui.JavaNativeConsoleTracker">
+         <enablement>
+            <or>
+               <test property="org.eclipse.debug.ui.processTypeTest" value="sam_local"/>
+            </or>
+         </enablement>
+      </consolePatternMatchListener>
+         <consolePatternMatchListener
+            class="org.eclipse.jdt.internal.debug.ui.console.JavaExceptionConsoleTracker"
+            regex="([a-zA-Z_$][a-zA-Z\d_$]*\.)*[a-zA-Z_$][a-zA-Z\d_$]*Exception[\s|:]"
+            qualifier="Exception[\s|:]"
+            id="org.eclipse.jdt.debug.ui.JavaExceptionConsoleTracker">
+         <enablement>
+            <or>
+               <test property="org.eclipse.debug.ui.processTypeTest" value="sam_local"/>
+            </or>
+         </enablement>
+      </consolePatternMatchListener>
+  </extension>
+
+  <extension point="org.eclipse.ui.console.consolePageParticipants">
+    <consolePageParticipant class="com.amazonaws.eclipse.core.ansi.AnsiConsolePageParticipant" id="com.amazonaws.eclipse.core.ansi.AnsiConsolePageParticipant">
+      <enablement>
+        <instanceof value="org.eclipse.ui.console.IConsole" />
+      </enablement>
+    </consolePageParticipant>
   </extension>
 
 </plugin>

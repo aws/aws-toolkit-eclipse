@@ -88,4 +88,8 @@ public abstract class AbstractAwsPlugin extends AbstractUIPlugin {
     protected Map<String, String> getImageRegistryMap() {
         return Collections.emptyMap();
     }
+
+    protected String getBundleVersion() {
+        return getBundle().getVersion().toString();
+    }
 }

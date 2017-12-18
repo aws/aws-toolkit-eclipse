@@ -184,12 +184,8 @@ public abstract class SelectOrInputComposite<T, K extends SelectOrInputDataModel
                 })
                 .build();
 
-        this.createText = TextComplex.builder()
-                .composite(this)
+        this.createText = TextComplex.builder(this, bindingContext, PojoProperties.value(P_NEW_RESOURCE_NAME).observe(dataModel))
                 .createLabel(false)
-                .dataBindingContext(bindingContext)
-                .pojoObservableValue(PojoProperties.value(P_NEW_RESOURCE_NAME, String.class)
-                        .observe(dataModel))
                 .addValidators(createTextValidators)
                 .build();
     }

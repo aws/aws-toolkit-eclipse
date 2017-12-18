@@ -90,6 +90,9 @@ public enum AwsToolkitMetricType {
     LAMBDA_UPLOAD_FUNCTION_WIZARD("Lambda-UploadFunctionWizard"),
     LAMBDA_INVOKE_FUNCTION_DIALOG("Lambda-InvokeFunctionDialog"),
     LAMBDA_DEPLOY_SERVERLESS_PROJECT_WIZARD("Lambda-DeployServerlessProjectWizard"),
+    /* SAM Local Events */
+    SAMLOCAL_GENERATE_EVENT("SamLocal-GenerateEvent"),
+    SAMLOCAL_LAUNCH("SamLocal-Launch"),
     ;
 
     private final String metricName;

@@ -33,12 +33,14 @@ public class LambdaPlugin extends AbstractAwsPlugin {
     public static final String DEFAULT_REGION = "us-east-1";
     public static final String IMAGE_LAMBDA = "lambda-service";
     public static final String IMAGE_FUNCTION = "function";
+    public static final String IMAGE_SAM_LOCAL = "sam-local";
 
     private static final Map<String, String> IMAGE_REGISTRY_MAP = new HashMap<>();
 
     static {
         IMAGE_REGISTRY_MAP.put(IMAGE_LAMBDA, "/icons/lambda-service.png");
         IMAGE_REGISTRY_MAP.put(IMAGE_FUNCTION, "/icons/function.png");
+        IMAGE_REGISTRY_MAP.put(IMAGE_SAM_LOCAL, "/icons/sam-local.png");
     }
 
     /*
@@ -57,12 +59,11 @@ public class LambdaPlugin extends AbstractAwsPlugin {
     @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
+        plugin = this;
 
         initializePreferenceStoreDefaults();
         projectChangeTracker.clearDirtyFlags();
         projectChangeTracker.start();
-
-        plugin = this;
     }
 
     /**

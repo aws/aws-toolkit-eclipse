@@ -21,20 +21,24 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import com.amazonaws.eclipse.lambda.serverless.model.ServerlessTemplate;
 import com.amazonaws.eclipse.lambda.serverless.model.TypeProperties;
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessFunction;
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessModel;
+import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
  * A class for processing serverless template file, including loading Serverless template file into a model,
@@ -42,32 +46,59 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class Serverless {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper JSON_MAPPER = initMapper(new ObjectMapper());
+    private static final ObjectMapper YAML_MAPPER = initMapper(new ObjectMapper(new YAMLFactory()));
 
-    static {
-        MAPPER.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
-        MAPPER.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-        MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    private static ObjectMapper initMapper(ObjectMapper mapper) {
+        mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
+        mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        return mapper;
     }
 
     public static ServerlessModel load(String templatePath) throws JsonParseException, JsonMappingException, IOException {
         return load(new File(templatePath));
     }
 
+    // Load Serverless model from the given template file, and close the input stream safely.
     public static ServerlessModel load(File templateFile) throws JsonParseException, JsonMappingException, IOException {
-        return load(new FileInputStream(templateFile));
+        try (InputStream inputStream = new FileInputStream(templateFile)) {
+            return load(inputStream);
+        }
     }
 
     public static ServerlessModel load(InputStream templateInput) throws JsonParseException, JsonMappingException, IOException {
-        ServerlessTemplate serverlessTemplate = MAPPER.readValue(templateInput, ServerlessTemplate.class);
+        String content = IOUtils.toString(templateInput);
+        return loadFromContent(content);
+    }
+
+    public static ServerlessModel loadFromContent(String content) throws JsonParseException, JsonMappingException, IOException {
+        ObjectMapper mapper = isContentInJsonFormat(content) ? JSON_MAPPER : YAML_MAPPER;
+        ServerlessTemplate serverlessTemplate = mapper.readValue(content.getBytes(StandardCharsets.UTF_8), ServerlessTemplate.class);
         return convert(serverlessTemplate);
     }
 
     public static File write(ServerlessModel model, String path) throws JsonGenerationException, JsonMappingException, IOException {
         File file = new File(path);
         ServerlessTemplate template = convert(model);
-        MAPPER.writerWithDefaultPrettyPrinter().writeValue(new FileWriter(file), template);
+        JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValue(new FileWriter(file), template);
         return file;
+    }
+
+    /**
+     * Return whether the underlying String content is in Json format based on the first non-whitespace character.
+     */
+    private static boolean isContentInJsonFormat(String content) {
+        if (content == null || content.isEmpty()) {
+            return false;
+        }
+        for (int index = 0; index < content.length(); ++index) {
+            if (Character.isWhitespace(content.charAt(index))) {
+                continue;
+            }
+            return '{' == content.charAt(index);
+        }
+        return false;
     }
 
     /**
@@ -148,7 +179,7 @@ public class Serverless {
 
     private static ServerlessFunction convertServerlessFunction(TypeProperties tp) {
         Map<String, Object> resource = tp.getProperties();
-        ServerlessFunction function = MAPPER.convertValue(resource, ServerlessFunction.class);
+        ServerlessFunction function = JSON_MAPPER.convertValue(resource, ServerlessFunction.class);
         for (Entry<String, Object> entry : tp.getAdditionalProperties().entrySet()) {
             function.addAdditionalTopLevelProperty(entry.getKey(), entry.getValue());
         }
@@ -158,7 +189,7 @@ public class Serverless {
     private static Map<String, TypeProperties> convert(Map<String, Object> map) {
         Map<String, TypeProperties> typeProperties = new HashMap<>();
         for (Entry<String, Object> entry : map.entrySet()) {
-            typeProperties.put(entry.getKey(), MAPPER.convertValue(entry.getValue(), TypeProperties.class));
+            typeProperties.put(entry.getKey(), JSON_MAPPER.convertValue(entry.getValue(), TypeProperties.class));
         }
         return typeProperties;
     }

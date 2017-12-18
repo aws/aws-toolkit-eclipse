@@ -14,7 +14,9 @@
 */
 package com.amazonaws.eclipse.lambda.serverless.model.transform;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.amazonaws.eclipse.lambda.serverless.model.AdditionalProperties;
@@ -23,14 +25,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ServerlessModel extends AdditionalProperties {
     private static final String DEFAULT_AWS_TEMPLATE_FORMAT_VERSION = "2010-09-09";
-    private static final String DEFAULT_TRANSFORM = "AWS::Serverless-2016-10-31";
+    private static final List<String> DEFAULT_TRANSFORM = Arrays.asList("AWS::Serverless-2016-10-31");
 
     @JsonProperty("AWSTemplateFormatVersion")
     private String awsTemplateFormatVersion;
-    private String transform;
+    private List<String> transform;
     private String description;
 
     private final Map<String, ServerlessFunction> serverlessFunctions = new HashMap<>();
+    // A map of Lambda handler name to Lambda function physical ID
     private final Map<String, String> serverlessFunctionPhysicalIds = new HashMap<>();
     // Unrecognized resources
     private final Map<String, TypeProperties> additionalResources = new HashMap<>();
@@ -59,14 +62,14 @@ public class ServerlessModel extends AdditionalProperties {
         this.awsTemplateFormatVersion = awsTemplateFormatVersion;
     }
 
-    public String getTransform() {
+    public List<String> getTransform() {
         if (transform == null) {
             transform = DEFAULT_TRANSFORM;
         }
         return transform;
     }
 
-    public void setTransform(String transform) {
+    public void setTransform(List<String> transform) {
         this.transform = transform;
     }
 

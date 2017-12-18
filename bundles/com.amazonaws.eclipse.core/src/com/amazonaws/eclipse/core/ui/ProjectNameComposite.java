@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.core.ui;
 
+import static com.amazonaws.eclipse.core.model.ProjectNameDataModel.P_PROJECT_NAME;
+
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
 import org.eclipse.swt.SWT;
@@ -40,10 +42,7 @@ public class ProjectNameComposite extends Composite {
     }
 
     private void createControl(DataBindingContext context, ProjectNameDataModel dataModel) {
-        projectNameComplex = TextComplex.builder()
-                .composite(this)
-                .dataBindingContext(context)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, ProjectNameDataModel.P_PROJECT_NAME))
+        projectNameComplex = TextComplex.builder(this, context, PojoObservables.observeValue(dataModel, P_PROJECT_NAME))
                 .addValidator(new ProjectNameValidator())
                 .defaultValue(dataModel.getProjectName())
                 .labelValue("Project name:")

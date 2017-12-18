@@ -29,7 +29,6 @@ import java.util.List;
 
 import org.eclipse.core.databinding.AggregateValidationStatus;
 import org.eclipse.core.databinding.DataBindingContext;
-import org.eclipse.core.databinding.beans.PojoObservables;
 import org.eclipse.core.databinding.beans.PojoProperties;
 import org.eclipse.core.databinding.observable.ChangeEvent;
 import org.eclipse.core.databinding.observable.IChangeListener;
@@ -198,15 +197,12 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
 
         newLabel(group, "Name:");
         functionNameLabel = newFillingLabel(group, "", 2);
-        descriptionTextComplex = TextComplex.builder()
-                .composite(group)
+        descriptionTextComplex = TextComplex.builder(group,
+                    bindingContext, PojoProperties.value(FunctionConfigPageDataModel.P_DESCRIPTION).observe(dataModel.getFunctionConfigPageDataModel()))
                 .createLabel(true)
                 .labelColSpan(1)
-                .dataBindingContext(bindingContext)
                 .labelValue("Description:")
                 .textColSpan(2)
-                .pojoObservableValue(PojoObservables.observeValue(
-                        dataModel.getFunctionConfigPageDataModel(), FunctionConfigPageDataModel.P_DESCRIPTION))
                 .defaultValue(dataModel.getFunctionConfigPageDataModel().getDescription())
                 .textMessage("The description for the function (optional)")
                 .build();
@@ -239,7 +235,7 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
                 .dataBindingContext(bindingContext)
                 .defaultValue(false)
                 .labelValue("Publish new version")
-                .pojoObservableValue(PojoObservables.observeValue(dataModel.getFunctionConfigPageDataModel(), P_PUBLISH_NEW_VERSION))
+                .pojoObservableValue(PojoProperties.value(P_PUBLISH_NEW_VERSION).observe(dataModel.getFunctionConfigPageDataModel()))
                 .selectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent e) {
@@ -253,7 +249,7 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
                 .dataBindingContext(bindingContext)
                 .defaultValue(false)
                 .labelValue("Provide an alias to this new version")
-                .pojoObservableValue(PojoObservables.observeValue(dataModel.getFunctionConfigPageDataModel(), P_CREATE_NEW_VERSION_ALIAS))
+                .pojoObservableValue(PojoProperties.value(P_CREATE_NEW_VERSION_ALIAS).observe(dataModel.getFunctionConfigPageDataModel()))
                 .selectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent e) {
@@ -344,31 +340,25 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
                 "Please enter a timeout within the range of [%d, %d]",
                 MIN_TIMEOUT, MAX_TIMEOUT);
 
-        memoryTextComplex = TextComplex.builder()
-                .composite(group)
+        memoryTextComplex = TextComplex.builder(group,
+                    bindingContext, PojoProperties.value(FunctionConfigPageDataModel.P_MEMORY).observe(dataModel.getFunctionConfigPageDataModel()))
                 .addValidator(new RangeValidator(memoryErrMsg,
                         MIN_MEMORY, MAX_MEMORY))
                 .createLabel(true)
-                .dataBindingContext(bindingContext)
                 .defaultValue(Integer.toString(DEFAULT_MEMORY))
                 .labelColSpan(1)
                 .labelValue("Memory (MB):")
-                .pojoObservableValue(PojoObservables.observeValue(
-                        dataModel.getFunctionConfigPageDataModel(), FunctionConfigPageDataModel.P_MEMORY))
                 .textColSpan(2)
                 .build();
 
-        timeoutTextComplex = TextComplex.builder()
-                .composite(group)
+        timeoutTextComplex = TextComplex.builder(group,
+                    bindingContext, PojoProperties.value(FunctionConfigPageDataModel.P_TIMEOUT).observe(dataModel.getFunctionConfigPageDataModel()))
                 .addValidator(new RangeValidator(timeoutErrMsg,
                         MIN_TIMEOUT, MAX_TIMEOUT))
                 .createLabel(true)
-                .dataBindingContext(bindingContext)
                 .defaultValue(Integer.toString(DEFAULT_TIMEOUT))
                 .labelColSpan(1)
                 .labelValue("Timeout (s):")
-                .pojoObservableValue(PojoObservables.observeValue(
-                        dataModel.getFunctionConfigPageDataModel(), FunctionConfigPageDataModel.P_TIMEOUT))
                 .textColSpan(2)
                 .build();
     }

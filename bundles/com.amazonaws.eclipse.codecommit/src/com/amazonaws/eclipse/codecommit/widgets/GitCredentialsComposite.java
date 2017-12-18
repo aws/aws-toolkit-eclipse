@@ -30,6 +30,7 @@ import java.util.Set;
 
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.PojoObservables;
+import org.eclipse.core.databinding.beans.PojoProperties;
 import org.eclipse.core.databinding.validation.IValidator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -117,19 +118,13 @@ public class GitCredentialsComposite extends Composite {
                 + "Toolkit for Eclipse to create a new set of Git credentials under the current selected account. see "
                 + "<a href=\"%s\">CreateServiceSpecificCredential</a> for more information.", GIT_CREDENTIALS_DOC, CREATE_SERVICE_SPECIFIC_CREDENTIALS_DOC), 2);
 
-        usernameComplex = TextComplex.builder()
-                .composite(this)
-                .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_USERNAME))
+        usernameComplex = TextComplex.builder(this, dataBindingContext, PojoObservables.observeValue(dataModel, P_USERNAME))
                 .addValidator(usernameValidator == null ? new NotEmptyValidator("User name must be provided!") : usernameValidator)
                 .labelValue("User name:")
                 .defaultValue(dataModel.getUsername())
                 .build();
 
-        passwordComplex = TextComplex.builder()
-                .composite(this)
-                .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoObservables.observeValue(dataModel, P_PASSWORD))
+        passwordComplex = TextComplex.builder(this, dataBindingContext, PojoObservables.observeValue(dataModel, P_PASSWORD))
                 .addValidator(passwordValidator == null ? new NotEmptyValidator("Password must be provided!") : passwordValidator)
                 .labelValue("Password: ")
                 .defaultValue(dataModel.getPassword())

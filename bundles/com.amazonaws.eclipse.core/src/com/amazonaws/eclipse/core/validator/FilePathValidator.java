@@ -21,9 +21,14 @@ import org.eclipse.core.databinding.validation.ValidationStatus;
 import org.eclipse.core.runtime.IStatus;
 
 /**
- *
+ * File exists and valid validator.
  */
 public class FilePathValidator implements IValidator {
+    private final String propertyName;
+
+    public FilePathValidator(String propertyName) {
+        this.propertyName = propertyName;
+    }
 
     /* (non-Javadoc)
      * @see org.eclipse.core.databinding.validation.IValidator#validate(java.lang.Object)
@@ -33,9 +38,8 @@ public class FilePathValidator implements IValidator {
         String filePath = (String) value;
         File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
-            return ValidationStatus.error("Not a valid file!");
+            return ValidationStatus.error("Property " + propertyName + " does not contain a valid file!");
         }
         return ValidationStatus.ok();
     }
-
 }

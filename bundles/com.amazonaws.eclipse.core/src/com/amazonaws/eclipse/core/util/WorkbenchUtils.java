@@ -77,7 +77,10 @@ public class WorkbenchUtils {
                 try {
                     if (url == null || workbench == null) return;
                     IWorkbenchBrowserSupport browserSupport = workbench.getBrowserSupport();
-                    browserSupport.createBrowser(IWorkbenchBrowserSupport.AS_EDITOR, null, null, null)
+                    browserSupport.createBrowser(
+                            IWorkbenchBrowserSupport.AS_EDITOR
+                            | IWorkbenchBrowserSupport.LOCATION_BAR
+                            | IWorkbenchBrowserSupport.NAVIGATION_BAR, null, null, null)
                         .openURL(url);
                 } catch (PartInitException e) {
                     AwsToolkitCore.getDefault().logWarning(String.format("Failed to open the url %s in the editor!", url.toString()), e);

@@ -16,6 +16,7 @@ Export-Package: com.amazonaws.eclipse.core,
  com.amazonaws.eclipse.core.accounts,
  com.amazonaws.eclipse.core.accounts.preferences,
  com.amazonaws.eclipse.core.accounts.profiles,
+ com.amazonaws.eclipse.core.ansi,
  com.amazonaws.eclipse.core.diagnostic.utils,
  com.amazonaws.eclipse.core.egit,
  com.amazonaws.eclipse.core.egit.jobs,
@@ -60,6 +61,7 @@ Require-Bundle: org.eclipse.swt,
  org.eclipse.m2e.archetype.common;bundle-version="1.5.1",
  org.eclipse.m2e.maven.runtime;bundle-version="1.5.1",
  org.eclipse.ui.ide,
+ org.eclipse.ui.console,
  org.eclipse.egit;bundle-version="3.4.2",
  org.eclipse.egit.core;bundle-version="3.4.2",
  org.eclipse.egit.doc;bundle-version="3.4.2",
@@ -68,7 +70,12 @@ Require-Bundle: org.eclipse.swt,
  org.eclipse.core.variables;bundle-version="3.2.800",
  org.eclipse.equinox.security;bundle-version="1.2.0",
  org.eclipse.core.databinding.property,
- com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
+ com.amazonaws.eclipse.javasdk;bundle-version="1.11.130",
+ org.eclipse.m2e.launching
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Import-Package: org.eclipse.jdt.launching
+Import-Package: org.eclipse.debug.core,
+ org.eclipse.debug.core.model,
+ org.eclipse.debug.ui,
+ org.eclipse.jdt.annotation,
+ org.eclipse.jdt.launching

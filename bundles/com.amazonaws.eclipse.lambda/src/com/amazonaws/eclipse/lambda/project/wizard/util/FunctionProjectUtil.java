@@ -331,8 +331,7 @@ public class FunctionProjectUtil {
      * Return the absolute path of the specified location relative to the project.
      */
     public static IPath getProjectDirectory(IProject project, String path) {
-        IPath workspaceRoot = project.getWorkspace().getRoot().getRawLocation();
-        IPath projectRoot = workspaceRoot.append(project.getFullPath());
+        IPath projectRoot = project.getLocation();
 
         if (path == null) {
             return projectRoot;

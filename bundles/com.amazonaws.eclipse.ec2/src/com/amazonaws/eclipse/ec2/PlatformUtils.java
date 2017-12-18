@@ -16,6 +16,10 @@
 package com.amazonaws.eclipse.ec2;
 
 import java.io.File;
+import static com.amazonaws.eclipse.core.util.OsPlatformUtils.isWindows;
+import static com.amazonaws.eclipse.core.util.OsPlatformUtils.isMac;
+import static com.amazonaws.eclipse.core.util.OsPlatformUtils.isLinux;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -37,63 +41,6 @@ public class PlatformUtils {
 
     private static final String PPK_CONVERTER_EXE = "/lib/PemToPPKConverter.exe";
     private static final Logger logger = Logger.getLogger(PlatformUtils.class.getName());
-
-    /**
-     * Returns true if the current platform is a windows platform.
-     *
-     * @return True if the current platform is a windows platform.
-     */
-    public boolean isWindows() {
-        String platform = System.getProperty("os.name");
-
-        if (platform == null) {
-            Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
-                    "No system property for 'os.name'");
-            StatusManager.getManager().handle(status, StatusManager.LOG);
-
-            return false;
-        }
-
-        return platform.toLowerCase().contains("windows");
-    }
-
-    /**
-     * Returns true if the current platform is a Linux platform.
-     *
-     * @return True if the current platform is a Linux platform.
-     */
-    public boolean isLinux() {
-        String platform = System.getProperty("os.name");
-
-        if (platform == null) {
-            Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
-                    "No system property for 'os.name'");
-            StatusManager.getManager().handle(status, StatusManager.LOG);
-
-            return false;
-        }
-
-        return platform.toLowerCase().contains("linux");
-    }
-
-    /**
-     * Returns true if the current platform is a Mac platform.
-     *
-     * @return True if the current platform is a Mac platform.
-     */
-    public boolean isMac() {
-        String platform = System.getProperty("os.name");
-
-        if (platform == null) {
-            Status status = new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID,
-                    "No system property for 'os.name'");
-            StatusManager.getManager().handle(status, StatusManager.LOG);
-
-            return false;
-        }
-
-        return platform.toLowerCase().contains("mac os");
-    }
 
     /**
      * Returns true if the platform specific SSH client is correctly configured

@@ -33,6 +33,11 @@ public class RegionDataModel {
     }
 
     @JsonProperty
+    public String getRegionId() {
+        return region.getId();
+    }
+
+    @JsonProperty
     public String getRegionName() {
         return region.getName();
     }

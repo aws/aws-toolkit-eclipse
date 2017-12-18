@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.ui.wizards.ErrorDecorator;
+import com.amazonaws.eclipse.core.validator.IntegerRangeValidator;
 import com.amazonaws.eclipse.databinding.ChainValidator;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
 import com.amazonaws.eclipse.dynamodb.preferences.TestToolPreferencePage;
@@ -149,6 +150,7 @@ public class StartTestToolConfigurationWizardPage extends WizardPage {
 
     /**
      * A validator that ensures the input is a valid port number.
+     * @deprecated for {@link IntegerRangeValidator}
      */
     private static class PortValidator implements IValidator {
         @Override

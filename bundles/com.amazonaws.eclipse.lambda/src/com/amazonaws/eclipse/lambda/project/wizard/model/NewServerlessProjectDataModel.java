@@ -155,7 +155,7 @@ public class NewServerlessProjectDataModel {
             ServerlessBlueprint blueprint = getSelectedBlueprint();
             String content = CodeTemplateManager.processTemplateWithData(
                     CodeTemplateManager.getInstance().getServerlessSamTemplate(blueprint), getServerlessSamTemplateData());
-            serverlessModel = Serverless.load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
+            serverlessModel = Serverless.loadFromContent(content);
         } else {
             serverlessModel = Serverless.load(importFileDataModel.getFilePath());
         }

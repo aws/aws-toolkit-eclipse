@@ -63,6 +63,7 @@ public class AccountSelectionComposite extends Composite {
 
     public AccountSelectionComposite(final Composite parent, final int style) {
         super(parent, style);
+        setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         setLayout(new GridLayout(3, false));
 
         createChildWidgets();
@@ -90,7 +91,7 @@ public class AccountSelectionComposite extends Composite {
     protected void createAccountConfigurationLink() {
         Link link = new Link(this, SWT.NONE);
         link.setFont(this.getFont());
-        link.setText("<A>" + "Configure AWS accounts..." + "</A>"); //$NON-NLS-1$ //$NON-NLS-2$
+        link.setText("<A>" + "Configure AWS profiles..." + "</A>");
 
         link.addSelectionListener(new SelectionListener() {
 
@@ -121,7 +122,7 @@ public class AccountSelectionComposite extends Composite {
 
     protected void createAccountSelectionCombo() {
         Label selectAccount = new Label(this, SWT.None);
-        selectAccount.setText("Select Account:"); //$NON-NLS-1$
+        selectAccount.setText("Select profile:");
 
         this.accountSelection = new Combo(this, SWT.DROP_DOWN | SWT.READ_ONLY);
 

@@ -114,10 +114,8 @@ public class LambdaFunctionComposite {
     }
 
     public void createClassNameControl() {
-        this.classNameComplex = TextComplex.builder()
-                .composite(inputComposite)
-                .dataBindingContext(dataBindingContext)
-                .pojoObservableValue(PojoProperties.value(LambdaFunctionDataModel.class, P_CLASS_NAME).observe(dataModel))
+        this.classNameComplex = TextComplex.builder(inputComposite, dataBindingContext,
+                    PojoProperties.value(P_CLASS_NAME).observe(dataModel))
                 .addValidator(new NotEmptyValidator("Please provide a valid class name for the handler"))
                 .labelValue("Class Name:")
                 .defaultValue(dataModel.getClassName())

@@ -25,6 +25,7 @@ import com.amazonaws.eclipse.lambda.serverless.model.ResourceType;
 import com.amazonaws.eclipse.lambda.serverless.model.TypeProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServerlessFunction extends Resource {
@@ -52,7 +53,7 @@ public class ServerlessFunction extends Resource {
     private Integer timeout;
 
     @JsonProperty("Role")
-    private String role;
+    private JsonNode role;
 
     @JsonProperty("Policies")
     private final List<String> policies = new ArrayList<>();
@@ -109,11 +110,11 @@ public class ServerlessFunction extends Resource {
         this.timeout = timeout;
     }
 
-    public String getRole() {
+    public JsonNode getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(JsonNode role) {
         this.role = role;
     }
 

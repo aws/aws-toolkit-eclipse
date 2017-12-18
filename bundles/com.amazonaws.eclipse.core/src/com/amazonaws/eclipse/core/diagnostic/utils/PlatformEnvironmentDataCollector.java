@@ -30,7 +30,7 @@ final public class PlatformEnvironmentDataCollector {
     private static final PlatformDataModel DATA_TEST = getPlatformDataModel(Constants.AWS_TOOLKIT_FOR_ECLIPSE_PRODUCT_NAME_TEST);
 
     public static PlatformDataModel getData() {
-        return AwsToolkitCore.DEBUG_MODE ? DATA_TEST : DATA;
+        return AwsToolkitCore.getDefault().isDebugMode() ? DATA_TEST : DATA;
     }
 
     private static PlatformDataModel getPlatformDataModel(final String productName) {

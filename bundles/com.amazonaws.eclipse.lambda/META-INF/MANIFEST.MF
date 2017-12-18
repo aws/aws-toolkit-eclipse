@@ -34,10 +34,13 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.m2e.core.ui;bundle-version="1.5.1",
  org.eclipse.m2e.maven.runtime;bundle-version="1.5.1",
  org.eclipse.m2e.archetype.common;bundle-version="1.5.1",
- com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
+ com.amazonaws.eclipse.javasdk;bundle-version="1.11.130",
+ org.eclipse.jdt.debug.ui,
+ org.eclipse.jdt.annotation
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.amazonaws.eclipse.lambda.blueprint,
+ com.amazonaws.eclipse.lambda.launching,
  com.amazonaws.eclipse.lambda.project.template,
  com.amazonaws.eclipse.lambda.project.template.data,
  com.amazonaws.eclipse.lambda.project.wizard.model,
@@ -46,4 +49,9 @@ Export-Package: com.amazonaws.eclipse.lambda.blueprint,
  com.amazonaws.eclipse.lambda.serverless.model.transform,
  com.amazonaws.eclipse.lambda.serverless.template,
  freemarker.template
-Import-Package: org.eclipse.ui.navigator
+Import-Package: org.eclipse.core.variables,
+ org.eclipse.debug.internal.ui,
+ org.eclipse.debug.ui,
+ org.eclipse.debug.ui.console,
+ org.eclipse.m2e.actions,
+ org.eclipse.ui.navigator

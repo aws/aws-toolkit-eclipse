@@ -182,7 +182,7 @@ public class BlueprintsTest {
         try {
             String content = CodeTemplateManager.processTemplateWithData(samTemplate, dataModel);
             assertStringNotEmpty(content);
-            ServerlessModel model = Serverless.load(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
+            ServerlessModel model = Serverless.loadFromContent(content);
             Set<String> physicalIds = model.getServerlessFunctions().keySet();
             Set<String> pathIds = blueprint.getHandlerTemplatePaths().keySet();
             assertEquals(physicalIds, pathIds);

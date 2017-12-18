@@ -32,12 +32,11 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.util.PluginUtils;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.invoke.logs.CloudWatchLogsUtils;
@@ -139,7 +138,7 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
         String handlerToBeInvoked = metadata.getLastInvokeHandler();
 
-        MessageConsole lambdaConsole = getOrCreateLambdaConsoleIfNotExist(
+        MessageConsole lambdaConsole = PluginUtils.getOrCreateMessageConsole(
                 handlerToBeInvoked + " Lambda Console");
         lambdaConsole.clearConsole();
         ConsolePlugin.getDefault().getConsoleManager().showConsoleView(lambdaConsole);
@@ -231,27 +230,6 @@ public class InvokeFunctionHandler extends AbstractHandler {
                 lambdaError.println("To see the complete log, go to AWS CloudWatch Logs console.");
             }
         }
-    }
-
-    private static MessageConsole getOrCreateLambdaConsoleIfNotExist(String consoleName) {
-        IConsoleManager consoleManager = ConsolePlugin.getDefault()
-                .getConsoleManager();
-
-        // Search existing consoles
-        if (consoleManager.getConsoles() != null) {
-            for (IConsole console : consoleManager.getConsoles()) {
-                if (consoleName.equals(console.getName())
-                        && (console instanceof MessageConsole)) {
-                    return (MessageConsole)console;
-                }
-            }
-        }
-
-        // If not found, create a new console
-        MessageConsole newConsole = new MessageConsole(consoleName, null);
-        ConsolePlugin.getDefault().getConsoleManager()
-                .addConsoles(new IConsole[] { newConsole });
-        return newConsole;
     }
 
     private static void updateFunctionCode(AWSLambda lambda, IProject project,

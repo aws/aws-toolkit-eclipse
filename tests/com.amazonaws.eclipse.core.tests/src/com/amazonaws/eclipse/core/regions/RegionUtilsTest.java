@@ -1,5 +1,6 @@
 package com.amazonaws.eclipse.core.regions;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -16,20 +17,20 @@ public class RegionUtilsTest {
         // regular region endpoints
         Pattern.compile("^(http|https)://\\w+\\.(\\w+\\.)?(ca|us|eu|ap|sa)-(gov-)?(east|west|south|north|central|northeast|southeast)-(1|2)\\.amazonaws\\.com(/)?$"),
         // China region endpoints, currently we only have cn-north-1 region
-        Pattern.compile("^(http|https)://\\w+\\.(\\w+\\.)?cn-north-1.amazonaws.com.cn(/)?$"),
+        Pattern.compile("^(http|https)://\\w+\\.(\\w+\\.)?cn-(north|northwest)-1.amazonaws.com.cn(/)?$"),
         // us-gov region endpoints
         Pattern.compile("^(http|https)://\\w+\\.us-gov(-west-1)?.amazonaws.com(/)?$")
     };
 
     @Test
-    public void testRemoteRegionFile() {
+    public void testRemoteRegionFile() throws IOException {
         List<Region> regions = RegionUtils.loadRegionsFromS3();
         assertRegionEndpointsValid(regions);
     }
 
     @Test
-    public void testLocalRegionFile() {
-        List<Region> regions = RegionUtils.loadRegionsFromLocalFile();
+    public void testLocalRegionFile() throws IOException {
+        List<Region> regions = RegionUtils.loadRegionsFromLocalRegionFile();
         assertRegionEndpointsValid(regions);
     }
 

@@ -76,18 +76,33 @@ public abstract class AwsAction extends Action {
 
     protected abstract void doRun();
 
-    // Helper method to publish a filed action metric immediately
+    // Helper method to publish a failed action metric immediately
     public static void publishFailedAction(AwsToolkitMetricType metricType) {
-        new MetricsDataModel(metricType).addAttribute(END_RESULT, FAILED).publishEvent();
+        publishFailedAction(new MetricsDataModel(metricType));
+    }
+
+    // Helper method to publish a failed action metric immediately
+    public static void publishFailedAction(MetricsDataModel dataModel) {
+        dataModel.addAttribute(END_RESULT, FAILED).publishEvent();
     }
 
     // Helper method to publish a succeeded action metric immediately
     public static void publishSucceededAction(AwsToolkitMetricType metricType) {
-        new MetricsDataModel(metricType).addAttribute(END_RESULT, SUCCEEDED).publishEvent();
+        publishSucceededAction(new MetricsDataModel(metricType));
+    }
+
+    // Helper method to publish a succeeded action metric immediately
+    public static void publishSucceededAction(MetricsDataModel dataModel) {
+        dataModel.addAttribute(END_RESULT, SUCCEEDED).publishEvent();
     }
 
     // Helper method to publish a performed action metric immediately
     public static void publishPerformedAction(AwsToolkitMetricType metricType) {
-        new MetricsDataModel(metricType).addAttribute(END_RESULT, PERFORMED).publishEvent();
+        publishPerformedAction(new MetricsDataModel(metricType));
+    }
+
+    // Helper method to publish a performed action metric immediately
+    public static void publishPerformedAction(MetricsDataModel dataModel) {
+        dataModel.addAttribute(END_RESULT, PERFORMED).publishEvent();
     }
 }

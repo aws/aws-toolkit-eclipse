@@ -47,19 +47,28 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 
 /**
- * Utilities for working with regions.
+ * Utilities for loading and working with regions. The AWS regions loading priorities are:
+ *
+ * {@link #P_REGIONS_FILE_OVERRIDE}              // Use the regions file from the provided system property - used for accessing private regions
+ * > {@link #P_USE_LOCAL_REGION_FILE}            // Use the embedded regions file /etc/regions.xml explicitly - used for testing purpose
+ * > {@link #LOCAL_REGION_FILE_OVERRIDE}         // Use the embedded regions file /etc/override.xml if exists - used for accessing private partitions
+ * > {@link #CLOUDFRONT_DISTRO}                  // Use the remote shared ServiceEndPoints.xml file - used in most cases for accessing public regions
+ * > /etc/regions.xml                            // Use the local embedded file if failed to download the remote file - fall back to the embedded version which could be outdated
  */
 public class RegionUtils {
 
     public static final String S3_US_EAST_1_REGIONAL_ENDPOINT = "https://s3-external-1.amazonaws.com";
 
     private static final String CLOUDFRONT_DISTRO = "http://vstoolkit.amazonwebservices.com/";
-    private static final String REGIONS_FILE_OVERRIDE = RegionUtils.class.getName() + ".fileOverride";
-    public static final String USE_LOCAL_REGION_FILE = RegionUtils.class.getName() + ".useLocalRegionFile";
-
     private static final String REGIONS_METADATA_S3_BUCKET = "aws-vs-toolkit";
     private static final String REGIONS_METADATA_S3_OBJECT = "ServiceEndPoints.xml";
 
+    // System property name whose value is the path of the overriding file.
+    private static final String P_REGIONS_FILE_OVERRIDE = RegionUtils.class.getName() + ".fileOverride";
+    // System property name whose value is a boolean whether to use the embedded region file.
+    private static final String P_USE_LOCAL_REGION_FILE = RegionUtils.class.getName() + ".useLocalRegionFile";
+    // This file overrides the remote ServiceEndPoints.xml file if exists.
+    private static final String LOCAL_REGION_FILE_OVERRIDE = "/etc/regions-override.xml";
     private static final String LOCAL_REGION_FILE = "/etc/regions.xml";
 
     private static List<Region> regions;
@@ -82,7 +91,7 @@ public class RegionUtils {
      * Returns a list of the available AWS regions.
      */
     public synchronized static List<Region> getRegions() {
-        if ( regions == null ) {
+        if (regions == null) {
             init();
         }
 
@@ -120,8 +129,8 @@ public class RegionUtils {
      */
     public synchronized static List<Region> getRegionsForService(String serviceAbbreviation) {
         List<Region> regions = new LinkedList<>();
-        for ( Region r : getRegions() ) {
-            if ( r.isServiceSupported(serviceAbbreviation) ) {
+        for (Region r : getRegions()) {
+            if (r.isServiceSupported(serviceAbbreviation)) {
                 regions.add(r);
             }
         }
@@ -132,8 +141,8 @@ public class RegionUtils {
      * Returns the region with the id given, if it exists. Otherwise, returns null.
      */
     public static Region getRegion(String regionId) {
-        for ( Region r : getRegions() ) {
-            if ( r.getId().equals(regionId) ) {
+        for (Region r : getRegions()) {
+            if (r.getId().equals(regionId)) {
                 return r;
             }
         }
@@ -199,21 +208,21 @@ public class RegionUtils {
         URL targetEndpointUrl = null;
         try {
             targetEndpointUrl = new URL(endpoint);
-        } catch ( MalformedURLException e ) {
+        } catch (MalformedURLException e) {
             throw new RuntimeException(
                     "Unable to parse service endpoint: " + e.getMessage());
         }
 
         String targetHost = targetEndpointUrl.getHost();
-        for ( Region region : getRegions() ) {
-            for ( String serviceEndpoint
-                        : region.getServiceEndpoints().values() ) {
+        for (Region region : getRegions()) {
+            for (String serviceEndpoint
+                        : region.getServiceEndpoints().values()) {
                 try {
                     URL serviceEndpointUrl = new URL(serviceEndpoint);
-                    if ( serviceEndpointUrl.getHost().equals(targetHost) ) {
+                    if (serviceEndpointUrl.getHost().equals(targetHost)) {
                         return region;
                     }
-                } catch ( MalformedURLException e ) {
+                } catch (MalformedURLException e) {
                     AwsToolkitCore.getDefault().reportException("Unable to parse service endpoint: " + serviceEndpoint, e);
                 }
             }
@@ -230,20 +239,18 @@ public class RegionUtils {
      * initializes the static list of regions with it.
      */
     public static synchronized void init() {
-
-        if (System.getProperty(REGIONS_FILE_OVERRIDE) != null) {
+        // Use overriding file for testing unlaunched services.
+        if (System.getProperty(P_REGIONS_FILE_OVERRIDE) != null) {
             loadRegionsFromOverrideFile();
-        } else if (!Boolean.valueOf(System.getProperty(USE_LOCAL_REGION_FILE))) {
-            IPath stateLocation = Platform.getStateLocation(AwsToolkitCore
-                    .getDefault().getBundle());
-            File regionsDir = new File(stateLocation.toFile(), "regions");
-            File regionsFile = new File(regionsDir, "regions.xml");
-
-            cacheRegionsFile(regionsFile);
-            initCachedRegions(regionsFile);
+        // Use the local region override file
+        } else if (localRegionOverrideFileExists()) {
+            initBundledRegionsOverride();
+        // Use the remote ServiceEndpoints.xml file
+        } else if (!Boolean.valueOf(System.getProperty(P_USE_LOCAL_REGION_FILE))) {
+            initRegionsFromS3();
         }
         // Fall back onto the version we ship with the toolkit
-        if ( regions == null ) {
+        if (regions == null) {
             initBundledRegions();
         }
 
@@ -260,19 +267,31 @@ public class RegionUtils {
         try {
             System.setProperty("com.amazonaws.sdk.disableCertChecking", "true");
             File regionsFile =
-                new File(System.getProperty(REGIONS_FILE_OVERRIDE));
-            InputStream override = new FileInputStream(regionsFile);
-            regions = parseRegionMetadata(override);
+                new File(System.getProperty(P_REGIONS_FILE_OVERRIDE));
+            try (InputStream override = new FileInputStream(regionsFile)) {
+                regions = parseRegionMetadata(override);
+            }
+
             try {
                 cacheFlags(regionsFile.getParentFile());
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 AwsToolkitCore.getDefault().logError(
                         "Couldn't cache flag icons", e);
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             AwsToolkitCore.getDefault().logError(
                     "Couldn't load regions override", e);
         }
+    }
+
+    private static void initRegionsFromS3() {
+        IPath stateLocation = Platform.getStateLocation(AwsToolkitCore
+                .getDefault().getBundle());
+        File regionsDir = new File(stateLocation.toFile(), "regions");
+        File regionsFile = new File(regionsDir, "regions.xml");
+
+        cacheRegionsFile(regionsFile);
+        initCachedRegions(regionsFile);
     }
 
     /**
@@ -283,7 +302,7 @@ public class RegionUtils {
      */
     private static void cacheRegionsFile(File regionsFile) {
         Date regionsFileLastModified = new Date(0);
-        if ( !regionsFile.exists() ) {
+        if (!regionsFile.exists()) {
             regionsFile.getParentFile().mkdirs();
         } else {
             regionsFileLastModified = new Date(regionsFile.lastModified());
@@ -294,11 +313,11 @@ public class RegionUtils {
                 AWSClientFactory.getAnonymousS3Client();
             ObjectMetadata objectMetadata =
                 s3.getObjectMetadata(REGIONS_METADATA_S3_BUCKET, REGIONS_METADATA_S3_OBJECT);
-            if ( objectMetadata.getLastModified()
-                        .after(regionsFileLastModified) ) {
+            if (objectMetadata.getLastModified()
+                        .after(regionsFileLastModified)) {
                 cacheRegionsFile(regionsFile, s3);
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             AwsToolkitCore.getDefault().logError(
                     "Failed to cache regions file", e);
         }
@@ -310,16 +329,15 @@ public class RegionUtils {
      * on the next startup.
      */
     private static void initCachedRegions(File regionsFile) {
-        try {
-            InputStream inputStream = new FileInputStream(regionsFile);
+        try (InputStream inputStream = new FileInputStream(regionsFile)) {
             regions = parseRegionMetadata(inputStream);
             try {
                 cacheFlags(regionsFile.getParentFile());
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 AwsToolkitCore.getDefault().logError(
                         "Couldn't cache flag icons", e);
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             AwsToolkitCore.getDefault().logError(
                     "Couldn't read regions file", e);
             // Clear out the regions file so that it will get cached again at
@@ -333,11 +351,28 @@ public class RegionUtils {
      * the plugin, in case it cannot be fetched from the remote source.
      */
     private static void initBundledRegions() {
-        ClassLoader classLoader = RegionUtils.class.getClassLoader();
-        InputStream inputStream =
-            classLoader.getResourceAsStream(LOCAL_REGION_FILE);
-        regions = parseRegionMetadata(inputStream);
-        for ( Region r : regions ) {
+        try {
+            regions = loadRegionsFromLocalRegionFile();
+            registerRegionFlagsFromBundle(regions);
+        } catch (IOException e) {
+            // Do nothing, the regions remains null in this case.
+        }
+    }
+
+    private static void initBundledRegionsOverride() {
+        try {
+            regions = loadRegionsFromLocalRegionOverrideFile();
+            registerRegionFlagsFromBundle(regions);
+        } catch (IOException e) {
+            // Do nothing, the regions remains null in this case.
+        }
+    }
+
+    private static final void registerRegionFlagsFromBundle(List<Region> regions) {
+        if (regions == null) {
+            return;
+        }
+        for (Region r : regions) {
             if (r == LocalRegion.INSTANCE) {
                 // No flag to load for the local region.
                 continue;
@@ -360,6 +395,9 @@ public class RegionUtils {
      * special "local" region.
      */
     private static List<Region> parseRegionMetadata(InputStream inputStream) {
+        if (inputStream == null) {
+            return null;
+        }
         List<Region> list = PARSER.parseRegionMetadata(inputStream);
         list.add(LocalRegion.INSTANCE);
         replaceS3GlobalEndpointWithRegional(list);
@@ -396,10 +434,10 @@ public class RegionUtils {
      */
     private static void truncateFile(File file)
             throws FileNotFoundException, IOException {
-        if ( file.exists() ) {
-            RandomAccessFile raf = new RandomAccessFile(file, "rw");
-            raf.getChannel().truncate(0);
-            raf.close();
+        if (file.exists()) {
+            try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+                raf.getChannel().truncate(0);
+            }
         }
     }
 
@@ -408,18 +446,18 @@ public class RegionUtils {
      */
     private static void cacheFlags(File regionsDir)
             throws ClientProtocolException, IOException {
-        if ( !regionsDir.exists() ) {
+        if (!regionsDir.exists()) {
             return;
         }
 
-        for ( Region r : regions ) {
+        for (Region r : regions) {
             if (r == LocalRegion.INSTANCE) {
                 // Local region has no flag to initialize.
                 continue;
             }
 
             File icon = new File(regionsDir, r.getFlagIconPath());
-            if ( icon.exists() == false ) {
+            if (icon.exists() == false) {
                 icon.getParentFile().mkdirs();
                 String iconUrl = CLOUDFRONT_DISTRO + r.getFlagIconPath();
                 fetchFile(iconUrl, icon);
@@ -446,18 +484,13 @@ public class RegionUtils {
         HttpGet httpget = new HttpGet(url);
         HttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
-        if ( entity != null ) {
-            InputStream instream = entity.getContent();
-            FileOutputStream output = new FileOutputStream(destinationFile);
-            try {
+        if (entity != null) {
+            try (InputStream instream = entity.getContent(); FileOutputStream output = new FileOutputStream(destinationFile)) {
                 int l;
                 byte[] tmp = new byte[2048];
-                while ( (l = instream.read(tmp)) != -1 ) {
+                while ((l = instream.read(tmp)) != -1) {
                     output.write(tmp, 0, l);
                 }
-            } finally {
-                output.close();
-                instream.close();
             }
         }
     }
@@ -465,25 +498,36 @@ public class RegionUtils {
     /**
      * Load regions from remote S3 bucket.
      */
-    public static List<Region> loadRegionsFromS3() {
+    public static List<Region> loadRegionsFromS3() throws IOException {
         AmazonS3 s3 = AWSClientFactory.getAnonymousS3Client();
-        InputStream inputStream =
+        try (InputStream inputStream =
                 s3.getObject(REGIONS_METADATA_S3_BUCKET, REGIONS_METADATA_S3_OBJECT)
-                    .getObjectContent();
-        return parseRegionMetadata(inputStream);
+                    .getObjectContent()) {
+            return parseRegionMetadata(inputStream);
+        }
     }
 
     /**
      * Load regions from local file.
      */
-    public static List<Region> loadRegionsFromLocalFile() {
+    private static List<Region> loadRegionsFromLocalFile(String localFileName) throws IOException {
         ClassLoader classLoader = RegionUtils.class.getClassLoader();
-        InputStream inputStream =
-            classLoader.getResourceAsStream(LOCAL_REGION_FILE);
-        return parseRegionMetadata(inputStream);
+        try (InputStream inputStream =
+            classLoader.getResourceAsStream(localFileName)) {
+            return parseRegionMetadata(inputStream);
+        }
     }
 
-    public static void useBuiltInRegionFile() {
-        System.setProperty(USE_LOCAL_REGION_FILE, "true");
+    private static boolean localRegionOverrideFileExists() {
+        ClassLoader classLoader = RegionUtils.class.getClassLoader();
+        return classLoader.getResource(LOCAL_REGION_FILE_OVERRIDE) != null;
+    }
+
+    private static List<Region> loadRegionsFromLocalRegionOverrideFile() throws IOException {
+        return loadRegionsFromLocalFile(LOCAL_REGION_FILE_OVERRIDE);
+    }
+
+    public static List<Region> loadRegionsFromLocalRegionFile() throws IOException {
+        return loadRegionsFromLocalFile(LOCAL_REGION_FILE);
     }
 }
