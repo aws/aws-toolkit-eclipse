@@ -3,6 +3,14 @@
 	<name>com.amazonaws.eclipse.devide</name>
 	<comment></comment>
 	<projects>
+		<project>aws-toolkit-eclipse</project>
+		<project>com.amazonaws.eclipse.core</project>
+		<project>com.amazonaws.eclipse.core.feature</project>
+		<project>com.amazonaws.eclipse.elasticbeanstalk</project>
+		<project>com.amazonaws.eclipse.elasticbeanstalk.feature</project>
+		<project>com.amazonaws.eclipse.javasdk</project>
+		<project>com.amazonaws.eclipse.oxygen</project>
+		<project>com.amazonaws.eclipse.sdk.ui</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
