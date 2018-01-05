@@ -15,6 +15,7 @@
 package com.amazonaws.eclipse.core.maven;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.apache.maven.archetype.catalog.Archetype;
@@ -23,6 +24,7 @@ import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 
@@ -42,12 +44,12 @@ public class MavenFactory {
     private static String AWS_JAVA_SDK_GROUP_NAME = "com.amazonaws";
     private static String AWS_JAVA_SDK_ARTIFACT_NAME = "aws-java-sdk";
     private static String AWS_JAVA_SDK_ARTIFACT_TYPE = "jar";
-    private static String DEFAULT_AWS_JAVA_SDK_VERSION = "1.11.66";
+    private static String DEFAULT_AWS_JAVA_SDK_VERSION = "1.11.256";
 
     private static String AWS_JAVA_SDK_BOM_GROUP_NAME = "com.amazonaws";
     private static String AWS_JAVA_SDK_BOM_ARTIFACT_NAME = "aws-java-sdk-bom";
     private static String AWS_JAVA_SDK_BOM_ARTIFACT_TYPE = "pom";
-    private static String DEFAULT_AWS_JAVA_SDK_BOM_VERSION = "1.11.66";
+    private static String DEFAULT_AWS_JAVA_SDK_BOM_VERSION = "1.11.256";
 
     private static String AMAZON_KINESIS_CLIENT_GROUP_NAME = "com.amazonaws";
     private static String AMAZON_KINESIS_CLIENT_ARTIFACT_NAME = "amazon-kinesis-client";
@@ -150,8 +152,9 @@ public class MavenFactory {
         return getJunitDependency(DEFAULT_JUNIT_VERSION, "test");
     }
 
+    @NonNull
     public static String getLatestJavaSdkVersion() {
-        return getLatestArtifactVersion(AWS_JAVA_SDK_GROUP_NAME, AWS_JAVA_SDK_ARTIFACT_NAME);
+        return Optional.ofNullable(getLatestArtifactVersion(AWS_JAVA_SDK_GROUP_NAME, AWS_JAVA_SDK_ARTIFACT_NAME)).orElse(DEFAULT_AWS_JAVA_SDK_VERSION);
     }
 
     private static Dependency getLatestArtifactDependency(String groupId, String artifactId, String scope, String type, String defaultVersion) {

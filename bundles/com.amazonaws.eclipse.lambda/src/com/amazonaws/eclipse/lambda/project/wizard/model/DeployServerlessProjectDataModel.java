@@ -21,10 +21,12 @@ import java.util.Set;
 import org.eclipse.core.resources.IProject;
 
 import com.amazonaws.eclipse.cloudformation.model.ParametersDataModel;
+import com.amazonaws.eclipse.core.model.MultipleSelectionListDataModel;
 import com.amazonaws.eclipse.core.model.RegionDataModel;
 import com.amazonaws.eclipse.core.model.SelectOrCreateBucketDataModel;
 import com.amazonaws.eclipse.lambda.model.SelectOrInputStackDataModel;
 import com.amazonaws.eclipse.lambda.project.metadata.ServerlessProjectMetadata;
+import com.amazonaws.services.cloudformation.model.Capability;
 
 public class DeployServerlessProjectDataModel {
 
@@ -32,6 +34,7 @@ public class DeployServerlessProjectDataModel {
     private final SelectOrCreateBucketDataModel bucketDataModel = new SelectOrCreateBucketDataModel();
     private final SelectOrInputStackDataModel stackDataModel = new SelectOrInputStackDataModel();
     private final ParametersDataModel parametersDataModel = new ParametersDataModel();
+    private final MultipleSelectionListDataModel<Capability> capabilitiesDataModel = new MultipleSelectionListDataModel<>();
 
     private final IProject project;
     private final String projectName;
@@ -70,6 +73,10 @@ public class DeployServerlessProjectDataModel {
 
     public SelectOrInputStackDataModel getStackDataModel() {
         return stackDataModel;
+    }
+
+    public MultipleSelectionListDataModel<Capability> getCapabilitiesDataModel() {
+        return capabilitiesDataModel;
     }
 
     public ParametersDataModel getParametersDataModel() {

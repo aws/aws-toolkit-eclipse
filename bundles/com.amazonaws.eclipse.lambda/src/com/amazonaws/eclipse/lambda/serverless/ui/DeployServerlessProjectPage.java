@@ -15,12 +15,14 @@
 package com.amazonaws.eclipse.lambda.serverless.ui;
 
 import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newGroup;
+import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
 import static com.amazonaws.eclipse.lambda.LambdaAnalytics.trackRegionComboChangeSelection;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -48,10 +50,12 @@ import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourc
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
 import com.amazonaws.eclipse.core.ui.CancelableThread;
+import com.amazonaws.eclipse.core.ui.MultipleSelectionListComposite;
 import com.amazonaws.eclipse.core.ui.RegionComposite;
 import com.amazonaws.eclipse.core.ui.SelectOrCreateBucketComposite;
 import com.amazonaws.eclipse.core.util.S3BucketUtil;
 import com.amazonaws.eclipse.databinding.ChainValidator;
+import com.amazonaws.eclipse.lambda.LambdaConstants;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 import com.amazonaws.eclipse.lambda.model.SelectOrInputStackDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.model.DeployServerlessProjectDataModel;
@@ -61,6 +65,7 @@ import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessFunctio
 import com.amazonaws.eclipse.lambda.serverless.model.transform.ServerlessModel;
 import com.amazonaws.eclipse.lambda.ui.SelectOrInputStackComposite;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.model.Capability;
 import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
 
@@ -76,6 +81,7 @@ public class DeployServerlessProjectPage extends WizardPage {
     private RegionComposite regionComposite;
     private SelectOrCreateBucketComposite bucketComposite;
     private SelectOrInputStackComposite stackComposite;
+    private MultipleSelectionListComposite<Capability> capabilitiesSelectionComposite;
 
     private IObservableValue templateValidated = new WritableValue();
     private ValidateTemplateThread validateTemplateThread;
@@ -99,6 +105,8 @@ public class DeployServerlessProjectPage extends WizardPage {
         createRegionSection(container);
         createS3BucketSection(container);
         createStackSection(container);
+        createCapabilities(container);
+
         createValidationBinding();
 
         aggregateValidationStatus.addChangeListener(new IChangeListener() {
@@ -190,6 +198,26 @@ public class DeployServerlessProjectPage extends WizardPage {
         group.setLayout(new GridLayout(1, false));
         stackComposite = new SelectOrInputStackComposite(
                 group, bindingContext, dataModel.getStackDataModel());
+    }
+
+    private void createCapabilities(Composite parent) {
+        Group group = newGroup(parent, "Configure capabilities");
+        group.setLayout(new GridLayout(1, false));
+
+        newLink(group,
+                LambdaConstants.webLinkListener,
+                    "If you have IAM resources, you can specify either capability. If you " +
+                    "have IAM resources with custom names, you must specify CAPABILITY_NAMED_IAM. " +
+                    "You must select at least one capability. " +
+                    "For more information, see <a href=\"" +
+                    LambdaConstants.CLOUDFORMATION_CAPABILITIES +
+                    "\">Acknowledging IAM Resources in AWS CloudFormation Templates</a>.", 1, 100, 50);
+
+        capabilitiesSelectionComposite = new MultipleSelectionListComposite<>(
+                group, bindingContext, dataModel.getCapabilitiesDataModel(),
+                Arrays.asList(Capability.values()),
+                Arrays.asList(Capability.CAPABILITY_IAM),
+                "You must select at least one capability");
     }
 
     private void createValidationBinding() {

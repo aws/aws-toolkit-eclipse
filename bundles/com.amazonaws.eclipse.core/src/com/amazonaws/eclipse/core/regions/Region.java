@@ -87,4 +87,53 @@ public interface Region {
      * Returns the flag's image descriptor.
      */
     ImageDescriptor getFlagImageDescriptor();
+
+    String getRegionRestriction();
+
+    default String getGlobalRegionSigningRegion() {
+        RegionPartition partition = RegionPartition.fromValue(getRegionRestriction());
+        if (partition == null) {
+            return getId();
+        } else {
+            return partition.getGlobalSigningRegion();
+        }
+    }
+
+    public static enum RegionPartition {
+        US_GOV_CLOUD("IsGovCloudAccount", "us-gov-west-1"),
+        CHINA_CLOUD("IsChinaAccount", "cn-north-1"),
+        AWS_CLOUD("IsAwsAccount", "us-east-1")
+        ;
+
+        private final String restriction;
+        private final String globalSigningRegion;
+
+        private RegionPartition(String restriction, String globalSigningRegion) {
+            this.restriction = restriction;
+            this.globalSigningRegion = globalSigningRegion;
+        }
+        public String getRestriction() {
+            return this.restriction;
+        }
+        public String getGlobalSigningRegion() {
+            return globalSigningRegion;
+        }
+
+        /**
+         * Find the {@link RegionPartition} by the provided restriction. If the restriction
+         * is null or empty, return the default AWS_CLOUD; Otherwise, return the corresponding
+         * {@link RegionPartition} if found in the enum or null if not.
+         */
+        public static RegionPartition fromValue(String restriction) {
+            if (restriction == null || restriction.isEmpty()) {
+                return AWS_CLOUD;
+            }
+            for (RegionPartition partition : RegionPartition.values()) {
+                if (partition.getRestriction().equals(restriction)) {
+                    return partition;
+                }
+            }
+            return null;
+        }
+    }
 }

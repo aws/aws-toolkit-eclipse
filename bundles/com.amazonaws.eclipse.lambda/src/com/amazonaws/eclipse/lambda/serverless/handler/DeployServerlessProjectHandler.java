@@ -15,6 +15,7 @@
 package com.amazonaws.eclipse.lambda.serverless.handler;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -71,8 +72,9 @@ public class DeployServerlessProjectHandler extends AbstractHandler {
             return;
         }
 
-        Set<String> handlerClasses = UploadFunctionUtil.findValidHandlerClass(project);
-        if (handlerClasses == null || handlerClasses.isEmpty()) {
+        Set<String> handlerClasses = new HashSet<>(UploadFunctionUtil.findValidHandlerClass(project));
+        handlerClasses.addAll(UploadFunctionUtil.findValidStreamHandlerClass(project));
+        if (handlerClasses.isEmpty()) {
             MessageDialog.openError(
                     Display.getCurrent().getActiveShell(),
                     "Invalid AWS Lambda Project",

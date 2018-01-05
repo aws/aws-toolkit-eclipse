@@ -41,6 +41,7 @@ public class RegionMetadataParser {
     private static final String SERVICE_ID_ATTRIBUTE    = "serviceId";
     private static final String SERVICE_NAME_ATTRIBUTE  = "name";
     private static final String SIGNER_ATTRIBUTE        = "signer";
+    private static final String RESTRICTIONS            = "restrictions";
 
     /**
      * Parses the specified input stream and returns a list of the regions
@@ -77,7 +78,8 @@ public class RegionMetadataParser {
         String name = getTagValue(REGION_DISPLAY_NAME_TAG, regionElement);
         String id = getTagValue(REGION_SYSTEM_ID_TAG, regionElement);
         String flagIcon = getTagValue(FLAG_ICON_TAG, regionElement);
-        Region region = new RegionImpl(name, id, flagIcon);
+        String restriction = getTagValue(RESTRICTIONS, regionElement);
+        Region region = new RegionImpl(name, id, flagIcon, restriction);
 
         NodeList serviceNodes = regionElement.getElementsByTagName(SERVICE_TAG);
         for (int i = 0; i < serviceNodes.getLength(); i++) {

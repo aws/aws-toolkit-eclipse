@@ -72,7 +72,7 @@ import com.amazonaws.services.lambda.model.FunctionConfiguration;
 
 public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
     private static final int MIN_MEMORY = 128;
-    private static final int MAX_MEMORY = 1536;
+    private static final int MAX_MEMORY = 3008;
     private static final int DEFAULT_MEMORY = 512;
 
     private static final int MIN_TIMEOUT = 1;

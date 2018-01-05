@@ -1,5 +1,9 @@
 {
   "current": [
+    "* **Merge Pull Request #93.**",
+    "* **Resolve Issues: #87, #94, #95, #96, #97.**"
+  ],
+  "v201712181839": [
     "**Support AWS SAM Local to locally debug Lambda functions and AWS Gateway**",
     "",
     "* Debug Lambda Function",

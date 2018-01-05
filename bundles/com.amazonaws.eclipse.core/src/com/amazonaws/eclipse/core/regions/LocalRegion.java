@@ -135,4 +135,9 @@ class LocalRegion implements Region {
     public String toString() {
         return "Region: Local (localhost) (local)";
     }
+
+    @Override
+    public String getRegionRestriction() {
+        return "IsLocalAccount";
+    }
 }

@@ -57,7 +57,7 @@ public class SelectOrCreateBasicLambdaRoleDataModel extends SelectOrCreateDataMo
     @Override
     public List<Role> loadAwsResources(AwsResourceScopeParamBase param) {
         AmazonIdentityManagement iamClient = AwsToolkitCore.getClientFactory(param.getAccountId())
-                .getIAMClient();
+                .getIAMClientByRegion(param.getRegionId());
         return ServiceApiUtils.getAllLambdaRoles(iamClient);
     }
 

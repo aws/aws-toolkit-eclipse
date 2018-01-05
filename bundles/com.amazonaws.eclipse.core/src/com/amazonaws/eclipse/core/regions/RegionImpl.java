@@ -31,14 +31,16 @@ class RegionImpl implements Region {
     private final String name;
     private final String id;
     private final String flagIconPath;
+    private final String restriction;
     private final Map<String, String> serviceEndpoints = new HashMap<>();
     private final Map<String, Service> servicesByName = new HashMap<>();
 
 
-    public RegionImpl(String name, String id, String flagIconPath) {
+    public RegionImpl(String name, String id, String flagIconPath, String restriction) {
         this.name = name;
         this.id = id;
         this.flagIconPath = flagIconPath;
+        this.restriction = restriction;
     }
 
     /**
@@ -153,5 +155,10 @@ class RegionImpl implements Region {
     @Override
     public String toString() {
         return "Region: " + name + " (" + id + ")";
+    }
+
+    @Override
+    public String getRegionRestriction() {
+        return restriction;
     }
 }

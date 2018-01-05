@@ -114,7 +114,6 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
         Group group = new Group(composite, SWT.NONE);
         group.setLayoutData(layoutData);
-//        group.setLayout(new FillLayout());
         group.setLayout(new GridLayout());
         accountSelectionComposite = new AccountSelectionComposite(group, SWT.None);
 

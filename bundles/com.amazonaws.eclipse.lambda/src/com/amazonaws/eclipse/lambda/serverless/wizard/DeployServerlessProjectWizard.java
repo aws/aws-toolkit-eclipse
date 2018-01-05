@@ -134,7 +134,6 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
 
     private boolean deployServerlessTemplate(IProgressMonitor monitor, int totalUnitOfWork) throws IOException, InterruptedException {
         String stackName = dataModel.getStackDataModel().getStackName();
-
         monitor.subTask("Exporting Lambda functions...");
         File jarFile = FunctionJarExportHelper.exportProjectToJarFile(dataModel.getProject(), true);
         monitor.worked((int)(totalUnitOfWork * 0.1));
@@ -210,7 +209,7 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
                 .withTemplateURL(s3.getUrl(bucketName, generatedServerlessTemplateKeyName).toString())
                 .withChangeSetName(changeSetName).withStackName(stackName)
                 .withChangeSetType(changeSetType)
-                .withCapabilities(Capability.CAPABILITY_IAM)
+                .withCapabilities(dataModel.getCapabilitiesDataModel().getSelectedList().toArray(new Capability[0]))
                 .withParameters(dataModel.getParametersDataModel().getParameters())
                 .withTags(new Tag().withKey("ApiGateway").withValue("true")));
 

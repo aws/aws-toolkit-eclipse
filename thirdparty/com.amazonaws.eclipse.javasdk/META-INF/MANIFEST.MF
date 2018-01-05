@@ -195,10 +195,10 @@ Export-Package: com.amazonaws.services.codedeploy,com.amazonaws.servic
 Bundle-SymbolicName: com.amazonaws.eclipse.javasdk
 Bundle-Name: AWS Toolkit for Eclipse Java SDK Bundle
 Bundle-Version: 1.11.248
-Built-By: dmainz
+Built-By: zhaoxiz
 Bundle-ManifestVersion: 2
-Bnd-LastModified: 1514212585795
+Bnd-LastModified: 1513292086530
 Created-By: Apache Maven Bundle Plugin
 Tool: Bnd-0.0.357
-Build-Jdk: 1.8.0_40
+Build-Jdk: 1.8.0_151
 

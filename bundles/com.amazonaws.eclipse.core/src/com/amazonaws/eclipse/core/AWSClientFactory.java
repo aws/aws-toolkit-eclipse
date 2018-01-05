@@ -30,6 +30,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -127,6 +128,8 @@ public class AWSClientFactory {
      */
     private AccountInfo accountInfo;
 
+    private AWSCredentialsProvider credentialsProviderOverride;
+
     /**
      * Constructs a client factory that uses the given account identifier to
      * retrieve its credentials.
@@ -140,6 +143,15 @@ public class AWSClientFactory {
 
         plugin.getProxyService().addProxyChangeListener(this::onProxyChange);
         plugin.getAccountManager().addAccountInfoChangeListener(this::onAccountInfoChange);
+    }
+
+    /**
+     * Decoupling AWS Client Factory from AwsToolkitCore for testing purpose only.
+     * @TestOnly
+     */
+    public AWSClientFactory(AWSCredentialsProvider credentialsProvider) {
+        this.accountId = null;
+        this.credentialsProviderOverride = credentialsProvider;
     }
 
     private void onProxyChange(IProxyChangeEvent e) {
@@ -377,12 +389,12 @@ public class AWSClientFactory {
 
     public AmazonIdentityManagement getIAMClientByRegion(String regionId) {
         return getOrCreateClientByRegion(ServiceAbbreviations.IAM, regionId,
-                AmazonIdentityManagementClientBuilder.standard(), AmazonIdentityManagement.class);
+                AmazonIdentityManagementClientBuilder.standard(), AmazonIdentityManagement.class, true);
     }
 
     public AmazonCloudFront getCloudFrontClientByRegion(String regionId) {
         return getOrCreateClientByRegion(ServiceAbbreviations.CLOUDFRONT, regionId,
-                AmazonCloudFrontClientBuilder.standard(), AmazonCloudFront.class);
+                AmazonCloudFrontClientBuilder.standard(), AmazonCloudFront.class, true);
     }
 
     /**
@@ -505,20 +517,24 @@ public class AWSClientFactory {
     }
 
     private <T> T getOrCreateClientByRegion(String serviceName, String regionId,
-            AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, Class<T> clientClass) {
+            AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, Class<T> clientClass, boolean isGlobalClient) {
         Region region = RegionUtils.getRegion(regionId);
         if (region == null) {
             return null;
         }
-        String endpoint = region.getServiceEndpoint(serviceName);
 
         synchronized (clientClass) {
             if ( cachedClients.getClient(regionId, clientClass) == null ) {
-                cachedClients.cacheClient(regionId, clientClass, createClientByRegion(builder, regionId, endpoint));
+                cachedClients.cacheClient(regionId, clientClass, createClientByRegion(builder, serviceName, region, isGlobalClient));
             }
         }
 
         return cachedClients.getClient(regionId, clientClass);
+    }
+
+    private <T> T getOrCreateClientByRegion(String serviceName, String regionId,
+            AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, Class<T> clientClass) {
+        return getOrCreateClientByRegion(serviceName, regionId, builder, clientClass, false);
     }
 
     /**
@@ -569,9 +585,12 @@ public class AWSClientFactory {
 
     // Low layer method for building a service client by using the client builder.
     @SuppressWarnings("unchecked")
-    private <T> T createClientByRegion(AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, String region, String endpoint) {
-        builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, region));
+    private <T> T createClientByRegion(AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder,
+            String serviceName, Region region, boolean isGlobalClient) {
+        String endpoint = region.getServiceEndpoint(serviceName);
+        String signingRegion = isGlobalClient ? region.getGlobalRegionSigningRegion() : region.getId();
         Object client = builder
+                .withEndpointConfiguration(new EndpointConfiguration(endpoint, signingRegion))
                 .withCredentials(new AWSStaticCredentialsProvider(getAwsCredentials()))
                 .withClientConfiguration(createClientConfiguration(endpoint))
                 .build();
@@ -614,7 +633,9 @@ public class AWSClientFactory {
     private AWSCredentials getAwsCredentials() {
         AWSCredentials credentials = null;
 
-        if (accountInfo.isUseSessionToken()) {
+        if (credentialsProviderOverride != null) {
+            credentials = credentialsProviderOverride.getCredentials();
+        } else if (accountInfo.isUseSessionToken()) {
             credentials = new BasicSessionCredentials(
                     accountInfo.getAccessKey(), accountInfo.getSecretKey(),
                     accountInfo.getSessionToken());
