@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 import com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory;
@@ -188,7 +189,8 @@ public class SamLocalGenerateEventDialog extends TitleAreaDialog {
 
             String stdErr = stdErrOutput.toString();
             if (exitValue != 0 && stdErr != null && !stdErr.isEmpty()) {
-                LambdaPlugin.getDefault().reportException(stdErr, null);
+                LambdaPlugin.getDefault().reportException("Failed to generate SAM Local event.",
+                        new AwsActionException(AwsToolkitMetricType.SAMLOCAL_GENERATE_EVENT.getName(), stdErr, null));
                 AwsAction.publishFailedAction(metricsDataModel);
             } else {
                 AwsAction.publishSucceededAction(metricsDataModel);

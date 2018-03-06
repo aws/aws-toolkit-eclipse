@@ -45,6 +45,8 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 
 public class SamLocalExecution implements ILaunchShortcut {
@@ -95,7 +97,8 @@ public class SamLocalExecution implements ILaunchShortcut {
                 DebugUITools.launch(configuration, mode.getMode());
             }
         } catch (Exception e) {
-            LambdaPlugin.getDefault().reportException("Failed to run SAM Locol", e);
+            LambdaPlugin.getDefault().reportException("Failed to run SAM Locol",
+                    new AwsActionException(AwsToolkitMetricType.SAMLOCAL_LAUNCH.getName(), e.getMessage(), e));
         }
     }
 

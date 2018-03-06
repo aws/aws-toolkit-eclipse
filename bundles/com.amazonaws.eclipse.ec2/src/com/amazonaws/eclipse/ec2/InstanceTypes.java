@@ -16,12 +16,15 @@ package com.amazonaws.eclipse.ec2;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import org.apache.http.client.ClientProtocolException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+
+import com.amazonaws.eclipse.core.AwsToolkitHttpClient;
+import com.amazonaws.eclipse.core.HttpClientFactory;
 
 /**
  * This class describes the available EC2 instance types and the default
@@ -34,7 +37,7 @@ public class InstanceTypes {
 
     /** Location of the instance type description metadata */
     static final String INSTANCE_TYPES_METADATA_URL =
-            "https://s3.amazonaws.com/aws-vs-toolkit/ServiceMeta/EC2ServiceMeta.xml";
+            "http://vstoolkit.amazonwebservices.com/ServiceMeta/EC2ServiceMeta.xml";
 
     private static boolean initialized = false;
 
@@ -81,9 +84,9 @@ public class InstanceTypes {
 
         // Attempt to load the latest file from S3
         try {
-            loadInstanceTypes(newURL(INSTANCE_TYPES_METADATA_URL));
+            loadInstanceTypesFromRemote(INSTANCE_TYPES_METADATA_URL);
             return;
-        } catch (IOException e) {
+        } catch (Exception e) {
             Ec2Plugin.log(new Status(IStatus.WARNING, Ec2Plugin.PLUGIN_ID, "Unable to load Amazon EC2 instance type descriptions from Amazon S3", e));
         }
 
@@ -95,24 +98,25 @@ public class InstanceTypes {
         }
     }
 
-    private static URL newURL(String url) {
-        try {
-            return new URL(url);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to create URL: " + url, e);
+    private static void loadInstanceTypesFromRemote(String url) throws ClientProtocolException, IOException {
+        AwsToolkitHttpClient client = HttpClientFactory.create(Ec2Plugin.getDefault(), url);
+        try (InputStream inputStream = client.getEntityContent(url)) {
+            if (inputStream == null) {
+                return;
+            }
+            loadInstanceTypesFromInputStream(inputStream);
         }
     }
 
     private static void loadInstanceTypes(URL url) throws IOException {
-        InputStream inputStream = null;
-        try {
-            inputStream = url.openStream();
-
-            InstanceTypesParser parser = new InstanceTypesParser(inputStream);
-            instanceTypes = parser.parseInstanceTypes();
-            defaultInstanceTypeId = parser.parseDefaultInstanceTypeId();
-        } finally {
-            try {inputStream.close();} catch (Exception e) {}
+        try (InputStream inputStream = url.openStream()) {
+            loadInstanceTypesFromInputStream(inputStream);
         }
+    }
+
+    private static void loadInstanceTypesFromInputStream(InputStream inputStream) throws IOException {
+        InstanceTypesParser parser = new InstanceTypesParser(inputStream);
+        instanceTypes = parser.parseInstanceTypes();
+        defaultInstanceTypeId = parser.parseDefaultInstanceTypeId();
     }
 }

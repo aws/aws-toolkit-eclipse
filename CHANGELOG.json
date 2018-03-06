@@ -1,5 +1,8 @@
 {
   "current": [
+    "* **Update Error Report dialog to include the Github issue link.**"
+  ],
+  "v201801042359": [
     "* **Merge Pull Request #93.**",
     "* **Resolve Issues: #87, #94, #95, #96, #97.**"
   ],

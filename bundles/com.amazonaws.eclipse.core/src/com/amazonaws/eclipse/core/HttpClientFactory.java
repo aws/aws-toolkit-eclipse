@@ -20,12 +20,7 @@ import java.net.URISyntaxException;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.Plugin;
@@ -39,28 +34,33 @@ import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
  */
 public final class HttpClientFactory {
 
-    public static DefaultHttpClient create(Plugin plugin, String url) {
-        HttpParams httpClientParams = new BasicHttpParams();
-
+    public static AwsToolkitHttpClient create(Plugin plugin, String url) {
         IPreferenceStore preferences = AwsToolkitCore.getDefault().getPreferenceStore();
-
         int connectionTimeout = preferences.getInt(PreferenceConstants.P_CONNECTION_TIMEOUT);
         int socketTimeout = preferences.getInt(PreferenceConstants.P_SOCKET_TIMEOUT);
 
-        HttpConnectionParams.setConnectionTimeout(httpClientParams, connectionTimeout);
-        HttpConnectionParams.setSoTimeout(httpClientParams, socketTimeout);
+        IProxyData data = getEclipseProxyData(url);
+        HttpHost httpHost = null;
+        BasicCredentialsProvider credentialsProvider = null;
+        if (data != null) {
+            httpHost = new HttpHost(data.getHost(), data.getPort());
+            if (data.isRequiresAuthentication()) {
+                credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(new AuthScope(httpHost),
+                        new NTCredentials(data.getUserId(), data.getPassword(), null, null));
+            }
+        }
 
-        HttpProtocolParams.setUserAgent(httpClientParams,
-                AwsClientUtils
-                    .formatUserAgentString("AWS-Toolkit-For-Eclipse", plugin));
-
-        DefaultHttpClient httpclient = new DefaultHttpClient(httpClientParams);
-        configureProxy(httpclient, url);
-
-        return httpclient;
+        return AwsToolkitHttpClient.builder()
+                .setConnectionTimeout(connectionTimeout)
+                .setSocketTimeout(socketTimeout)
+                .setUserAgent(AwsClientUtils.formatUserAgentString("AWS-Toolkit-For-Eclipse", plugin))
+                .setProxy(httpHost)
+                .setCredentialsProvider(credentialsProvider)
+                .build();
     }
 
-    private static void configureProxy(DefaultHttpClient client, String url) {
+    private static IProxyData getEclipseProxyData(String url) {
         AwsToolkitCore plugin = AwsToolkitCore.getDefault();
         if (plugin != null) {
             IProxyService proxyService =
@@ -68,26 +68,17 @@ public final class HttpClientFactory {
 
             if (proxyService.isProxiesEnabled()) {
                 try {
-                    IProxyData[] proxyData;
-                    proxyData = proxyService.select(new URI(url));
+                    IProxyData[] proxyData = proxyService.select(new URI(url));
                     if (proxyData.length > 0) {
-
-                        IProxyData data = proxyData[0];
-                        client.getParams().setParameter(
-                            ConnRoutePNames.DEFAULT_PROXY,
-                            new HttpHost(data.getHost(), data.getPort()));
-
-                        if (data.isRequiresAuthentication()) {
-                            client.getCredentialsProvider().setCredentials(
-                                new AuthScope(data.getHost(), data.getPort()),
-                                new NTCredentials(data.getUserId(), data.getPassword(), null, null));
-                        }
+                        return proxyData[0];
                     }
                 } catch (URISyntaxException e) {
                     plugin.logError(e.getMessage(), e);
                 }
             }
         }
+
+        return null;
     }
 
     private HttpClientFactory() {

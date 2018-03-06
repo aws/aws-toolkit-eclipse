@@ -60,6 +60,7 @@ import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 import com.amazonaws.eclipse.core.util.CliUtil;
@@ -154,7 +155,8 @@ public class SamLocalDelegate implements ILaunchConfigurationDelegate {
             subMonitor.done();
             AwsAction.publishSucceededAction(metricsDataModel);
         } catch (Exception e) {
-            LambdaPlugin.getDefault().reportException("Failed to launch SAM Local.", e);
+            LambdaPlugin.getDefault().reportException("Failed to launch SAM Local.",
+                    new AwsActionException(AwsToolkitMetricType.SAMLOCAL_LAUNCH.getName(), e.getMessage(), e));
             AwsAction.publishFailedAction(metricsDataModel);
         }
     }

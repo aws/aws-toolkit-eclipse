@@ -24,7 +24,7 @@ public class RegionUtilsTest {
 
     @Test
     public void testRemoteRegionFile() throws IOException {
-        List<Region> regions = RegionUtils.loadRegionsFromS3();
+        List<Region> regions = RegionUtils.loadRegionsFromCloudFront();
         assertRegionEndpointsValid(regions);
     }
 

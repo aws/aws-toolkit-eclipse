@@ -34,7 +34,9 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.m2e.core.ui.internal.UpdateMavenProjectJob;
 
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.maven.MavenFactory;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsProjectWizard;
@@ -92,7 +94,8 @@ public class NewLambdaJavaFunctionProjectWizard extends AbstractAwsProjectWizard
                 setDefaultJreToProjectClasspath(javaProject, monitor);
             } catch (Exception e) {
                 LambdaPlugin.getDefault().reportException(
-                        "Failed to create AWS Lambda Maven Project.", e);
+                        "Failed to create AWS Lambda Maven Project.",
+                        new AwsActionException(AwsToolkitMetricType.LAMBDA_NEW_LAMBDA_PROJECT_WIZARD.getName(), e.getMessage(), e));
             }
 
             FunctionProjectUtil.createLambdaBlueprintProject(project, dataModel);

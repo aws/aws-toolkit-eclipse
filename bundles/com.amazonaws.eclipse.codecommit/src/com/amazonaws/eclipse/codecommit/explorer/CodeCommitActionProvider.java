@@ -53,6 +53,7 @@ import com.amazonaws.eclipse.codecommit.CodeCommitAnalytics.EventResult;
 import com.amazonaws.eclipse.codecommit.CodeCommitPlugin;
 import com.amazonaws.eclipse.codecommit.wizard.CloneRepositoryWizard;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
@@ -117,7 +118,8 @@ public class CodeCommitActionProvider extends CommonActionProvider {
 
                 } catch (Exception e) {
                     actionFailed();
-                    CodeCommitPlugin.getDefault().reportException("Failed to create repository!", e);
+                    CodeCommitPlugin.getDefault().reportException("Failed to create repository!",
+                            new AwsActionException(AwsToolkitMetricType.EXPLORER_CODECOMMIT_CREATE_REPO.getName(), e.getMessage(), e));
                 }
             } else {
                 actionCanceled();
@@ -254,7 +256,8 @@ public class CodeCommitActionProvider extends CommonActionProvider {
                 dialog.open();
                 actionSucceeded();
             } catch (Exception e) {
-                CodeCommitPlugin.getDefault().reportException(e.getMessage(), e);
+                CodeCommitPlugin.getDefault().reportException("Failed to clone CodeCommit repository!",
+                        new AwsActionException(AwsToolkitMetricType.EXPLORER_CODECOMMIT_CLONE_REPO.getName(), e.getMessage(), e));
                 actionFailed();
             } finally {
                 actionFinished();

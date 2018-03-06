@@ -26,6 +26,8 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsJobWizard;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
@@ -109,7 +111,8 @@ public class UploadFunctionWizard extends AbstractAwsJobWizard {
             UploadFunctionUtil.performFunctionUpload(dataModel, monitor, 100);
         } catch (Exception e) {
             LambdaPlugin.getDefault().reportException(
-                    "Failed to upload project to Lambda", e);
+                    "Failed to upload project to Lambda",
+                    new AwsActionException(AwsToolkitMetricType.LAMBDA_UPLOAD_FUNCTION_WIZARD.getName(), e.getMessage(), e));
             LambdaAnalytics.trackUploadFailed();
             return Status.OK_STATUS;
         }

@@ -36,6 +36,8 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.util.PluginUtils;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
@@ -72,7 +74,8 @@ public class InvokeFunctionHandler extends AbstractHandler {
                 invokeLambdaFunctionProject(selectedJavaElement);
             } catch (Exception e) {
                 LambdaPlugin.getDefault().reportException(
-                        "Failed to launch upload function wizard.", e);
+                        "Failed to launch upload function wizard.",
+                        new AwsActionException(AwsToolkitMetricType.LAMBDA_INVOKE_FUNCTION_DIALOG.getName(), e.getMessage(), e));
             }
         }
 

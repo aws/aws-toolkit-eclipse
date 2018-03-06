@@ -15,6 +15,9 @@
 package com.amazonaws.eclipse.core.accounts;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +43,7 @@ import com.amazonaws.eclipse.core.accounts.preferences.PluginPreferenceStoreAcco
 import com.amazonaws.eclipse.core.accounts.profiles.SdkProfilesCredentialsConfiguration;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
+import com.amazonaws.eclipse.core.util.FileUtils;
 import com.amazonaws.util.StringUtils;
 
 /**
@@ -204,19 +208,21 @@ public class AccountInfoProvider {
 
         String credFileLocation = prefStore
                 .getString(PreferenceConstants.P_CREDENTIAL_PROFILE_FILE_LOCATION);
-        File credFile = new File(credFileLocation);
 
         ProfilesConfigFile profileConfigFile = null;
 
         try {
-            if (!credFile.exists() && boostrapCredentialsFile) {
+            Path credFilePath = Paths.get(credFileLocation);
+            if (!Files.exists(credFilePath) && boostrapCredentialsFile) {
+                File credFile = FileUtils.createFileWithPermission600(credFileLocation);
+                // TODO We need to reconsider whether to dump an empty credentials profile when we cannot find one.
                 ProfilesConfigFileWriter.dumpToFile(
                         credFile,
                         true, // overwrite=true
                         new Profile(PreferenceConstants.DEFAULT_ACCOUNT_NAME, new BasicAWSCredentials("", "")));
             }
 
-            profileConfigFile = new ProfilesConfigFile(credFile);
+            profileConfigFile = new ProfilesConfigFile(credFilePath.toFile());
         } catch (Exception e) {
             String errorMsg = String.format("Failed to load credential profiles from (%s).",
                     credFileLocation);

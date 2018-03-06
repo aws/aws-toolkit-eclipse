@@ -20,31 +20,23 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 
-import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.AwsToolkitHttpClient;
 import com.amazonaws.eclipse.core.HttpClientFactory;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 
 /**
  * Utilities for loading and working with regions. The AWS regions loading priorities are:
@@ -60,7 +52,6 @@ public class RegionUtils {
     public static final String S3_US_EAST_1_REGIONAL_ENDPOINT = "https://s3-external-1.amazonaws.com";
 
     private static final String CLOUDFRONT_DISTRO = "http://vstoolkit.amazonwebservices.com/";
-    private static final String REGIONS_METADATA_S3_BUCKET = "aws-vs-toolkit";
     private static final String REGIONS_METADATA_S3_OBJECT = "ServiceEndPoints.xml";
 
     // System property name whose value is the path of the overriding file.
@@ -309,13 +300,11 @@ public class RegionUtils {
         }
 
         try {
-            AmazonS3 s3 =
-                AWSClientFactory.getAnonymousS3Client();
-            ObjectMetadata objectMetadata =
-                s3.getObjectMetadata(REGIONS_METADATA_S3_BUCKET, REGIONS_METADATA_S3_OBJECT);
-            if (objectMetadata.getLastModified()
-                        .after(regionsFileLastModified)) {
-                cacheRegionsFile(regionsFile, s3);
+            String url = CLOUDFRONT_DISTRO + REGIONS_METADATA_S3_OBJECT;
+            AwsToolkitHttpClient client = HttpClientFactory.create(AwsToolkitCore.getDefault(), url);
+            Date remoteFileLastModified = client.getLastModifiedDate(url);
+            if (remoteFileLastModified == null || remoteFileLastModified.after(regionsFileLastModified)) {
+                fetchFile(url, regionsFile);
             }
         } catch (Exception e) {
             AwsToolkitCore.getDefault().logError(
@@ -416,32 +405,6 @@ public class RegionUtils {
     }
 
     /**
-     * Caches the regions file to the location given
-     */
-    private static void cacheRegionsFile(File regionsFile, AmazonS3 s3) {
-        try {
-            truncateFile(regionsFile);
-            s3.getObject(new GetObjectRequest(REGIONS_METADATA_S3_BUCKET,
-                    REGIONS_METADATA_S3_OBJECT), regionsFile);
-        } catch (Exception s3Exception) {
-            AwsToolkitCore.getDefault().logError(
-                    "Couldn't fetch regions file from s3", s3Exception);
-        }
-    }
-
-    /**
-     * Set the length of the file given to 0 bytes.
-     */
-    private static void truncateFile(File file)
-            throws FileNotFoundException, IOException {
-        if (file.exists()) {
-            try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-                raf.getChannel().truncate(0);
-            }
-        }
-    }
-
-    /**
      * Caches flag icons as necessary, also registering images for them
      */
     private static void cacheFlags(File regionsDir)
@@ -478,31 +441,21 @@ public class RegionUtils {
     private static void fetchFile(String url, File destinationFile)
             throws IOException, ClientProtocolException, FileNotFoundException {
 
-        HttpClient httpclient = HttpClientFactory.create(
+        AwsToolkitHttpClient httpClient = HttpClientFactory.create(
                 AwsToolkitCore.getDefault(), url);
-
-        HttpGet httpget = new HttpGet(url);
-        HttpResponse response = httpclient.execute(httpget);
-        HttpEntity entity = response.getEntity();
-        if (entity != null) {
-            try (InputStream instream = entity.getContent(); FileOutputStream output = new FileOutputStream(destinationFile)) {
-                int l;
-                byte[] tmp = new byte[2048];
-                while ((l = instream.read(tmp)) != -1) {
-                    output.write(tmp, 0, l);
-                }
-            }
+        try (FileOutputStream output = new FileOutputStream(destinationFile)) {
+            httpClient.outputEntityContent(url, output);
         }
     }
 
     /**
-     * Load regions from remote S3 bucket.
+     * Load regions from remote CloudFront URL.
      */
-    public static List<Region> loadRegionsFromS3() throws IOException {
-        AmazonS3 s3 = AWSClientFactory.getAnonymousS3Client();
+    public static List<Region> loadRegionsFromCloudFront() throws IOException {
+        String url = CLOUDFRONT_DISTRO + REGIONS_METADATA_S3_OBJECT;
+        AwsToolkitHttpClient httpClient = HttpClientFactory.create(AwsToolkitCore.getDefault(), url);
         try (InputStream inputStream =
-                s3.getObject(REGIONS_METADATA_S3_BUCKET, REGIONS_METADATA_S3_OBJECT)
-                    .getObjectContent()) {
+                httpClient.getEntityContent(url)) {
             return parseRegionMetadata(inputStream);
         }
     }

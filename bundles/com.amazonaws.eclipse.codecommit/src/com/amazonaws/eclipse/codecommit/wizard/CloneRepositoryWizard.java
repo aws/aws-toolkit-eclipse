@@ -41,7 +41,9 @@ import com.amazonaws.eclipse.core.egit.jobs.CloneGitRepositoryJob;
 import com.amazonaws.eclipse.core.egit.jobs.ImportProjectJob;
 import com.amazonaws.eclipse.core.egit.ui.CloneDestinationPage;
 import com.amazonaws.eclipse.core.egit.ui.SourceBranchPage;
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.maven.MavenUtils;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.model.GitCredentialsDataModel;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.util.WorkbenchUtils;
@@ -137,7 +139,8 @@ public class CloneRepositoryWizard extends Wizard implements IImportWizard {
             });
         } catch (InvocationTargetException e) {
             CodeCommitAnalytics.trackCloneRepository(EventResult.FAILED);
-            CodeCommitPlugin.getDefault().reportException(e.getMessage(), e);
+            CodeCommitPlugin.getDefault().reportException("Failed to clone git repository.",
+                    new AwsActionException(AwsToolkitMetricType.EXPLORER_CODECOMMIT_CLONE_REPO.getName(), e.getMessage(), e));
             return false;
         } catch (InterruptedException e) {
             CodeCommitAnalytics.trackCloneRepository(EventResult.CANCELED);

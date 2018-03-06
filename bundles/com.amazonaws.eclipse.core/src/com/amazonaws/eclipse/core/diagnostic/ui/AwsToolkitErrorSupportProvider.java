@@ -14,6 +14,8 @@
  */
 package com.amazonaws.eclipse.core.diagnostic.ui;
 
+import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
+
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,6 +27,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorSupportProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -51,9 +54,12 @@ import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.diagnostic.utils.AwsErrorReportUtils;
 import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
 import com.amazonaws.eclipse.core.diagnostic.utils.PlatformEnvironmentDataCollector;
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.ui.EmailLinkListener;
+import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.core.ui.overview.Toolkit;
+import com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory;
 import com.amazonaws.services.errorreport.model.ErrorDataModel;
 import com.amazonaws.services.errorreport.model.ErrorReportDataModel;
 
@@ -200,6 +206,9 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
         final Text description = new Text(userInputGroup, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
         description.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
+        WizardWidgetFactory.newLink(userInputGroup, new WebLinkListener(), String.format(
+                "You can also cut a <a href=\"%s\">Github Issue</a> for tracking the problem. Since it will be public, please exclude sensitive data from the report.",
+                "https://github.com/aws/aws-toolkit-eclipse/issues/new"), 1);
 
         /* OK button */
         final Button reportBtn = new Button(parent, SWT.PUSH);
@@ -210,7 +219,6 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-
                 final String userEmail = email.getText();
                 final String userDescription = description.getText();
 
@@ -229,6 +237,10 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
                                 .userEmail(userEmail)
                                 .userDescription(userDescription)
                                 .timeOfError(sdf.format(new Date()));
+
+                        if (status.getException() instanceof AwsActionException) {
+                            errorReportDataModel.setCommandRun(((AwsActionException) status.getException()).getActionName());
+                        }
 
                         try {
                             AwsErrorReportUtils.reportBugToAws(errorReportDataModel);
@@ -262,13 +274,12 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
                         AwsToolkitCore.getDefault().logInfo("Successfully sent the error report.");
 
                         return Status.OK_STATUS;
-
                     }
                 };
 
                 job.setUser(true);
                 job.schedule();
-
+                reportBtn.setEnabled(false);
             }
         });
 
@@ -331,6 +342,10 @@ public class AwsToolkitErrorSupportProvider extends AbstractStatusAreaProvider {
                     + Toolkit.createAnchor(
                             EmailMessageLauncher.AWS_ECLIPSE_ERRORS_AT_AMZN,
                             EmailMessageLauncher.AWS_ECLIPSE_ERRORS_AT_AMZN));
+
+            WizardWidgetFactory.newLink(parent, new WebLinkListener(), String.format(
+                    "You can also cut a <a href=\"%s\">Github Issue</a> for tracking the problem. Since it will be public, please exclude sensitive data from the report.",
+                    "https://github.com/aws/aws-toolkit-eclipse/issues/new"), 1);
 
             EmailLinkListener emailLinkListener
                 = new EmailLinkListener(EmailMessageLauncher.createEmptyErrorReportEmail());

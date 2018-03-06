@@ -48,6 +48,8 @@ import com.amazonaws.eclipse.core.egit.GitRepositoryInfo.PushInfo;
 import com.amazonaws.eclipse.core.egit.GitRepositoryInfo.RepositoryConfigProperty;
 import com.amazonaws.eclipse.core.egit.ui.CloneDestinationPage;
 import com.amazonaws.eclipse.core.egit.ui.SourceBranchPage;
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 
 /**
  * A UI sync job that manages cloning a remote Git repository to local.
@@ -83,7 +85,8 @@ public class CloneGitRepositoryJob {
                     cloneDestinationPage.saveSettingsForClonedRepo();
                 } catch (Exception e) {
                     AwsToolkitCore.getDefault()
-                            .reportException(e.getMessage(), e);
+                            .reportException("Failed to clone git repository.",
+                                    new AwsActionException(AwsToolkitMetricType.EXPLORER_CODECOMMIT_CLONE_REPO.getName(), e.getMessage(), e));
                 }
             }
         });

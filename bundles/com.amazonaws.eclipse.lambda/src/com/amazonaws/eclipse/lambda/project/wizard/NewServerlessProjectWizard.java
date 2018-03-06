@@ -34,7 +34,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.m2e.core.ui.internal.UpdateMavenProjectJob;
 
+import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.maven.MavenFactory;
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsProjectWizard;
 import com.amazonaws.eclipse.core.util.WorkbenchUtils;
@@ -100,7 +102,8 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
             setDefaultJreToProjectClasspath(javaProject, monitor);
         } catch (Exception e) {
             LambdaPlugin.getDefault().reportException(
-                    "Failed to create AWS Serverless Maven Project.", e);
+                    "Failed to create AWS Serverless Maven Project.",
+                    new AwsActionException(AwsToolkitMetricType.LAMBDA_NEW_SERVERLESS_PROJECT_WIZARD.getName(), e.getMessage(), e));
         }
 
         try {
@@ -111,7 +114,8 @@ public class NewServerlessProjectWizard extends AbstractAwsProjectWizard {
 
         } catch (Exception e) {
             LambdaAnalytics.trackServerlessProjectCreationFailed();
-            LambdaPlugin.getDefault().reportException("Failed to create new Serverless project", e);
+            LambdaPlugin.getDefault().reportException("Failed to create new Serverless project",
+                    new AwsActionException(AwsToolkitMetricType.LAMBDA_NEW_SERVERLESS_PROJECT_WIZARD.getName(), e.getMessage(), e));
         }
 
         LambdaAnalytics.trackServerlessProjectCreationSucceeded();

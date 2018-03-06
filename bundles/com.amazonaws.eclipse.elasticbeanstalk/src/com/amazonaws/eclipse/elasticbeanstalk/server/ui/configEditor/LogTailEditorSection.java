@@ -41,6 +41,7 @@ import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.AwsToolkitHttpClient;
 import com.amazonaws.eclipse.core.HttpClientFactory;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.elasticbeanstalk.Environment;
@@ -139,12 +140,7 @@ public class LogTailEditorSection extends ServerEditorSection {
             }
             final List<EnvironmentInfoDescription> envInfos = infoResult.getEnvironmentInfo();
 
-            DefaultHttpClient client = HttpClientFactory.create(
-                    ElasticBeanstalkPlugin.getDefault(),
-                    "https://s3.amazonaws.com");
-
-            DefaultHttpRequestRetryHandler retryhandler = new DefaultHttpRequestRetryHandler(3, true);
-            client.setHttpRequestRetryHandler(retryhandler);
+            AwsToolkitHttpClient client = HttpClientFactory.create(ElasticBeanstalkPlugin.getDefault(), "https://s3.amazonaws.com");
 
             // For each instance, there are potentially multiple tail samples.
             // We just display the last one for each instance.
@@ -167,13 +163,12 @@ public class LogTailEditorSection extends ServerEditorSection {
                 builder.append("Log for ").append(instanceId).append(":").append("\n\n");
 
                 EnvironmentInfoDescription envInfo = tails.get(instanceId);
-
-                // The message is a url to fetch for logs
-                HttpGet rq = new HttpGet(envInfo.getMessage());
                 try {
-                    HttpResponse response = client.execute(rq);
-                    InputStream content = response.getEntity().getContent();
-                    builder.append(IOUtils.toString(content));
+                    // The message is a url to fetch for logs
+                    InputStream content = client.getEntityContent(envInfo.getMessage());
+                    if (content != null) {
+                        builder.append(IOUtils.toString(content));
+                    }
                 } catch ( Exception e ) {
                     builder.append("Exception fetching " + envInfo.getMessage());
                 }
