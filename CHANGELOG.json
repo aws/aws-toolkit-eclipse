@@ -1,6 +1,7 @@
 {
   "current": [
-    "* **Update Error Report dialog to include the Github issue link.**"
+    "* **Update Error Report dialog to include the Github issue link.**",
+    "* **Fix possible file-system security vulnerability in OpsWorks [ZipUtils](https://github.com/aws/aws-toolkit-eclipse/blob/36e996685b07ea16a4c073245cf52291453ddedb/bundles/com.amazonaws.eclipse.opsworks/src/com/amazonaws/eclipse/opsworks/deploy/util/ZipUtils.java#L58).**"
   ],
   "v201801042359": [
     "* **Merge Pull Request #93.**",

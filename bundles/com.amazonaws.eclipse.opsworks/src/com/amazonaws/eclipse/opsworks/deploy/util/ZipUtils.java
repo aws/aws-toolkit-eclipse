@@ -56,7 +56,10 @@ public class ZipUtils {
 
             String entryFileName = zipEntry.getName();
             File newFile = new File(targetDirectory, entryFileName);
-
+            if (!newFile.getCanonicalPath().startsWith(targetDirectory.getCanonicalPath())) {
+            	throw new RuntimeException(newFile.getAbsolutePath() + " is outside of targetDirectory: " + targetDirectory.getAbsolutePath());
+            }
+            
             if (zipEntry.isDirectory()) {
                 if ( !newFile.exists() ) {
                     newFile.mkdirs();
