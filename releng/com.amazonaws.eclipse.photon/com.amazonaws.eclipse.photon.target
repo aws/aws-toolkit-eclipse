@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?>
+<target name="com.amazonaws.eclipse.neon" sequenceNumber="21">
+    <locations>
+        <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <unit id="org.eclipse.datatools.sdk.feature.feature.group" version="1.14.100.201801242337"/>
+            <unit id="org.eclipse.sdk.feature.group" version="4.8.0.v20180611-0826"/>
+            <unit id="org.eclipse.datatools.intro.feature.group" version="1.14.100.201801242337"/>
+            <unit id="org.eclipse.datatools.enablement.mysql.feature.feature.group" version="1.14.100.201801242337"/>
+            <unit id="org.eclipse.datatools.connectivity.feature.feature.group" version="1.14.100.201802212225"/>
+            <unit id="org.eclipse.datatools.sqldevtools.data.feature.feature.group" version="1.14.100.201805031905"/>
+            <unit id="org.eclipse.swtbot.ide.feature.group" version="2.7.0.201806111355"/>
+            <unit id="org.eclipse.egit.feature.group" version="5.0.0.201806131550-r"/>
+            <unit id="org.eclipse.datatools.sqldevtools.parsers.feature.feature.group" version="1.14.100.201801242337"/>
+            <unit id="org.eclipse.datatools.sqldevtools.feature.feature.group" version="1.14.100.201802061753"/>
+            <unit id="org.eclipse.m2e.feature.feature.group" version="1.9.0.20180606-2036"/>
+            <unit id="org.eclipse.datatools.sqldevtools.sqlbuilder.feature.feature.group" version="1.14.100.201805031905"/>
+            <unit id="org.eclipse.jst.web_ui.feature.feature.group" version="3.9.0.v201802222200"/>
+            <unit id="org.eclipse.datatools.enablement.sdk.feature.feature.group" version="1.14.100.201802061819"/>
+            <unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.4.0.20180606-2005"/>
+            <unit id="org.eclipse.datatools.enablement.feature.feature.group" version="1.14.100.201801242337"/>
+            <repository location="http://download.eclipse.org/releases/photon/"/>
+        </location>
+    </locations>
+</target>
