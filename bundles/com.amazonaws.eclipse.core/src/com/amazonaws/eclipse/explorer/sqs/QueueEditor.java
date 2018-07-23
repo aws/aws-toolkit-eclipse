@@ -58,6 +58,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IEditorInput;
@@ -81,14 +82,14 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 public class QueueEditor extends EditorPart implements IRefreshable {
 
     private QueueEditorInput queueEditorInput;
-    private Label retentionPeriodLabel;
-    private Label maxMessageSizeLabel;
-    private Label createdLabel;
-    private Label visibilityTimeoutLabel;
-    private Label queueArnLabel;
-    private Label numberOfMessagesLabel;
+    private Text retentionPeriodLabel;
+    private Text maxMessageSizeLabel;
+    private Text createdLabel;
+    private Text visibilityTimeoutLabel;
+    private Text queueArnLabel;
+    private Text numberOfMessagesLabel;
     private TreeViewer viewer;
-    private Label queueDelayLabel;
+    private Text queueDelayLabel;
 
     @Override
     public void doSave(IProgressMonitor arg0) {}
@@ -191,31 +192,31 @@ public class QueueEditor extends EditorPart implements IRefreshable {
         composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
         toolkit.createLabel(composite, "Retention Period:");
-        retentionPeriodLabel = toolkit.createLabel(composite, "");
+        retentionPeriodLabel = toolkit.createText(composite, "", SWT.READ_ONLY);
         gridDataFactory.applyTo(retentionPeriodLabel);
 
-        toolkit.createLabel(composite, "Max Message Size:", SWT.BORDER);
-        maxMessageSizeLabel = toolkit.createLabel(composite, "", SWT.BORDER);
+        toolkit.createLabel(composite, "Max Message Size:");
+        maxMessageSizeLabel = toolkit.createText(composite, "", SWT.READ_ONLY);
         gridDataFactory.applyTo(maxMessageSizeLabel);
 
         toolkit.createLabel(composite, "Created:");
-        createdLabel = toolkit.createLabel(composite, "");
+        createdLabel = toolkit.createText(composite, "", SWT.READ_ONLY);
         gridDataFactory.applyTo(createdLabel);
 
         toolkit.createLabel(composite, "Visibility Timeout:");
-        visibilityTimeoutLabel = toolkit.createLabel(composite, "");
+        visibilityTimeoutLabel = toolkit.createText(composite, "", SWT.READ_ONLY);
         gridDataFactory.applyTo(visibilityTimeoutLabel);
 
         toolkit.createLabel(composite, "Queue ARN:");
-        queueArnLabel = toolkit.createLabel(composite, "");
+        queueArnLabel = toolkit.createText(composite, "", SWT.READ_ONLY);
         gridDataFactory.applyTo(queueArnLabel);
 
         toolkit.createLabel(composite, "Approx. Message Count:");
-        numberOfMessagesLabel = toolkit.createLabel(composite, "");
+        numberOfMessagesLabel = toolkit.createText(composite, "", SWT.READ_ONLY);
         gridDataFactory.applyTo(numberOfMessagesLabel);
 
         toolkit.createLabel(composite, "Message Delay (seconds):");
-        queueDelayLabel = toolkit.createLabel(composite, "");
+        queueDelayLabel = toolkit.createText(composite, "", SWT.READ_ONLY);
         gridDataFactory.applyTo(queueDelayLabel);
 
         new LoadQueueAttributesThread().start();

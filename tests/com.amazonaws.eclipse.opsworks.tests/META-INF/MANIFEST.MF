@@ -4,6 +4,11 @@ Bundle-Name: AWS OpsWorks Plugin Tests
 Bundle-SymbolicName: com.amazonaws.eclipse.opsworks.tests
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: AMAZONAWS
-Fragment-Host: com.amazonaws.eclipse.opsworks;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Require-Bundle: org.junit;bundle-version="4.11.0"
+Bundle-ClassPath: .
+Require-Bundle: 
+ com.amazonaws.eclipse.opsworks;bundle-version="1.0.0",
+ com.amazonaws.eclipse.core;bundle-version="2.3.1",
+ org.apache.commons.io;bundle-version="2.2.0",
+ org.junit
+

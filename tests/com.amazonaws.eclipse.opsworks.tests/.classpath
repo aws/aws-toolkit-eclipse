@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="src/com/amazonaws/eclipse/opsworks/deploy/util/|target/|src/com/amazonaws/eclipse/opsworks/deploy/|src/com/amazonaws/eclipse/opsworks/|src/com/amazonaws/eclipse/|src/com/amazonaws/|src/com/|src/" kind="src" path=""/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

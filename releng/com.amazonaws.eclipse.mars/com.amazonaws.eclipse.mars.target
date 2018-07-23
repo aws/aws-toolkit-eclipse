@@ -22,23 +22,5 @@
       <unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.3.0.201506081302" />
       <repository location="http://download.eclipse.org/releases/mars/" />
     </location>
-    <location includeMode="planner" includeAllPlatforms="false"
-      includeSource="true" includeConfigurePhase="false" type="InstallableUnit">
-      <unit id="org.eclipse.jst.web_sdk.feature.feature.group"
-        version="3.7.1.v201512021921" />
-      <unit id="org.eclipse.jst.server_sdk.feature.feature.group"
-        version="3.4.200.v201512031711" />
-      <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group"
-        version="3.6.3.v201501141810" />
-      <unit id="org.eclipse.wst.common.fproj.sdk.feature.group"
-        version="3.7.0.v201505072140" />
-      <unit id="org.eclipse.wst.web_sdk.feature.feature.group"
-        version="3.7.1.v201602111638" />
-      <unit id="org.eclipse.jst.enterprise_sdk.feature.feature.group"
-        version="3.7.0.v201602161345" />
-      <unit id="org.eclipse.wst.server_adapters.sdk.feature.feature.group"
-        version="3.2.500.v201508271522" />
-      <repository location="http://download.eclipse.org/webtools/repository/mars/" />
-    </location>
   </locations>
 </target>

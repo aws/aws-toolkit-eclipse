@@ -15,7 +15,6 @@
 package com.amazonaws.eclipse.codedeploy.explorer.editor;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -176,15 +175,15 @@ public class DeploymentGroupEditor extends EditorPart {
                         }
 
                         toolkit.createLabel(parent, "Application Name: ");
-                        toolkit.createLabel(parent, deployGroup.getApplicationName());
+                        toolkit.createText(parent, deployGroup.getApplicationName(), SWT.READ_ONLY);
                         toolkit.createLabel(parent, "Deployment Group Name: ");
-                        toolkit.createLabel(parent, deployGroup.getDeploymentGroupName());
+                        toolkit.createText(parent, deployGroup.getDeploymentGroupName(), SWT.READ_ONLY);
                         toolkit.createLabel(parent, "Deployment Group ID: ");
-                        toolkit.createLabel(parent, deployGroup.getDeploymentGroupId());
+                        toolkit.createText(parent, deployGroup.getDeploymentGroupId(), SWT.READ_ONLY);
                         toolkit.createLabel(parent, "Service Role ARN: ");
-                        toolkit.createLabel(parent, deployGroup.getServiceRoleArn());
+                        toolkit.createText(parent, deployGroup.getServiceRoleArn(), SWT.READ_ONLY);
                         toolkit.createLabel(parent, "Deployment Configuration: ");
-                        toolkit.createLabel(parent, deployGroup.getDeploymentConfigName());
+                        toolkit.createText(parent, deployGroup.getDeploymentConfigName(), SWT.READ_ONLY);
 
                         if (deployGroup.getEc2TagFilters() != null &&
                                 !deployGroup.getEc2TagFilters().isEmpty()) {
@@ -206,7 +205,7 @@ public class DeploymentGroupEditor extends EditorPart {
                                     tags.append(tag.getValue() + "(VALUE_ONLY)");
                                 }
                             }
-                            toolkit.createLabel(parent, tags.toString());
+                            toolkit.createText(parent, tags.toString(), SWT.READ_ONLY);
                         }
 
                         if (deployGroup.getAutoScalingGroups() != null &&
@@ -222,7 +221,7 @@ public class DeploymentGroupEditor extends EditorPart {
                                 }
                                 groups.append(group.getName() + ":" + group.getHook());
                             }
-                            toolkit.createLabel(parent, groups.toString());
+                            toolkit.createText(parent, groups.toString(), SWT.READ_ONLY);
                         }
 
                         form.reflow(true);

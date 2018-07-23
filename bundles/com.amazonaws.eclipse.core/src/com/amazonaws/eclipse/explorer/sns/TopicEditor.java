@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IEditorInput;
@@ -69,12 +70,12 @@ public class TopicEditor extends EditorPart implements IRefreshable {
 
     private TopicEditorInput topicEditorInput;
     private TreeViewer viewer;
-    private Label ownerLabel;
-    private Label pendingSubscriptionsLabel;
-    private Label confirmedSubscriptionsLabel;
-    private Label deletedSubscriptionsLabel;
-    private Label displayNameLabel;
-    private Label topicArnLabel;
+    private Text ownerLabel;
+    private Text pendingSubscriptionsLabel;
+    private Text confirmedSubscriptionsLabel;
+    private Text deletedSubscriptionsLabel;
+    private Text displayNameLabel;
+    private Text topicArnLabel;
 
     @Override
     public void doSave(IProgressMonitor monitor) {}
@@ -292,32 +293,34 @@ public class TopicEditor extends EditorPart implements IRefreshable {
     private void createTopicSummaryComposite(FormToolkit toolkit, Composite parent) {
         GridDataFactory gdf = GridDataFactory.swtDefaults().align(SWT.FILL, SWT.TOP).grab(true, false);
 
-        Composite summaryComposite = toolkit.createComposite(parent);
+        Composite summaryComposite = toolkit.createComposite(parent, SWT.NONE);
         summaryComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         summaryComposite.setLayout(new GridLayout(2, false));
 
         toolkit.createLabel(summaryComposite, "Owner ID:");
-        ownerLabel = toolkit.createLabel(summaryComposite, "");
+        ownerLabel = toolkit.createText(summaryComposite, "", SWT.READ_ONLY);
         gdf.applyTo(ownerLabel);
 
         toolkit.createLabel(summaryComposite, "Pending Subscriptions:");
-        pendingSubscriptionsLabel = toolkit.createLabel(summaryComposite, "");
+        pendingSubscriptionsLabel = toolkit.createText(summaryComposite, "", SWT.READ_ONLY);
         gdf.applyTo(pendingSubscriptionsLabel);
 
+
         toolkit.createLabel(summaryComposite, "Confirmed Subscriptions:");
-        confirmedSubscriptionsLabel = toolkit.createLabel(summaryComposite, "");
+        confirmedSubscriptionsLabel = toolkit.createText(summaryComposite, "", SWT.READ_ONLY);
         gdf.applyTo(confirmedSubscriptionsLabel);
 
         toolkit.createLabel(summaryComposite, "Deleted Subscriptions:");
-        deletedSubscriptionsLabel = toolkit.createLabel(summaryComposite, "");
+        deletedSubscriptionsLabel = toolkit.createText(summaryComposite, "", SWT.READ_ONLY);
         gdf.applyTo(deletedSubscriptionsLabel);
 
+
         toolkit.createLabel(summaryComposite, "Display Name:");
-        displayNameLabel = toolkit.createLabel(summaryComposite, "");
+        displayNameLabel = toolkit.createText(summaryComposite, "", SWT.READ_ONLY);
         gdf.applyTo(displayNameLabel);
 
         toolkit.createLabel(summaryComposite, "Topic ARN:");
-        topicArnLabel = toolkit.createLabel(summaryComposite, "");
+        topicArnLabel = toolkit.createText(summaryComposite, "", SWT.READ_ONLY);
         gdf.applyTo(topicArnLabel);
 
         new LoadTopicAttributesThread().start();
