@@ -112,7 +112,13 @@ public class SamLocalDelegate implements ILaunchConfigurationDelegate {
             attributes.put(IProcess.ATTR_PROCESS_TYPE, PROCESS_TYPE);
             IProcess samLocalProcess = DebugPlugin.newProcess(launch, samLocalCliProcess, projectName, attributes);
 
-            IOConsole samLocalConsole = (IOConsole) DebugUITools.getConsole(samLocalProcess);
+            IOConsole samLocalConsole = null;
+            do {
+                samLocalConsole = (IOConsole) DebugUITools.getConsole(samLocalProcess);
+            } while (samLocalConsole == null
+                    && !subMonitor.isCanceled()
+                    && !samLocalProcess.isTerminated());
+
             IOConsoleOutputStream samLocalOutputStream = samLocalConsole.newOutputStream();
             samLocalOutputStream.setColor(LambdaPluginColors.GREY);
             safeWriteToConsole(samLocalOutputStream, "Running command: " + commandLine.stream().collect(Collectors.joining(" ")));
