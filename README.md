@@ -64,7 +64,7 @@ You must have [EGit](https://www.eclipse.org/egit/) installed to your Eclipse ID
 Now you have imported all the plugin projects into Eclipse, but you need to set up the target platform since the plugins have dependencies which are not the standard OSGi bundles.
 
 1. Open the terminal and step into the root folder of the repository.
-2. Run the *setup.sh* script if you havn't created the target platform: ```sh setup.sh```.
+2. Run the *setup.sh* script if you haven't created the target platform: ```sh setup.sh```.
 3. Back to Eclipse, open *Preferences* page, choose ```Plug-in Development -> Target Platform```
 4. In the *Target Platform* page, choose ```Add -> Next -> Add -> Software Site -> Add -> Local``` to select the target repository you just built. This repository is located at ```aws-toolkit-eclipse/releng/com.amazonaws.eclipse.devide/target/repository```.
 5. Type a name for this repository, say *aws devide*, and choose ```Finish```. Select ```Uncategorized``` and choose ```Finish```
