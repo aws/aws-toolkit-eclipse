@@ -19,7 +19,14 @@
             <unit id="org.eclipse.datatools.enablement.sdk.feature.feature.group" version="1.14.100.201802061819"/>
             <unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.4.0.20180606-2005"/>
             <unit id="org.eclipse.datatools.enablement.feature.feature.group" version="1.14.100.201801242337"/>
+<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.0.0"/>
             <repository location="http://download.eclipse.org/releases/photon/"/>
         </location>
+	    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+		    <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk" version="1.4.201.v201802151734"/>
+		    <unit id="org.eclipse.wst.common.fproj.sdk" version="1.4.501.v201802151734"/>
+            <unit id="org.eclipse.jst.web_sdk.feature.group" version="3.8.0.v201802202154"/>
+		    <repository location="https://archive.eclipse.org/webtools/downloads/drops/R3.10.0/R-3.10.0-20180611164516/repository"/>
+	    </location>
     </locations>
 </target>
