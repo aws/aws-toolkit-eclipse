@@ -25,9 +25,13 @@
         </location>
 	    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 		    <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk" version="1.4.201.v201802151734"/>
+            <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group" version="3.8.0.v201802151734"/>
 		    <unit id="org.eclipse.wst.common.fproj.sdk" version="1.4.501.v201802151734"/>
+            <unit id="org.eclipse.wst.common.fproj.sdk.feature.group" version="3.7.1.v201802151734"/>
             <unit id="org.eclipse.jst.web_sdk.feature.feature.group" version="3.8.0.v201802202154"/>
             <unit id="org.eclipse.wst.web_sdk.feature.feature.group" version="3.10.0.v201804190136"/>
+            <unit id="org.eclipse.jst.server_sdk.feature.feature.group" version="3.4.301.v201802152148"/>
+            <unit id="org.eclipse.wst.server_adapters.sdk.feature.feature.group" version="3.2.601.v201802152148"/>
 		    <repository location="https://archive.eclipse.org/webtools/downloads/drops/R3.10.0/R-3.10.0-20180611164516/repository"/>
 	    </location>
     </locations>
