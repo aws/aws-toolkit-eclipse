@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde version="3.8"?>
-<target name="com.amazonaws.eclipse.neon" sequenceNumber="21">
+<target name="com.amazonaws.eclipse.photon" sequenceNumber="21">
     <locations>
         <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
             <unit id="org.eclipse.datatools.sdk.feature.feature.group" version="1.14.100.201801242337"/>
