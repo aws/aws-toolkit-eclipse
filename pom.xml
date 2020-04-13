@@ -10,7 +10,7 @@
   </prerequisites>
 
   <properties>
-    <tycho.version>1.0.0</tycho.version>
+    <tycho.version>1.6.0</tycho.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <eclipse.target>mars</eclipse.target>
     <java-sdk-bundle-version>1.11.248</java-sdk-bundle-version>
@@ -121,7 +121,7 @@
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
                   <artifactId>com.amazonaws.eclipse.photon</artifactId>
-                  <version>4.4.0-SNAPSHOT</version>
+                  <version>4.8.0-SNAPSHOT</version>
                 </artifact>
               </target>
             </configuration>
@@ -152,7 +152,7 @@
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
                   <artifactId>com.amazonaws.eclipse.luna</artifactId>
-                  <version>4.4.0-SNAPSHOT</version>
+                  <version>4.8.0-SNAPSHOT</version>
                 </artifact>
               </target>
             </configuration>
