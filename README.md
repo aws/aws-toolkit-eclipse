@@ -39,6 +39,7 @@ To contribute to the AWS Toolkit for Eclipse, you need to have at least these re
 2. [git](https://git-scm.com/), [maven 3.3+](https://maven.apache.org/)
 3. Eclipse IDE 4.4.2 (Luna) or newer
 4. [EGit](https://www.eclipse.org/egit/) 3.4.2+, [M2Eclipse](https://www.eclipse.org/m2e/) 1.5.1+ (Note: these two plugins are part of the standard Eclipse distribution since Luna)
+5. [WebTools](https://www.eclipse.org/webtools/)
 
 ## Build and Test with Maven
 
