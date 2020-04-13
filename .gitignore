@@ -1,2 +1,4 @@
 **/target/
 **/bin/
+# generated Java SDK manifest
+thirdparty/com.amazonaws.eclipse.javasdk/META-INF/MANIFEST.MF

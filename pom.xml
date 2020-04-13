@@ -108,7 +108,7 @@
       <id>build-eclipse-devide</id>
       <modules>
         <!-- Use Luna as default target platform. -->
-        <module>releng/com.amazonaws.eclipse.luna</module>
+        <module>releng/com.amazonaws.eclipse.photon</module>
         <module>releng/com.amazonaws.eclipse.devide</module>
       </modules>
       <build>
@@ -120,7 +120,7 @@
               <target>
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.luna</artifactId>
+                  <artifactId>com.amazonaws.eclipse.photon</artifactId>
                   <version>4.4.0-SNAPSHOT</version>
                 </artifact>
               </target>
