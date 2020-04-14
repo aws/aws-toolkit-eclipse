@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?>
+<target name="com.amazonaws.eclipse.20189" sequenceNumber="21">
+    <locations>
+        <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <unit id="org.eclipse.datatools.sdk.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.sdk.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.intro.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.enablement.mysql.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.connectivity.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.sqldevtools.data.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.swtbot.ide.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.egit.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.sqldevtools.parsers.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.sqldevtools.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.m2e.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.sqldevtools.sqlbuilder.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.jst.web_ui.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.enablement.sdk.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.m2e.wtp.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.datatools.enablement.feature.feature.group" version="0.0.0"/>
+			<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.0.0"/>
+			<unit id="org.eclipse.mylyn.commons.feature.group" version="0.0.0"/>
+            <repository location="https://download.eclipse.org/releases/2018-09/"/>
+        </location>
+	    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+		    <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk" version="0.0.0"/>
+            <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group" version="0.0.0"/>
+		    <unit id="org.eclipse.wst.common.fproj.sdk" version="0.0.0"/>
+            <unit id="org.eclipse.wst.common.fproj.sdk.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.jst.web_sdk.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.wst.web_sdk.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.jst.server_sdk.feature.feature.group" version="0.0.0"/>
+            <unit id="org.eclipse.wst.server_adapters.sdk.feature.feature.group" version="0.0.0"/>
+		    <repository location="https://download.eclipse.org/webtools/repository/2018-09/"/>
+	    </location>
+    </locations>
+</target>
