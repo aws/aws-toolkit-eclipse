@@ -102,8 +102,8 @@
     <profile>
       <id>build-eclipse-devide</id>
       <modules>
-        <!-- Use photon as default target platform. -->
-        <module>releng/com.amazonaws.eclipse.photon</module>
+        <!-- Use the target platform so that we can develop on any version. -->
+        <module>releng/com.amazonaws.eclipse.${eclipse.target}</module>
         <module>releng/com.amazonaws.eclipse.devide</module>
       </modules>
       <build>
@@ -115,7 +115,7 @@
               <target>
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.photon</artifactId>
+                  <artifactId>com.amazonaws.eclipse.${eclipse.target}</artifactId>
                   <version>${toolkit.version}</version>
                 </artifact>
               </target>
