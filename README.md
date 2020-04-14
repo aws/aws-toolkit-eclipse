@@ -70,8 +70,9 @@ Now you have imported all the plugin projects into Eclipse, but you need to set 
 4. In the *Target Platform* page, choose ```Add -> Next -> Add -> Software Site -> Add -> Local``` to select the target repository you just built. This repository is located at ```aws-toolkit-eclipse/releng/com.amazonaws.eclipse.devide/target/repository```.
 5. Type a name for this repository, say *aws devide*, and choose ```Finish```. Select ```Uncategorized``` and choose ```Finish```
 6. Type a name for this target platform, say *AWS Target Platform*, and choose ```OK```. Use this new target platform, and you would be able to run the AWS plugins under this target platform.
+7. It will rebuild the workspace with the target platform. If you see `plugin execution not covered by lifecycle configuration`, right click on the problem and select `Quick Fix -> Discover new m2e connectors`
 
-**Notice: If you imported the *com.amazonaws.eclipse.javasdk* project into your Eclipse workspace when you are checking in the repo, you need to close that project as it  overrides the *Java SDK* bundle in the target platform.**
+**Notice: If you imported the *com.amazonaws.eclipse.javasdk* project into your Eclipse workspace when you are checking in the repo, you may need to close that project as it  overrides the *Java SDK* bundle in the target platform. If there are no issues, ignore this**
 
 # Getting Help
 
