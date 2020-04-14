@@ -72,7 +72,15 @@ Now you have imported all the plugin projects into Eclipse, but you need to set 
 6. Type a name for this target platform, say *AWS Target Platform*, and choose ```OK```. Use this new target platform, and you would be able to run the AWS plugins under this target platform.
 7. It will rebuild the workspace with the target platform. If you see `plugin execution not covered by lifecycle configuration`, right click on the problem and select `Quick Fix -> Discover new m2e connectors`
 
-**Notice: If you imported the *com.amazonaws.eclipse.javasdk* project into your Eclipse workspace when you are checking in the repo, you may need to close that project as it  overrides the *Java SDK* bundle in the target platform. If there are no issues, ignore this**
+**Notice: If you imported the *com.amazonaws.eclipse.javasdk* project into your Eclipse workspace when you are checking in the repo, you may need to close that project as it  overrides the *Java SDK* bundle in the target platform. If the platform is set up correctly, you will see no errors in `Markers`**
+
+## Build and test the IDE
+
+1. Right click on the aws-toolkit-for-eclipse node `run as -> run configurations`
+2. Add an `eclipse application` configuration
+3. In `Run a product` select `org.eclipse.platform.ide`
+4. In the plug ins tab make sure to select `All workspace enabled plugins and features`
+5. Press run, it should build and run
 
 # Getting Help
 
