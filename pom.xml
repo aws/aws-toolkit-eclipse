@@ -13,6 +13,7 @@
     <tycho.version>1.6.0</tycho.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <eclipse.target>photon</eclipse.target>
+    <toolkit.version>4.8.0-SNAPSHOT</toolkit.version>
     <java-sdk-bundle-version>1.11.248</java-sdk-bundle-version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -115,7 +116,7 @@
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
                   <artifactId>com.amazonaws.eclipse.photon</artifactId>
-                  <version>4.8.0-SNAPSHOT</version>
+                  <version>${toolkit.version}</version>
                 </artifact>
               </target>
             </configuration>
@@ -124,17 +125,12 @@
       </build>
     </profile>
     <profile>
-      <id>build-eclipse-photon</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>photon</value>
-        </property>
-      </activation>
+      <id>build-eclipse</id>
       <modules>
         <module>bundles</module>
         <module>features</module>
         <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.photon</module>
+        <module>releng/com.amazonaws.eclipse.${eclipse.target}</module>
         <module>releng/com.amazonaws.eclipse.update</module>
       </modules>
       <build>
@@ -146,8 +142,8 @@
               <target>
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.photon</artifactId>
-                  <version>4.8.0-SNAPSHOT</version>
+                  <artifactId>com.amazonaws.eclipse.${eclipse.target}</artifactId>
+                  <version>${toolkit.version}</version>
                 </artifact>
               </target>
             </configuration>
@@ -155,102 +151,5 @@
         </plugins>
       </build>
     </profile>
-    <profile>
-      <id>build-eclipse-20189</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>20189</value>
-        </property>
-      </activation>
-      <modules>
-        <module>bundles</module>
-        <module>features</module>
-        <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.20189</module>
-        <module>releng/com.amazonaws.eclipse.update</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>target-platform-configuration</artifactId>
-            <configuration>
-              <target>
-                <artifact>
-                  <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.20189</artifactId>
-                  <version>4.8.0-SNAPSHOT</version>
-                </artifact>
-              </target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>build-eclipse-20196</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>20196</value>
-        </property>
-      </activation>
-      <modules>
-        <module>bundles</module>
-        <module>features</module>
-        <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.20196</module>
-        <module>releng/com.amazonaws.eclipse.update</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>target-platform-configuration</artifactId>
-            <configuration>
-              <target>
-                <artifact>
-                  <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.20196</artifactId>
-                  <version>4.8.0-SNAPSHOT</version>
-                </artifact>
-              </target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>build-eclipse-20203</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>20203</value>
-        </property>
-      </activation>
-      <modules>
-        <module>bundles</module>
-        <module>features</module>
-        <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.20203</module>
-        <module>releng/com.amazonaws.eclipse.update</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>target-platform-configuration</artifactId>
-            <configuration>
-              <target>
-                <artifact>
-                  <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.20203</artifactId>
-                  <version>4.8.0-SNAPSHOT</version>
-                </artifact>
-              </target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
   </profiles>
 </project>

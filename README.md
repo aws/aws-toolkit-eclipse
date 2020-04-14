@@ -46,11 +46,11 @@ To contribute to the AWS Toolkit for Eclipse, you need to have at least these re
 1. Checkout the source code: ```git clone https://github.com/aws/aws-toolkit-eclipse```
 2. Step into the target folder: ```cd aws-toolkit-eclipse```
 3. Install the third-party dependencies and build the target platform: ```sh setup.sh```
-4. Build and test with Maven using Photon platform: ```mvn -Pbuild-eclipse-photon clean verify```
-5. Build and test with Maven using 2018.9 platform: ```mvn -Pbuild-eclipse-20189 clean verify```
-5. Build and test with Maven using 2019.6 platform: ```mvn -Pbuild-eclipse-20196 clean verify```
-5. Build and test with Maven using 2019.9 platform: ```mvn -Pbuild-eclipse-20199 clean verify```
-6. Build and test with Maven using 2020.3 platform: ```mvn -Pbuild-eclipse-20203 clean verify```
+4. Build and test with Maven using Photon platform: ```mvn -Pbuild-eclipse clean verify```
+5. Build and test with Maven using 2018.9 platform: ```mvn -Pbuild-eclipse -Declipse.target=20189 clean verify```
+5. Build and test with Maven using 2019.6 platform: ```mvn -Pbuild-eclipse -Declipse.target=20196 clean verify```
+5. Build and test with Maven using 2019.9 platform: ```mvn -Pbuild-eclipse -Declipse.target=20199 clean verify```
+6. Build and test with Maven using 2020.3 platform: ```mvn -Pbuild-eclipse -Declipse.target=20203 clean verify```
 
 **note, 2019-3 and 2019-12 do not build because we reach into Eclipse internals, but it will work on those versions**
 
