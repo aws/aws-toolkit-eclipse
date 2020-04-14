@@ -8,7 +8,7 @@
     <version>1.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.amazonaws.eclipse.photon</artifactId>
+  <artifactId>com.amazonaws.eclipse.20203</artifactId>
   <version>4.8.0-SNAPSHOT</version>
   <packaging>eclipse-target-definition</packaging>
 </project>

@@ -37,18 +37,22 @@ To contribute to the AWS Toolkit for Eclipse, you need to have at least these re
 
 1. Java 8
 2. [git](https://git-scm.com/), [maven 3.3+](https://maven.apache.org/)
-3. Eclipse IDE 4.4.2 (Luna) or newer
-4. [EGit](https://www.eclipse.org/egit/) 3.4.2+, [M2Eclipse](https://www.eclipse.org/m2e/) 1.5.1+ (Note: these two plugins are part of the standard Eclipse distribution since Luna)
+3. Eclipse IDE 4.8 (Photon) or newer
+4. [EGit](https://www.eclipse.org/egit/) 3.4.2+, [M2Eclipse](https://www.eclipse.org/m2e/) 1.5.1+ (Note: these two plugins are part of the standard Eclipse)
+5. [WebTools](https://www.eclipse.org/webtools/)
 
 ## Build and Test with Maven
 
 1. Checkout the source code: ```git clone https://github.com/aws/aws-toolkit-eclipse```
 2. Step into the target folder: ```cd aws-toolkit-eclipse```
 3. Install the third-party dependencies and build the target platform: ```sh setup.sh```
-3. Build and test with Maven using Luna platform: ```mvn clean verify```
-4. Build and test with Maven using Mars platform: ```mvn -Pbuild-eclipse-mars clean verify```
-4. Build and test with Maven using Neon platform: ```mvn -Pbuild-eclipse-neon clean verify```
-4. Build and test with Maven using Oxygen platform: ```mvn -Pbuild-eclipse-oxygen clean verify```
+4. Build and test with Maven using Photon platform: ```mvn -Pbuild-eclipse clean verify```
+5. Build and test with Maven using 2018.9 platform: ```mvn -Pbuild-eclipse -Declipse.target=20189 clean verify```
+5. Build and test with Maven using 2019.6 platform: ```mvn -Pbuild-eclipse -Declipse.target=20196 clean verify```
+5. Build and test with Maven using 2019.9 platform: ```mvn -Pbuild-eclipse -Declipse.target=20199 clean verify```
+6. Build and test with Maven using 2020.3 platform: ```mvn -Pbuild-eclipse -Declipse.target=20203 clean verify```
+
+**note, 2019-3 and 2019-12 do not build because we reach into Eclipse internals, but it will work on those versions**
 
 ## Import into Eclipse and Set up Development Environment
 
@@ -69,8 +73,17 @@ Now you have imported all the plugin projects into Eclipse, but you need to set 
 4. In the *Target Platform* page, choose ```Add -> Next -> Add -> Software Site -> Add -> Local``` to select the target repository you just built. This repository is located at ```aws-toolkit-eclipse/releng/com.amazonaws.eclipse.devide/target/repository```.
 5. Type a name for this repository, say *aws devide*, and choose ```Finish```. Select ```Uncategorized``` and choose ```Finish```
 6. Type a name for this target platform, say *AWS Target Platform*, and choose ```OK```. Use this new target platform, and you would be able to run the AWS plugins under this target platform.
+7. It will rebuild the workspace with the target platform. If you see `plugin execution not covered by lifecycle configuration`, right click on the problem and select `Quick Fix -> Discover new m2e connectors`
 
-**Notice: If you imported the *com.amazonaws.eclipse.javasdk* project into your Eclipse workspace when you are checking in the repo, you need to close that project as it  overrides the *Java SDK* bundle in the target platform.**
+**Notice: If you imported the *com.amazonaws.eclipse.javasdk* project into your Eclipse workspace when you are checking in the repo, you may need to close that project as it  overrides the *Java SDK* bundle in the target platform. If the platform is set up correctly, you will see no errors in `Markers`**
+
+## Build and test the IDE
+
+1. Right click on the aws-toolkit-for-eclipse node `run as -> run configurations`
+2. Add an `eclipse application` configuration
+3. In `Run a product` select `org.eclipse.platform.ide`
+4. In the plug ins tab make sure to select `All workspace enabled plugins and features`
+5. Press run, it should build and run
 
 # Getting Help
 

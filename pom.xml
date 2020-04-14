@@ -10,9 +10,10 @@
   </prerequisites>
 
   <properties>
-    <tycho.version>1.0.0</tycho.version>
+    <tycho.version>1.6.0</tycho.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <eclipse.target>mars</eclipse.target>
+    <eclipse.target>photon</eclipse.target>
+    <toolkit.version>4.8.0-SNAPSHOT</toolkit.version>
     <java-sdk-bundle-version>1.11.248</java-sdk-bundle-version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -77,13 +78,7 @@
           <pomDependencies>consider</pomDependencies>
           <environments>
             <environment>
-              <os>linux</os> <ws>gtk</ws> <arch>x86</arch>
-            </environment>
-            <environment>
               <os>linux</os> <ws>gtk</ws> <arch>x86_64</arch>
-            </environment>
-            <environment>
-              <os>win32</os> <ws>win32</ws> <arch>x86</arch>
             </environment>
             <environment>
               <os>win32</os> <ws>win32</ws> <arch>x86_64</arch>
@@ -107,8 +102,8 @@
     <profile>
       <id>build-eclipse-devide</id>
       <modules>
-        <!-- Use Luna as default target platform. -->
-        <module>releng/com.amazonaws.eclipse.luna</module>
+        <!-- Use the target platform so that we can develop on any version. -->
+        <module>releng/com.amazonaws.eclipse.${eclipse.target}</module>
         <module>releng/com.amazonaws.eclipse.devide</module>
       </modules>
       <build>
@@ -120,8 +115,8 @@
               <target>
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.luna</artifactId>
-                  <version>4.4.0-SNAPSHOT</version>
+                  <artifactId>com.amazonaws.eclipse.${eclipse.target}</artifactId>
+                  <version>${toolkit.version}</version>
                 </artifact>
               </target>
             </configuration>
@@ -130,16 +125,12 @@
       </build>
     </profile>
     <profile>
-      <id>build-eclipse-luna</id>
-      <activation>
-        <!-- Default profile unless another profile in the same POM is activated. -->
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>build-eclipse</id>
       <modules>
         <module>bundles</module>
         <module>features</module>
         <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.luna</module>
+        <module>releng/com.amazonaws.eclipse.${eclipse.target}</module>
         <module>releng/com.amazonaws.eclipse.update</module>
       </modules>
       <build>
@@ -151,8 +142,8 @@
               <target>
                 <artifact>
                   <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.luna</artifactId>
-                  <version>4.4.0-SNAPSHOT</version>
+                  <artifactId>com.amazonaws.eclipse.${eclipse.target}</artifactId>
+                  <version>${toolkit.version}</version>
                 </artifact>
               </target>
             </configuration>
@@ -160,138 +151,5 @@
         </plugins>
       </build>
     </profile>
-
-    <profile>
-      <id>build-eclipse-mars</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>mars</value>
-        </property>
-      </activation>
-      <modules>
-        <module>bundles</module>
-        <module>features</module>
-        <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.mars</module>
-        <module>releng/com.amazonaws.eclipse.update</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>target-platform-configuration</artifactId>
-            <configuration>
-              <target>
-                <artifact>
-                  <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.mars</artifactId>
-                  <version>4.5.0-SNAPSHOT</version>
-                </artifact>
-              </target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>build-eclipse-neon</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>neon</value>
-        </property>
-      </activation>
-      <modules>
-        <module>bundles</module>
-        <module>features</module>
-        <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.neon</module>
-        <module>releng/com.amazonaws.eclipse.update</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>target-platform-configuration</artifactId>
-            <configuration>
-              <target>
-                <artifact>
-                  <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.neon</artifactId>
-                  <version>4.6.0-SNAPSHOT</version>
-                </artifact>
-              </target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>build-eclipse-oxygen</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>oxygen</value>
-        </property>
-      </activation>
-      <modules>
-        <module>bundles</module>
-        <module>features</module>
-        <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.oxygen</module>
-        <module>releng/com.amazonaws.eclipse.update</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>target-platform-configuration</artifactId>
-            <configuration>
-              <target>
-                <artifact>
-                  <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.oxygen</artifactId>
-                  <version>4.7.0-SNAPSHOT</version>
-                </artifact>
-              </target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>build-eclipse-photon</id>
-      <activation>
-        <property>
-          <name>eclipse.target</name> <value>photon</value>
-        </property>
-      </activation>
-      <modules>
-        <module>bundles</module>
-        <module>features</module>
-        <module>tests</module>
-        <module>releng/com.amazonaws.eclipse.photon</module>
-        <module>releng/com.amazonaws.eclipse.update</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>target-platform-configuration</artifactId>
-            <configuration>
-              <target>
-                <artifact>
-                  <groupId>com.amazonaws.eclipse</groupId>
-                  <artifactId>com.amazonaws.eclipse.photon</artifactId>
-                  <version>4.8.0-SNAPSHOT</version>
-                </artifact>
-              </target>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
   </profiles>
 </project>
