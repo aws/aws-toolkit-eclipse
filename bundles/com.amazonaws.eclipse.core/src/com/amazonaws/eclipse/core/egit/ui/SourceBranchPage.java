@@ -17,11 +17,13 @@ package com.amazonaws.eclipse.core.egit.ui;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
@@ -195,9 +197,31 @@ public class SourceBranchPage extends WizardPage {
                 return ((Ref)element).getName();
             }
 
+            // FIX_WHEN_MIN_IS_20203 In older versions, get icon returns a Icon but in newer
+            // it return an icon descriptor. Differentiate using reflection (ew)
             @Override
             public Image getImage(Object element) {
-                return RepositoryTreeNodeType.REF.getIcon();
+            	final Object icon = RepositoryTreeNodeType.REF.getIcon();
+            	Method method = null;
+            	try {
+            		method = icon.getClass().getMethod("createImage");
+            	} catch (NoSuchMethodException e) {
+            		if (icon instanceof Image) {
+            			return (Image) icon;
+            		} else {
+            			return null;
+            		}
+            	}
+        		try {
+        			Object resolvedIcon = method.invoke(icon);
+        			if (resolvedIcon instanceof Image) {
+            			return (Image) resolvedIcon;
+            		} else {
+            			return null;
+            		}
+        		} catch (Exception e) {
+        			return null;
+        		}
             }
         });
 
