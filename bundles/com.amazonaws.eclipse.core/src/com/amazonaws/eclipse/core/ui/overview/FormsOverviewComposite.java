@@ -63,8 +63,7 @@ class FormsOverviewComposite extends Composite {
     private static final String[] PLUGIN_ORDER = new String[] {
                     "com.amazonaws.eclipse.sdk.ui",
                     "com.amazonaws.eclipse.elasticbeanstalk",
-                    "com.amazonaws.eclipse.ec2",
-                    "com.amazonaws.eclipse.datatools.enablement.simpledb.ui"
+                    "com.amazonaws.eclipse.ec2"
             };
 
     /** The main form displayed in the overview page */

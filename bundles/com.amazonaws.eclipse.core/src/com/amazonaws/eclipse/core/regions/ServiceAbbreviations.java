@@ -25,7 +25,6 @@ public final class ServiceAbbreviations {
     public static final String EC2             = "EC2";
     public static final String IAM             = "IAM";
     public static final String S3              = "S3";
-    public static final String SIMPLEDB        = "SimpleDB";
     public static final String SNS             = "SNS";
     public static final String SQS             = "SQS";
     public static final String BEANSTALK       = "ElasticBeanstalk";

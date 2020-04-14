@@ -94,9 +94,6 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.simpledb.AmazonSimpleDB;
-import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
-import com.amazonaws.services.simpledb.AmazonSimpleDBClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
@@ -217,10 +214,6 @@ public class AWSClientFactory {
         return getCloudFrontClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
-    public AmazonSimpleDB getSimpleDBClient() {
-        return getSimpleDBClientByRegion(RegionUtils.getCurrentRegion().getId());
-    }
-
     public AmazonRDS getRDSClient() {
         return getRDSClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
@@ -302,11 +295,6 @@ public class AWSClientFactory {
     @Deprecated
     public AmazonEC2 getEC2ClientByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AmazonEC2Client.class);
-    }
-
-    @Deprecated
-    public AmazonSimpleDB getSimpleDBClientByEndpoint(final String endpoint) {
-        return getOrCreateClient(endpoint, AmazonSimpleDBClient.class);
     }
 
     @Deprecated
@@ -418,11 +406,6 @@ public class AWSClientFactory {
     public AmazonEC2 getEC2ClientByRegion(String regionId) {
         return getOrCreateClientByRegion(ServiceAbbreviations.EC2, regionId,
                 AmazonEC2ClientBuilder.standard(), AmazonEC2.class);
-    }
-
-    public AmazonSimpleDB getSimpleDBClientByRegion(final String regionId) {
-        return getOrCreateClientByRegion(ServiceAbbreviations.SIMPLEDB, regionId,
-                AmazonSimpleDBClientBuilder.standard(), AmazonSimpleDB.class);
     }
 
     public AmazonRDS getRDSClientByRegion(final String regionId) {

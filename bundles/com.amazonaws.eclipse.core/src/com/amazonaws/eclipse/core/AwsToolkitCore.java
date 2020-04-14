@@ -101,7 +101,6 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
     public static final String IMAGE_IAM_SERVICE = "iam-service";
     public static final String IMAGE_RDS_SERVICE = "rds-service";
     public static final String IMAGE_S3_SERVICE = "s3-service";
-    public static final String IMAGE_SIMPLEDB_SERVICE = "simpledb-service";
     public static final String IMAGE_SNS_SERVICE = "sns-service";
     public static final String IMAGE_SQS_SERVICE = "sqs-service";
 
@@ -588,7 +587,6 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
                 IMAGE_IAM_SERVICE,            "/icons/iam-service.png",
                 IMAGE_RDS_SERVICE,            "/icons/rds-service.png",
                 IMAGE_S3_SERVICE,             "/icons/s3-service.png",
-                IMAGE_SIMPLEDB_SERVICE,       "/icons/simpledb-service.png",
                 IMAGE_SNS_SERVICE,            "/icons/sns-service.png",
                 IMAGE_SQS_SERVICE,            "/icons/sqs-service.png",
 

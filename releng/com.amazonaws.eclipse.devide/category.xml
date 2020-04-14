@@ -15,15 +15,12 @@
    <feature id="org.eclipse.wst.web_sdk.feature" version="0.0.0"/>
    <feature id="org.eclipse.wst.server_adapters.sdk.feature" version="0.0.0"/>
    <bundle id="com.amazonaws.eclipse.javasdk" version="1.11.248"/>
-   <bundle id="org.eclipse.datatools.sqltools.sql" version="1.2.100.201801242337"/>
    <bundle id="org.eclipse.datatools.sqltools.sql.ui" version="1.2.100.201801242337"/>
    <bundle id="org.eclipse.datatools.sqltools.db.derby"/>
    <bundle id="org.eclipse.datatools.sqltools.db.derby.ui"/>
    <bundle id="org.eclipse.datatools.sqltools.common.ui"/>
    <bundle id="org.eclipse.datatools.sqltools.db.generic"/>
    <bundle id="org.eclipse.datatools.sqltools.db.generic.ui"/>
-   <bundle id="org.eclipse.datatools.sqltools.doc.user"/>
-   <bundle id="org.eclipse.datatools.sqltools.doc.user.contexts"/>
    <bundle id="org.eclipse.datatools.sqltools.editor.core"/>
    <bundle id="org.eclipse.datatools.sqltools.editor.core.ui"/>
    <bundle id="org.eclipse.datatools.sqltools.plan"/>

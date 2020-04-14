@@ -27,9 +27,6 @@
    <feature url="features/com.amazonaws.eclipse.codestar.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.codestar.feature" version="1.0.0.qualifier">
       <category name="com.amazonaws.category.development"/>
    </feature>
-   <feature url="features/com.amazonaws.eclipse.simpledb.feature_1.0.0.qualifier.jar" id="com.amazonaws.eclipse.simpledb.feature" version="1.0.0.qualifier">
-      <category name="com.amazonaws.category.datatools"/>
-   </feature>
    <category-def name="com.amazonaws.category.management" label="AWS Core Management Tools"/>
    <category-def name="com.amazonaws.category.deployment" label="AWS Deployment Tools"/>
    <category-def name="com.amazonaws.category.datatools" label="Optional - AWS Data Management Tools"/>

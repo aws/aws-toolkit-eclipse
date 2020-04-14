@@ -24,6 +24,5 @@
     <module>com.amazonaws.eclipse.lambda</module>
     <module>com.amazonaws.eclipse.opsworks</module>
     <module>com.amazonaws.eclipse.rds</module>
-    <module>com.amazonaws.eclipse.simpledb</module>
   </modules>
 </project>
