@@ -188,6 +188,38 @@
       </build>
     </profile>
     <profile>
+      <id>build-eclipse-20196</id>
+      <activation>
+        <property>
+          <name>eclipse.target</name> <value>20196</value>
+        </property>
+      </activation>
+      <modules>
+        <module>bundles</module>
+        <module>features</module>
+        <module>tests</module>
+        <module>releng/com.amazonaws.eclipse.20196</module>
+        <module>releng/com.amazonaws.eclipse.update</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>target-platform-configuration</artifactId>
+            <configuration>
+              <target>
+                <artifact>
+                  <groupId>com.amazonaws.eclipse</groupId>
+                  <artifactId>com.amazonaws.eclipse.20196</artifactId>
+                  <version>4.8.0-SNAPSHOT</version>
+                </artifact>
+              </target>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>build-eclipse-20203</id>
       <activation>
         <property>
