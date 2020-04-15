@@ -46,7 +46,7 @@ public class ToolkitEvent {
      * @return convert to the low-level {@link Event} object that is accepted
      *         by the Mobile Analytics service API.
      */
-    public Event toMobileAnalyticsEvent() {
+	public Event toMobileAnalyticsEvent() {
         Event event = new Event();
 
         event.setSession(this.session.toMobileAnalyticsSession());

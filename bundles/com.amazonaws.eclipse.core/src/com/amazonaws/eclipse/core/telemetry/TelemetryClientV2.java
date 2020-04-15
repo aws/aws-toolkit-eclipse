@@ -40,7 +40,7 @@ public class TelemetryClientV2 {
 	}
 	
     public void publish(Collection<MetricDatum> event) {
-    	if(client == null) {
+    	if(client == null || event == null) {
     		return;
     	}
     	

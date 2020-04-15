@@ -16,6 +16,9 @@ package com.amazonaws.eclipse.core.mobileanalytics.internal;
 
 import static com.amazonaws.eclipse.core.util.ValidationUtils.validateNonNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -26,7 +29,10 @@ import com.amazonaws.eclipse.core.mobileanalytics.batchclient.MobileAnalyticsBat
 import com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal.MobileAnalyticsBatchClientImpl;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextJsonHelper;
+import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 @ThreadSafe
 public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
@@ -77,6 +83,11 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
     @Override
     public synchronized void startSession(boolean forceFlushEvents) {
 
+    	// TODO remove
+    	TelemetryClientV2 client = new TelemetryClientV2();
+    	Collection<MetricDatum> datum = new ArrayList<MetricDatum>();
+    	datum.add(MetricDatum.builder().metricName("session_start").build());
+    	client.publish(datum);
         if (!this.enabled) {
             return;
         }
