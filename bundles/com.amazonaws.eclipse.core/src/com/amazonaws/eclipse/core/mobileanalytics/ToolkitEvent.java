@@ -14,16 +14,22 @@
  */
 package com.amazonaws.eclipse.core.mobileanalytics;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.time.Instant;
 
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitSession;
 import com.amazonaws.services.mobileanalytics.model.Event;
 import com.amazonaws.util.DateUtils;
+
+import software.amazon.awssdk.services.toolkittelemetry.model.MetadataEntry;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 @Immutable
 public class ToolkitEvent {
@@ -53,6 +59,27 @@ public class ToolkitEvent {
         event.setVersion(Constants.MOBILE_ANALYTICS_SERVICE_VERSION);
 
         return event;
+    }
+    
+    public MetricDatum toMetricDatum() {
+    	// we don't differentiate attributes/metrics anymore so add both
+    	Collection<MetadataEntry> metadata = this.metrics
+				.entrySet()
+				.stream()
+				.map((it) -> MetadataEntry.builder().key(it.getKey()).value(it.getValue().toString()).build())
+				.collect(Collectors.toList());
+    	metadata.addAll(this.attributes
+    			.entrySet()
+    			.stream()
+    			.map((it) -> MetadataEntry.builder().key(it.getKey()).value(it.getValue()).build())
+    			.collect(Collectors.toList()));
+    	// TODO add account id and region and time
+    	return MetricDatum.builder()
+    			.metricName(this.eventType)
+    			.value(1.0)
+    			.metadata(metadata)
+    			.epochTimestamp(Instant.now().toEpochMilli())
+    			.build();
     }
 
     /**

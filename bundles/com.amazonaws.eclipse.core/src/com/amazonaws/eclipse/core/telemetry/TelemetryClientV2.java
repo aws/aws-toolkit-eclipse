@@ -16,16 +16,45 @@
 package com.amazonaws.eclipse.core.telemetry;
 
 import java.net.URI;
+import java.util.Collection;
 
+import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent;
 import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsProvider;
 import com.amazonaws.regions.Regions;
 
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cognitoidentity.CognitoIdentityClient;
 import software.amazon.awssdk.services.toolkittelemetry.ToolkitTelemetryAsyncClient;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
+import software.amazon.awssdk.services.toolkittelemetry.model.PostMetricsRequest;
 
 public class TelemetryClientV2 {
+	private ToolkitTelemetryAsyncClient client;
+	public TelemetryClientV2() {
+		try {
+	     	this.client = getTelemetryClient();
+		} catch(Throwable e) {
+			this.client = null;
+		}
+	}
 	
+    public void publish(Collection<MetricDatum> event) {
+    	if(client == null) {
+    		return;
+    	}
+    	
+    	client.postMetrics(PostMetricsRequest
+    			.builder()
+    			.awsProduct("AWS Toolkit for Eclipse")
+    			.metricData(event)
+    			.build());
+    }
+
     private ToolkitTelemetryAsyncClient getTelemetryClient() throws Exception {
-    	final AWSCognitoCredentialsProvider cognito = new AWSCognitoCredentialsProvider("us-east-1:820fd6d1-95c0-4ca4-bffb-3f01d32da842", Regions.US_EAST_1)
+		final CognitoIdentityClient client = CognitoIdentityClient.builder()
+				.credentialsProvider(AnonymousCredentialsProvider.create()).region(Region.US_EAST_1).build();
+    	final CognitoProviderV2 cognito = new CognitoProviderV2("us-east-1:820fd6d1-95c0-4ca4-bffb-3f01d32da842", client);
     	return ToolkitTelemetryAsyncClient
     			.builder()
     			.endpointOverride(new URI("https://client-telemetry.us-east-1.amazonaws.com"))
