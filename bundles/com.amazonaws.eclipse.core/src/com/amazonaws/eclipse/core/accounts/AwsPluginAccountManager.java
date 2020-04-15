@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.eclipse.core.AccountInfo;
@@ -37,6 +36,8 @@ import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 
 /**
+ * Class is not thread safe!
+ * 
  * This class acts as a facade for all the account-related configurations for
  * the plugin. Different feature components should use this class to query/set
  * the current default account. It is also responsible to notify the registered
@@ -47,7 +48,6 @@ import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
  * configured via different ways (e.g. by the Eclipse preference store system,
  * or loaded from the local credentials file).
  */
-@NotThreadSafe
 public final class AwsPluginAccountManager {
 
     /**
