@@ -13,6 +13,7 @@
 
   <properties>
     <java-sdk-version>1.11.248</java-sdk-version>
+    <java-sdk-v2-version>2.11.12</java-sdk-v2-version>
     <commons-io-version>2.4</commons-io-version>
     <jackson-version>2.6.6</jackson-version>
     <manifest-location>META-INF</manifest-location>
@@ -28,6 +29,13 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-bom</artifactId>
         <version>${java-sdk-version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${java-sdk-v2-version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
