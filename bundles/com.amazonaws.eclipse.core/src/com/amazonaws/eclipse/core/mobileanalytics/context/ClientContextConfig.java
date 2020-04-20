@@ -26,9 +26,13 @@ import java.util.UUID;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.Version;
 
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -47,8 +51,10 @@ public class ClientContextConfig {
     private final String appId;
     private final String envPlatformName;
     private final String envPlatformVersion;
+    private final String eclipseVersion;
     private final String envLocale;
     private final String clientId;
+    private final String version;
 
     public static final ClientContextConfig PROD_CONFIG = new ClientContextConfig(
             MOBILE_ANALYTICS_APP_TITLE_PROD, MOBILE_ANALYTICS_APP_ID_PROD,
@@ -62,15 +68,34 @@ public class ClientContextConfig {
 
     private ClientContextConfig(String appTitle, String appId,
             String envPlatformName, String envPlatformVersion, String envLocale, String clientId) {
-        this.appTitle = appTitle;
+        this.eclipseVersion = eclipseVersion();
+        this.version = getPluginVersion();
+		this.appTitle = appTitle;
         this.appId = appId;
         this.envPlatformName = envPlatformName;
         this.envPlatformVersion = envPlatformVersion;
         this.envLocale = envLocale;
         this.clientId = clientId;
     }
+    
+    private String eclipseVersion() {
+    	try {
+    	    Bundle bundle = Platform.getBundle("org.eclipse.platform");
+    	    return bundle.getVersion().toString();
+    	} catch(Exception e) {
+    		return "Unknown";
+    	}
+	}
 
-    public String getAppTitle() {
+    private String getPluginVersion() {
+    	try {
+    	    return FrameworkUtil.getBundle(getClass()).getVersion().toString();
+    	} catch(Exception e) {
+    		return "Unknown";
+    	}
+	}
+
+	public String getAppTitle() {
         return appTitle;
     }
 
@@ -93,6 +118,14 @@ public class ClientContextConfig {
     public String getClientId() {
         return clientId;
     }
+    
+	public String getVersion() {
+		return version;
+	}
+	
+	public String getEclipseVersion() {
+		return eclipseVersion;
+	}
 
     private static String _getSystemOsName() {
         try {
