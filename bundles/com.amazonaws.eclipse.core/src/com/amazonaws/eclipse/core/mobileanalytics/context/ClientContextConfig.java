@@ -137,7 +137,7 @@ public class ClientContextConfig {
         }
     }
 
-    private static String _getOrGenerateClientId() {
+    public static String _getOrGenerateClientId() {
         // This is the Java preferences scope
         Preferences awsToolkitNode = Preferences.userRoot().node(JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE);
         String clientId = awsToolkitNode.get(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, null);

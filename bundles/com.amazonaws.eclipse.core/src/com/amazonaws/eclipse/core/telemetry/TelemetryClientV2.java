@@ -18,6 +18,8 @@ package com.amazonaws.eclipse.core.telemetry;
 import java.util.Collection;
 
 import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsProvider;
+import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
+
 import software.amazon.awssdk.services.toolkittelemetry.TelemetryClient;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 import software.amazon.awssdk.services.toolkittelemetry.model.PostMetricsRequest;
@@ -39,7 +41,9 @@ public class TelemetryClientV2 {
 		}
 
 		final PostMetricsRequest request = new PostMetricsRequest();
-		request.aWSProduct("AWS Toolkit for Eclipse");
+		request.aWSProduct("AWS Toolkit For Eclipse");
+		request.setAWSProductVersion("1.0.0");
+		request.clientID(ClientContextConfig._getOrGenerateClientId());
 		request.metricData(event);
 		
 		client.postMetrics(request);
