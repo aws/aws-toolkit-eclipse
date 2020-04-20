@@ -66,20 +66,30 @@ public class ToolkitEvent {
     	Collection<MetadataEntry> metadata = this.metrics
 				.entrySet()
 				.stream()
-				.map((it) -> MetadataEntry.builder().key(it.getKey()).value(it.getValue().toString()).build())
+				.map((it) -> {
+					final MetadataEntry entry = new MetadataEntry();
+			        entry.setKey(it.getKey());
+				    entry.setValue(it.getValue().toString());
+				    return entry;
+				})
 				.collect(Collectors.toList());
     	metadata.addAll(this.attributes
     			.entrySet()
     			.stream()
-    			.map((it) -> MetadataEntry.builder().key(it.getKey()).value(it.getValue()).build())
+    			.map((it) -> {
+    				final MetadataEntry entry = new MetadataEntry();
+    			    entry.setKey(it.getKey());
+    				entry.setValue(it.getValue());
+    				return entry;	
+    			})
     			.collect(Collectors.toList()));
     	// TODO add account id and region and time
-    	return MetricDatum.builder()
-    			.metricName(this.eventType)
-    			.value(1.0)
-    			.metadata(metadata)
-    			.epochTimestamp(Instant.now().toEpochMilli())
-    			.build();
+    	final MetricDatum datum = new MetricDatum();
+    	datum.metricName(this.eventType);
+    	datum.setValue(1.0);
+    	datum.setEpochTimestamp(Instant.now().toEpochMilli());
+    	datum.setMetadata(metadata);
+    	return datum;
     }
 
     /**
@@ -175,7 +185,5 @@ public class ToolkitEvent {
             }
             return this.event;
         }
-
     }
-
 }

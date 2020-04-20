@@ -86,7 +86,9 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
     	// TODO remove
     	TelemetryClientV2 client = new TelemetryClientV2();
     	Collection<MetricDatum> datum = new ArrayList<MetricDatum>();
-    	datum.add(MetricDatum.builder().metricName("session_start").build());
+    	MetricDatum sessionStart = new MetricDatum();
+    	sessionStart.metricName("session_start");
+    	datum.add(sessionStart);
     	client.publish(datum);
         if (!this.enabled) {
             return;

@@ -1,5 +1,5 @@
 /*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2015-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
  * the License. A copy of the License is located at
@@ -10,625 +10,403 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-
 package software.amazon.awssdk.services.toolkittelemetry.model;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.traits.ListTrait;
-import software.amazon.awssdk.core.traits.LocationTrait;
-import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
-import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import java.io.Serializable;
+import javax.annotation.Generated;
 
-/**
- */
-@Generated("software.amazon.awssdk:codegen")
-public final class PostMetricsRequest extends ToolkitTelemetryRequest implements
-        ToCopyableBuilder<PostMetricsRequest.Builder, PostMetricsRequest> {
-    private static final SdkField<String> AWS_PRODUCT_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostMetricsRequest::awsProductAsString)).setter(setter(Builder::awsProduct))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AWSProduct").build()).build();
+import com.amazonaws.auth.RequestSigner;
+import com.amazonaws.opensdk.protect.auth.RequestSignerAware;
 
-    private static final SdkField<String> AWS_PRODUCT_VERSION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostMetricsRequest::awsProductVersion)).setter(setter(Builder::awsProductVersion))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AWSProductVersion").build()).build();
+@Generated("com.amazonaws:aws-java-sdk-code-generator")
+public class PostMetricsRequest extends com.amazonaws.opensdk.BaseRequest implements Serializable, Cloneable, RequestSignerAware {
 
-    private static final SdkField<String> CLIENT_ID_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostMetricsRequest::clientID)).setter(setter(Builder::clientID))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ClientID").build()).build();
+    private String aWSProduct;
 
-    private static final SdkField<String> OS_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostMetricsRequest::os)).setter(setter(Builder::os))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OS").build()).build();
+    private String aWSProductVersion;
 
-    private static final SdkField<String> OS_VERSION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostMetricsRequest::osVersion)).setter(setter(Builder::osVersion))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OSVersion").build()).build();
+    private String clientID;
 
-    private static final SdkField<String> PARENT_PRODUCT_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostMetricsRequest::parentProduct)).setter(setter(Builder::parentProduct))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ParentProduct").build()).build();
+    private String oS;
 
-    private static final SdkField<String> PARENT_PRODUCT_VERSION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostMetricsRequest::parentProductVersion)).setter(setter(Builder::parentProductVersion))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ParentProductVersion").build())
-            .build();
+    private String oSVersion;
 
-    private static final SdkField<List<MetricDatum>> METRIC_DATA_FIELD = SdkField
-            .<List<MetricDatum>> builder(MarshallingType.LIST)
-            .getter(getter(PostMetricsRequest::metricData))
-            .setter(setter(Builder::metricData))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MetricData").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<MetricDatum> builder(MarshallingType.SDK_POJO)
-                                            .constructor(MetricDatum::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+    private String parentProduct;
 
-    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(AWS_PRODUCT_FIELD,
-            AWS_PRODUCT_VERSION_FIELD, CLIENT_ID_FIELD, OS_FIELD, OS_VERSION_FIELD, PARENT_PRODUCT_FIELD,
-            PARENT_PRODUCT_VERSION_FIELD, METRIC_DATA_FIELD));
+    private String parentProductVersion;
 
-    private final String awsProduct;
-
-    private final String awsProductVersion;
-
-    private final String clientID;
-
-    private final String os;
-
-    private final String osVersion;
-
-    private final String parentProduct;
-
-    private final String parentProductVersion;
-
-    private final List<MetricDatum> metricData;
-
-    private PostMetricsRequest(BuilderImpl builder) {
-        super(builder);
-        this.awsProduct = builder.awsProduct;
-        this.awsProductVersion = builder.awsProductVersion;
-        this.clientID = builder.clientID;
-        this.os = builder.os;
-        this.osVersion = builder.osVersion;
-        this.parentProduct = builder.parentProduct;
-        this.parentProductVersion = builder.parentProductVersion;
-        this.metricData = builder.metricData;
-    }
+    private java.util.List<MetricDatum> metricData;
 
     /**
-     * Returns the value of the AWSProduct property for this object.
-     * <p>
-     * If the service returns an enum value that is not available in the current SDK version, {@link #awsProduct} will
-     * return {@link AWSProduct#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
-     * {@link #awsProductAsString}.
-     * </p>
-     * 
-     * @return The value of the AWSProduct property for this object.
+     * @param aWSProduct
      * @see AWSProduct
      */
-    public AWSProduct awsProduct() {
-        return AWSProduct.fromValue(awsProduct);
+
+    public void setAWSProduct(String aWSProduct) {
+        this.aWSProduct = aWSProduct;
     }
 
     /**
-     * Returns the value of the AWSProduct property for this object.
-     * <p>
-     * If the service returns an enum value that is not available in the current SDK version, {@link #awsProduct} will
-     * return {@link AWSProduct#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
-     * {@link #awsProductAsString}.
-     * </p>
-     * 
-     * @return The value of the AWSProduct property for this object.
+     * @return
      * @see AWSProduct
      */
-    public String awsProductAsString() {
-        return awsProduct;
+
+    public String getAWSProduct() {
+        return this.aWSProduct;
     }
 
     /**
-     * Returns the value of the AWSProductVersion property for this object.
-     * 
-     * @return The value of the AWSProductVersion property for this object.
+     * @param aWSProduct
+     * @return Returns a reference to this object so that method calls can be chained together.
+     * @see AWSProduct
      */
-    public String awsProductVersion() {
-        return awsProductVersion;
+
+    public PostMetricsRequest aWSProduct(String aWSProduct) {
+        setAWSProduct(aWSProduct);
+        return this;
     }
 
     /**
-     * Returns the value of the ClientID property for this object.
-     * 
-     * @return The value of the ClientID property for this object.
+     * @param aWSProduct
+     * @see AWSProduct
      */
-    public String clientID() {
-        return clientID;
+
+    public void setAWSProduct(AWSProduct aWSProduct) {
+        aWSProduct(aWSProduct);
     }
 
     /**
-     * Returns the value of the OS property for this object.
-     * 
-     * @return The value of the OS property for this object.
+     * @param aWSProduct
+     * @return Returns a reference to this object so that method calls can be chained together.
+     * @see AWSProduct
      */
-    public String os() {
-        return os;
+
+    public PostMetricsRequest aWSProduct(AWSProduct aWSProduct) {
+        this.aWSProduct = aWSProduct.toString();
+        return this;
     }
 
     /**
-     * Returns the value of the OSVersion property for this object.
-     * 
-     * @return The value of the OSVersion property for this object.
+     * @param aWSProductVersion
      */
-    public String osVersion() {
-        return osVersion;
+
+    public void setAWSProductVersion(String aWSProductVersion) {
+        this.aWSProductVersion = aWSProductVersion;
     }
 
     /**
-     * Returns the value of the ParentProduct property for this object.
-     * 
-     * @return The value of the ParentProduct property for this object.
+     * @return
      */
-    public String parentProduct() {
-        return parentProduct;
+
+    public String getAWSProductVersion() {
+        return this.aWSProductVersion;
     }
 
     /**
-     * Returns the value of the ParentProductVersion property for this object.
-     * 
-     * @return The value of the ParentProductVersion property for this object.
+     * @param aWSProductVersion
+     * @return Returns a reference to this object so that method calls can be chained together.
      */
-    public String parentProductVersion() {
-        return parentProductVersion;
+
+    public PostMetricsRequest aWSProductVersion(String aWSProductVersion) {
+        setAWSProductVersion(aWSProductVersion);
+        return this;
     }
 
     /**
-     * Returns true if the MetricData property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * @param clientID
      */
-    public boolean hasMetricData() {
-        return metricData != null && !(metricData instanceof SdkAutoConstructList);
+
+    public void setClientID(String clientID) {
+        this.clientID = clientID;
     }
 
     /**
-     * Returns the value of the MetricData property for this object.
-     * <p>
-     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
-     * </p>
-     * <p>
-     * You can use {@link #hasMetricData()} to see if a value was sent in this field.
-     * </p>
-     * 
-     * @return The value of the MetricData property for this object.
+     * @return
      */
-    public List<MetricDatum> metricData() {
+
+    public String getClientID() {
+        return this.clientID;
+    }
+
+    /**
+     * @param clientID
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostMetricsRequest clientID(String clientID) {
+        setClientID(clientID);
+        return this;
+    }
+
+    /**
+     * @param oS
+     */
+
+    public void setOS(String oS) {
+        this.oS = oS;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getOS() {
+        return this.oS;
+    }
+
+    /**
+     * @param oS
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostMetricsRequest oS(String oS) {
+        setOS(oS);
+        return this;
+    }
+
+    /**
+     * @param oSVersion
+     */
+
+    public void setOSVersion(String oSVersion) {
+        this.oSVersion = oSVersion;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getOSVersion() {
+        return this.oSVersion;
+    }
+
+    /**
+     * @param oSVersion
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostMetricsRequest oSVersion(String oSVersion) {
+        setOSVersion(oSVersion);
+        return this;
+    }
+
+    /**
+     * @param parentProduct
+     */
+
+    public void setParentProduct(String parentProduct) {
+        this.parentProduct = parentProduct;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getParentProduct() {
+        return this.parentProduct;
+    }
+
+    /**
+     * @param parentProduct
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostMetricsRequest parentProduct(String parentProduct) {
+        setParentProduct(parentProduct);
+        return this;
+    }
+
+    /**
+     * @param parentProductVersion
+     */
+
+    public void setParentProductVersion(String parentProductVersion) {
+        this.parentProductVersion = parentProductVersion;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getParentProductVersion() {
+        return this.parentProductVersion;
+    }
+
+    /**
+     * @param parentProductVersion
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostMetricsRequest parentProductVersion(String parentProductVersion) {
+        setParentProductVersion(parentProductVersion);
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.List<MetricDatum> getMetricData() {
         return metricData;
     }
 
-    @Override
-    public Builder toBuilder() {
-        return new BuilderImpl(this);
-    }
+    /**
+     * @param metricData
+     */
 
-    public static Builder builder() {
-        return new BuilderImpl();
-    }
-
-    public static Class<? extends Builder> serializableBuilderClass() {
-        return BuilderImpl.class;
-    }
-
-    @Override
-    public int hashCode() {
-        int hashCode = 1;
-        hashCode = 31 * hashCode + super.hashCode();
-        hashCode = 31 * hashCode + Objects.hashCode(awsProductAsString());
-        hashCode = 31 * hashCode + Objects.hashCode(awsProductVersion());
-        hashCode = 31 * hashCode + Objects.hashCode(clientID());
-        hashCode = 31 * hashCode + Objects.hashCode(os());
-        hashCode = 31 * hashCode + Objects.hashCode(osVersion());
-        hashCode = 31 * hashCode + Objects.hashCode(parentProduct());
-        hashCode = 31 * hashCode + Objects.hashCode(parentProductVersion());
-        hashCode = 31 * hashCode + Objects.hashCode(metricData());
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj) && equalsBySdkFields(obj);
-    }
-
-    @Override
-    public boolean equalsBySdkFields(Object obj) {
-        if (this == obj) {
-            return true;
+    public void setMetricData(java.util.Collection<MetricDatum> metricData) {
+        if (metricData == null) {
+            this.metricData = null;
+            return;
         }
-        if (obj == null) {
-            return false;
+
+        this.metricData = new java.util.ArrayList<MetricDatum>(metricData);
+    }
+
+    /**
+     * <p>
+     * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
+     * {@link #setMetricData(java.util.Collection)} or {@link #withMetricData(java.util.Collection)} if you want to
+     * override the existing values.
+     * </p>
+     * 
+     * @param metricData
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostMetricsRequest metricData(MetricDatum... metricData) {
+        if (this.metricData == null) {
+            setMetricData(new java.util.ArrayList<MetricDatum>(metricData.length));
         }
-        if (!(obj instanceof PostMetricsRequest)) {
-            return false;
+        for (MetricDatum ele : metricData) {
+            this.metricData.add(ele);
         }
-        PostMetricsRequest other = (PostMetricsRequest) obj;
-        return Objects.equals(awsProductAsString(), other.awsProductAsString())
-                && Objects.equals(awsProductVersion(), other.awsProductVersion()) && Objects.equals(clientID(), other.clientID())
-                && Objects.equals(os(), other.os()) && Objects.equals(osVersion(), other.osVersion())
-                && Objects.equals(parentProduct(), other.parentProduct())
-                && Objects.equals(parentProductVersion(), other.parentProductVersion())
-                && Objects.equals(metricData(), other.metricData());
+        return this;
+    }
+
+    /**
+     * @param metricData
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostMetricsRequest metricData(java.util.Collection<MetricDatum> metricData) {
+        setMetricData(metricData);
+        return this;
     }
 
     /**
      * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
      * redacted from this string using a placeholder value.
+     *
+     * @return A string representation of this object.
+     *
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return ToString.builder("PostMetricsRequest").add("AWSProduct", awsProductAsString())
-                .add("AWSProductVersion", awsProductVersion()).add("ClientID", clientID()).add("OS", os())
-                .add("OSVersion", osVersion()).add("ParentProduct", parentProduct())
-                .add("ParentProductVersion", parentProductVersion()).add("MetricData", metricData()).build();
-    }
-
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
-        switch (fieldName) {
-        case "AWSProduct":
-            return Optional.ofNullable(clazz.cast(awsProductAsString()));
-        case "AWSProductVersion":
-            return Optional.ofNullable(clazz.cast(awsProductVersion()));
-        case "ClientID":
-            return Optional.ofNullable(clazz.cast(clientID()));
-        case "OS":
-            return Optional.ofNullable(clazz.cast(os()));
-        case "OSVersion":
-            return Optional.ofNullable(clazz.cast(osVersion()));
-        case "ParentProduct":
-            return Optional.ofNullable(clazz.cast(parentProduct()));
-        case "ParentProductVersion":
-            return Optional.ofNullable(clazz.cast(parentProductVersion()));
-        case "MetricData":
-            return Optional.ofNullable(clazz.cast(metricData()));
-        default:
-            return Optional.empty();
-        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        if (getAWSProduct() != null)
+            sb.append("AWSProduct: ").append(getAWSProduct()).append(",");
+        if (getAWSProductVersion() != null)
+            sb.append("AWSProductVersion: ").append(getAWSProductVersion()).append(",");
+        if (getClientID() != null)
+            sb.append("ClientID: ").append(getClientID()).append(",");
+        if (getOS() != null)
+            sb.append("OS: ").append(getOS()).append(",");
+        if (getOSVersion() != null)
+            sb.append("OSVersion: ").append(getOSVersion()).append(",");
+        if (getParentProduct() != null)
+            sb.append("ParentProduct: ").append(getParentProduct()).append(",");
+        if (getParentProductVersion() != null)
+            sb.append("ParentProductVersion: ").append(getParentProductVersion()).append(",");
+        if (getMetricData() != null)
+            sb.append("MetricData: ").append(getMetricData());
+        sb.append("}");
+        return sb.toString();
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
-        return SDK_FIELDS;
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+
+        if (obj instanceof PostMetricsRequest == false)
+            return false;
+        PostMetricsRequest other = (PostMetricsRequest) obj;
+        if (other.getAWSProduct() == null ^ this.getAWSProduct() == null)
+            return false;
+        if (other.getAWSProduct() != null && other.getAWSProduct().equals(this.getAWSProduct()) == false)
+            return false;
+        if (other.getAWSProductVersion() == null ^ this.getAWSProductVersion() == null)
+            return false;
+        if (other.getAWSProductVersion() != null && other.getAWSProductVersion().equals(this.getAWSProductVersion()) == false)
+            return false;
+        if (other.getClientID() == null ^ this.getClientID() == null)
+            return false;
+        if (other.getClientID() != null && other.getClientID().equals(this.getClientID()) == false)
+            return false;
+        if (other.getOS() == null ^ this.getOS() == null)
+            return false;
+        if (other.getOS() != null && other.getOS().equals(this.getOS()) == false)
+            return false;
+        if (other.getOSVersion() == null ^ this.getOSVersion() == null)
+            return false;
+        if (other.getOSVersion() != null && other.getOSVersion().equals(this.getOSVersion()) == false)
+            return false;
+        if (other.getParentProduct() == null ^ this.getParentProduct() == null)
+            return false;
+        if (other.getParentProduct() != null && other.getParentProduct().equals(this.getParentProduct()) == false)
+            return false;
+        if (other.getParentProductVersion() == null ^ this.getParentProductVersion() == null)
+            return false;
+        if (other.getParentProductVersion() != null && other.getParentProductVersion().equals(this.getParentProductVersion()) == false)
+            return false;
+        if (other.getMetricData() == null ^ this.getMetricData() == null)
+            return false;
+        if (other.getMetricData() != null && other.getMetricData().equals(this.getMetricData()) == false)
+            return false;
+        return true;
     }
 
-    private static <T> Function<Object, T> getter(Function<PostMetricsRequest, T> g) {
-        return obj -> g.apply((PostMetricsRequest) obj);
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int hashCode = 1;
+
+        hashCode = prime * hashCode + ((getAWSProduct() == null) ? 0 : getAWSProduct().hashCode());
+        hashCode = prime * hashCode + ((getAWSProductVersion() == null) ? 0 : getAWSProductVersion().hashCode());
+        hashCode = prime * hashCode + ((getClientID() == null) ? 0 : getClientID().hashCode());
+        hashCode = prime * hashCode + ((getOS() == null) ? 0 : getOS().hashCode());
+        hashCode = prime * hashCode + ((getOSVersion() == null) ? 0 : getOSVersion().hashCode());
+        hashCode = prime * hashCode + ((getParentProduct() == null) ? 0 : getParentProduct().hashCode());
+        hashCode = prime * hashCode + ((getParentProductVersion() == null) ? 0 : getParentProductVersion().hashCode());
+        hashCode = prime * hashCode + ((getMetricData() == null) ? 0 : getMetricData().hashCode());
+        return hashCode;
     }
 
-    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
-        return (obj, val) -> s.accept((Builder) obj, val);
+    @Override
+    public PostMetricsRequest clone() {
+        return (PostMetricsRequest) super.clone();
     }
 
-    public interface Builder extends ToolkitTelemetryRequest.Builder, SdkPojo, CopyableBuilder<Builder, PostMetricsRequest> {
-        /**
-         * Sets the value of the AWSProduct property for this object.
-         *
-         * @param awsProduct
-         *        The new value for the AWSProduct property for this object.
-         * @see AWSProduct
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see AWSProduct
-         */
-        Builder awsProduct(String awsProduct);
-
-        /**
-         * Sets the value of the AWSProduct property for this object.
-         *
-         * @param awsProduct
-         *        The new value for the AWSProduct property for this object.
-         * @see AWSProduct
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see AWSProduct
-         */
-        Builder awsProduct(AWSProduct awsProduct);
-
-        /**
-         * Sets the value of the AWSProductVersion property for this object.
-         *
-         * @param awsProductVersion
-         *        The new value for the AWSProductVersion property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder awsProductVersion(String awsProductVersion);
-
-        /**
-         * Sets the value of the ClientID property for this object.
-         *
-         * @param clientID
-         *        The new value for the ClientID property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder clientID(String clientID);
-
-        /**
-         * Sets the value of the OS property for this object.
-         *
-         * @param os
-         *        The new value for the OS property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder os(String os);
-
-        /**
-         * Sets the value of the OSVersion property for this object.
-         *
-         * @param osVersion
-         *        The new value for the OSVersion property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder osVersion(String osVersion);
-
-        /**
-         * Sets the value of the ParentProduct property for this object.
-         *
-         * @param parentProduct
-         *        The new value for the ParentProduct property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder parentProduct(String parentProduct);
-
-        /**
-         * Sets the value of the ParentProductVersion property for this object.
-         *
-         * @param parentProductVersion
-         *        The new value for the ParentProductVersion property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder parentProductVersion(String parentProductVersion);
-
-        /**
-         * Sets the value of the MetricData property for this object.
-         *
-         * @param metricData
-         *        The new value for the MetricData property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder metricData(Collection<MetricDatum> metricData);
-
-        /**
-         * Sets the value of the MetricData property for this object.
-         *
-         * @param metricData
-         *        The new value for the MetricData property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder metricData(MetricDatum... metricData);
-
-        /**
-         * Sets the value of the MetricData property for this object.
-         *
-         * This is a convenience that creates an instance of the {@link List<MetricDatum>.Builder} avoiding the need to
-         * create one manually via {@link List<MetricDatum>#builder()}.
-         *
-         * When the {@link Consumer} completes, {@link List<MetricDatum>.Builder#build()} is called immediately and its
-         * result is passed to {@link #metricData(List<MetricDatum>)}.
-         * 
-         * @param metricData
-         *        a consumer that will call methods on {@link List<MetricDatum>.Builder}
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #metricData(List<MetricDatum>)
-         */
-        Builder metricData(Consumer<MetricDatum.Builder>... metricData);
-
-        @Override
-        Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
-
-        @Override
-        Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
+    @Override
+    public Class<? extends RequestSigner> signerType() {
+        return com.amazonaws.opensdk.protect.auth.IamRequestSigner.class;
     }
 
-    static final class BuilderImpl extends ToolkitTelemetryRequest.BuilderImpl implements Builder {
-        private String awsProduct;
-
-        private String awsProductVersion;
-
-        private String clientID;
-
-        private String os;
-
-        private String osVersion;
-
-        private String parentProduct;
-
-        private String parentProductVersion;
-
-        private List<MetricDatum> metricData = DefaultSdkAutoConstructList.getInstance();
-
-        private BuilderImpl() {
-        }
-
-        private BuilderImpl(PostMetricsRequest model) {
-            super(model);
-            awsProduct(model.awsProduct);
-            awsProductVersion(model.awsProductVersion);
-            clientID(model.clientID);
-            os(model.os);
-            osVersion(model.osVersion);
-            parentProduct(model.parentProduct);
-            parentProductVersion(model.parentProductVersion);
-            metricData(model.metricData);
-        }
-
-        public final String getAwsProductAsString() {
-            return awsProduct;
-        }
-
-        @Override
-        public final Builder awsProduct(String awsProduct) {
-            this.awsProduct = awsProduct;
-            return this;
-        }
-
-        @Override
-        public final Builder awsProduct(AWSProduct awsProduct) {
-            this.awsProduct(awsProduct == null ? null : awsProduct.toString());
-            return this;
-        }
-
-        public final void setAwsProduct(String awsProduct) {
-            this.awsProduct = awsProduct;
-        }
-
-        public final String getAwsProductVersion() {
-            return awsProductVersion;
-        }
-
-        @Override
-        public final Builder awsProductVersion(String awsProductVersion) {
-            this.awsProductVersion = awsProductVersion;
-            return this;
-        }
-
-        public final void setAwsProductVersion(String awsProductVersion) {
-            this.awsProductVersion = awsProductVersion;
-        }
-
-        public final String getClientID() {
-            return clientID;
-        }
-
-        @Override
-        public final Builder clientID(String clientID) {
-            this.clientID = clientID;
-            return this;
-        }
-
-        public final void setClientID(String clientID) {
-            this.clientID = clientID;
-        }
-
-        public final String getOs() {
-            return os;
-        }
-
-        @Override
-        public final Builder os(String os) {
-            this.os = os;
-            return this;
-        }
-
-        public final void setOs(String os) {
-            this.os = os;
-        }
-
-        public final String getOsVersion() {
-            return osVersion;
-        }
-
-        @Override
-        public final Builder osVersion(String osVersion) {
-            this.osVersion = osVersion;
-            return this;
-        }
-
-        public final void setOsVersion(String osVersion) {
-            this.osVersion = osVersion;
-        }
-
-        public final String getParentProduct() {
-            return parentProduct;
-        }
-
-        @Override
-        public final Builder parentProduct(String parentProduct) {
-            this.parentProduct = parentProduct;
-            return this;
-        }
-
-        public final void setParentProduct(String parentProduct) {
-            this.parentProduct = parentProduct;
-        }
-
-        public final String getParentProductVersion() {
-            return parentProductVersion;
-        }
-
-        @Override
-        public final Builder parentProductVersion(String parentProductVersion) {
-            this.parentProductVersion = parentProductVersion;
-            return this;
-        }
-
-        public final void setParentProductVersion(String parentProductVersion) {
-            this.parentProductVersion = parentProductVersion;
-        }
-
-        public final Collection<MetricDatum.Builder> getMetricData() {
-            return metricData != null ? metricData.stream().map(MetricDatum::toBuilder).collect(Collectors.toList()) : null;
-        }
-
-        @Override
-        public final Builder metricData(Collection<MetricDatum> metricData) {
-            this.metricData = MetricDataCopier.copy(metricData);
-            return this;
-        }
-
-        @Override
-        @SafeVarargs
-        public final Builder metricData(MetricDatum... metricData) {
-            metricData(Arrays.asList(metricData));
-            return this;
-        }
-
-        @Override
-        @SafeVarargs
-        public final Builder metricData(Consumer<MetricDatum.Builder>... metricData) {
-            metricData(Stream.of(metricData).map(c -> MetricDatum.builder().applyMutation(c).build())
-                    .collect(Collectors.toList()));
-            return this;
-        }
-
-        public final void setMetricData(Collection<MetricDatum.BuilderImpl> metricData) {
-            this.metricData = MetricDataCopier.copyFromBuilder(metricData);
-        }
-
-        @Override
-        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
-            super.overrideConfiguration(overrideConfiguration);
-            return this;
-        }
-
-        @Override
-        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
-            super.overrideConfiguration(builderConsumer);
-            return this;
-        }
-
-        @Override
-        public PostMetricsRequest build() {
-            return new PostMetricsRequest(this);
-        }
-
-        @Override
-        public List<SdkField<?>> sdkFields() {
-            return SDK_FIELDS;
-        }
+    /**
+     * Set the configuration for this request.
+     *
+     * @param sdkRequestConfig
+     *        Request configuration.
+     * @return This object for method chaining.
+     */
+    public PostMetricsRequest sdkRequestConfig(com.amazonaws.opensdk.SdkRequestConfig sdkRequestConfig) {
+        super.sdkRequestConfig(sdkRequestConfig);
+        return this;
     }
+
 }

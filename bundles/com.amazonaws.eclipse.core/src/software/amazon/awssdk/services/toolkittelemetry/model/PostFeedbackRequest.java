@@ -1,5 +1,5 @@
 /*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2015-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
  * the License. A copy of the License is located at
@@ -10,709 +10,461 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-
 package software.amazon.awssdk.services.toolkittelemetry.model;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.traits.ListTrait;
-import software.amazon.awssdk.core.traits.LocationTrait;
-import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
-import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import java.io.Serializable;
+import javax.annotation.Generated;
 
-/**
- */
-@Generated("software.amazon.awssdk:codegen")
-public final class PostFeedbackRequest extends ToolkitTelemetryRequest implements
-        ToCopyableBuilder<PostFeedbackRequest.Builder, PostFeedbackRequest> {
-    private static final SdkField<String> AWS_PRODUCT_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::awsProductAsString)).setter(setter(Builder::awsProduct))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AWSProduct").build()).build();
+import com.amazonaws.auth.RequestSigner;
+import com.amazonaws.opensdk.protect.auth.RequestSignerAware;
 
-    private static final SdkField<String> AWS_PRODUCT_VERSION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::awsProductVersion)).setter(setter(Builder::awsProductVersion))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AWSProductVersion").build()).build();
+@Generated("com.amazonaws:aws-java-sdk-code-generator")
+public class PostFeedbackRequest extends com.amazonaws.opensdk.BaseRequest implements Serializable, Cloneable, RequestSignerAware {
 
-    private static final SdkField<String> OS_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::os)).setter(setter(Builder::os))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OS").build()).build();
+    private String aWSProduct;
 
-    private static final SdkField<String> OS_VERSION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::osVersion)).setter(setter(Builder::osVersion))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("OSVersion").build()).build();
+    private String aWSProductVersion;
 
-    private static final SdkField<String> PARENT_PRODUCT_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::parentProduct)).setter(setter(Builder::parentProduct))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ParentProduct").build()).build();
+    private String oS;
 
-    private static final SdkField<String> PARENT_PRODUCT_VERSION_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::parentProductVersion)).setter(setter(Builder::parentProductVersion))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ParentProductVersion").build())
-            .build();
+    private String oSVersion;
 
-    private static final SdkField<List<MetadataEntry>> METADATA_FIELD = SdkField
-            .<List<MetadataEntry>> builder(MarshallingType.LIST)
-            .getter(getter(PostFeedbackRequest::metadata))
-            .setter(setter(Builder::metadata))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Metadata").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<MetadataEntry> builder(MarshallingType.SDK_POJO)
-                                            .constructor(MetadataEntry::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+    private String parentProduct;
 
-    private static final SdkField<String> SENTIMENT_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::sentimentAsString)).setter(setter(Builder::sentiment))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Sentiment").build()).build();
+    private String parentProductVersion;
 
-    private static final SdkField<String> COMMENT_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(PostFeedbackRequest::comment)).setter(setter(Builder::comment))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Comment").build()).build();
+    private java.util.List<MetadataEntry> metadata;
 
-    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(AWS_PRODUCT_FIELD,
-            AWS_PRODUCT_VERSION_FIELD, OS_FIELD, OS_VERSION_FIELD, PARENT_PRODUCT_FIELD, PARENT_PRODUCT_VERSION_FIELD,
-            METADATA_FIELD, SENTIMENT_FIELD, COMMENT_FIELD));
+    private String sentiment;
 
-    private final String awsProduct;
-
-    private final String awsProductVersion;
-
-    private final String os;
-
-    private final String osVersion;
-
-    private final String parentProduct;
-
-    private final String parentProductVersion;
-
-    private final List<MetadataEntry> metadata;
-
-    private final String sentiment;
-
-    private final String comment;
-
-    private PostFeedbackRequest(BuilderImpl builder) {
-        super(builder);
-        this.awsProduct = builder.awsProduct;
-        this.awsProductVersion = builder.awsProductVersion;
-        this.os = builder.os;
-        this.osVersion = builder.osVersion;
-        this.parentProduct = builder.parentProduct;
-        this.parentProductVersion = builder.parentProductVersion;
-        this.metadata = builder.metadata;
-        this.sentiment = builder.sentiment;
-        this.comment = builder.comment;
-    }
+    private String comment;
 
     /**
-     * Returns the value of the AWSProduct property for this object.
-     * <p>
-     * If the service returns an enum value that is not available in the current SDK version, {@link #awsProduct} will
-     * return {@link AWSProduct#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
-     * {@link #awsProductAsString}.
-     * </p>
-     * 
-     * @return The value of the AWSProduct property for this object.
+     * @param aWSProduct
      * @see AWSProduct
      */
-    public AWSProduct awsProduct() {
-        return AWSProduct.fromValue(awsProduct);
+
+    public void setAWSProduct(String aWSProduct) {
+        this.aWSProduct = aWSProduct;
     }
 
     /**
-     * Returns the value of the AWSProduct property for this object.
-     * <p>
-     * If the service returns an enum value that is not available in the current SDK version, {@link #awsProduct} will
-     * return {@link AWSProduct#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
-     * {@link #awsProductAsString}.
-     * </p>
-     * 
-     * @return The value of the AWSProduct property for this object.
+     * @return
      * @see AWSProduct
      */
-    public String awsProductAsString() {
-        return awsProduct;
+
+    public String getAWSProduct() {
+        return this.aWSProduct;
     }
 
     /**
-     * Returns the value of the AWSProductVersion property for this object.
-     * 
-     * @return The value of the AWSProductVersion property for this object.
+     * @param aWSProduct
+     * @return Returns a reference to this object so that method calls can be chained together.
+     * @see AWSProduct
      */
-    public String awsProductVersion() {
-        return awsProductVersion;
+
+    public PostFeedbackRequest aWSProduct(String aWSProduct) {
+        setAWSProduct(aWSProduct);
+        return this;
     }
 
     /**
-     * Returns the value of the OS property for this object.
-     * 
-     * @return The value of the OS property for this object.
+     * @param aWSProduct
+     * @see AWSProduct
      */
-    public String os() {
-        return os;
+
+    public void setAWSProduct(AWSProduct aWSProduct) {
+        aWSProduct(aWSProduct);
     }
 
     /**
-     * Returns the value of the OSVersion property for this object.
-     * 
-     * @return The value of the OSVersion property for this object.
+     * @param aWSProduct
+     * @return Returns a reference to this object so that method calls can be chained together.
+     * @see AWSProduct
      */
-    public String osVersion() {
-        return osVersion;
+
+    public PostFeedbackRequest aWSProduct(AWSProduct aWSProduct) {
+        this.aWSProduct = aWSProduct.toString();
+        return this;
     }
 
     /**
-     * Returns the value of the ParentProduct property for this object.
-     * 
-     * @return The value of the ParentProduct property for this object.
+     * @param aWSProductVersion
      */
-    public String parentProduct() {
-        return parentProduct;
+
+    public void setAWSProductVersion(String aWSProductVersion) {
+        this.aWSProductVersion = aWSProductVersion;
     }
 
     /**
-     * Returns the value of the ParentProductVersion property for this object.
-     * 
-     * @return The value of the ParentProductVersion property for this object.
+     * @return
      */
-    public String parentProductVersion() {
-        return parentProductVersion;
+
+    public String getAWSProductVersion() {
+        return this.aWSProductVersion;
     }
 
     /**
-     * Returns true if the Metadata property was specified by the sender (it may be empty), or false if the sender did
-     * not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     * @param aWSProductVersion
+     * @return Returns a reference to this object so that method calls can be chained together.
      */
-    public boolean hasMetadata() {
-        return metadata != null && !(metadata instanceof SdkAutoConstructList);
+
+    public PostFeedbackRequest aWSProductVersion(String aWSProductVersion) {
+        setAWSProductVersion(aWSProductVersion);
+        return this;
     }
 
     /**
-     * Returns the value of the Metadata property for this object.
-     * <p>
-     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
-     * </p>
-     * <p>
-     * You can use {@link #hasMetadata()} to see if a value was sent in this field.
-     * </p>
-     * 
-     * @return The value of the Metadata property for this object.
+     * @param oS
      */
-    public List<MetadataEntry> metadata() {
+
+    public void setOS(String oS) {
+        this.oS = oS;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getOS() {
+        return this.oS;
+    }
+
+    /**
+     * @param oS
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostFeedbackRequest oS(String oS) {
+        setOS(oS);
+        return this;
+    }
+
+    /**
+     * @param oSVersion
+     */
+
+    public void setOSVersion(String oSVersion) {
+        this.oSVersion = oSVersion;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getOSVersion() {
+        return this.oSVersion;
+    }
+
+    /**
+     * @param oSVersion
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostFeedbackRequest oSVersion(String oSVersion) {
+        setOSVersion(oSVersion);
+        return this;
+    }
+
+    /**
+     * @param parentProduct
+     */
+
+    public void setParentProduct(String parentProduct) {
+        this.parentProduct = parentProduct;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getParentProduct() {
+        return this.parentProduct;
+    }
+
+    /**
+     * @param parentProduct
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostFeedbackRequest parentProduct(String parentProduct) {
+        setParentProduct(parentProduct);
+        return this;
+    }
+
+    /**
+     * @param parentProductVersion
+     */
+
+    public void setParentProductVersion(String parentProductVersion) {
+        this.parentProductVersion = parentProductVersion;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getParentProductVersion() {
+        return this.parentProductVersion;
+    }
+
+    /**
+     * @param parentProductVersion
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostFeedbackRequest parentProductVersion(String parentProductVersion) {
+        setParentProductVersion(parentProductVersion);
+        return this;
+    }
+
+    /**
+     * @return
+     */
+
+    public java.util.List<MetadataEntry> getMetadata() {
         return metadata;
     }
 
     /**
-     * Returns the value of the Sentiment property for this object.
-     * <p>
-     * If the service returns an enum value that is not available in the current SDK version, {@link #sentiment} will
-     * return {@link Sentiment#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
-     * {@link #sentimentAsString}.
-     * </p>
-     * 
-     * @return The value of the Sentiment property for this object.
-     * @see Sentiment
+     * @param metadata
      */
-    public Sentiment sentiment() {
-        return Sentiment.fromValue(sentiment);
+
+    public void setMetadata(java.util.Collection<MetadataEntry> metadata) {
+        if (metadata == null) {
+            this.metadata = null;
+            return;
+        }
+
+        this.metadata = new java.util.ArrayList<MetadataEntry>(metadata);
     }
 
     /**
-     * Returns the value of the Sentiment property for this object.
      * <p>
-     * If the service returns an enum value that is not available in the current SDK version, {@link #sentiment} will
-     * return {@link Sentiment#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
-     * {@link #sentimentAsString}.
+     * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
+     * {@link #setMetadata(java.util.Collection)} or {@link #withMetadata(java.util.Collection)} if you want to override
+     * the existing values.
      * </p>
      * 
-     * @return The value of the Sentiment property for this object.
-     * @see Sentiment
+     * @param metadata
+     * @return Returns a reference to this object so that method calls can be chained together.
      */
-    public String sentimentAsString() {
-        return sentiment;
+
+    public PostFeedbackRequest metadata(MetadataEntry... metadata) {
+        if (this.metadata == null) {
+            setMetadata(new java.util.ArrayList<MetadataEntry>(metadata.length));
+        }
+        for (MetadataEntry ele : metadata) {
+            this.metadata.add(ele);
+        }
+        return this;
     }
 
     /**
-     * Returns the value of the Comment property for this object.
-     * 
-     * @return The value of the Comment property for this object.
+     * @param metadata
+     * @return Returns a reference to this object so that method calls can be chained together.
      */
-    public String comment() {
-        return comment;
+
+    public PostFeedbackRequest metadata(java.util.Collection<MetadataEntry> metadata) {
+        setMetadata(metadata);
+        return this;
     }
 
-    @Override
-    public Builder toBuilder() {
-        return new BuilderImpl(this);
+    /**
+     * @param sentiment
+     * @see Sentiment
+     */
+
+    public void setSentiment(String sentiment) {
+        this.sentiment = sentiment;
     }
 
-    public static Builder builder() {
-        return new BuilderImpl();
+    /**
+     * @return
+     * @see Sentiment
+     */
+
+    public String getSentiment() {
+        return this.sentiment;
     }
 
-    public static Class<? extends Builder> serializableBuilderClass() {
-        return BuilderImpl.class;
+    /**
+     * @param sentiment
+     * @return Returns a reference to this object so that method calls can be chained together.
+     * @see Sentiment
+     */
+
+    public PostFeedbackRequest sentiment(String sentiment) {
+        setSentiment(sentiment);
+        return this;
     }
 
-    @Override
-    public int hashCode() {
-        int hashCode = 1;
-        hashCode = 31 * hashCode + super.hashCode();
-        hashCode = 31 * hashCode + Objects.hashCode(awsProductAsString());
-        hashCode = 31 * hashCode + Objects.hashCode(awsProductVersion());
-        hashCode = 31 * hashCode + Objects.hashCode(os());
-        hashCode = 31 * hashCode + Objects.hashCode(osVersion());
-        hashCode = 31 * hashCode + Objects.hashCode(parentProduct());
-        hashCode = 31 * hashCode + Objects.hashCode(parentProductVersion());
-        hashCode = 31 * hashCode + Objects.hashCode(metadata());
-        hashCode = 31 * hashCode + Objects.hashCode(sentimentAsString());
-        hashCode = 31 * hashCode + Objects.hashCode(comment());
-        return hashCode;
+    /**
+     * @param sentiment
+     * @see Sentiment
+     */
+
+    public void setSentiment(Sentiment sentiment) {
+        sentiment(sentiment);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj) && equalsBySdkFields(obj);
+    /**
+     * @param sentiment
+     * @return Returns a reference to this object so that method calls can be chained together.
+     * @see Sentiment
+     */
+
+    public PostFeedbackRequest sentiment(Sentiment sentiment) {
+        this.sentiment = sentiment.toString();
+        return this;
     }
 
-    @Override
-    public boolean equalsBySdkFields(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof PostFeedbackRequest)) {
-            return false;
-        }
-        PostFeedbackRequest other = (PostFeedbackRequest) obj;
-        return Objects.equals(awsProductAsString(), other.awsProductAsString())
-                && Objects.equals(awsProductVersion(), other.awsProductVersion()) && Objects.equals(os(), other.os())
-                && Objects.equals(osVersion(), other.osVersion()) && Objects.equals(parentProduct(), other.parentProduct())
-                && Objects.equals(parentProductVersion(), other.parentProductVersion())
-                && Objects.equals(metadata(), other.metadata()) && Objects.equals(sentimentAsString(), other.sentimentAsString())
-                && Objects.equals(comment(), other.comment());
+    /**
+     * @param comment
+     */
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    /**
+     * @return
+     */
+
+    public String getComment() {
+        return this.comment;
+    }
+
+    /**
+     * @param comment
+     * @return Returns a reference to this object so that method calls can be chained together.
+     */
+
+    public PostFeedbackRequest comment(String comment) {
+        setComment(comment);
+        return this;
     }
 
     /**
      * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
      * redacted from this string using a placeholder value.
+     *
+     * @return A string representation of this object.
+     *
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return ToString.builder("PostFeedbackRequest").add("AWSProduct", awsProductAsString())
-                .add("AWSProductVersion", awsProductVersion()).add("OS", os()).add("OSVersion", osVersion())
-                .add("ParentProduct", parentProduct()).add("ParentProductVersion", parentProductVersion())
-                .add("Metadata", metadata()).add("Sentiment", sentimentAsString()).add("Comment", comment()).build();
-    }
-
-    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
-        switch (fieldName) {
-        case "AWSProduct":
-            return Optional.ofNullable(clazz.cast(awsProductAsString()));
-        case "AWSProductVersion":
-            return Optional.ofNullable(clazz.cast(awsProductVersion()));
-        case "OS":
-            return Optional.ofNullable(clazz.cast(os()));
-        case "OSVersion":
-            return Optional.ofNullable(clazz.cast(osVersion()));
-        case "ParentProduct":
-            return Optional.ofNullable(clazz.cast(parentProduct()));
-        case "ParentProductVersion":
-            return Optional.ofNullable(clazz.cast(parentProductVersion()));
-        case "Metadata":
-            return Optional.ofNullable(clazz.cast(metadata()));
-        case "Sentiment":
-            return Optional.ofNullable(clazz.cast(sentimentAsString()));
-        case "Comment":
-            return Optional.ofNullable(clazz.cast(comment()));
-        default:
-            return Optional.empty();
-        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        if (getAWSProduct() != null)
+            sb.append("AWSProduct: ").append(getAWSProduct()).append(",");
+        if (getAWSProductVersion() != null)
+            sb.append("AWSProductVersion: ").append(getAWSProductVersion()).append(",");
+        if (getOS() != null)
+            sb.append("OS: ").append(getOS()).append(",");
+        if (getOSVersion() != null)
+            sb.append("OSVersion: ").append(getOSVersion()).append(",");
+        if (getParentProduct() != null)
+            sb.append("ParentProduct: ").append(getParentProduct()).append(",");
+        if (getParentProductVersion() != null)
+            sb.append("ParentProductVersion: ").append(getParentProductVersion()).append(",");
+        if (getMetadata() != null)
+            sb.append("Metadata: ").append(getMetadata()).append(",");
+        if (getSentiment() != null)
+            sb.append("Sentiment: ").append(getSentiment()).append(",");
+        if (getComment() != null)
+            sb.append("Comment: ").append(getComment());
+        sb.append("}");
+        return sb.toString();
     }
 
     @Override
-    public List<SdkField<?>> sdkFields() {
-        return SDK_FIELDS;
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+
+        if (obj instanceof PostFeedbackRequest == false)
+            return false;
+        PostFeedbackRequest other = (PostFeedbackRequest) obj;
+        if (other.getAWSProduct() == null ^ this.getAWSProduct() == null)
+            return false;
+        if (other.getAWSProduct() != null && other.getAWSProduct().equals(this.getAWSProduct()) == false)
+            return false;
+        if (other.getAWSProductVersion() == null ^ this.getAWSProductVersion() == null)
+            return false;
+        if (other.getAWSProductVersion() != null && other.getAWSProductVersion().equals(this.getAWSProductVersion()) == false)
+            return false;
+        if (other.getOS() == null ^ this.getOS() == null)
+            return false;
+        if (other.getOS() != null && other.getOS().equals(this.getOS()) == false)
+            return false;
+        if (other.getOSVersion() == null ^ this.getOSVersion() == null)
+            return false;
+        if (other.getOSVersion() != null && other.getOSVersion().equals(this.getOSVersion()) == false)
+            return false;
+        if (other.getParentProduct() == null ^ this.getParentProduct() == null)
+            return false;
+        if (other.getParentProduct() != null && other.getParentProduct().equals(this.getParentProduct()) == false)
+            return false;
+        if (other.getParentProductVersion() == null ^ this.getParentProductVersion() == null)
+            return false;
+        if (other.getParentProductVersion() != null && other.getParentProductVersion().equals(this.getParentProductVersion()) == false)
+            return false;
+        if (other.getMetadata() == null ^ this.getMetadata() == null)
+            return false;
+        if (other.getMetadata() != null && other.getMetadata().equals(this.getMetadata()) == false)
+            return false;
+        if (other.getSentiment() == null ^ this.getSentiment() == null)
+            return false;
+        if (other.getSentiment() != null && other.getSentiment().equals(this.getSentiment()) == false)
+            return false;
+        if (other.getComment() == null ^ this.getComment() == null)
+            return false;
+        if (other.getComment() != null && other.getComment().equals(this.getComment()) == false)
+            return false;
+        return true;
     }
 
-    private static <T> Function<Object, T> getter(Function<PostFeedbackRequest, T> g) {
-        return obj -> g.apply((PostFeedbackRequest) obj);
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int hashCode = 1;
+
+        hashCode = prime * hashCode + ((getAWSProduct() == null) ? 0 : getAWSProduct().hashCode());
+        hashCode = prime * hashCode + ((getAWSProductVersion() == null) ? 0 : getAWSProductVersion().hashCode());
+        hashCode = prime * hashCode + ((getOS() == null) ? 0 : getOS().hashCode());
+        hashCode = prime * hashCode + ((getOSVersion() == null) ? 0 : getOSVersion().hashCode());
+        hashCode = prime * hashCode + ((getParentProduct() == null) ? 0 : getParentProduct().hashCode());
+        hashCode = prime * hashCode + ((getParentProductVersion() == null) ? 0 : getParentProductVersion().hashCode());
+        hashCode = prime * hashCode + ((getMetadata() == null) ? 0 : getMetadata().hashCode());
+        hashCode = prime * hashCode + ((getSentiment() == null) ? 0 : getSentiment().hashCode());
+        hashCode = prime * hashCode + ((getComment() == null) ? 0 : getComment().hashCode());
+        return hashCode;
     }
 
-    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
-        return (obj, val) -> s.accept((Builder) obj, val);
+    @Override
+    public PostFeedbackRequest clone() {
+        return (PostFeedbackRequest) super.clone();
     }
 
-    public interface Builder extends ToolkitTelemetryRequest.Builder, SdkPojo, CopyableBuilder<Builder, PostFeedbackRequest> {
-        /**
-         * Sets the value of the AWSProduct property for this object.
-         *
-         * @param awsProduct
-         *        The new value for the AWSProduct property for this object.
-         * @see AWSProduct
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see AWSProduct
-         */
-        Builder awsProduct(String awsProduct);
-
-        /**
-         * Sets the value of the AWSProduct property for this object.
-         *
-         * @param awsProduct
-         *        The new value for the AWSProduct property for this object.
-         * @see AWSProduct
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see AWSProduct
-         */
-        Builder awsProduct(AWSProduct awsProduct);
-
-        /**
-         * Sets the value of the AWSProductVersion property for this object.
-         *
-         * @param awsProductVersion
-         *        The new value for the AWSProductVersion property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder awsProductVersion(String awsProductVersion);
-
-        /**
-         * Sets the value of the OS property for this object.
-         *
-         * @param os
-         *        The new value for the OS property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder os(String os);
-
-        /**
-         * Sets the value of the OSVersion property for this object.
-         *
-         * @param osVersion
-         *        The new value for the OSVersion property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder osVersion(String osVersion);
-
-        /**
-         * Sets the value of the ParentProduct property for this object.
-         *
-         * @param parentProduct
-         *        The new value for the ParentProduct property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder parentProduct(String parentProduct);
-
-        /**
-         * Sets the value of the ParentProductVersion property for this object.
-         *
-         * @param parentProductVersion
-         *        The new value for the ParentProductVersion property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder parentProductVersion(String parentProductVersion);
-
-        /**
-         * Sets the value of the Metadata property for this object.
-         *
-         * @param metadata
-         *        The new value for the Metadata property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder metadata(Collection<MetadataEntry> metadata);
-
-        /**
-         * Sets the value of the Metadata property for this object.
-         *
-         * @param metadata
-         *        The new value for the Metadata property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder metadata(MetadataEntry... metadata);
-
-        /**
-         * Sets the value of the Metadata property for this object.
-         *
-         * This is a convenience that creates an instance of the {@link List<MetadataEntry>.Builder} avoiding the need
-         * to create one manually via {@link List<MetadataEntry>#builder()}.
-         *
-         * When the {@link Consumer} completes, {@link List<MetadataEntry>.Builder#build()} is called immediately and
-         * its result is passed to {@link #metadata(List<MetadataEntry>)}.
-         * 
-         * @param metadata
-         *        a consumer that will call methods on {@link List<MetadataEntry>.Builder}
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #metadata(List<MetadataEntry>)
-         */
-        Builder metadata(Consumer<MetadataEntry.Builder>... metadata);
-
-        /**
-         * Sets the value of the Sentiment property for this object.
-         *
-         * @param sentiment
-         *        The new value for the Sentiment property for this object.
-         * @see Sentiment
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see Sentiment
-         */
-        Builder sentiment(String sentiment);
-
-        /**
-         * Sets the value of the Sentiment property for this object.
-         *
-         * @param sentiment
-         *        The new value for the Sentiment property for this object.
-         * @see Sentiment
-         * @return Returns a reference to this object so that method calls can be chained together.
-         * @see Sentiment
-         */
-        Builder sentiment(Sentiment sentiment);
-
-        /**
-         * Sets the value of the Comment property for this object.
-         *
-         * @param comment
-         *        The new value for the Comment property for this object.
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder comment(String comment);
-
-        @Override
-        Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
-
-        @Override
-        Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
+    @Override
+    public Class<? extends RequestSigner> signerType() {
+        return com.amazonaws.opensdk.protect.auth.IamRequestSigner.class;
     }
 
-    static final class BuilderImpl extends ToolkitTelemetryRequest.BuilderImpl implements Builder {
-        private String awsProduct;
-
-        private String awsProductVersion;
-
-        private String os;
-
-        private String osVersion;
-
-        private String parentProduct;
-
-        private String parentProductVersion;
-
-        private List<MetadataEntry> metadata = DefaultSdkAutoConstructList.getInstance();
-
-        private String sentiment;
-
-        private String comment;
-
-        private BuilderImpl() {
-        }
-
-        private BuilderImpl(PostFeedbackRequest model) {
-            super(model);
-            awsProduct(model.awsProduct);
-            awsProductVersion(model.awsProductVersion);
-            os(model.os);
-            osVersion(model.osVersion);
-            parentProduct(model.parentProduct);
-            parentProductVersion(model.parentProductVersion);
-            metadata(model.metadata);
-            sentiment(model.sentiment);
-            comment(model.comment);
-        }
-
-        public final String getAwsProductAsString() {
-            return awsProduct;
-        }
-
-        @Override
-        public final Builder awsProduct(String awsProduct) {
-            this.awsProduct = awsProduct;
-            return this;
-        }
-
-        @Override
-        public final Builder awsProduct(AWSProduct awsProduct) {
-            this.awsProduct(awsProduct == null ? null : awsProduct.toString());
-            return this;
-        }
-
-        public final void setAwsProduct(String awsProduct) {
-            this.awsProduct = awsProduct;
-        }
-
-        public final String getAwsProductVersion() {
-            return awsProductVersion;
-        }
-
-        @Override
-        public final Builder awsProductVersion(String awsProductVersion) {
-            this.awsProductVersion = awsProductVersion;
-            return this;
-        }
-
-        public final void setAwsProductVersion(String awsProductVersion) {
-            this.awsProductVersion = awsProductVersion;
-        }
-
-        public final String getOs() {
-            return os;
-        }
-
-        @Override
-        public final Builder os(String os) {
-            this.os = os;
-            return this;
-        }
-
-        public final void setOs(String os) {
-            this.os = os;
-        }
-
-        public final String getOsVersion() {
-            return osVersion;
-        }
-
-        @Override
-        public final Builder osVersion(String osVersion) {
-            this.osVersion = osVersion;
-            return this;
-        }
-
-        public final void setOsVersion(String osVersion) {
-            this.osVersion = osVersion;
-        }
-
-        public final String getParentProduct() {
-            return parentProduct;
-        }
-
-        @Override
-        public final Builder parentProduct(String parentProduct) {
-            this.parentProduct = parentProduct;
-            return this;
-        }
-
-        public final void setParentProduct(String parentProduct) {
-            this.parentProduct = parentProduct;
-        }
-
-        public final String getParentProductVersion() {
-            return parentProductVersion;
-        }
-
-        @Override
-        public final Builder parentProductVersion(String parentProductVersion) {
-            this.parentProductVersion = parentProductVersion;
-            return this;
-        }
-
-        public final void setParentProductVersion(String parentProductVersion) {
-            this.parentProductVersion = parentProductVersion;
-        }
-
-        public final Collection<MetadataEntry.Builder> getMetadata() {
-            return metadata != null ? metadata.stream().map(MetadataEntry::toBuilder).collect(Collectors.toList()) : null;
-        }
-
-        @Override
-        public final Builder metadata(Collection<MetadataEntry> metadata) {
-            this.metadata = MetadataCopier.copy(metadata);
-            return this;
-        }
-
-        @Override
-        @SafeVarargs
-        public final Builder metadata(MetadataEntry... metadata) {
-            metadata(Arrays.asList(metadata));
-            return this;
-        }
-
-        @Override
-        @SafeVarargs
-        public final Builder metadata(Consumer<MetadataEntry.Builder>... metadata) {
-            metadata(Stream.of(metadata).map(c -> MetadataEntry.builder().applyMutation(c).build()).collect(Collectors.toList()));
-            return this;
-        }
-
-        public final void setMetadata(Collection<MetadataEntry.BuilderImpl> metadata) {
-            this.metadata = MetadataCopier.copyFromBuilder(metadata);
-        }
-
-        public final String getSentimentAsString() {
-            return sentiment;
-        }
-
-        @Override
-        public final Builder sentiment(String sentiment) {
-            this.sentiment = sentiment;
-            return this;
-        }
-
-        @Override
-        public final Builder sentiment(Sentiment sentiment) {
-            this.sentiment(sentiment == null ? null : sentiment.toString());
-            return this;
-        }
-
-        public final void setSentiment(String sentiment) {
-            this.sentiment = sentiment;
-        }
-
-        public final String getComment() {
-            return comment;
-        }
-
-        @Override
-        public final Builder comment(String comment) {
-            this.comment = comment;
-            return this;
-        }
-
-        public final void setComment(String comment) {
-            this.comment = comment;
-        }
-
-        @Override
-        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
-            super.overrideConfiguration(overrideConfiguration);
-            return this;
-        }
-
-        @Override
-        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
-            super.overrideConfiguration(builderConsumer);
-            return this;
-        }
-
-        @Override
-        public PostFeedbackRequest build() {
-            return new PostFeedbackRequest(this);
-        }
-
-        @Override
-        public List<SdkField<?>> sdkFields() {
-            return SDK_FIELDS;
-        }
+    /**
+     * Set the configuration for this request.
+     *
+     * @param sdkRequestConfig
+     *        Request configuration.
+     * @return This object for method chaining.
+     */
+    public PostFeedbackRequest sdkRequestConfig(com.amazonaws.opensdk.SdkRequestConfig sdkRequestConfig) {
+        super.sdkRequestConfig(sdkRequestConfig);
+        return this;
     }
+
 }

@@ -39,6 +39,11 @@ public class Constants {
     public static final String COGNITO_IDENTITY_POOL_ID_TEST = "us-east-1:f63ac181-d01d-4a8f-91b2-c6aac01f899b";
 
     /*
+     * V2 setup
+     */
+    public static final String COGNITO_IDENTITY_POOL_ID_PROD_V2 = "us-east-1:820fd6d1-95c0-4ca4-bffb-3f01d32da842"; 
+    
+    /*
      * Java preferences system data key
      */
     public static final String JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE = "aws-toolkit-for-eclipse";

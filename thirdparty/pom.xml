@@ -13,9 +13,8 @@
 
   <properties>
     <java-sdk-version>1.11.248</java-sdk-version>
-    <java-sdk-v2-version>2.11.12</java-sdk-v2-version>
     <commons-io-version>2.4</commons-io-version>
-    <jackson-version>2.10.3</jackson-version>
+    <jackson-version>2.6.6</jackson-version>
     <manifest-location>META-INF</manifest-location>
   </properties>
 
@@ -29,13 +28,6 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-bom</artifactId>
         <version>${java-sdk-version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>software.amazon.awssdk</groupId>
-        <artifactId>bom</artifactId>
-        <version>${java-sdk-v2-version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -59,16 +51,6 @@
         <artifactId>jackson-module-jaxb-annotations</artifactId>
         <version>${jackson-version}</version>
       </dependency>
-      <dependency>
-	    <groupId>com.fasterxml.jackson.core</groupId>
-	    <artifactId>jackson-annotations</artifactId>
-	    <version>${jackson-version}</version>
-	  </dependency>
-	  <dependency>
-	    <groupId>org.slf4j</groupId>
-	    <artifactId>slf4j-api</artifactId>
-	    <version>1.7.30</version>
-	  </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -77,7 +59,7 @@
       <plugins>
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>2.3.1</version>
           <configuration>
             <archive>
               <manifestFile>${manifest-location}/MANIFEST.MF</manifestFile>
