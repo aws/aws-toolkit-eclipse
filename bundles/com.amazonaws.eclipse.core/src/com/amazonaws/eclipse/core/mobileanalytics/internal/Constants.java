@@ -74,11 +74,8 @@ public class Constants {
     public static final String CLIENT_CONTEXT_ENV_PLATFORM_MACOS = "macos";
     public static final String CLIENT_CONTEXT_ENV_PLATFORM_LINUX = "linux";
 
-    /*
-     * Mobile Analytics predefined event types
-     */
-    public static final String SESSION_START_EVENT_TYPE = "_session.start";
-    public static final String SESSION_STOP_EVENT_TYPE = "_session.stop";
+    public static final String SESSION_START_EVENT_TYPE = "session_start";
+    public static final String SESSION_STOP_EVENT_TYPE = "session_stop";
 
     /*
      * Mobile Analytics service limits

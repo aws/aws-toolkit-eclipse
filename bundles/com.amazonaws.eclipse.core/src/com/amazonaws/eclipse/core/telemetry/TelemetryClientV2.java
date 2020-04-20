@@ -48,7 +48,7 @@ public class TelemetryClientV2 {
 				.metricData(event)
 				.oSVersion(config.getEnvPlatformVersion())
 				.oS(config.getEnvPlatformName())
-				.aWSProduct(config.getVersion());
+				.aWSProductVersion(config.getVersion());
 
 		client.postMetrics(request);
 	}

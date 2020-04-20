@@ -87,7 +87,8 @@ public class ClientContextConfig {
 
     private String getPluginVersion() {
     	try {
-    	    return FrameworkUtil.getBundle(getClass()).getVersion().toString();
+    		Bundle bundle = Platform.getBundle("com.amazonaws.eclipse.core");
+    		return bundle.getVersion().toString();
     	} catch(Exception e) {
     		return "Unknown";
     	}

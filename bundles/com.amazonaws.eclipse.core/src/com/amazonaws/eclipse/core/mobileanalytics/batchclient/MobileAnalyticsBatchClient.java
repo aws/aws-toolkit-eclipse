@@ -14,7 +14,7 @@
  */
 package com.amazonaws.eclipse.core.mobileanalytics.batchclient;
 
-import com.amazonaws.services.mobileanalytics.model.Event;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 public interface MobileAnalyticsBatchClient {
 
@@ -24,7 +24,7 @@ public interface MobileAnalyticsBatchClient {
      * batch with one single API call. The implementation of this API should
      * never block.
      */
-    void putEvent(Event event);
+    void putEvent(MetricDatum event);
 
     /**
      * Flush the local cache by sending out all the cached events to the

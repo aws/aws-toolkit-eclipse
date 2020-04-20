@@ -34,6 +34,7 @@ import com.amazonaws.util.DateUtils;
 
 import software.amazon.awssdk.services.toolkittelemetry.model.MetadataEntry;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
+import software.amazon.awssdk.services.toolkittelemetry.model.Unit;
 
 @Immutable
 public class ToolkitEvent {
@@ -96,6 +97,7 @@ public class ToolkitEvent {
 		final MetricDatum datum = new MetricDatum()
 				.metricName(this.eventType)
 				.value(1.0)
+				.unit(Unit.None)
 				.epochTimestamp(Instant.now().toEpochMilli())
 				.metadata(metadata);
 		return datum;

@@ -16,10 +16,6 @@ package com.amazonaws.eclipse.core.mobileanalytics.internal;
 
 import static com.amazonaws.eclipse.core.util.ValidationUtils.validateNonNull;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-
 import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
@@ -30,11 +26,7 @@ import com.amazonaws.eclipse.core.mobileanalytics.batchclient.MobileAnalyticsBat
 import com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal.MobileAnalyticsBatchClientImpl;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextJsonHelper;
-import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
 import com.fasterxml.jackson.core.JsonProcessingException;
-
-import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
-import software.amazon.awssdk.services.toolkittelemetry.model.Unit;
 
 @ThreadSafe
 public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
@@ -84,17 +76,6 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
 
     @Override
     public synchronized void startSession(boolean forceFlushEvents) {
-
-    	// TODO remove
-    	TelemetryClientV2 client = new TelemetryClientV2();
-    	Collection<MetricDatum> datum = new ArrayList<MetricDatum>();
-    	MetricDatum sessionStart = new MetricDatum();
-    	sessionStart.metricName("session_start");
-    	sessionStart.setUnit(Unit.None);
-    	sessionStart.setValue(0.0);
-    	sessionStart.epochTimestamp(Instant.now().toEpochMilli());
-    	datum.add(sessionStart);
-    	client.publish(datum);
         if (!this.enabled) {
             return;
         }
@@ -153,7 +134,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         }
 
         if (event.isValid()) {
-            this.batchClient.putEvent(event.toMobileAnalyticsEvent());
+            this.batchClient.putEvent(event.toMetricDatum());
 
         } else {
             AwsToolkitCore.getDefault().logInfo(
