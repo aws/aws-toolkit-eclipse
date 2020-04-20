@@ -32,8 +32,6 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.Version;
-
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;

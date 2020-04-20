@@ -15,23 +15,9 @@
 
 package com.amazonaws.eclipse.core.telemetry;
 
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY;
-
 import java.util.Collection;
-import java.util.UUID;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
-
-import org.eclipse.core.runtime.preferences.ConfigurationScope;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.jface.preference.IPreferenceStore;
-
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsProvider;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
-import com.amazonaws.util.StringUtils;
-
 import software.amazon.awssdk.services.toolkittelemetry.TelemetryClient;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 import software.amazon.awssdk.services.toolkittelemetry.model.PostMetricsRequest;

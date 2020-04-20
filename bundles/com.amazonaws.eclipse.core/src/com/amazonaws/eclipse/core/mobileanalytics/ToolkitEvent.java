@@ -23,8 +23,12 @@ import java.util.stream.Collectors;
 import java.time.Instant;
 
 import com.amazonaws.annotation.Immutable;
+import com.amazonaws.eclipse.core.AccountInfo;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitSession;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.services.mobileanalytics.model.Event;
 import com.amazonaws.util.DateUtils;
 
@@ -34,156 +38,161 @@ import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 @Immutable
 public class ToolkitEvent {
 
-    private ToolkitSession session;
+	private ToolkitSession session;
 
-    private String eventType;
-    private Date timestamp;
+	private String eventType;
+	private Date timestamp;
 
-    private final Map<String, String> attributes = new HashMap<>();
-    private final Map<String, Double> metrics = new HashMap<>();
+	private final Map<String, String> attributes = new HashMap<>();
+	private final Map<String, Double> metrics = new HashMap<>();
 
-    /**
-     * @return convert to the low-level {@link Event} object that is accepted
-     *         by the Mobile Analytics service API.
-     */
+	/**
+	 * @return convert to the low-level {@link Event} object that is accepted by the
+	 *         Mobile Analytics service API.
+	 */
 	public Event toMobileAnalyticsEvent() {
-        Event event = new Event();
+		Event event = new Event();
 
-        event.setSession(this.session.toMobileAnalyticsSession());
+		event.setSession(this.session.toMobileAnalyticsSession());
 
-        event.setEventType(this.eventType);
-        event.setTimestamp(DateUtils.formatISO8601Date(this.timestamp));
-        event.setAttributes(this.attributes);
-        event.setMetrics(this.metrics);
+		event.setEventType(this.eventType);
+		event.setTimestamp(DateUtils.formatISO8601Date(this.timestamp));
+		event.setAttributes(this.attributes);
+		event.setMetrics(this.metrics);
 
-        event.setVersion(Constants.MOBILE_ANALYTICS_SERVICE_VERSION);
+		event.setVersion(Constants.MOBILE_ANALYTICS_SERVICE_VERSION);
 
-        return event;
-    }
-    
-    public MetricDatum toMetricDatum() {
-    	// we don't differentiate attributes/metrics anymore so add both
-    	Collection<MetadataEntry> metadata = this.metrics
-				.entrySet()
-				.stream()
-				.map((it) -> {
-					final MetadataEntry entry = new MetadataEntry();
-			        entry.setKey(it.getKey());
-				    entry.setValue(it.getValue().toString());
-				    return entry;
-				})
-				.collect(Collectors.toList());
-    	metadata.addAll(this.attributes
-    			.entrySet()
-    			.stream()
-    			.map((it) -> {
-    				final MetadataEntry entry = new MetadataEntry();
-    			    entry.setKey(it.getKey());
-    				entry.setValue(it.getValue());
-    				return entry;	
-    			})
-    			.collect(Collectors.toList()));
-    	// TODO add account id and region and time
-    	final MetricDatum datum = new MetricDatum();
-    	datum.metricName(this.eventType);
-    	datum.setValue(1.0);
-    	datum.setEpochTimestamp(Instant.now().toEpochMilli());
-    	datum.setMetadata(metadata);
-    	return datum;
-    }
+		return event;
+	}
 
-    /**
-     * http://docs.aws.amazon.com/mobileanalytics/latest/ug/limits.html
-     */
-    public boolean isValid() {
-        if (session == null) {
-            return false;
-        }
-        if (session.getId() == null) {
-            return false;
-        }
-        if (session.getStartTimestamp() == null) {
-            return false;
-        }
-        if (eventType == null || eventType.isEmpty()) {
-            return false;
-        }
-        if (timestamp == null) {
-            return false;
-        }
-        if (attributes.size() + metrics.size() > Constants.MAX_ATTRIBUTES_AND_METRICS_PER_EVENT) {
-            return false;
-        }
-        for (Entry<String, String> attribute : attributes.entrySet()) {
-            if (attribute.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
-                return false;
-            }
-            if (attribute.getValue() == null) {
-                return false;
-            }
-            if (attribute.getValue().length() > Constants.MAX_ATTRIBUTE_VALUE_LENGTH) {
-                return false;
-            }
-        }
-        for (Entry<String, Double> metric : metrics.entrySet()) {
-            if (metric.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
-                return false;
-            }
-            if (metric.getValue() == null) {
-                return false;
-            }
-        }
-        return true;
-    }
+	public MetricDatum toMetricDatum() {
+		// we don't differentiate attributes/metrics anymore so add both
+		Collection<MetadataEntry> metadata = this.metrics.entrySet().stream()
+				.map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue().toString())).collect(Collectors.toList());
+		metadata.addAll(this.attributes.entrySet().stream()
+				.map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue())).collect(Collectors.toList()));
 
-    /**
-     * The constructor is intentionally marked as private; caller should use
-     * ToolkitEventBuilder to create event instance
-     */
-    private ToolkitEvent() {}
+		try {
+			Region region = RegionUtils.getCurrentRegion();
+			if (region != null) {
+				metadata.add(new MetadataEntry().key("awsRegion").value(region.getId()));
+			}
+			// regionutils throws a runtime exception if it can't determine region, ignore
+			// if this happens
+		} catch (Exception e) {
+			;
+		}
+		try {
+			String userId = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo().getUserId();
+			if (userId != null && !userId.isEmpty()) {
+				metadata.add(new MetadataEntry().key("awsAccount").value(userId));
+			}
+			// ignore if getting account id fails
+		} catch (Exception e) {
+			;
+		}
 
-    public static class ToolkitEventBuilder {
+		// TODO add account id and region and time
+		final MetricDatum datum = new MetricDatum()
+				.metricName(this.eventType)
+				.value(1.0)
+				.epochTimestamp(Instant.now().toEpochMilli())
+				.metadata(metadata);
+		return datum;
+	}
 
-        private final ToolkitEvent event = new ToolkitEvent();
+	/**
+	 * http://docs.aws.amazon.com/mobileanalytics/latest/ug/limits.html
+	 */
+	public boolean isValid() {
+		if (session == null) {
+			return false;
+		}
+		if (session.getId() == null) {
+			return false;
+		}
+		if (session.getStartTimestamp() == null) {
+			return false;
+		}
+		if (eventType == null || eventType.isEmpty()) {
+			return false;
+		}
+		if (timestamp == null) {
+			return false;
+		}
+		if (attributes.size() + metrics.size() > Constants.MAX_ATTRIBUTES_AND_METRICS_PER_EVENT) {
+			return false;
+		}
+		for (Entry<String, String> attribute : attributes.entrySet()) {
+			if (attribute.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
+				return false;
+			}
+			if (attribute.getValue() == null) {
+				return false;
+			}
+			if (attribute.getValue().length() > Constants.MAX_ATTRIBUTE_VALUE_LENGTH) {
+				return false;
+			}
+		}
+		for (Entry<String, Double> metric : metrics.entrySet()) {
+			if (metric.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
+				return false;
+			}
+			if (metric.getValue() == null) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-        public ToolkitEventBuilder(ToolkitSession session) {
-            this.event.session = session;
-        }
+	/**
+	 * The constructor is intentionally marked as private; caller should use
+	 * ToolkitEventBuilder to create event instance
+	 */
+	private ToolkitEvent() {
+	}
 
-        public ToolkitEventBuilder setEventType(String eventType) {
-            this.event.eventType = eventType;
-            return this;
-        }
+	public static class ToolkitEventBuilder {
 
-        /**
-         * If not specified, the timestamp is by default set to the current
-         * time.
-         */
-        public ToolkitEventBuilder setTimestamp(Date timestamp) {
-            this.event.timestamp = timestamp;
-            return this;
-        }
+		private final ToolkitEvent event = new ToolkitEvent();
 
-        public ToolkitEventBuilder addAttribute(String name, String value) {
-            this.event.attributes.put(name, value);
-            return this;
-        }
+		public ToolkitEventBuilder(ToolkitSession session) {
+			this.event.session = session;
+		}
 
-        public ToolkitEventBuilder addMetric(String name, double value) {
-            this.event.metrics.put(name, value);
-            return this;
-        }
+		public ToolkitEventBuilder setEventType(String eventType) {
+			this.event.eventType = eventType;
+			return this;
+		}
 
-        public ToolkitEventBuilder addBooleanMetric(String name, boolean value) {
-            this.event.metrics.put(name, value ? 1.0 : 0.0);
-            return this;
-        }
+		/**
+		 * If not specified, the timestamp is by default set to the current time.
+		 */
+		public ToolkitEventBuilder setTimestamp(Date timestamp) {
+			this.event.timestamp = timestamp;
+			return this;
+		}
 
-        public ToolkitEvent build() {
-            if (this.event.timestamp == null) {
-                this.event.timestamp = new Date();
-            }
-            return this.event;
-        }
-    }
+		public ToolkitEventBuilder addAttribute(String name, String value) {
+			this.event.attributes.put(name, value);
+			return this;
+		}
+
+		public ToolkitEventBuilder addMetric(String name, double value) {
+			this.event.metrics.put(name, value);
+			return this;
+		}
+
+		public ToolkitEventBuilder addBooleanMetric(String name, boolean value) {
+			this.event.metrics.put(name, value ? 1.0 : 0.0);
+			return this;
+		}
+
+		public ToolkitEvent build() {
+			if (this.event.timestamp == null) {
+				this.event.timestamp = new Date();
+			}
+			return this.event;
+		}
+	}
 }
