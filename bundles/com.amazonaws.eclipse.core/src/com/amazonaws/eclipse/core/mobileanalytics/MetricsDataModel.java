@@ -26,8 +26,6 @@ import com.amazonaws.services.errorreport.model.PlatformDataModel;
 public class MetricsDataModel {
 
     private static final String JAVA_VERSION = "JavaVersion";
-    private static final String TOOLKIT_VERSION = "ToolkitVersion";
-
     private static final Map<String, String> METRICS_METADATA = new HashMap<>();
 
     static {

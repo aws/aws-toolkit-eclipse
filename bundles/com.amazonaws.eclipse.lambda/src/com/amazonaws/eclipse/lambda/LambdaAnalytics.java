@@ -56,7 +56,7 @@ public final class LambdaAnalytics {
     /*
      * Invoke function dialog
      */
-    private static final String EVENT_TYPE_INVOKE_FUNCTION_DIALOG = "Lambda-InvokeFunctionDialog";
+    private static final String EVENT_TYPE_INVOKE_FUNCTION_DIALOG = "lambda_invokeRemote";
 
     // Change selection
     private static final String ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO = "InvokeInputFileSelectionCombo";
