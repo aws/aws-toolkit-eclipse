@@ -79,7 +79,7 @@ public final class LambdaAnalytics {
     private static final String ATTR_NAME_IS_IMPORT_TEMPLATE = "IsImportTemplate";
 
     // End result -> Succeeded/Failed/Canceled
-    private static final String ATTR_NAME_END_RESULT = "EndResult";
+    private static final String ATTR_NAME_END_RESULT = "result";
     private static final String ATTR_VALUE_SUCCEEDED = "Succeeded";
     private static final String ATTR_VALUE_FAILED = "Failed";
     private static final String ATTR_VALUE_CANCELED = "Canceled";

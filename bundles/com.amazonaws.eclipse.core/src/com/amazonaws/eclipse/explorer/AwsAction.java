@@ -21,8 +21,7 @@ import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 
 public abstract class AwsAction extends Action {
-    public static final String END_RESULT = "EndResult";
-    public static final String PERFORMED = "Performed";
+    public static final String END_RESULT = "result";
     public static final String SUCCEEDED = "Succeeded";
     public static final String FAILED = "Failed";
     public static final String CANCELED = "Canceled";
@@ -49,7 +48,7 @@ public abstract class AwsAction extends Action {
     }
 
     private final void actionPerformed() {
-        metricsDataModel.addAttribute(END_RESULT, PERFORMED);
+        metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
     }
 
     protected final void actionSucceeded() {
@@ -103,6 +102,6 @@ public abstract class AwsAction extends Action {
 
     // Helper method to publish a performed action metric immediately
     public static void publishPerformedAction(MetricsDataModel dataModel) {
-        dataModel.addAttribute(END_RESULT, PERFORMED).publishEvent();
+        dataModel.addAttribute(END_RESULT, SUCCEDED).publishEvent();
     }
 }

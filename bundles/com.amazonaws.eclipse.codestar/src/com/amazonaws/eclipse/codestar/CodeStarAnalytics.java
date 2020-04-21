@@ -28,7 +28,7 @@ public class CodeStarAnalytics {
     private static final String EVENT_REPOSITORY_TYPE = "CodeStar-RepositoryType";
 
     // Attribute
-    private static final String ATTR_NAME_END_RESULT = "EndResult";
+    private static final String ATTR_NAME_END_RESULT = "result";
     private static final String ATTR_NAME_REPOSITORY_IS_MAVEN = "Maven";
 
     public static void trackImportProject(EventResult result) {
