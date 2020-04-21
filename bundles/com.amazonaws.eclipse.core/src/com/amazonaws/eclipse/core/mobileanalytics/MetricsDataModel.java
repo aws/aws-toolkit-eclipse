@@ -25,8 +25,6 @@ import com.amazonaws.services.errorreport.model.PlatformDataModel;
 
 public class MetricsDataModel {
 
-    private static final String ECLIPSE_PLATFORM = "EclipsePlatform";
-    private static final String OS_NAME = "OSName";
     private static final String JAVA_VERSION = "JavaVersion";
     private static final String TOOLKIT_VERSION = "ToolkitVersion";
 
@@ -34,10 +32,7 @@ public class MetricsDataModel {
 
     static {
         PlatformDataModel platformDataModel = PlatformEnvironmentDataCollector.getData();
-        METRICS_METADATA.put(OS_NAME, platformDataModel.getOsName());
         METRICS_METADATA.put(JAVA_VERSION, platformDataModel.getLanguageVersion());
-        METRICS_METADATA.put(ECLIPSE_PLATFORM, platformDataModel.getPlatformVersion());
-        METRICS_METADATA.put(TOOLKIT_VERSION, platformDataModel.getAwsProductVersion());
     }
 
     private final ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault().getAnalyticsManager();

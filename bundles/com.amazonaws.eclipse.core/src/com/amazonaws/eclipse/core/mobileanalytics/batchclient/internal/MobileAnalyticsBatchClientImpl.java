@@ -15,7 +15,6 @@
 package com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.CoreException;
@@ -26,13 +25,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.eclipse.core.mobileanalytics.batchclient.MobileAnalyticsBatchClient;
 import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
-import com.amazonaws.handlers.AsyncHandler;
-import com.amazonaws.services.mobileanalytics.AmazonMobileAnalyticsAsync;
-import com.amazonaws.services.mobileanalytics.AmazonMobileAnalyticsAsyncClient;
-import com.amazonaws.services.mobileanalytics.model.Event;
-import com.amazonaws.services.mobileanalytics.model.PutEventsRequest;
-import com.amazonaws.services.mobileanalytics.model.PutEventsResult;
-
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 /**
@@ -46,18 +38,7 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
 	private static final int MIN_EVENT_BATCH_SIZE = 20;
 	private static final int MAX_QUEUE_SIZE = 500;
 
-	/**
-	 * Mobile Analytics async client with a single background thread
-	 */
-	private final AmazonMobileAnalyticsAsync mobileAnalytics;
-
 	private final TelemetryClientV2 telemetryClient;
-
-	/**
-	 * The x-amz-client-context header string to be included in every PutEvents
-	 * request
-	 */
-	private final String clientContextString;
 
 	/**
 	 * For caching incoming events for batching
@@ -71,9 +52,6 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
 	private final AtomicBoolean isSendingPutEventsRequest = new AtomicBoolean(false);
 
 	public MobileAnalyticsBatchClientImpl(AWSCredentialsProvider credentialsProvider, String clientContextString) {
-		this.mobileAnalytics = new AmazonMobileAnalyticsAsyncClient(credentialsProvider,
-				Executors.newFixedThreadPool(1));
-		this.clientContextString = clientContextString;
 		this.telemetryClient = new TelemetryClientV2();
 	}
 
@@ -133,27 +111,5 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
 				}
 			}
 		}).schedule();
-
-		/*
-		 * mobileAnalytics.putEventsAsync( new
-		 * PutEventsRequest().withClientContext(clientContextString)
-		 * .withEvents(eventsBatch), new AsyncHandler<PutEventsRequest,
-		 * PutEventsResult>() {
-		 * 
-		 * @Override public void onSuccess(PutEventsRequest arg0, PutEventsResult arg1)
-		 * { markRequestDone(); }
-		 * 
-		 * @Override public void onError(Exception arg0) {
-		 * restoreEventsQueue(eventsBatch); markRequestDone(); }
-		 * 
-		 * private void restoreEventsQueue(List<Event> failedBatch) {
-		 * MobileAnalyticsBatchClientImpl.this.eventQueue .addToHead(failedBatch); }
-		 * 
-		 * private void markRequestDone() {
-		 * MobileAnalyticsBatchClientImpl.this.isSendingPutEventsRequest .set(false); }
-		 * 
-		 * });
-		 */
 	}
-
 }

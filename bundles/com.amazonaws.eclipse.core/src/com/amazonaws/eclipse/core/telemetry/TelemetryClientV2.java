@@ -16,8 +16,12 @@
 package com.amazonaws.eclipse.core.telemetry;
 
 import java.util.Collection;
+
+import com.amazonaws.eclipse.core.diagnostic.utils.PlatformEnvironmentDataCollector;
 import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsProvider;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
+import com.amazonaws.services.errorreport.model.PlatformDataModel;
+
 import software.amazon.awssdk.services.toolkittelemetry.TelemetryClient;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 import software.amazon.awssdk.services.toolkittelemetry.model.PostMetricsRequest;

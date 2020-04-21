@@ -47,31 +47,16 @@ public class ToolkitEvent {
 	private final Map<String, String> attributes = new HashMap<>();
 	private final Map<String, Double> metrics = new HashMap<>();
 
-	/**
-	 * @return convert to the low-level {@link Event} object that is accepted by the
-	 *         Mobile Analytics service API.
-	 */
-	public Event toMobileAnalyticsEvent() {
-		Event event = new Event();
-
-		event.setSession(this.session.toMobileAnalyticsSession());
-
-		event.setEventType(this.eventType);
-		event.setTimestamp(DateUtils.formatISO8601Date(this.timestamp));
-		event.setAttributes(this.attributes);
-		event.setMetrics(this.metrics);
-
-		event.setVersion(Constants.MOBILE_ANALYTICS_SERVICE_VERSION);
-
-		return event;
-	}
-
 	public MetricDatum toMetricDatum() {
 		// we don't differentiate attributes/metrics anymore so add both
 		Collection<MetadataEntry> metadata = this.metrics.entrySet().stream()
-				.map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue().toString())).collect(Collectors.toList());
+				.map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue().toString()))
+				.filter(it -> it.getValue() != null && !it.getValue().isEmpty())
+				.collect(Collectors.toList());
 		metadata.addAll(this.attributes.entrySet().stream()
-				.map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue())).collect(Collectors.toList()));
+				.map(it -> new MetadataEntry().key(it.getKey()).value(it.getValue()))
+				.filter(it -> it.getValue() != null && !it.getValue().isEmpty())
+				.collect(Collectors.toList()));
 
 		try {
 			Region region = RegionUtils.getCurrentRegion();
@@ -93,7 +78,6 @@ public class ToolkitEvent {
 			;
 		}
 
-		// TODO add account id and region and time
 		final MetricDatum datum = new MetricDatum()
 				.metricName(this.eventType)
 				.value(1.0)
