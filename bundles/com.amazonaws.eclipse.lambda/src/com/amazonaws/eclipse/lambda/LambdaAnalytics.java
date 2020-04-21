@@ -25,7 +25,7 @@ public final class LambdaAnalytics {
     /*
      * Upload function wizard
      */
-    private static final String EVENT_TYPE_UPLOAD_FUNCTION_WIZARD = "Lambda-UploadFunctionWizard";
+    private static final String EVENT_TYPE_UPLOAD_FUNCTION_WIZARD = "lambda_deploy";
 
     // OpenedFrom -> ProjectContextMenu/FileEditorContextMenu
     private static final String ATTR_NAME_OPENED_FROM = "OpenedFrom";
