@@ -21,7 +21,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsUrls;
-import com.amazonaws.eclipse.core.OpenLinkAction;
 import com.amazonaws.eclipse.core.ui.overview.OverviewSection;
 import com.amazonaws.eclipse.ec2.ui.launchwizard.LaunchWizard;
 
@@ -47,7 +46,7 @@ public class Ec2OverviewSection extends OverviewSection implements OverviewSecti
         Composite resourcesSection = toolkit.newSubSection(parent, "Additional Resources");
         this.toolkit.newListItem(resourcesSection,
                 "Video: Overview of Amazon EC2 Management in Eclipse",
-                EC2_ECLIPSE_SCREENCAST_URL, new OpenLinkAction("OpenEc2ManagementVideo"));
+                EC2_ECLIPSE_SCREENCAST_URL, null);
     }
 
     /** Action to open the AWS EC2 launch wizard */

@@ -57,12 +57,12 @@ public class ClientContextConfig {
     public static final ClientContextConfig PROD_CONFIG = new ClientContextConfig(
             MOBILE_ANALYTICS_APP_TITLE_PROD, MOBILE_ANALYTICS_APP_ID_PROD,
             _getSystemOsName(), _getSystemOsVersion(),
-            _getSystemLocaleCountry(), _getOrGenerateClientId());
+            _getSystemLocaleCountry(), getOrGenerateClientId());
 
     public static final ClientContextConfig TEST_CONFIG = new ClientContextConfig(
             MOBILE_ANALYTICS_APP_TITLE_TEST, MOBILE_ANALYTICS_APP_ID_TEST,
             _getSystemOsName(), _getSystemOsVersion(),
-            _getSystemLocaleCountry(), _getOrGenerateClientId());
+            _getSystemLocaleCountry(), getOrGenerateClientId());
 
     private ClientContextConfig(String appTitle, String appId,
             String envPlatformName, String envPlatformVersion, String envLocale, String clientId) {
@@ -75,26 +75,26 @@ public class ClientContextConfig {
         this.envLocale = envLocale;
         this.clientId = clientId;
     }
-    
+
     private String eclipseVersion() {
-    	try {
-    	    Bundle bundle = Platform.getBundle("org.eclipse.platform");
-    	    return bundle.getVersion().toString();
-    	} catch(Exception e) {
-    		return "Unknown";
-    	}
-	}
+        try {
+            Bundle bundle = Platform.getBundle("org.eclipse.platform");
+            return bundle.getVersion().toString();
+        } catch (Exception e) {
+            return "Unknown";
+        }
+    }
 
     private String getPluginVersion() {
-    	try {
-    		Bundle bundle = Platform.getBundle("com.amazonaws.eclipse.core");
-    		return bundle.getVersion().toString();
-    	} catch(Exception e) {
-    		return "Unknown";
-    	}
-	}
+        try {
+            Bundle bundle = Platform.getBundle("com.amazonaws.eclipse.core");
+            return bundle.getVersion().toString();
+        } catch (Exception e) {
+            return "Unknown";
+        }
+    }
 
-	public String getAppTitle() {
+    public String getAppTitle() {
         return appTitle;
     }
 
@@ -169,7 +169,7 @@ public class ClientContextConfig {
         }
     }
 
-    public static String _getOrGenerateClientId() {
+    public static String getOrGenerateClientId() {
         // This is the Java preferences scope
         Preferences awsToolkitNode = Preferences.userRoot().node(JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE);
         String clientId = awsToolkitNode.get(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, null);

@@ -31,7 +31,7 @@ public interface ToolkitAnalyticsManager {
      * @param forceFlushEvents true if the session.start event should be sent
      *                         immediately after the method call.
      */
-    void startSession(AwsPluginAccountManager accountManager, boolean forceFlushEvents);
+    public void startSession(AwsPluginAccountManager accountManager, boolean forceFlushEvents);
 
     /**
      * Terminate the current session (if any) by sending out a session.stop event.

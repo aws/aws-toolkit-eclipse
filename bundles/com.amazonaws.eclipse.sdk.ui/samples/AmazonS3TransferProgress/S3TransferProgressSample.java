@@ -130,7 +130,6 @@ public class S3TransferProgressSample {
 
                     pb.setValue((int)upload.getProgress().getPercentTransferred());
 
-                    progressEvent.get
                     switch (progressEvent.getEventCode()) {
                     case ProgressEvent.COMPLETED_EVENT_CODE:
                         pb.setValue(100);
