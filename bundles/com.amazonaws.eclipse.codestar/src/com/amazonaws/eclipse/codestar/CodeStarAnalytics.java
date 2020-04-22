@@ -22,24 +22,13 @@ public class CodeStarAnalytics {
     private static final ToolkitAnalyticsManager ANALYTICS = AwsToolkitCore.getDefault().getAnalyticsManager();
 
     // Import AWS CodeStar Project
-    private static final String EVENT_IMPORT_PROJECT = "CodeStar-ImportProject";
-
-    // Repository Type
-    private static final String EVENT_REPOSITORY_TYPE = "CodeStar-RepositoryType";
+    private static final String EVENT_IMPORT_PROJECT = "codestar_importProject";
 
     // Attribute
     private static final String ATTR_NAME_END_RESULT = "result";
-    private static final String ATTR_NAME_REPOSITORY_IS_MAVEN = "Maven";
 
     public static void trackImportProject(EventResult result) {
         publishEventWithAttributes(EVENT_IMPORT_PROJECT, ATTR_NAME_END_RESULT, result.getResultText());
-    }
-
-    public static void trackRepositoryIsMaven(boolean isMavenProject) {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_REPOSITORY_TYPE)
-                .addBooleanMetric(ATTR_NAME_REPOSITORY_IS_MAVEN, isMavenProject)
-                .build());
     }
 
     private static void publishEventWithAttributes(String eventType, String... attributes) {

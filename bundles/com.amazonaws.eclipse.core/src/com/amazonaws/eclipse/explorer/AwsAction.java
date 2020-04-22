@@ -102,6 +102,6 @@ public abstract class AwsAction extends Action {
 
     // Helper method to publish a performed action metric immediately
     public static void publishPerformedAction(MetricsDataModel dataModel) {
-        dataModel.addAttribute(END_RESULT, SUCCEDED).publishEvent();
+        dataModel.addAttribute(END_RESULT, SUCCEEDED).publishEvent();
     }
 }
