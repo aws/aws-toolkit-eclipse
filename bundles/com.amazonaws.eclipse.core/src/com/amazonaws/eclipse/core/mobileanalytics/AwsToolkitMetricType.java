@@ -19,17 +19,15 @@ package com.amazonaws.eclipse.core.mobileanalytics;
  */
 public enum AwsToolkitMetricType {
     /* AWS Overview Events */
-    OVERVIEW("Overview"),
-    OVERVIEW_OPEN_LINK_ITEM("Overview-OpenLinkItem"),
+    OVERVIEW("aws_loadOverview"),
     /* AWS Explorer Events */
-    EXPLORER_LOADING("Explorer-Loading"),
+    EXPLORER_LOADING("aws_loadExplorer"),
     /* Explorer Dynamodb Actions */
-    EXPLORER_DYNAMODB_OPEN_TABLE_EDITOR("Explorer-DynamodbOpenTableEditor"),
-    EXPLORER_DYNAMODB_RUN_SCAN("Explorer-DynamodbRunScan"),
-    EXPLORER_DYNAMODB_SAVE("Explorer-DynamodbSave"),
-    EXPLORER_DYNAMODB_NEXT_PAGE("Explorer-DynamodbNextPage"),
-    EXPLORER_DYNAMODB_EXPORT_AS_CSV("Explorer-DynamodbExportAsCsv"),
-    EXPLORER_DYNAMODB_ADD_NEW_ATTRIBUTE("Explorer-DynamodbAddNewAttribute"),
+    EXPLORER_DYNAMODB_OPEN_TABLE_EDITOR("dynamo_openEditor"),
+    EXPLORER_DYNAMODB_RUN_SCAN("dynamo_runScan"),
+    EXPLORER_DYNAMODB_SAVE("dynamo_save"),
+    EXPLORER_DYNAMODB_EXPORT_AS_CSV("dynamo_exportCsv"),
+    EXPLORER_DYNAMODB_ADD_NEW_ATTRIBUTE("dynamo_addAttribute"),
     /* Explorer CodeDeploy Actions */
     EXPLORER_CODEDEPLOY_REFRESH_DEPLOYMENT_GROUP_EDITOR("Explorer-CodeDeployRefreshDeploymentGroupEditor"),
     EXPLORER_CODEDEPLOY_OPEN_DEPLOYMENT_GROUP("Explorer-CodeDeployOpenDeploymentGroup"),
@@ -79,8 +77,8 @@ public enum AwsToolkitMetricType {
     /* Aws level Events */
     AWS_NEW_JAVA_PROJECT_WIZARD("Aws-NewJavaProjectWizard"),
     /* Dynamodb Events */
-    DYNAMODB_INSTALL_TEST_TOOL("Dynamodb-InstallTestTool"),
-    DYNAMODB_UNINSTALL_TEST_TOOL("Dynamodb-UninstallTestTool"),
+    DYNAMODB_INSTALL_TEST_TOOL("dynamo_installTestTool"),
+    DYNAMODB_UNINSTALL_TEST_TOOL("dynamo_uninstallTestTool"),
     /* Ec2 Events */
     EC2_LAUNCH_INSTANCES("Ec2-LaunchInstances"),
     /* Lambda Events */

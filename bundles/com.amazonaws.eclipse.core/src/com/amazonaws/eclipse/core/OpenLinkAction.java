@@ -16,18 +16,14 @@ package com.amazonaws.eclipse.core;
 
 import org.eclipse.jface.action.Action;
 
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsUtils;
-
 public class OpenLinkAction extends Action {
-    private final String linkName;
+    @SuppressWarnings("unused")
+	private final String linkName;
 
     public OpenLinkAction(String linkName) {
         this.linkName = linkName;
     }
 
     @Override
-    public void run() {
-        ToolkitAnalyticsUtils.publishBooleansEvent(AwsToolkitMetricType.OVERVIEW_OPEN_LINK_ITEM, linkName, true);
-    }
+    public void run() {}
 }

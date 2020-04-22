@@ -28,6 +28,10 @@ public abstract class AwsAction extends Action {
 
     private final MetricsDataModel metricsDataModel;
 
+    protected AwsAction() {
+        metricsDataModel = null;
+    }
+    
     protected AwsAction(AwsToolkitMetricType metricType) {
         metricsDataModel = new MetricsDataModel(metricType);
     }
@@ -47,25 +51,35 @@ public abstract class AwsAction extends Action {
         this.metricsDataModel = new MetricsDataModel(metricType);
     }
 
-    private final void actionPerformed() {
-        metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
-    }
+	private final void actionPerformed() {
+		if (metricsDataModel != null) {
+			metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
+		}
+	}
 
-    protected final void actionSucceeded() {
-        metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
-    }
+	protected final void actionSucceeded() {
+		if (metricsDataModel != null) {
+			metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
+		}
+	}
 
-    protected final void actionFailed() {
-        metricsDataModel.addAttribute(END_RESULT, FAILED);
-    }
+	protected final void actionFailed() {
+		if (metricsDataModel != null) {
+			metricsDataModel.addAttribute(END_RESULT, FAILED);
+		}
+	}
 
-    protected final void actionCanceled() {
-        metricsDataModel.addAttribute(END_RESULT, CANCELED);
-    }
+	protected final void actionCanceled() {
+		if (metricsDataModel != null) {
+			metricsDataModel.addAttribute(END_RESULT, CANCELED);
+		}
+	}
 
-    protected final void actionFinished() {
-        metricsDataModel.publishEvent();
-    }
+	protected final void actionFinished() {
+		if (metricsDataModel != null) {
+			metricsDataModel.publishEvent();
+		}
+	}
 
     @Override
     public void run() {
