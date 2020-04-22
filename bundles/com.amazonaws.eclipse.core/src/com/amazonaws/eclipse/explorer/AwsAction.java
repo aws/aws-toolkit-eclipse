@@ -33,7 +33,11 @@ public abstract class AwsAction extends Action {
     }
 
     protected AwsAction(AwsToolkitMetricType metricType) {
-        metricsDataModel = new MetricsDataModel(metricType);
+        if (metricType == null) {
+            metricsDataModel = null;
+        } else {
+            metricsDataModel = new MetricsDataModel(metricType);
+        }
     }
 
     protected AwsAction(AwsToolkitMetricType metricType, String text) {
