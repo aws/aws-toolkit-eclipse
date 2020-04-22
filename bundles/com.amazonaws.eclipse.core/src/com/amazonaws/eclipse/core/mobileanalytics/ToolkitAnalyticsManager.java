@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.core.mobileanalytics;
 
+import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
 
 /**
@@ -26,11 +27,13 @@ public interface ToolkitAnalyticsManager {
      * point, all the events published by this manager will be bound to this new
      * session.
      *
+     * @param accountManager
+     * 			  The account manager needed to start the credentials changed listener
      * @param forceFlushEvents
      *            true if the session.start event should be sent immediately
      *            after the method call.
      */
-    public void startSession(boolean forceFlushEvents);
+	void startSession(AwsPluginAccountManager accountManager, boolean forceFlushEvents);
 
     /**
      * Terminate the current session (if any) by sending out a session.stop
@@ -64,5 +67,4 @@ public interface ToolkitAnalyticsManager {
      * methods of the manager takes any effect.
      */
     public void setEnabled(boolean enabled);
-
 }

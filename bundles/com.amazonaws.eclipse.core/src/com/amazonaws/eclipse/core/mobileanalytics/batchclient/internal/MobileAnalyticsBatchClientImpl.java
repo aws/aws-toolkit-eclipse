@@ -99,7 +99,7 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
 	private void dispatchAllEventsAsync() {
 		final List<MetricDatum> eventsBatch = this.eventQueue.pollAllQueuedEvents();
 
-		Job.create("Posting telemetry", new ICoreRunnable() {
+		Job j = Job.create("Posting telemetry", new ICoreRunnable() {
 			@Override
 			public void run(IProgressMonitor monitor) throws CoreException {
 				try {
@@ -110,6 +110,8 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
 					isSendingPutEventsRequest.set(false);
 				}
 			}
-		}).schedule();
+		});
+		j.setSystem(true);
+		j.schedule();
 	}
 }

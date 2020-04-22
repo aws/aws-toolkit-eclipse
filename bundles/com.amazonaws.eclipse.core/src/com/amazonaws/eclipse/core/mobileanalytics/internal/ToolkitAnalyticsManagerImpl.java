@@ -16,10 +16,16 @@ package com.amazonaws.eclipse.core.mobileanalytics.internal;
 
 import static com.amazonaws.eclipse.core.util.ValidationUtils.validateNonNull;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ICoreRunnable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
+
 import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
+import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
@@ -84,7 +90,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
     }
 
     @Override
-    public synchronized void startSession(boolean forceFlushEvents) {
+    public synchronized void startSession(AwsPluginAccountManager accountManager, boolean forceFlushEvents) {
         if (!this.enabled) {
             return;
         }
@@ -101,7 +107,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         publishEvent(startSessionEvent);
 
         this.currentSession = newSession;
-        AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(this::onAccountInfoChange);
+        accountManager.addAccountInfoChangeListener(this::getAccountIdFromSTS);
 
         if (forceFlushEvents) {
             this.batchClient.flush();
@@ -169,22 +175,29 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
 		} catch (Exception e) {
 			;
 		}
-		if(region != null) {
+		if(region != null && !region.isEmpty()) {
 		    metricDatum.getMetadata().add(new MetadataEntry().key("awsRegion").value(region));
 		}
-		if(awsAccount != null) {
+		if(awsAccount != null && !awsAccount.isEmpty()) {
 			metricDatum.getMetadata().add(new MetadataEntry().key("awsAccount").value(userId));
 		}
     }
-    
-    private void onAccountInfoChange() {
-    	try {
-    	    final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
-    	    AWSSecurityTokenService service = clientFactory.getSTSClient();
-    	    userId = service.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
-    	} catch(Exception e) {
-    		// wipe out the field if it's enabled
-    		userId = null;
-    	}
-    }
+
+	private void getAccountIdFromSTS() {
+		Job j = Job.create("Loading account ID", new ICoreRunnable() {
+			@Override
+			public void run(IProgressMonitor monitor) throws CoreException {
+				try {
+					final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
+					AWSSecurityTokenService service = clientFactory.getSTSClient();
+					userId = service.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
+				} catch (Exception e) {
+					// wipe out the field if it's enabled
+					userId = null;
+				}
+			}
+		});
+		j.setSystem(true);
+		j.schedule();
+	}
 }
