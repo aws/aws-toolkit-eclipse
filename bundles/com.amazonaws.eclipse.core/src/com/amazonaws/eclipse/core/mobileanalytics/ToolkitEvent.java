@@ -23,15 +23,8 @@ import java.util.stream.Collectors;
 import java.time.Instant;
 
 import com.amazonaws.annotation.Immutable;
-import com.amazonaws.eclipse.core.AccountInfo;
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitSession;
-import com.amazonaws.eclipse.core.regions.Region;
-import com.amazonaws.eclipse.core.regions.RegionUtils;
-import com.amazonaws.services.mobileanalytics.model.Event;
-import com.amazonaws.util.DateUtils;
-
 import software.amazon.awssdk.services.toolkittelemetry.model.MetadataEntry;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 import software.amazon.awssdk.services.toolkittelemetry.model.Unit;
@@ -57,26 +50,6 @@ public class ToolkitEvent {
 				.map(it -> new MetadataEntry().key(it.getKey()).value(it.getValue()))
 				.filter(it -> it.getValue() != null && !it.getValue().isEmpty())
 				.collect(Collectors.toList()));
-
-		try {
-			Region region = RegionUtils.getCurrentRegion();
-			if (region != null) {
-				metadata.add(new MetadataEntry().key("awsRegion").value(region.getId()));
-			}
-			// regionutils throws a runtime exception if it can't determine region, ignore
-			// if this happens
-		} catch (Exception e) {
-			;
-		}
-		try {
-			String userId = AwsToolkitCore.getDefault().getAccountManager().getAccountInfo().getUserId();
-			if (userId != null && !userId.isEmpty()) {
-				metadata.add(new MetadataEntry().key("awsAccount").value(userId));
-			}
-			// ignore if getting account id fails
-		} catch (Exception e) {
-			;
-		}
 
 		final MetricDatum datum = new MetricDatum()
 				.metricName(this.eventType)

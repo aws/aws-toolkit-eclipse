@@ -284,6 +284,10 @@ public class AWSClientFactory {
     public AWSKMS getKmsClient() {
         return getKmsClientByRegion(RegionUtils.getCurrentRegion().getId());
     }
+    
+    public AWSSecurityTokenService getSTSClient() {
+    	return getSecurityTokenServiceByEndpoint(RegionUtils.getCurrentRegion().getId());
+    }
 
     /*
      * Endpoint-specific getters return clients that use the endpoint given.
@@ -349,8 +353,7 @@ public class AWSClientFactory {
         return getOrCreateClient(endpoint, com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient.class);
     }
 
-    @Deprecated
-    public AWSSecurityTokenService getSecurityTokenServiceByEndpoint(String endpoint) {
+    private AWSSecurityTokenService getSecurityTokenServiceByEndpoint(String endpoint) {
         return getOrCreateClient(endpoint, AWSSecurityTokenServiceClient.class);
     }
 

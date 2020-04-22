@@ -18,6 +18,7 @@ import static com.amazonaws.eclipse.core.util.ValidationUtils.validateNonNull;
 
 import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent;
@@ -26,12 +27,20 @@ import com.amazonaws.eclipse.core.mobileanalytics.batchclient.MobileAnalyticsBat
 import com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal.MobileAnalyticsBatchClientImpl;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
 import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextJsonHelper;
+import com.amazonaws.eclipse.core.regions.Region;
+import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import software.amazon.awssdk.services.toolkittelemetry.model.MetadataEntry;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 @ThreadSafe
 public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
 
     private volatile boolean enabled = true;
+    private volatile String userId = null;
 
     /**
      * The low level client for sending PutEvents requests, which also deals
@@ -92,6 +101,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         publishEvent(startSessionEvent);
 
         this.currentSession = newSession;
+        AwsToolkitCore.getDefault().getAccountManager().addAccountInfoChangeListener(this::onAccountInfoChange);
 
         if (forceFlushEvents) {
             this.batchClient.flush();
@@ -128,17 +138,16 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
 
     @Override
     public void publishEvent(ToolkitEvent event) {
-
         if (!this.enabled) {
             return;
         }
 
         if (event.isValid()) {
-            this.batchClient.putEvent(event.toMetricDatum());
-
+        		final MetricDatum metricDatum = event.toMetricDatum();
+        	    injectAccountMetadata(metricDatum);
+            this.batchClient.putEvent(metricDatum);
         } else {
-            AwsToolkitCore.getDefault().logInfo(
-                    "Discarding invalid analytics event");
+            AwsToolkitCore.getDefault().logInfo("Discarding invalid analytics event");
         }
     }
 
@@ -146,5 +155,36 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-
+    
+    private void injectAccountMetadata(MetricDatum metricDatum) {
+    	final String awsAccount = userId;
+        String region = null;
+		try {
+			Region r = RegionUtils.getCurrentRegion();
+			if (r != null) {
+				region = r.getId();
+			}
+			// regionutils throws a runtime exception if it can't determine region, ignore
+			// if this happens
+		} catch (Exception e) {
+			;
+		}
+		if(region != null) {
+		    metricDatum.getMetadata().add(new MetadataEntry().key("awsRegion").value(region));
+		}
+		if(awsAccount != null) {
+			metricDatum.getMetadata().add(new MetadataEntry().key("awsAccount").value(userId));
+		}
+    }
+    
+    private void onAccountInfoChange() {
+    	try {
+    	    final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
+    	    AWSSecurityTokenService service = clientFactory.getSTSClient();
+    	    userId = service.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
+    	} catch(Exception e) {
+    		// wipe out the field if it's enabled
+    		userId = null;
+    	}
+    }
 }
