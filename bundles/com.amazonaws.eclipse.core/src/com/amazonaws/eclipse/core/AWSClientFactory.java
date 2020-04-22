@@ -286,7 +286,7 @@ public class AWSClientFactory {
     }
     
     public AWSSecurityTokenService getSTSClient() {
-    	return getSecurityTokenServiceByRegion(RegionUtils.getCurrentRegion().getId());
+        return getSecurityTokenServiceByRegion(RegionUtils.getCurrentRegion().getId());
     }
 
     /*
@@ -582,19 +582,18 @@ public class AWSClientFactory {
         }
     }
 
-	// Low layer method for building a service client by using the client builder.
-	private <T> T createClientByRegion(AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder,
-			String serviceName, Region region, boolean isGlobalClient) {
-		String endpoint = region.getServiceEndpoint(serviceName);
-		String signingRegion = isGlobalClient ? region.getGlobalRegionSigningRegion() : region.getId();
-		if (endpoint != null && signingRegion != null) {
-			builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, signingRegion));
-		}
-		builder.withCredentials(new AWSStaticCredentialsProvider(getAwsCredentials()))
-				.withClientConfiguration(createClientConfiguration(endpoint));
+    // Low layer method for building a service client by using the client builder.
+    private <T> T createClientByRegion(AwsSyncClientBuilder<? extends AwsSyncClientBuilder, T> builder, String serviceName, Region region,
+            boolean isGlobalClient) {
+        String endpoint = region.getServiceEndpoint(serviceName);
+        String signingRegion = isGlobalClient ? region.getGlobalRegionSigningRegion() : region.getId();
+        if (endpoint != null && signingRegion != null) {
+            builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, signingRegion));
+        }
+        builder.withCredentials(new AWSStaticCredentialsProvider(getAwsCredentials())).withClientConfiguration(createClientConfiguration(endpoint));
 
-		return (T) builder.build();
-	}
+        return (T) builder.build();
+    }
 
     /**
      * Return the regional us-east-1 S3 client.

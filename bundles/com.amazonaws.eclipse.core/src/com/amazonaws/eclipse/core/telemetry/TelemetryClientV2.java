@@ -27,39 +27,32 @@ import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 import software.amazon.awssdk.services.toolkittelemetry.model.PostMetricsRequest;
 
 public class TelemetryClientV2 {
-	private TelemetryClient client;
-	private ClientContextConfig config;
+    private TelemetryClient client;
+    private ClientContextConfig config;
 
-	public TelemetryClientV2() {
-		try {
-			this.client = getTelemetryClient();
-			this.config =  ClientContextConfig.PROD_CONFIG;
-		} catch (Throwable e) {
-			this.client = null;
-		}
-	}
+    public TelemetryClientV2() {
+        try {
+            this.client = getTelemetryClient();
+            this.config = ClientContextConfig.PROD_CONFIG;
+        } catch (Throwable e) {
+            this.client = null;
+        }
+    }
 
-	public void publish(Collection<MetricDatum> event) {
-		if (client == null || event == null) {
-			return;
-		}
+    public void publish(Collection<MetricDatum> event) {
+        if (client == null || event == null) {
+            return;
+        }
 
-		final PostMetricsRequest request = new PostMetricsRequest()
-				.aWSProduct("AWS Toolkit For Eclipse")
-				.parentProduct("Eclipse")
-				.parentProductVersion(config.getEclipseVersion())
-				.clientID(config.getClientId())
-				.metricData(event)
-				.oSVersion(config.getEnvPlatformVersion())
-				.oS(config.getEnvPlatformName())
-				.aWSProductVersion(config.getVersion());
+        final PostMetricsRequest request = new PostMetricsRequest().aWSProduct("AWS Toolkit For Eclipse").parentProduct("Eclipse")
+                .parentProductVersion(config.getEclipseVersion()).clientID(config.getClientId()).metricData(event).oSVersion(config.getEnvPlatformVersion())
+                .oS(config.getEnvPlatformName()).aWSProductVersion(config.getVersion());
 
-		client.postMetrics(request);
-	}
+        client.postMetrics(request);
+    }
 
-	private TelemetryClient getTelemetryClient() throws Exception {
-		final AWSCognitoCredentialsProvider client = AWSCognitoCredentialsProvider.V2_PROVIDER;
-		return TelemetryClient.builder().endpoint("https://client-telemetry.us-east-1.amazonaws.com")
-				.iamCredentials(client).build();
-	}
+    private TelemetryClient getTelemetryClient() throws Exception {
+        final AWSCognitoCredentialsProvider client = AWSCognitoCredentialsProvider.V2_PROVIDER;
+        return TelemetryClient.builder().endpoint("https://client-telemetry.us-east-1.amazonaws.com").iamCredentials(client).build();
+    }
 }

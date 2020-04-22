@@ -32,126 +32,118 @@ import software.amazon.awssdk.services.toolkittelemetry.model.Unit;
 @Immutable
 public class ToolkitEvent {
 
-	private ToolkitSession session;
+    private ToolkitSession session;
 
-	private String eventType;
-	private Date timestamp;
+    private String eventType;
+    private Date timestamp;
 
-	private final Map<String, String> attributes = new HashMap<>();
-	private final Map<String, Double> metrics = new HashMap<>();
+    private final Map<String, String> attributes = new HashMap<>();
+    private final Map<String, Double> metrics = new HashMap<>();
 
-	public MetricDatum toMetricDatum() {
-		// we don't differentiate attributes/metrics anymore so add both
-		Collection<MetadataEntry> metadata = this.metrics.entrySet().stream()
-				.map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue().toString()))
-				.filter(it -> it.getValue() != null && !it.getValue().isEmpty())
-				.collect(Collectors.toList());
-		metadata.addAll(this.attributes.entrySet().stream()
-				.map(it -> new MetadataEntry().key(it.getKey()).value(it.getValue()))
-				.filter(it -> it.getValue() != null && !it.getValue().isEmpty())
-				.collect(Collectors.toList()));
+    public MetricDatum toMetricDatum() {
+        // we don't differentiate attributes/metrics anymore so add both
+        Collection<MetadataEntry> metadata = this.metrics.entrySet().stream().map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue().toString()))
+                .filter(it -> it.getValue() != null && !it.getValue().isEmpty()).collect(Collectors.toList());
+        metadata.addAll(this.attributes.entrySet().stream().map(it -> new MetadataEntry().key(it.getKey()).value(it.getValue()))
+                .filter(it -> it.getValue() != null && !it.getValue().isEmpty()).collect(Collectors.toList()));
 
-		final MetricDatum datum = new MetricDatum()
-				.metricName(this.eventType)
-				.value(1.0)
-				.unit(Unit.None)
-				.epochTimestamp(Instant.now().toEpochMilli())
-				.metadata(metadata);
-		return datum;
-	}
+        final MetricDatum datum = new MetricDatum().metricName(this.eventType).value(1.0).unit(Unit.None).epochTimestamp(Instant.now().toEpochMilli())
+                .metadata(metadata);
+        return datum;
+    }
 
-	/**
-	 * http://docs.aws.amazon.com/mobileanalytics/latest/ug/limits.html
-	 */
-	public boolean isValid() {
-		if (session == null) {
-			return false;
-		}
-		if (session.getId() == null) {
-			return false;
-		}
-		if (session.getStartTimestamp() == null) {
-			return false;
-		}
-		if (eventType == null || eventType.isEmpty()) {
-			return false;
-		}
-		if (timestamp == null) {
-			return false;
-		}
-		if (attributes.size() + metrics.size() > Constants.MAX_ATTRIBUTES_AND_METRICS_PER_EVENT) {
-			return false;
-		}
-		for (Entry<String, String> attribute : attributes.entrySet()) {
-			if (attribute.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
-				return false;
-			}
-			if (attribute.getValue() == null) {
-				return false;
-			}
-			if (attribute.getValue().length() > Constants.MAX_ATTRIBUTE_VALUE_LENGTH) {
-				return false;
-			}
-		}
-		for (Entry<String, Double> metric : metrics.entrySet()) {
-			if (metric.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
-				return false;
-			}
-			if (metric.getValue() == null) {
-				return false;
-			}
-		}
-		return true;
-	}
+    /**
+     * http://docs.aws.amazon.com/mobileanalytics/latest/ug/limits.html
+     */
+    public boolean isValid() {
+        if (session == null) {
+            return false;
+        }
+        if (session.getId() == null) {
+            return false;
+        }
+        if (session.getStartTimestamp() == null) {
+            return false;
+        }
+        if (eventType == null || eventType.isEmpty()) {
+            return false;
+        }
+        if (timestamp == null) {
+            return false;
+        }
+        if (attributes.size() + metrics.size() > Constants.MAX_ATTRIBUTES_AND_METRICS_PER_EVENT) {
+            return false;
+        }
+        for (Entry<String, String> attribute : attributes.entrySet()) {
+            if (attribute.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
+                return false;
+            }
+            if (attribute.getValue() == null) {
+                return false;
+            }
+            if (attribute.getValue().length() > Constants.MAX_ATTRIBUTE_VALUE_LENGTH) {
+                return false;
+            }
+        }
+        for (Entry<String, Double> metric : metrics.entrySet()) {
+            if (metric.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
+                return false;
+            }
+            if (metric.getValue() == null) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	/**
-	 * The constructor is intentionally marked as private; caller should use
-	 * ToolkitEventBuilder to create event instance
-	 */
-	private ToolkitEvent() {
-	}
+    /**
+     * The constructor is intentionally marked as private; caller should use
+     * ToolkitEventBuilder to create event instance
+     */
+    private ToolkitEvent() {
+    }
 
-	public static class ToolkitEventBuilder {
+    public static class ToolkitEventBuilder {
 
-		private final ToolkitEvent event = new ToolkitEvent();
+        private final ToolkitEvent event = new ToolkitEvent();
 
-		public ToolkitEventBuilder(ToolkitSession session) {
-			this.event.session = session;
-		}
+        public ToolkitEventBuilder(ToolkitSession session) {
+            this.event.session = session;
+        }
 
-		public ToolkitEventBuilder setEventType(String eventType) {
-			this.event.eventType = eventType;
-			return this;
-		}
+        public ToolkitEventBuilder setEventType(String eventType) {
+            this.event.eventType = eventType;
+            return this;
+        }
 
-		/**
-		 * If not specified, the timestamp is by default set to the current time.
-		 */
-		public ToolkitEventBuilder setTimestamp(Date timestamp) {
-			this.event.timestamp = timestamp;
-			return this;
-		}
+        /**
+         * If not specified, the timestamp is by default set to the current time.
+         */
+        public ToolkitEventBuilder setTimestamp(Date timestamp) {
+            this.event.timestamp = timestamp;
+            return this;
+        }
 
-		public ToolkitEventBuilder addAttribute(String name, String value) {
-			this.event.attributes.put(name, value);
-			return this;
-		}
+        public ToolkitEventBuilder addAttribute(String name, String value) {
+            this.event.attributes.put(name, value);
+            return this;
+        }
 
-		public ToolkitEventBuilder addMetric(String name, double value) {
-			this.event.metrics.put(name, value);
-			return this;
-		}
+        public ToolkitEventBuilder addMetric(String name, double value) {
+            this.event.metrics.put(name, value);
+            return this;
+        }
 
-		public ToolkitEventBuilder addBooleanMetric(String name, boolean value) {
-			this.event.metrics.put(name, value ? 1.0 : 0.0);
-			return this;
-		}
+        public ToolkitEventBuilder addBooleanMetric(String name, boolean value) {
+            this.event.metrics.put(name, value ? 1.0 : 0.0);
+            return this;
+        }
 
-		public ToolkitEvent build() {
-			if (this.event.timestamp == null) {
-				this.event.timestamp = new Date();
-			}
-			return this.event;
-		}
-	}
+        public ToolkitEvent build() {
+            if (this.event.timestamp == null) {
+                this.event.timestamp = new Date();
+            }
+            return this.event;
+        }
+    }
 }

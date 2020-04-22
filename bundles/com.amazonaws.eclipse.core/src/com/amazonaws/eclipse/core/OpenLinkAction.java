@@ -18,12 +18,13 @@ import org.eclipse.jface.action.Action;
 
 public class OpenLinkAction extends Action {
     @SuppressWarnings("unused")
-	private final String linkName;
+    private final String linkName;
 
     public OpenLinkAction(String linkName) {
         this.linkName = linkName;
     }
 
     @Override
-    public void run() {}
+    public void run() {
+    }
 }

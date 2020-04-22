@@ -49,8 +49,8 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
     private volatile String userId = null;
 
     /**
-     * The low level client for sending PutEvents requests, which also deals
-     * with event batching transparently
+     * The low level client for sending PutEvents requests, which also deals with
+     * event batching transparently
      */
     private final MobileAnalyticsBatchClient batchClient;
 
@@ -60,30 +60,22 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
     private volatile ToolkitSession currentSession;
 
     /**
-     * @param credentialsProvider
-     *            the credentials provider for Mobile Analytics API calls
-     * @param clientContextConfig
-     *            the client context to be specified in all the PutEvents
-     *            requests.
-     * @throws JsonProcessingException
-     *             if the clientContextConfig fails to be serialized to JSON
-     *             format
+     * @param credentialsProvider the credentials provider for Mobile Analytics API
+     *                            calls
+     * @param clientContextConfig the client context to be specified in all the
+     *                            PutEvents requests.
+     * @throws JsonProcessingException if the clientContextConfig fails to be
+     *                                 serialized to JSON format
      */
-    public ToolkitAnalyticsManagerImpl(
-            AWSCredentialsProvider credentialsProvider,
-            ClientContextConfig clientContextConfig)
-            throws JsonProcessingException {
+    public ToolkitAnalyticsManagerImpl(AWSCredentialsProvider credentialsProvider, ClientContextConfig clientContextConfig) throws JsonProcessingException {
 
-        this(new MobileAnalyticsBatchClientImpl(
-                credentialsProvider, ClientContextJsonHelper
-                .toJsonString(validateNonNull(clientContextConfig,
-                        "clientContextConfig"))));
+        this(new MobileAnalyticsBatchClientImpl(credentialsProvider,
+                ClientContextJsonHelper.toJsonString(validateNonNull(clientContextConfig, "clientContextConfig"))));
     }
 
     /**
-     * @param batchClient
-     *            the client that is responsible for sending the events to
-     *            mobile analytics service.
+     * @param batchClient the client that is responsible for sending the events to
+     *                    mobile analytics service.
      */
     ToolkitAnalyticsManagerImpl(MobileAnalyticsBatchClient batchClient) {
         this.batchClient = validateNonNull(batchClient, "batchClient");
@@ -99,11 +91,10 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         ToolkitSession newSession = ToolkitSession.newSession();
 
         // create a new session.start event
-        // make sure the event timestamp is aligned to the startTimestamp of the new session
-        ToolkitEvent startSessionEvent = new ToolkitEventBuilder(newSession)
-                .setEventType(Constants.SESSION_START_EVENT_TYPE)
-                .setTimestamp(newSession.getStartTimestamp())
-                .build();
+        // make sure the event timestamp is aligned to the startTimestamp of the new
+        // session
+        ToolkitEvent startSessionEvent = new ToolkitEventBuilder(newSession).setEventType(Constants.SESSION_START_EVENT_TYPE)
+                .setTimestamp(newSession.getStartTimestamp()).build();
         publishEvent(startSessionEvent);
 
         this.currentSession = newSession;
@@ -126,9 +117,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
             return;
         }
 
-        ToolkitEvent endSessionEvent = new ToolkitEventBuilder(this.currentSession)
-                .setEventType(Constants.SESSION_STOP_EVENT_TYPE)
-                .build();
+        ToolkitEvent endSessionEvent = new ToolkitEventBuilder(this.currentSession).setEventType(Constants.SESSION_STOP_EVENT_TYPE).build();
         publishEvent(endSessionEvent);
 
         if (forceFlushEvents) {
@@ -149,8 +138,8 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
         }
 
         if (event.isValid()) {
-        		final MetricDatum metricDatum = event.toMetricDatum();
-        	    injectAccountMetadata(metricDatum);
+            final MetricDatum metricDatum = event.toMetricDatum();
+            injectAccountMetadata(metricDatum);
             this.batchClient.putEvent(metricDatum);
         } else {
             AwsToolkitCore.getDefault().logInfo("Discarding invalid analytics event");
@@ -161,43 +150,43 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     private void injectAccountMetadata(MetricDatum metricDatum) {
-    	final String awsAccount = userId;
+        final String awsAccount = userId;
         String region = null;
-		try {
-			Region r = RegionUtils.getCurrentRegion();
-			if (r != null) {
-				region = r.getId();
-			}
-			// regionutils throws a runtime exception if it can't determine region, ignore
-			// if this happens
-		} catch (Exception e) {
-			;
-		}
-		if(region != null && !region.isEmpty()) {
-		    metricDatum.getMetadata().add(new MetadataEntry().key("awsRegion").value(region));
-		}
-		if(awsAccount != null && !awsAccount.isEmpty()) {
-			metricDatum.getMetadata().add(new MetadataEntry().key("awsAccount").value(userId));
-		}
+        try {
+            Region r = RegionUtils.getCurrentRegion();
+            if (r != null) {
+                region = r.getId();
+            }
+            // regionutils throws a runtime exception if it can't determine region, ignore
+            // if this happens
+        } catch (Exception e) {
+            ;
+        }
+        if (region != null && !region.isEmpty()) {
+            metricDatum.getMetadata().add(new MetadataEntry().key("awsRegion").value(region));
+        }
+        if (awsAccount != null && !awsAccount.isEmpty()) {
+            metricDatum.getMetadata().add(new MetadataEntry().key("awsAccount").value(userId));
+        }
     }
 
-	private void getAccountIdFromSTS() {
-		Job j = Job.create("Loading account ID", new ICoreRunnable() {
-			@Override
-			public void run(IProgressMonitor monitor) throws CoreException {
-				try {
-					final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
-					AWSSecurityTokenService service = clientFactory.getSTSClient();
-					userId = service.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
-				} catch (Exception e) {
-					// wipe out the field if it's enabled
-					userId = null;
-				}
-			}
-		});
-		j.setSystem(true);
-		j.schedule();
-	}
+    private void getAccountIdFromSTS() {
+        Job j = Job.create("Loading account ID", new ICoreRunnable() {
+            @Override
+            public void run(IProgressMonitor monitor) throws CoreException {
+                try {
+                    final AWSClientFactory clientFactory = AwsToolkitCore.getClientFactory();
+                    AWSSecurityTokenService service = clientFactory.getSTSClient();
+                    userId = service.getCallerIdentity(new GetCallerIdentityRequest()).getAccount();
+                } catch (Exception e) {
+                    // wipe out the field if it's enabled
+                    userId = null;
+                }
+            }
+        });
+        j.setSystem(true);
+        j.schedule();
+    }
 }
