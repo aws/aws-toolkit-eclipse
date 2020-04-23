@@ -62,7 +62,7 @@ public enum AwsToolkitMetricType {
     EXPLORER_EC2_NEW_SECURITY_GROUP("ec2_createSecurityGroup"),
     EXPLORER_EC2_DELETE_SECURITY_GROUP("ec2_deleteSecurityGroup"),
     EXPLORER_EC2_ADD_PERMISSIONS_TO_SECURITY_GROUP("ec2_addPermissionToSecurityGroup"),
-    EXPLORER_EC2_REMOVE_PERMISSIONS_FROM_SECURITY_GROUP("ec2_removePermissionToSecurityGroup"),
+    EXPLORER_EC2_REMOVE_PERMISSIONS_FROM_SECURITY_GROUP("ec2_removePermissionFromSecurityGroup"),
     EXPLORER_EC2_REFRESH_SECURITY_GROUP("ec2_refreshSecurityGroup"),
     EXPLORER_EC2_OPEN_SHELL_ACTION("ec2_openShell"),
     EXPLORER_EC2_REBOOT_ACTION("ec2_reboot"),

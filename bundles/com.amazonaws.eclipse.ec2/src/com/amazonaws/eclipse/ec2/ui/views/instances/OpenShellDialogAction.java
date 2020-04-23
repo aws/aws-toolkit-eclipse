@@ -14,12 +14,13 @@
  */
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
+import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.services.ec2.model.Instance;
 
 public class OpenShellDialogAction extends OpenShellAction {
     public OpenShellDialogAction(InstanceSelectionTable instanceSelectionTable) {
-        super(null, instanceSelectionTable);
+        super(AwsToolkitMetricType.EXPLORER_EC2_OPEN_SHELL_ACTION, instanceSelectionTable);
 
         this.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("console"));
         this.setText("Open Shell As...");
