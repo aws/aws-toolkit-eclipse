@@ -1,0 +1,20 @@
+language: java
+install: true
+cache:
+  directories:
+    - $HOME/.m2
+
+matrix:
+  fast_finish: true
+  include:
+    - os: linux
+      dist: bionic
+      services:
+        - xvfb
+      jdk:
+        - openjdk8
+
+script:
+  - sh setup.sh
+  - mvn -Pbuild-eclipse clean verify
+  - echo "done"
