@@ -1,8 +1,7 @@
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.amazonaws.eclipse</groupId>
   <artifactId>com.amazonaws.eclipse.tests</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <parent>
@@ -15,7 +14,6 @@
     <module>com.amazonaws.eclipse.core.tests</module>
     <module>com.amazonaws.eclipse.elasticbeanstalk.tests</module>
     <module>com.amazonaws.eclipse.lambda.tests</module>
-    <module>com.amazonaws.eclipse.simpledb.tests</module>
     <module>com.amazonaws.eclipse.opsworks.tests</module>
   </modules>
 
@@ -24,7 +22,6 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-surefire-plugin</artifactId>
-                <version>${tycho.version}</version>
                 <configuration>
                     <useUIHarness>true</useUIHarness>
                     <useUIThread>false</useUIThread>
