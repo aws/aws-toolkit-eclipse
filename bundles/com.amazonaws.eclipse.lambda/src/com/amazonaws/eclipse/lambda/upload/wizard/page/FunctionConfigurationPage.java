@@ -76,7 +76,7 @@ public class FunctionConfigurationPage extends WizardPageWithOnEnterHook {
     private static final int DEFAULT_MEMORY = 512;
 
     private static final int MIN_TIMEOUT = 1;
-    private static final int MAX_TIMEOUT = 300;
+    private static final int MAX_TIMEOUT = 900;
     private static final int DEFAULT_TIMEOUT = 15;
 
     /* Data model and binding */

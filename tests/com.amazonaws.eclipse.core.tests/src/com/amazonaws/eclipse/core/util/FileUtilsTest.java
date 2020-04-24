@@ -27,13 +27,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class FileUtilsTest {
-
     @Test (expected = FileAlreadyExistsException.class)
     public void testCreateFileWithPermission600_FileAlreadyExists() throws IOException {
         Path file = Files.createTempFile("foo", "txt");
         FileUtils.createFileWithPermission600(file.toString());
     }
 
+    @Test
     public void testCreateFileWithPermission600_NewFile() throws IOException {
         Path directory = Files.createTempDirectory("foo");
         Path file = Paths.get(directory.toString(), "bar");

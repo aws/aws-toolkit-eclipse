@@ -249,7 +249,7 @@ public class SamLocalTab extends AbstractLaunchConfigurationTab {
         timeoutComplex = TextComplex.builder(WizardWidgetFactory.newComposite(group, 1, 2, false),
                 bindingContext, PojoProperties.value(RunSamLocalDataModel.P_TIME_OUT).observe(dataModel))
             .defaultValue(String.valueOf(RunSamLocalDataModel.DEFAULT_TIME_OUT))
-            .addValidator(new IntegerRangeValidator("Lambda function timeout", 0, 300))
+            .addValidator(new IntegerRangeValidator("Lambda function timeout", 0, 900))
             .labelValue("Timeout (secs): ")
             .modifyListener(e -> entriesChanges())
             .textMessage("Lambda function execution time (in seconds) after which Lambda terminates the function.")
