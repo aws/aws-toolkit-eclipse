@@ -37,7 +37,7 @@ public class DeleteObjectAction extends AwsAction {
     private final S3ObjectSummaryTable table;
 
     public DeleteObjectAction(S3ObjectSummaryTable s3ObjectSummaryTable) {
-        super(AwsToolkitMetricType.EXPLORER_S3_DELETE_OBJECT);
+        super(AwsToolkitMetricType.EXPLORER_S3_DELETE_OBJECTS);
         table = s3ObjectSummaryTable;
         setImageDescriptor(AwsToolkitCore.getDefault().getImageRegistry().getDescriptor("remove"));
     }

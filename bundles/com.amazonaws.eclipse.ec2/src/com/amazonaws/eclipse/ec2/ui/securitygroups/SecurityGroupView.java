@@ -95,7 +95,6 @@ public class SecurityGroupView extends ViewPart implements IRefreshable {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                AwsAction.publishPerformedAction(AwsToolkitMetricType.EXPLORER_EC2_SELECT_SECURITY_GROUP);
                 permissionsComposite.refreshPermissions();
             }
         });
