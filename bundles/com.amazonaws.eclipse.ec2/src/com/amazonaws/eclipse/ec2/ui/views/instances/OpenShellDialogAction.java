@@ -20,7 +20,7 @@ import com.amazonaws.services.ec2.model.Instance;
 
 public class OpenShellDialogAction extends OpenShellAction {
     public OpenShellDialogAction(InstanceSelectionTable instanceSelectionTable) {
-        super(AwsToolkitMetricType.EXPLORER_EC2_OPEN_SHELL_DIALOG_ACTION, instanceSelectionTable);
+        super(AwsToolkitMetricType.EXPLORER_EC2_OPEN_SHELL_ACTION, instanceSelectionTable);
 
         this.setImageDescriptor(Ec2Plugin.getDefault().getImageRegistry().getDescriptor("console"));
         this.setText("Open Shell As...");
