@@ -12,14 +12,14 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.context;
+package com.amazonaws.eclipse.core.telemetry;
 
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_ID_PROD;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_ID_TEST;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_TITLE_PROD;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_TITLE_TEST;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.MOBILE_ANALYTICS_APP_ID_PROD;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.MOBILE_ANALYTICS_APP_ID_TEST;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.MOBILE_ANALYTICS_APP_TITLE_PROD;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.MOBILE_ANALYTICS_APP_TITLE_TEST;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -34,7 +34,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
+import com.amazonaws.eclipse.core.telemetry.internal.Constants;
 import com.amazonaws.util.StringUtils;
 
 /**

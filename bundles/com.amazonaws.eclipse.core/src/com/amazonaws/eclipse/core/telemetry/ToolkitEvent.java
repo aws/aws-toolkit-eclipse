@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics;
+package com.amazonaws.eclipse.core.telemetry;
 
 import java.util.Collection;
 import java.util.Date;
@@ -23,8 +23,9 @@ import java.util.stream.Collectors;
 import java.time.Instant;
 
 import com.amazonaws.annotation.Immutable;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitSession;
+import com.amazonaws.eclipse.core.telemetry.internal.Constants;
+import com.amazonaws.eclipse.core.telemetry.internal.ToolkitSession;
+
 import software.amazon.awssdk.services.toolkittelemetry.model.MetadataEntry;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 import software.amazon.awssdk.services.toolkittelemetry.model.Unit;

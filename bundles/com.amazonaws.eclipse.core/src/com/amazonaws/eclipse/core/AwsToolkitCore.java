@@ -36,17 +36,17 @@ import org.osgi.util.tracker.ServiceTracker;
 import com.amazonaws.eclipse.core.accounts.AccountInfoProvider;
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.diagnostic.ui.AwsToolkitErrorSupportProvider;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
-import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsProvider;
-import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.NoOpToolkitAnalyticsManager;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitAnalyticsManagerImpl;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.preferences.PreferenceConstants;
 import com.amazonaws.eclipse.core.preferences.PreferencePropertyChangeListener;
 import com.amazonaws.eclipse.core.preferences.regions.DefaultRegionMonitor;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.telemetry.ClientContextConfig;
+import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.telemetry.cognito.AWSCognitoCredentialsProvider;
+import com.amazonaws.eclipse.core.telemetry.internal.NoOpToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.telemetry.internal.ToolkitAnalyticsManagerImpl;
 import com.amazonaws.eclipse.core.ui.preferences.accounts.LegacyPreferenceStoreAccountMerger;
 import com.amazonaws.eclipse.core.ui.setupwizard.InitialSetupUtils;
 
@@ -542,7 +542,7 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
                             ClientContextConfig.TEST_CONFIG);
                 } else {
                     toReturn = new ToolkitAnalyticsManagerImpl(
-                            AWSCognitoCredentialsProvider.PROD_PROVIDER,
+                            AWSCognitoCredentialsProvider.V2_PROVIDER,
                             ClientContextConfig.PROD_CONFIG);
                 }
 

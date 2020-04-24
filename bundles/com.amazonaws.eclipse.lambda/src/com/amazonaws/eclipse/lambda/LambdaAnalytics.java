@@ -15,8 +15,8 @@
 package com.amazonaws.eclipse.lambda;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
+import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent.ToolkitEventBuilder;
 import com.amazonaws.eclipse.lambda.project.wizard.model.LambdaFunctionWizardDataModel;
 import com.amazonaws.eclipse.lambda.project.wizard.model.NewServerlessProjectDataModel;
 

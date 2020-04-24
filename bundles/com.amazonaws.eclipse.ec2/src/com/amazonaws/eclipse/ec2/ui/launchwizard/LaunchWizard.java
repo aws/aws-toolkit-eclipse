@@ -26,8 +26,8 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
-import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.MetricsDataModel;
 import com.amazonaws.eclipse.ec2.Ec2InstanceLauncher;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.eclipse.ec2.ui.views.instances.InstanceView;

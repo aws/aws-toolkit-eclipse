@@ -17,7 +17,7 @@
        </page>
        <page
              category="com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage"
-             class="com.amazonaws.eclipse.core.mobileanalytics.ui.ToolkitAnalyticsPreferencePage"
+             class="com.amazonaws.eclipse.core.telemetry.ui.ToolkitAnalyticsPreferencePage"
              id="com.amazonaws.eclipse.core.mobileanalytics.ui.ToolkitAnalyticsPreferencePage"
              name="Toolkit Analytics">
        </page>

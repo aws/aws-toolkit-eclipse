@@ -17,10 +17,7 @@ package com.amazonaws.eclipse.core.telemetry;
 
 import java.util.Collection;
 
-import com.amazonaws.eclipse.core.diagnostic.utils.PlatformEnvironmentDataCollector;
-import com.amazonaws.eclipse.core.mobileanalytics.cognito.AWSCognitoCredentialsProvider;
-import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
-import com.amazonaws.services.errorreport.model.PlatformDataModel;
+import com.amazonaws.auth.AWSCredentialsProvider;
 
 import software.amazon.awssdk.services.toolkittelemetry.TelemetryClient;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
@@ -30,10 +27,10 @@ public class TelemetryClientV2 {
     private TelemetryClient client;
     private ClientContextConfig config;
 
-    public TelemetryClientV2() {
+    public TelemetryClientV2(AWSCredentialsProvider credentialsProvider, ClientContextConfig clientContextConfig) {
         try {
-            this.client = getTelemetryClient();
-            this.config = ClientContextConfig.PROD_CONFIG;
+            this.client = getTelemetryClient(credentialsProvider);
+            this.config = clientContextConfig;
         } catch (Throwable e) {
             this.client = null;
         }
@@ -51,8 +48,7 @@ public class TelemetryClientV2 {
         client.postMetrics(request);
     }
 
-    private TelemetryClient getTelemetryClient() throws Exception {
-        final AWSCognitoCredentialsProvider client = AWSCognitoCredentialsProvider.V2_PROVIDER;
-        return TelemetryClient.builder().endpoint("https://client-telemetry.us-east-1.amazonaws.com").iamCredentials(client).build();
+    private TelemetryClient getTelemetryClient(AWSCredentialsProvider credentialsProvider) throws Exception {
+        return TelemetryClient.builder().endpoint("https://client-telemetry.us-east-1.amazonaws.com").iamCredentials(credentialsProvider).build();
     }
 }

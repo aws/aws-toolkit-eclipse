@@ -106,7 +106,7 @@ import org.eclipse.ui.statushandlers.StatusManager;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.ui.AbstractTableLabelProvider;
 import com.amazonaws.eclipse.dynamodb.AbstractAddNewAttributeDialog;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;

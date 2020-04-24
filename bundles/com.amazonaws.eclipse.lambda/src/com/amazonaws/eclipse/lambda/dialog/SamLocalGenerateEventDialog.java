@@ -44,8 +44,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 
 import com.amazonaws.eclipse.core.exceptions.AwsActionException;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
-import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.MetricsDataModel;
 import com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory;
 import com.amazonaws.eclipse.core.util.CliUtil;
 import com.amazonaws.eclipse.core.util.CliUtil.CliProcessTracker;

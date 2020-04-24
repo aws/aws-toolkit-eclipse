@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal;
+package com.amazonaws.eclipse.core.telemetry.batchclient.internal;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,8 +23,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.eclipse.core.mobileanalytics.batchclient.MobileAnalyticsBatchClient;
+import com.amazonaws.eclipse.core.telemetry.ClientContextConfig;
 import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
+import com.amazonaws.eclipse.core.telemetry.batchclient.MobileAnalyticsBatchClient;
+
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 /**
@@ -51,8 +53,8 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
 	 */
 	private final AtomicBoolean isSendingPutEventsRequest = new AtomicBoolean(false);
 
-	public MobileAnalyticsBatchClientImpl(AWSCredentialsProvider credentialsProvider, String clientContextString) {
-		this.telemetryClient = new TelemetryClientV2();
+	public MobileAnalyticsBatchClientImpl(AWSCredentialsProvider credentialsProvider, ClientContextConfig clientContextConfig) {
+		this.telemetryClient = new TelemetryClientV2(credentialsProvider, clientContextConfig);
 	}
 
 	@Override

@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.internal;
+package com.amazonaws.eclipse.core.telemetry.internal;
 
 import static com.amazonaws.eclipse.core.util.ValidationUtils.validateNonNull;
 
@@ -26,15 +26,14 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.eclipse.core.AWSClientFactory;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
-import com.amazonaws.eclipse.core.mobileanalytics.batchclient.MobileAnalyticsBatchClient;
-import com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal.MobileAnalyticsBatchClientImpl;
-import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextConfig;
-import com.amazonaws.eclipse.core.mobileanalytics.context.ClientContextJsonHelper;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.telemetry.ClientContextConfig;
+import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent.ToolkitEventBuilder;
+import com.amazonaws.eclipse.core.telemetry.batchclient.MobileAnalyticsBatchClient;
+import com.amazonaws.eclipse.core.telemetry.batchclient.internal.MobileAnalyticsBatchClientImpl;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -68,9 +67,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
      *                                 serialized to JSON format
      */
     public ToolkitAnalyticsManagerImpl(AWSCredentialsProvider credentialsProvider, ClientContextConfig clientContextConfig) throws JsonProcessingException {
-
-        this(new MobileAnalyticsBatchClientImpl(credentialsProvider,
-                ClientContextJsonHelper.toJsonString(validateNonNull(clientContextConfig, "clientContextConfig"))));
+        this(new MobileAnalyticsBatchClientImpl(credentialsProvider, clientContextConfig));
     }
 
     /**

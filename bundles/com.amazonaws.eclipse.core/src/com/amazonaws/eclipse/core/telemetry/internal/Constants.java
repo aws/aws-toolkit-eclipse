@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.internal;
+package com.amazonaws.eclipse.core.telemetry.internal;
 
 import com.amazonaws.regions.Regions;
 

@@ -17,7 +17,7 @@ package com.amazonaws.eclipse.core.diagnostic.utils;
 import org.eclipse.core.runtime.Platform;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
+import com.amazonaws.eclipse.core.telemetry.internal.Constants;
 import com.amazonaws.services.errorreport.model.PlatformDataModel;
 
 /**

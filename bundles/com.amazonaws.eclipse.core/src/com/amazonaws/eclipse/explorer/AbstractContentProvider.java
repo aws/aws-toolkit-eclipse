@@ -14,8 +14,8 @@
  */
 package com.amazonaws.eclipse.explorer;
 
-import static com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType.EXPLORER_LOADING;
-import static com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsUtils.publishBooleansEvent;
+import static com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType.EXPLORER_LOADING;
+import static com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsUtils.publishBooleansEvent;
 
 import java.util.Arrays;
 import java.util.List;

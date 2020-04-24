@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.batchclient;
+package com.amazonaws.eclipse.core.telemetry.batchclient;
 
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 

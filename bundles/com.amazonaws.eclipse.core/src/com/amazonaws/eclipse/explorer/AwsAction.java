@@ -17,8 +17,8 @@ package com.amazonaws.eclipse.explorer;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
 
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
-import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.MetricsDataModel;
 
 public abstract class AwsAction extends Action {
     public static final String END_RESULT = "result";
