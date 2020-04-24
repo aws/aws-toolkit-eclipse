@@ -32,8 +32,8 @@ import com.amazonaws.eclipse.core.telemetry.ClientContextConfig;
 import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.telemetry.ToolkitEvent;
 import com.amazonaws.eclipse.core.telemetry.ToolkitEvent.ToolkitEventBuilder;
-import com.amazonaws.eclipse.core.telemetry.batchclient.MobileAnalyticsBatchClient;
-import com.amazonaws.eclipse.core.telemetry.batchclient.internal.MobileAnalyticsBatchClientImpl;
+import com.amazonaws.eclipse.core.telemetry.batchclient.TelemetryBatchClient;
+import com.amazonaws.eclipse.core.telemetry.batchclient.internal.TelemetryBatchClientImpl;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,7 +51,7 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
      * The low level client for sending PutEvents requests, which also deals with
      * event batching transparently
      */
-    private final MobileAnalyticsBatchClient batchClient;
+    private final TelemetryBatchClient batchClient;
 
     /**
      * Write access to this field is protected by this manager instance.
@@ -67,14 +67,14 @@ public class ToolkitAnalyticsManagerImpl implements ToolkitAnalyticsManager {
      *                                 serialized to JSON format
      */
     public ToolkitAnalyticsManagerImpl(AWSCredentialsProvider credentialsProvider, ClientContextConfig clientContextConfig) throws JsonProcessingException {
-        this(new MobileAnalyticsBatchClientImpl(credentialsProvider, clientContextConfig));
+        this(new TelemetryBatchClientImpl(credentialsProvider, clientContextConfig));
     }
 
     /**
      * @param batchClient the client that is responsible for sending the events to
      *                    mobile analytics service.
      */
-    ToolkitAnalyticsManagerImpl(MobileAnalyticsBatchClient batchClient) {
+    ToolkitAnalyticsManagerImpl(TelemetryBatchClient batchClient) {
         this.batchClient = validateNonNull(batchClient, "batchClient");
     }
 

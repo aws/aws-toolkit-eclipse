@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.eclipse.core.telemetry.ClientContextConfig;
 import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
-import com.amazonaws.eclipse.core.telemetry.batchclient.MobileAnalyticsBatchClient;
+import com.amazonaws.eclipse.core.telemetry.batchclient.TelemetryBatchClient;
 
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
  * out event batches. It also guarantees that the events are sent in the same
  * order as they are accepted by the client.
  */
-public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClient {
+public class TelemetryBatchClientImpl implements TelemetryBatchClient {
 
 	private static final int MIN_EVENT_BATCH_SIZE = 20;
 	private static final int MAX_QUEUE_SIZE = 500;
@@ -53,7 +53,7 @@ public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClien
 	 */
 	private final AtomicBoolean isSendingPutEventsRequest = new AtomicBoolean(false);
 
-	public MobileAnalyticsBatchClientImpl(AWSCredentialsProvider credentialsProvider, ClientContextConfig clientContextConfig) {
+	public TelemetryBatchClientImpl(AWSCredentialsProvider credentialsProvider, ClientContextConfig clientContextConfig) {
 		this.telemetryClient = new TelemetryClientV2(credentialsProvider, clientContextConfig);
 	}
 

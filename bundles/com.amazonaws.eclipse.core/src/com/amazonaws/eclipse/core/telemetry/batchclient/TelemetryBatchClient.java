@@ -16,7 +16,7 @@ package com.amazonaws.eclipse.core.telemetry.batchclient;
 
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
-public interface MobileAnalyticsBatchClient {
+public interface TelemetryBatchClient {
 
     /**
      * To improve performance, the client may cache the incoming event and wait

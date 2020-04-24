@@ -85,6 +85,9 @@ public class ToolkitEvent {
             if (attribute.getValue().length() > Constants.MAX_ATTRIBUTE_VALUE_LENGTH) {
                 return false;
             }
+            if (attribute.getValue().isEmpty()) {
+                return false;
+            }
         }
         for (Entry<String, Double> metric : metrics.entrySet()) {
             if (metric.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
@@ -136,7 +139,7 @@ public class ToolkitEvent {
         }
 
         public ToolkitEventBuilder addBooleanMetric(String name, boolean value) {
-            this.event.metrics.put(name, value ? 1.0 : 0.0);
+            this.event.attributes.put(name, value ? "true" : "false");
             return this;
         }
 

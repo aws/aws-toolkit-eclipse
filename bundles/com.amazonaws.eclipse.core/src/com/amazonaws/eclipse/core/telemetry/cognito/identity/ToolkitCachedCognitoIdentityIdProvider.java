@@ -30,11 +30,6 @@ import com.amazonaws.services.cognitoidentity.model.GetIdRequest;
  * toolkit preference store for subsequent {@link #getIdentityId()} calls.
  */
 public class ToolkitCachedCognitoIdentityIdProvider implements AWSCognitoIdentityIdProvider {
-
-    public static final ToolkitCachedCognitoIdentityIdProvider PROD_PROVIDER = new ToolkitCachedCognitoIdentityIdProvider(
-            Constants.COGNITO_IDENTITY_POOL_ID_PROD, AwsToolkitCore
-                    .getDefault().getPreferenceStore());
-
     public static final ToolkitCachedCognitoIdentityIdProvider TEST_PROVIDER = new ToolkitCachedCognitoIdentityIdProvider(
             Constants.COGNITO_IDENTITY_POOL_ID_TEST, AwsToolkitCore
                     .getDefault().getPreferenceStore());
