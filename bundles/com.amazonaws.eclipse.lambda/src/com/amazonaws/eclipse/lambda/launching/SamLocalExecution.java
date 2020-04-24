@@ -46,7 +46,7 @@ import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.exceptions.AwsActionException;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.lambda.LambdaPlugin;
 
 public class SamLocalExecution implements ILaunchShortcut {

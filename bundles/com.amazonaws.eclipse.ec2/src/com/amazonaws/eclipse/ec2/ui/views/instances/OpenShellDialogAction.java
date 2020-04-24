@@ -14,7 +14,7 @@
  */
 package com.amazonaws.eclipse.ec2.ui.views.instances;
 
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
 import com.amazonaws.services.ec2.model.Instance;
 

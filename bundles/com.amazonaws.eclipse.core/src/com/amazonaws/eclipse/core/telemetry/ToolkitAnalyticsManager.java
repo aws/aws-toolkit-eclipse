@@ -12,10 +12,10 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics;
+package com.amazonaws.eclipse.core.telemetry;
 
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent.ToolkitEventBuilder;
 
 /**
  * The entry point for managing Toolkit analytics sessions and events.

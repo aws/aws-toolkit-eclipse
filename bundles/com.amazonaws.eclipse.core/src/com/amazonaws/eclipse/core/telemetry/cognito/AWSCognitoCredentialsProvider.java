@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.cognito;
+package com.amazonaws.eclipse.core.telemetry.cognito;
 
 import java.util.Date;
 
@@ -21,9 +21,9 @@ import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.eclipse.core.mobileanalytics.cognito.identity.AWSCognitoIdentityIdProvider;
-import com.amazonaws.eclipse.core.mobileanalytics.cognito.identity.ToolkitCachedCognitoIdentityIdProvider;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
+import com.amazonaws.eclipse.core.telemetry.cognito.identity.AWSCognitoIdentityIdProvider;
+import com.amazonaws.eclipse.core.telemetry.cognito.identity.ToolkitCachedCognitoIdentityIdProvider;
+import com.amazonaws.eclipse.core.telemetry.internal.Constants;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cognitoidentity.AmazonCognitoIdentity;
 import com.amazonaws.services.cognitoidentity.AmazonCognitoIdentityClient;
@@ -34,9 +34,6 @@ import com.amazonaws.services.cognitoidentity.model.GetCredentialsForIdentityReq
  * service to create temporary, short-lived sessions to use for authentication
  */
 public class AWSCognitoCredentialsProvider implements AWSCredentialsProvider {
-
-    public static final AWSCognitoCredentialsProvider PROD_PROVIDER = new AWSCognitoCredentialsProvider(
-            ToolkitCachedCognitoIdentityIdProvider.PROD_PROVIDER);
 
     public static final AWSCognitoCredentialsProvider TEST_PROVIDER = new AWSCognitoCredentialsProvider(
             ToolkitCachedCognitoIdentityIdProvider.TEST_PROVIDER);

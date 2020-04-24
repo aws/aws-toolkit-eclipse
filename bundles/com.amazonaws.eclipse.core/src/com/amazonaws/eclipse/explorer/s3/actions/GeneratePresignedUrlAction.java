@@ -40,7 +40,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.s3.S3ObjectSummaryTable;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;

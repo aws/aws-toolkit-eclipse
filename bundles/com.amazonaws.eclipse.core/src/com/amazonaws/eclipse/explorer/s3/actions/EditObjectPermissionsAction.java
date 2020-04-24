@@ -25,7 +25,7 @@ import org.eclipse.jface.window.Window;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.s3.S3ObjectSummaryTable;
 import com.amazonaws.eclipse.explorer.s3.acls.EditObjectPermissionsDialog;

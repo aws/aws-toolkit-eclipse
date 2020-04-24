@@ -24,9 +24,9 @@ import com.amazonaws.eclipse.codedeploy.CodeDeployPlugin;
 import com.amazonaws.eclipse.codedeploy.explorer.editor.DeploymentGroupEditor;
 import com.amazonaws.eclipse.codedeploy.explorer.editor.DeploymentGroupEditorInput;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.explorer.AwsAction;
 
 public class OpenDeploymentGroupEditorAction extends AwsAction {

@@ -56,7 +56,7 @@ import com.amazonaws.eclipse.codecommit.CodeCommitPlugin;
 import com.amazonaws.eclipse.codecommit.CodeCommitUtil;
 import com.amazonaws.eclipse.codecommit.explorer.CodeCommitActionProvider.CloneRepositoryAction;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.codecommit.AWSCodeCommit;
 import com.amazonaws.services.codecommit.model.Commit;

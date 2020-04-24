@@ -33,7 +33,7 @@ import org.eclipse.ui.part.EditorPart;
 import com.amazonaws.eclipse.codedeploy.explorer.editor.table.DeploymentsTableView;
 import com.amazonaws.eclipse.codedeploy.explorer.image.CodeDeployExplorerImages;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
 import com.amazonaws.services.codedeploy.model.AutoScalingGroup;

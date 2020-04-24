@@ -15,8 +15,8 @@
 package com.amazonaws.eclipse.elasticbeanstalk;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsUtils;
+import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsUtils;
 
 public final class ElasticBeanstalkAnalytics {
 

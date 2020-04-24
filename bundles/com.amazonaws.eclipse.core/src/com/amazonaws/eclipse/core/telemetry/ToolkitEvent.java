@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics;
+package com.amazonaws.eclipse.core.telemetry;
 
 import java.util.Collection;
 import java.util.Date;
@@ -23,8 +23,9 @@ import java.util.stream.Collectors;
 import java.time.Instant;
 
 import com.amazonaws.annotation.Immutable;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitSession;
+import com.amazonaws.eclipse.core.telemetry.internal.Constants;
+import com.amazonaws.eclipse.core.telemetry.internal.ToolkitSession;
+
 import software.amazon.awssdk.services.toolkittelemetry.model.MetadataEntry;
 import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 import software.amazon.awssdk.services.toolkittelemetry.model.Unit;
@@ -84,6 +85,9 @@ public class ToolkitEvent {
             if (attribute.getValue().length() > Constants.MAX_ATTRIBUTE_VALUE_LENGTH) {
                 return false;
             }
+            if (attribute.getValue().isEmpty()) {
+                return false;
+            }
         }
         for (Entry<String, Double> metric : metrics.entrySet()) {
             if (metric.getKey().length() > Constants.MAX_ATTRIBUTE_OR_METRIC_NAME_LENGTH) {
@@ -135,7 +139,7 @@ public class ToolkitEvent {
         }
 
         public ToolkitEventBuilder addBooleanMetric(String name, boolean value) {
-            this.event.metrics.put(name, value ? 1.0 : 0.0);
+            this.event.attributes.put(name, value ? "true" : "false");
             return this;
         }
 

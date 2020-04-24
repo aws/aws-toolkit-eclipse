@@ -12,14 +12,14 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics;
+package com.amazonaws.eclipse.core.telemetry;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent.ToolkitEventBuilder;
 
 public class MetricsDataModel {
     private static final Map<String, String> METRICS_METADATA = new HashMap<>();

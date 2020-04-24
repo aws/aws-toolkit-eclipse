@@ -61,8 +61,8 @@ import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 
 import com.amazonaws.eclipse.core.exceptions.AwsActionException;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
-import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.MetricsDataModel;
 import com.amazonaws.eclipse.core.util.CliUtil;
 import com.amazonaws.eclipse.core.util.MavenBuildLauncher;
 import com.amazonaws.eclipse.core.util.PluginUtils;

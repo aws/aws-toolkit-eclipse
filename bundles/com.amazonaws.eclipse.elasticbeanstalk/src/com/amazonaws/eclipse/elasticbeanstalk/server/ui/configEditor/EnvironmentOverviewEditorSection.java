@@ -41,9 +41,9 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.wst.server.ui.editor.ServerEditorSection;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.Region;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.ui.overview.HyperlinkHandler;
 import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;

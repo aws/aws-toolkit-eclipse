@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal;
+package com.amazonaws.eclipse.core.telemetry.batchclient.internal;
 
 import java.util.LinkedList;
 import java.util.List;

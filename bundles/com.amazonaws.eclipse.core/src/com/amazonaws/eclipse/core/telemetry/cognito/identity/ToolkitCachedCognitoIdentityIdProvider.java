@@ -12,14 +12,14 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.cognito.identity;
+package com.amazonaws.eclipse.core.telemetry.cognito.identity;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
+import com.amazonaws.eclipse.core.telemetry.internal.Constants;
 import com.amazonaws.services.cognitoidentity.AmazonCognitoIdentity;
 import com.amazonaws.services.cognitoidentity.AmazonCognitoIdentityClient;
 import com.amazonaws.services.cognitoidentity.model.GetIdRequest;
@@ -30,11 +30,6 @@ import com.amazonaws.services.cognitoidentity.model.GetIdRequest;
  * toolkit preference store for subsequent {@link #getIdentityId()} calls.
  */
 public class ToolkitCachedCognitoIdentityIdProvider implements AWSCognitoIdentityIdProvider {
-
-    public static final ToolkitCachedCognitoIdentityIdProvider PROD_PROVIDER = new ToolkitCachedCognitoIdentityIdProvider(
-            Constants.COGNITO_IDENTITY_POOL_ID_PROD, AwsToolkitCore
-                    .getDefault().getPreferenceStore());
-
     public static final ToolkitCachedCognitoIdentityIdProvider TEST_PROVIDER = new ToolkitCachedCognitoIdentityIdProvider(
             Constants.COGNITO_IDENTITY_POOL_ID_TEST, AwsToolkitCore
                     .getDefault().getPreferenceStore());

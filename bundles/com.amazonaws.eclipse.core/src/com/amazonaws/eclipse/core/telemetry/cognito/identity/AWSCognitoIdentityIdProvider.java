@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.cognito.identity;
+package com.amazonaws.eclipse.core.telemetry.cognito.identity;
 
 /**
  * Responsible for establishing a Cognito identity and providing the identity id
