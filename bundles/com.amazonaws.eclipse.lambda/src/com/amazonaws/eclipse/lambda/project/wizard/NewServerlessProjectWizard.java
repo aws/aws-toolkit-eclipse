@@ -36,9 +36,9 @@ import org.eclipse.m2e.core.ui.internal.UpdateMavenProjectJob;
 
 import com.amazonaws.eclipse.core.exceptions.AwsActionException;
 import com.amazonaws.eclipse.core.maven.MavenFactory;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsPlugin;
 import com.amazonaws.eclipse.core.plugin.AbstractAwsProjectWizard;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 import com.amazonaws.eclipse.core.validator.JavaPackageName;
 import com.amazonaws.eclipse.lambda.LambdaAnalytics;

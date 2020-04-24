@@ -33,9 +33,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.navigator.CommonActionProvider;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.regions.ServiceAbbreviations;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.elasticbeanstalk.ElasticBeanstalkPlugin;
 import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.explorer.ContentProviderRegistry;

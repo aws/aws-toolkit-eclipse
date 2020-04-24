@@ -15,8 +15,8 @@
 package com.amazonaws.eclipse.codestar;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
+import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent.ToolkitEventBuilder;
 
 public class CodeStarAnalytics {
     private static final ToolkitAnalyticsManager ANALYTICS = AwsToolkitCore.getDefault().getAnalyticsManager();

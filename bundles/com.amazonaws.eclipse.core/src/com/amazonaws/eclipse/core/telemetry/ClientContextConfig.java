@@ -12,14 +12,10 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.context;
+package com.amazonaws.eclipse.core.telemetry;
 
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_ID_PROD;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_ID_TEST;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_TITLE_PROD;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_APP_TITLE_TEST;
-import static com.amazonaws.eclipse.core.mobileanalytics.internal.Constants.MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE;
+import static com.amazonaws.eclipse.core.telemetry.internal.Constants.MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -31,10 +27,9 @@ import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
+import com.amazonaws.eclipse.core.telemetry.internal.Constants;
 import com.amazonaws.util.StringUtils;
 
 /**
@@ -44,9 +39,6 @@ import com.amazonaws.util.StringUtils;
  */
 @Immutable
 public class ClientContextConfig {
-
-    private final String appTitle;
-    private final String appId;
     private final String envPlatformName;
     private final String envPlatformVersion;
     private final String eclipseVersion;
@@ -55,21 +47,16 @@ public class ClientContextConfig {
     private final String version;
 
     public static final ClientContextConfig PROD_CONFIG = new ClientContextConfig(
-            MOBILE_ANALYTICS_APP_TITLE_PROD, MOBILE_ANALYTICS_APP_ID_PROD,
             _getSystemOsName(), _getSystemOsVersion(),
             _getSystemLocaleCountry(), getOrGenerateClientId());
 
     public static final ClientContextConfig TEST_CONFIG = new ClientContextConfig(
-            MOBILE_ANALYTICS_APP_TITLE_TEST, MOBILE_ANALYTICS_APP_ID_TEST,
             _getSystemOsName(), _getSystemOsVersion(),
             _getSystemLocaleCountry(), getOrGenerateClientId());
 
-    private ClientContextConfig(String appTitle, String appId,
-            String envPlatformName, String envPlatformVersion, String envLocale, String clientId) {
+    private ClientContextConfig(String envPlatformName, String envPlatformVersion, String envLocale, String clientId) {
         this.eclipseVersion = eclipseVersion();
         this.version = getPluginVersion();
-		this.appTitle = appTitle;
-        this.appId = appId;
         this.envPlatformName = envPlatformName;
         this.envPlatformVersion = envPlatformVersion;
         this.envLocale = envLocale;
@@ -92,14 +79,6 @@ public class ClientContextConfig {
         } catch (Exception e) {
             return "Unknown";
         }
-    }
-
-    public String getAppTitle() {
-        return appTitle;
-    }
-
-    public String getAppId() {
-        return appId;
     }
 
     public String getEnvPlatformName() {

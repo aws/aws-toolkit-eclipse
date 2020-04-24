@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.eclipse.core.AccountInfo;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
-import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 import com.amazonaws.eclipse.core.model.MavenConfigurationDataModel;
 import com.amazonaws.eclipse.core.model.ProjectNameDataModel;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.MetricsDataModel;
 import com.amazonaws.eclipse.explorer.AwsAction;
 import com.amazonaws.eclipse.sdk.ui.SdkSample;
 

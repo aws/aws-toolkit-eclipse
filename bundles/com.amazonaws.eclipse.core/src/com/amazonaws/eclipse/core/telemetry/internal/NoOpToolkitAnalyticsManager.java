@@ -12,12 +12,12 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.internal;
+package com.amazonaws.eclipse.core.telemetry.internal;
 
 import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent;
-import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
+import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsManager;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent;
+import com.amazonaws.eclipse.core.telemetry.ToolkitEvent.ToolkitEventBuilder;
 
 public class NoOpToolkitAnalyticsManager implements ToolkitAnalyticsManager {
 

@@ -60,7 +60,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.dynamodb.DynamoDBPlugin;
 import com.amazonaws.eclipse.dynamodb.testtool.TestToolVersion.InstallState;
 import com.amazonaws.eclipse.explorer.AwsAction;

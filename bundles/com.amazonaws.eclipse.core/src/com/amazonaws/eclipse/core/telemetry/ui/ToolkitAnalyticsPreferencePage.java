@@ -12,7 +12,7 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.amazonaws.eclipse.core.mobileanalytics.ui;
+package com.amazonaws.eclipse.core.telemetry.ui;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;

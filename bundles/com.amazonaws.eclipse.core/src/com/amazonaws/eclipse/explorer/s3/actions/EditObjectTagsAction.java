@@ -23,9 +23,9 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Display;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.model.KeyValueSetDataModel;
 import com.amazonaws.eclipse.core.model.KeyValueSetDataModel.Pair;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.ui.TagsEditingDialog;
 import com.amazonaws.eclipse.core.ui.TagsEditingDialog.TagsEditingDialogBuilder;
 import com.amazonaws.eclipse.explorer.AwsAction;

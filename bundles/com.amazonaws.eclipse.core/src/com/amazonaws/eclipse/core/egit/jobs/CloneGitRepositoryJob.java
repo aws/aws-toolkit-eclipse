@@ -49,7 +49,7 @@ import com.amazonaws.eclipse.core.egit.GitRepositoryInfo.RepositoryConfigPropert
 import com.amazonaws.eclipse.core.egit.ui.CloneDestinationPage;
 import com.amazonaws.eclipse.core.egit.ui.SourceBranchPage;
 import com.amazonaws.eclipse.core.exceptions.AwsActionException;
-import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
+import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 
 /**
  * A UI sync job that manages cloning a remote Git repository to local.
