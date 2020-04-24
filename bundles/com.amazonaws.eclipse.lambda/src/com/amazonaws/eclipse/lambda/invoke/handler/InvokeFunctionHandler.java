@@ -68,8 +68,6 @@ public class InvokeFunctionHandler extends AbstractHandler {
 
         IJavaElement selectedJavaElement = LambdaJavaProjectUtil.getSelectedJavaElementFromCommandEvent(event);
         if (selectedJavaElement != null) {
-            LambdaAnalytics.trackInvokeDialogOpenedFromProjectContextMenu();
-
             try {
                 invokeLambdaFunctionProject(selectedJavaElement);
             } catch (Exception e) {
@@ -100,14 +98,8 @@ public class InvokeFunctionHandler extends AbstractHandler {
             int retCode = inputDialog.open();
 
             if (retCode == InvokeFunctionInputDialog.INVOKE_BUTTON_ID) {
-                boolean showLiveLog = md.getLastInvokeShowLiveLog();
                 boolean isProjectDirty = LambdaPlugin.getDefault()
                         .getProjectChangeTracker().isProjectDirty(project);
-                boolean isInvokeInputModified = inputDialog.isInputBoxContentModified();
-
-                LambdaAnalytics.trackIsProjectModifiedAfterLastInvoke(isProjectDirty);
-                LambdaAnalytics.trackIsInvokeInputModified(isInvokeInputModified);
-                LambdaAnalytics.trackIsShowLiveLog(showLiveLog);
 
                 if (!md.isLastInvokedHandlerDeployed()) {
                     askForDeploymentFirst(selectedJavaElement);
@@ -227,7 +219,6 @@ public class InvokeFunctionHandler extends AbstractHandler {
         String log = CloudWatchLogsUtils.fetchLogsForLambdaFunction(result);
         if (log != null) {
             lambdaOutput.print(log);
-            LambdaAnalytics.trackFunctionLogLength(log.length());
             if (log.length() >= CloudWatchLogsUtils.MAX_LAMBDA_LOG_RESULT_LENGTH) {
                 lambdaError.println("WARNING: Log is truncated for being longer than 4Kb.");
                 lambdaError.println("To see the complete log, go to AWS CloudWatch Logs console.");

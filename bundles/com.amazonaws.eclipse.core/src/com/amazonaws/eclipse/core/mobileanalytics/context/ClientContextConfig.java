@@ -26,10 +26,12 @@ import java.util.UUID;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.IPreferenceStore;
-
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
@@ -47,27 +49,49 @@ public class ClientContextConfig {
     private final String appId;
     private final String envPlatformName;
     private final String envPlatformVersion;
+    private final String eclipseVersion;
     private final String envLocale;
     private final String clientId;
+    private final String version;
 
     public static final ClientContextConfig PROD_CONFIG = new ClientContextConfig(
             MOBILE_ANALYTICS_APP_TITLE_PROD, MOBILE_ANALYTICS_APP_ID_PROD,
             _getSystemOsName(), _getSystemOsVersion(),
-            _getSystemLocaleCountry(), _getOrGenerateClientId());
+            _getSystemLocaleCountry(), getOrGenerateClientId());
 
     public static final ClientContextConfig TEST_CONFIG = new ClientContextConfig(
             MOBILE_ANALYTICS_APP_TITLE_TEST, MOBILE_ANALYTICS_APP_ID_TEST,
             _getSystemOsName(), _getSystemOsVersion(),
-            _getSystemLocaleCountry(), _getOrGenerateClientId());
+            _getSystemLocaleCountry(), getOrGenerateClientId());
 
     private ClientContextConfig(String appTitle, String appId,
             String envPlatformName, String envPlatformVersion, String envLocale, String clientId) {
-        this.appTitle = appTitle;
+        this.eclipseVersion = eclipseVersion();
+        this.version = getPluginVersion();
+		this.appTitle = appTitle;
         this.appId = appId;
         this.envPlatformName = envPlatformName;
         this.envPlatformVersion = envPlatformVersion;
         this.envLocale = envLocale;
         this.clientId = clientId;
+    }
+
+    private String eclipseVersion() {
+        try {
+            Bundle bundle = Platform.getBundle("org.eclipse.platform");
+            return bundle.getVersion().toString();
+        } catch (Exception e) {
+            return "Unknown";
+        }
+    }
+
+    private String getPluginVersion() {
+        try {
+            Bundle bundle = Platform.getBundle("com.amazonaws.eclipse.core");
+            return bundle.getVersion().toString();
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 
     public String getAppTitle() {
@@ -93,6 +117,14 @@ public class ClientContextConfig {
     public String getClientId() {
         return clientId;
     }
+    
+	public String getVersion() {
+		return version;
+	}
+	
+	public String getEclipseVersion() {
+		return eclipseVersion;
+	}
 
     private static String _getSystemOsName() {
         try {
@@ -137,7 +169,7 @@ public class ClientContextConfig {
         }
     }
 
-    private static String _getOrGenerateClientId() {
+    public static String getOrGenerateClientId() {
         // This is the Java preferences scope
         Preferences awsToolkitNode = Preferences.userRoot().node(JAVA_PREFERENCE_NODE_FOR_AWS_TOOLKIT_FOR_ECLIPSE);
         String clientId = awsToolkitNode.get(MOBILE_ANALYTICS_CLIENT_ID_PREF_STORE_KEY, null);

@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.core.mobileanalytics;
 
+import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
 
 /**
@@ -22,25 +23,24 @@ import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuild
 public interface ToolkitAnalyticsManager {
 
     /**
-     * Start a new session by sending out a session.start event. After this
-     * point, all the events published by this manager will be bound to this new
-     * session.
+     * Start a new session by sending out a session.start event. After this point,
+     * all the events published by this manager will be bound to this new session.
      *
-     * @param forceFlushEvents
-     *            true if the session.start event should be sent immediately
-     *            after the method call.
+     * @param accountManager   The account manager needed to start the credentials
+     *                         changed listener
+     * @param forceFlushEvents true if the session.start event should be sent
+     *                         immediately after the method call.
      */
-    public void startSession(boolean forceFlushEvents);
+    public void startSession(AwsPluginAccountManager accountManager, boolean forceFlushEvents);
 
     /**
-     * Terminate the current session (if any) by sending out a session.stop
-     * event. After this point, any call of {@link #publishEvent(ToolkitEvent)}
-     * won't have any effect, until the next {@link #startSession(boolean)} call
-     * is made.
+     * Terminate the current session (if any) by sending out a session.stop event.
+     * After this point, any call of {@link #publishEvent(ToolkitEvent)} won't have
+     * any effect, until the next {@link #startSession(boolean)} call is made.
      *
-     * @param forceFlushEvents
-     *            true if all the cached events should be forcefully sent out to
-     *            the Analytics service after this method call.
+     * @param forceFlushEvents true if all the cached events should be forcefully
+     *                         sent out to the Analytics service after this method
+     *                         call.
      */
     public void endSession(boolean forceFlushEvents);
 
@@ -51,11 +51,10 @@ public interface ToolkitAnalyticsManager {
     public ToolkitEventBuilder eventBuilder();
 
     /**
-     * Publish a new {@link ToolkitEvent}. This method call won't take any
-     * affect if the manager is not currently tracking an on-going session.
+     * Publish a new {@link ToolkitEvent}. This method call won't take any affect if
+     * the manager is not currently tracking an on-going session.
      *
-     * @param event
-     *            the toolkit event to be published.
+     * @param event the toolkit event to be published.
      */
     public void publishEvent(ToolkitEvent event);
 
@@ -64,5 +63,4 @@ public interface ToolkitAnalyticsManager {
      * methods of the manager takes any effect.
      */
     public void setEnabled(boolean enabled);
-
 }

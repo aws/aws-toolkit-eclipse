@@ -462,7 +462,7 @@ public class DynamoDBTableEditor extends EditorPart {
 
         handlerService.activateHandler(saveAction.getActionDefinitionId(), new ActionHandler(saveAction));
 
-        nextPageResultsAction = new AwsAction(AwsToolkitMetricType.EXPLORER_DYNAMODB_NEXT_PAGE) {
+        nextPageResultsAction = new AwsAction() {
 
             @Override
             public ImageDescriptor getImageDescriptor() {

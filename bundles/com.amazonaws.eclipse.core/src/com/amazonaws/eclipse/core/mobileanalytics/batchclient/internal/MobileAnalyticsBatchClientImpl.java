@@ -15,17 +15,17 @@
 package com.amazonaws.eclipse.core.mobileanalytics.batchclient.internal;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ICoreRunnable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.eclipse.core.mobileanalytics.batchclient.MobileAnalyticsBatchClient;
-import com.amazonaws.handlers.AsyncHandler;
-import com.amazonaws.services.mobileanalytics.AmazonMobileAnalyticsAsync;
-import com.amazonaws.services.mobileanalytics.AmazonMobileAnalyticsAsyncClient;
-import com.amazonaws.services.mobileanalytics.model.Event;
-import com.amazonaws.services.mobileanalytics.model.PutEventsRequest;
-import com.amazonaws.services.mobileanalytics.model.PutEventsResult;
+import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 /**
  * An implementation of MobileAnalyticsBatchClient which uses a bounded queue
@@ -35,112 +35,83 @@ import com.amazonaws.services.mobileanalytics.model.PutEventsResult;
  */
 public class MobileAnalyticsBatchClientImpl implements MobileAnalyticsBatchClient {
 
-    private static final int MIN_EVENT_BATCH_SIZE = 20;
-    private static final int MAX_QUEUE_SIZE = 500;
+	private static final int MIN_EVENT_BATCH_SIZE = 20;
+	private static final int MAX_QUEUE_SIZE = 500;
 
-    /**
-     * Mobile Analytics async client with a single background thread
-     */
-    private final AmazonMobileAnalyticsAsync mobileAnalytics;
+	private final TelemetryClientV2 telemetryClient;
 
-    /**
-     * The x-amz-client-context header string to be included in every PutEvents
-     * request
-     */
-    private final String clientContextString;
+	/**
+	 * For caching incoming events for batching
+	 */
+	private final EventQueue eventQueue = new EventQueue();
 
-    /**
-     * For caching incoming events for batching
-     */
-    private final EventQueue eventQueue = new EventQueue();
+	/**
+	 * To keep track of the on-going putEvents request and make sure only one
+	 * request can be made at a time.
+	 */
+	private final AtomicBoolean isSendingPutEventsRequest = new AtomicBoolean(false);
 
-    /**
-     * To keep track of the on-going putEvents request and make sure only one
-     * request can be made at a time.
-     */
-    private final AtomicBoolean isSendingPutEventsRequest = new AtomicBoolean(false);
+	public MobileAnalyticsBatchClientImpl(AWSCredentialsProvider credentialsProvider, String clientContextString) {
+		this.telemetryClient = new TelemetryClientV2();
+	}
 
-    public MobileAnalyticsBatchClientImpl(
-            AWSCredentialsProvider credentialsProvider,
-            String clientContextString) {
-        this.mobileAnalytics = new AmazonMobileAnalyticsAsyncClient(
-                credentialsProvider, Executors.newFixedThreadPool(1));
-        this.clientContextString = clientContextString;
-    }
+	@Override
+	public void putEvent(MetricDatum event) {
 
-    @Override
-    public void putEvent(Event event) {
+		// we don't lock the queue when accepting incoming event, and the
+		// queue size is only a rough estimate.
+		int queueSize = eventQueue.size();
 
-        // we don't lock the queue when accepting incoming event, and the
-        // queue size is only a rough estimate.
-        int queueSize = eventQueue.size();
+		// keep the queue bounded
+		if (queueSize >= MAX_QUEUE_SIZE) {
+			tryDispatchAllEventsAsync();
+			return;
+		}
 
-        // keep the queue bounded
-        if (queueSize >= MAX_QUEUE_SIZE) {
-            tryDispatchAllEventsAsync();
-            return;
-        }
+		eventQueue.addToTail(event);
 
-        eventQueue.addToTail(event);
+		if (queueSize >= MIN_EVENT_BATCH_SIZE) {
+			tryDispatchAllEventsAsync();
+		}
+	}
 
-        if (queueSize >= MIN_EVENT_BATCH_SIZE) {
-            tryDispatchAllEventsAsync();
-        }
-    }
+	@Override
+	public void flush() {
+		tryDispatchAllEventsAsync();
+	}
 
-    @Override
-    public void flush() {
-        tryDispatchAllEventsAsync();
-    }
+	/**
+	 * To make sure the order of the analytic events is preserved, this method call
+	 * will immediately return if there is an ongoing PutEvents call.
+	 */
+	private void tryDispatchAllEventsAsync() {
 
-    /**
-     * To make sure the order of the analytic events is preserved, this method
-     * call will immediately return if there is an ongoing PutEvents call.
-     */
-    private void tryDispatchAllEventsAsync() {
+		boolean contentionDetected = this.isSendingPutEventsRequest.getAndSet(true);
 
-        boolean contentionDetected = this.isSendingPutEventsRequest
-                .getAndSet(true);
+		if (!contentionDetected) {
+			dispatchAllEventsAsync();
+		}
+	}
 
-        if (!contentionDetected) {
-            dispatchAllEventsAsync();
-        }
-    }
+	/**
+	 * Only one thread can call this method at a time
+	 */
+	private void dispatchAllEventsAsync() {
+		final List<MetricDatum> eventsBatch = this.eventQueue.pollAllQueuedEvents();
 
-    /**
-     * Only one thread can call this method at a time
-     */
-    private void dispatchAllEventsAsync() {
-
-        final List<Event> eventsBatch = this.eventQueue.pollAllQueuedEvents();
-
-        mobileAnalytics.putEventsAsync(
-                new PutEventsRequest().withClientContext(clientContextString)
-                        .withEvents(eventsBatch),
-                new AsyncHandler<PutEventsRequest, PutEventsResult>() {
-
-                    @Override
-                    public void onSuccess(PutEventsRequest arg0, PutEventsResult arg1) {
-                        markRequestDone();
-                    }
-
-                    @Override
-                    public void onError(Exception arg0) {
-                        restoreEventsQueue(eventsBatch);
-                        markRequestDone();
-                    }
-
-                    private void restoreEventsQueue(List<Event> failedBatch) {
-                        MobileAnalyticsBatchClientImpl.this.eventQueue
-                                .addToHead(failedBatch);
-                    }
-
-                    private void markRequestDone() {
-                        MobileAnalyticsBatchClientImpl.this.isSendingPutEventsRequest
-                                .set(false);
-                    }
-
-                });
-    }
-
+		Job j = Job.create("Posting telemetry", new ICoreRunnable() {
+			@Override
+			public void run(IProgressMonitor monitor) throws CoreException {
+				try {
+					telemetryClient.publish(eventsBatch);
+				} catch (Exception e) {
+					eventQueue.addToHead(eventsBatch);
+				} finally {
+					isSendingPutEventsRequest.set(false);
+				}
+			}
+		});
+		j.setSystem(true);
+		j.schedule();
+	}
 }

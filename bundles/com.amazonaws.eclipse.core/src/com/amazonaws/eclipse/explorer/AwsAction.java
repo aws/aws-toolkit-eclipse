@@ -21,13 +21,16 @@ import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.mobileanalytics.MetricsDataModel;
 
 public abstract class AwsAction extends Action {
-    public static final String END_RESULT = "EndResult";
-    public static final String PERFORMED = "Performed";
+    public static final String END_RESULT = "result";
     public static final String SUCCEEDED = "Succeeded";
     public static final String FAILED = "Failed";
     public static final String CANCELED = "Canceled";
 
     private final MetricsDataModel metricsDataModel;
+
+    protected AwsAction() {
+        metricsDataModel = null;
+    }
 
     protected AwsAction(AwsToolkitMetricType metricType) {
         metricsDataModel = new MetricsDataModel(metricType);
@@ -49,23 +52,33 @@ public abstract class AwsAction extends Action {
     }
 
     private final void actionPerformed() {
-        metricsDataModel.addAttribute(END_RESULT, PERFORMED);
+        if (metricsDataModel != null) {
+            metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
+        }
     }
 
     protected final void actionSucceeded() {
-        metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
+        if (metricsDataModel != null) {
+            metricsDataModel.addAttribute(END_RESULT, SUCCEEDED);
+        }
     }
 
     protected final void actionFailed() {
-        metricsDataModel.addAttribute(END_RESULT, FAILED);
+        if (metricsDataModel != null) {
+            metricsDataModel.addAttribute(END_RESULT, FAILED);
+        }
     }
 
     protected final void actionCanceled() {
-        metricsDataModel.addAttribute(END_RESULT, CANCELED);
+        if (metricsDataModel != null) {
+            metricsDataModel.addAttribute(END_RESULT, CANCELED);
+        }
     }
 
     protected final void actionFinished() {
-        metricsDataModel.publishEvent();
+        if (metricsDataModel != null) {
+            metricsDataModel.publishEvent();
+        }
     }
 
     @Override
@@ -103,6 +116,6 @@ public abstract class AwsAction extends Action {
 
     // Helper method to publish a performed action metric immediately
     public static void publishPerformedAction(MetricsDataModel dataModel) {
-        dataModel.addAttribute(END_RESULT, PERFORMED).publishEvent();
+        dataModel.addAttribute(END_RESULT, SUCCEEDED).publishEvent();
     }
 }

@@ -451,9 +451,9 @@ public class AwsToolkitCore extends AbstractAwsPlugin {
             accountManager.addDefaultAccountChangeListener(resetAccountListenr);
             addDefaultRegionChangeListener(resetAccountListenr);
 
-            // Initialize Mobile Analytics
+            // Initialize Telemetry
             toolkitAnalyticsManager = initializeToolkitAnalyticsManager();
-            toolkitAnalyticsManager.startSession(true);
+            toolkitAnalyticsManager.startSession(accountManager, true);
 
         } catch (Exception e) {
             reportException("Internal error when starting the AWS Toolkit plugin.", e);

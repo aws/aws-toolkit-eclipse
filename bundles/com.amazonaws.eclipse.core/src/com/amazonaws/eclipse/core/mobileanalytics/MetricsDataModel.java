@@ -19,26 +19,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.diagnostic.utils.PlatformEnvironmentDataCollector;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
-import com.amazonaws.services.errorreport.model.PlatformDataModel;
 
 public class MetricsDataModel {
-
-    private static final String ECLIPSE_PLATFORM = "EclipsePlatform";
-    private static final String OS_NAME = "OSName";
-    private static final String JAVA_VERSION = "JavaVersion";
-    private static final String TOOLKIT_VERSION = "ToolkitVersion";
-
     private static final Map<String, String> METRICS_METADATA = new HashMap<>();
-
-    static {
-        PlatformDataModel platformDataModel = PlatformEnvironmentDataCollector.getData();
-        METRICS_METADATA.put(OS_NAME, platformDataModel.getOsName());
-        METRICS_METADATA.put(JAVA_VERSION, platformDataModel.getLanguageVersion());
-        METRICS_METADATA.put(ECLIPSE_PLATFORM, platformDataModel.getPlatformVersion());
-        METRICS_METADATA.put(TOOLKIT_VERSION, platformDataModel.getAwsProductVersion());
-    }
 
     private final ToolkitAnalyticsManager analytics = AwsToolkitCore.getDefault().getAnalyticsManager();
     private final AwsToolkitMetricType metricType;

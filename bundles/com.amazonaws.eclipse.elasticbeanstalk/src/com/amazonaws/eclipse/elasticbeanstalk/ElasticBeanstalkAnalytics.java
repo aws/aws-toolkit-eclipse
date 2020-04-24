@@ -23,7 +23,7 @@ public final class ElasticBeanstalkAnalytics {
     /*
      * Deploy Application to Elastic Beanstalk
      */
-    private static final String EVENT_TYPE_DEPLOY_APPLICATION = "ElasticBeanstalk-DeployApplication";
+    private static final String EVENT_TYPE_DEPLOY_APPLICATION = "beanstalk_deployApplication";
 
     private static final String METRIC_NAME_DEPLOY_TOTAL_TIME_MS = "DeployTotalTimeMs";
     private static final String METRIC_NAME_UPLOAD_S3_BUCKET_TIME_MS = "UploadS3BucketTimeMs";
@@ -33,7 +33,7 @@ public final class ElasticBeanstalkAnalytics {
     /*
      * Create New project for Eclipse Beanstalk
      */
-    private static final String EVENT_TYPE_CREATE_NEW_WEB_APPLICATION = "ElasticBeanstalk-NewWebApplication";
+    private static final String EVENT_TYPE_CREATE_NEW_WEB_APPLICATION = "beanstalk_createApplication";
     private static final String ATTRI_NAME_WEB_APPLICATION_TYPE = "ApplicationType";
     private static final String ATTRI_VALUE_WEB_APPLICATION_DDB = "WebApplication-DDB";
     private static final String ATTRI_VALUE_WEB_APPLICATION_NDDB = "WebApplication-NDDB";

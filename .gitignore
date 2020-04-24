@@ -1,3 +1,4 @@
 **/target/
 **/bin/
 .DS_Store
+MANIFEST.MF

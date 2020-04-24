@@ -38,6 +38,10 @@ public class ToolkitCachedCognitoIdentityIdProvider implements AWSCognitoIdentit
     public static final ToolkitCachedCognitoIdentityIdProvider TEST_PROVIDER = new ToolkitCachedCognitoIdentityIdProvider(
             Constants.COGNITO_IDENTITY_POOL_ID_TEST, AwsToolkitCore
                     .getDefault().getPreferenceStore());
+    
+    public static final ToolkitCachedCognitoIdentityIdProvider V2_PROVIDER = new ToolkitCachedCognitoIdentityIdProvider(
+            Constants.COGNITO_IDENTITY_POOL_ID_PROD_V2, AwsToolkitCore
+                    .getDefault().getPreferenceStore());
 
     private final String identityPoolId;
     private final IPreferenceStore prefStore;
