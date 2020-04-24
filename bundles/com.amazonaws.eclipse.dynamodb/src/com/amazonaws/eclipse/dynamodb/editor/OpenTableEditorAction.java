@@ -37,7 +37,6 @@ public class OpenTableEditorAction extends AwsAction {
         setToolTipText("Opens the query editor to run queries against this domain");
     }
 
-
     @Override
     protected void doRun() {
         try {

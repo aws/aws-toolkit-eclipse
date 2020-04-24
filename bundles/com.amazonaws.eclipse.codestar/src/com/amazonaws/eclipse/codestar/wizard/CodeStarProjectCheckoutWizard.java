@@ -130,7 +130,6 @@ public class CodeStarProjectCheckoutWizard extends Wizard implements IImportWiza
                         WorkbenchUtils.selectAndReveal(fileToOpen, workbench); // show in explorer
                         WorkbenchUtils.openFileInEditor(fileToOpen, workbench); // show in editor
                     }
-                    CodeStarAnalytics.trackRepositoryIsMaven(MavenUtils.isFilePom(fileToOpen));
                     monitor.done();
                 }
             });

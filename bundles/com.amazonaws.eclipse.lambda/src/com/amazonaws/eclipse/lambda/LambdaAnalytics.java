@@ -25,7 +25,7 @@ public final class LambdaAnalytics {
     /*
      * Upload function wizard
      */
-    private static final String EVENT_TYPE_UPLOAD_FUNCTION_WIZARD = "Lambda-UploadFunctionWizard";
+    private static final String EVENT_TYPE_UPLOAD_FUNCTION_WIZARD = "lambda_deploy";
 
     // OpenedFrom -> ProjectContextMenu/FileEditorContextMenu
     private static final String ATTR_NAME_OPENED_FROM = "OpenedFrom";
@@ -56,30 +56,28 @@ public final class LambdaAnalytics {
     /*
      * Invoke function dialog
      */
-    private static final String EVENT_TYPE_INVOKE_FUNCTION_DIALOG = "Lambda-InvokeFunctionDialog";
+    private static final String EVENT_TYPE_INVOKE_FUNCTION = "lambda_invokeRemote";
 
     // Change selection
     private static final String ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO = "InvokeInputFileSelectionCombo";
 
-    private static final String METRIC_NAME_IS_INVOKE_INPUT_MODIFIED = "IsInvokeInputModified";
-    private static final String METRIC_NAME_IS_PROJECT_MODIFIED_AFTER_LAST_INVOKE = "IsProjectModifiedAfterLastInvoke";
     private static final String METRIC_NAME_FUNCTION_LOG_LENGTH = "FunctionLogLength";
     private static final String METRIC_NAME_SHOW_LIVE_LOG = "ShowLiveLog";
 
     /*
      * New wizard
      */
-    private static final String EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD = "Lambda-NewLambdaProjectWizard";
-    private static final String EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD = "Lambda-NewLambdaFunctionWizard";
-    private static final String EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD = "Lambda-NewServerlessProjectWizard";
-    private static final String EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD = "Lambda-DeployServerlessProjectWizard";
+    private static final String EVENT_TYPE_NEW_LAMBDA_PROJECT_WIZARD = "project_new";
+    private static final String EVENT_TYPE_NEW_LAMBDA_FUNCTION_WIZARD = "project_new";
+    private static final String EVENT_TYPE_NEW_SERVERLESS_PROJECT_WIZARD = "sam_init";
+    private static final String EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD = "sam_deploy";
 
     private static final String ATTR_NAME_FUNCTION_INPUT_TYPE = "FunctionInputType";
     private static final String ATTR_NAME_BLUEPRINT_NAME = "BlueprintName";
     private static final String ATTR_NAME_IS_IMPORT_TEMPLATE = "IsImportTemplate";
 
     // End result -> Succeeded/Failed/Canceled
-    private static final String ATTR_NAME_END_RESULT = "EndResult";
+    private static final String ATTR_NAME_END_RESULT = "result";
     private static final String ATTR_VALUE_SUCCEEDED = "Succeeded";
     private static final String ATTR_VALUE_FAILED = "Failed";
     private static final String ATTR_VALUE_CANCELED = "Canceled";
@@ -161,76 +159,24 @@ public final class LambdaAnalytics {
         publishEventWithAttributes(EVENT_TYPE_DEPLOY_SERVERLESS_PROJECT_WIZARD, ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED);
     }
 
-    /*
-     * Analytics for Lambda-InvokeFunctionDialog
-     */
-    public static void trackInvokeDialogOpenedFromProjectContextMenu() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_PROJECT_CONTEXT_MENU)
-                .build());
-    }
-
-    public static void trackIsProjectModifiedAfterLastInvoke(boolean isModified) {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addBooleanMetric(METRIC_NAME_IS_PROJECT_MODIFIED_AFTER_LAST_INVOKE, isModified)
-                .build());
-    }
-
     public static void trackInvokeSucceeded() {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION)
                 .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_SUCCEEDED)
                 .build());
     }
 
     public static void trackInvokeFailed() {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION)
                 .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_FAILED)
                 .build());
     }
 
     public static void trackInvokeCanceled() {
         ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
+                .setEventType(EVENT_TYPE_INVOKE_FUNCTION)
                 .addAttribute(ATTR_NAME_END_RESULT, ATTR_VALUE_CANCELED)
-                .build());
-    }
-
-    public static void trackIsInvokeInputModified(boolean isModified) {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addBooleanMetric(METRIC_NAME_IS_INVOKE_INPUT_MODIFIED, isModified)
-                .build());
-    }
-
-    public static void trackInputJsonFileSelectionChange() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addAttribute(ATTR_NAME_CHANGE_SELECTION, ATTR_VALUE_INVOKE_INPUT_FILE_SELECTION_COMBO)
-                .build());
-    }
-
-    public static void trackInvokeDialogOpenedFromEditorContextMenu() {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addAttribute(ATTR_NAME_OPENED_FROM, ATTR_VALUE_FILE_EDITOR_CONTEXT_MENU)
-                .build());
-    }
-
-    public static void trackFunctionLogLength(long length) {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addMetric(METRIC_NAME_FUNCTION_LOG_LENGTH, length)
-                .build());
-    }
-
-    public static void trackIsShowLiveLog(boolean showLiveLog) {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_TYPE_INVOKE_FUNCTION_DIALOG)
-                .addBooleanMetric(METRIC_NAME_SHOW_LIVE_LOG, showLiveLog)
                 .build());
     }
 

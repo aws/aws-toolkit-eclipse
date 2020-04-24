@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.amazonaws.services.mobileanalytics.model.Event;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
 
 /**
  * A very simplistic implementation of a double-ended queue with non-blocking
@@ -27,8 +27,8 @@ import com.amazonaws.services.mobileanalytics.model.Event;
  */
 class EventQueue {
 
-    private final ConcurrentLinkedQueue<Event> headQueue = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<Event> tailQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<MetricDatum> headQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<MetricDatum> tailQueue = new ConcurrentLinkedQueue<>();
 
     /**
      * Not thread safe.
@@ -37,14 +37,14 @@ class EventQueue {
      *             if this queue still contains event added via any previous
      *             addToHead calls
      */
-    public void addToHead(List<Event> events) {
+    public void addToHead(List<MetricDatum> events) {
         if (!headQueue.isEmpty()) {
             throw new IllegalStateException();
         }
         headQueue.addAll(events);
     }
 
-    public void addToTail(Event event) {
+    public void addToTail(MetricDatum event) {
         tailQueue.add(event);
     }
 
@@ -58,17 +58,17 @@ class EventQueue {
     /**
      * Not thread safe.
      */
-    public List<Event> pollAllQueuedEvents() {
-        List<Event> events = new LinkedList<>();
+    public List<MetricDatum> pollAllQueuedEvents() {
+        List<MetricDatum> events = new LinkedList<>();
         events.addAll(pollAll(headQueue));
         events.addAll(pollAll(tailQueue));
         return events;
     }
 
-    private List<Event> pollAll(Queue<Event> queue) {
-        List<Event> events = new LinkedList<>();
+    private List<MetricDatum> pollAll(Queue<MetricDatum> queue) {
+        List<MetricDatum> events = new LinkedList<>();
         while (true) {
-            Event polled = queue.poll();
+            MetricDatum polled = queue.poll();
             if (polled != null) {
                 events.add(polled);
             } else {

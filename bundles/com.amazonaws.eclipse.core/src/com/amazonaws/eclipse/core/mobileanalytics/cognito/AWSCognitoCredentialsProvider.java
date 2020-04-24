@@ -40,7 +40,9 @@ public class AWSCognitoCredentialsProvider implements AWSCredentialsProvider {
 
     public static final AWSCognitoCredentialsProvider TEST_PROVIDER = new AWSCognitoCredentialsProvider(
             ToolkitCachedCognitoIdentityIdProvider.TEST_PROVIDER);
-
+    
+    public static final AWSCognitoCredentialsProvider V2_PROVIDER = new AWSCognitoCredentialsProvider(
+            ToolkitCachedCognitoIdentityIdProvider.V2_PROVIDER);
 
     private final AWSCognitoIdentityIdProvider identityIdProvider;
 

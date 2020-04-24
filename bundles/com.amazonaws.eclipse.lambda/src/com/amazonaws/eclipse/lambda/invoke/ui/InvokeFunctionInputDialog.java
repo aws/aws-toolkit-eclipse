@@ -122,7 +122,6 @@ public class InvokeFunctionInputDialog extends Dialog {
         jsonInputFileCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                LambdaAnalytics.trackInputJsonFileSelectionChange();
                 onJsonFileSelectionChange();
             }
         });

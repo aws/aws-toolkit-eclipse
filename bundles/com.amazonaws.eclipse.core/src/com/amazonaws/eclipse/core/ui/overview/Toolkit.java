@@ -266,6 +266,9 @@ public class Toolkit {
         return label;
     }
 
+    public ImageHyperlink newListItem(Composite parent, String text, String href) {
+        return newListItem(parent, text, href, null);
+    }
     /**
      * Creates a new list item in the specified parent composite. Displays a
      * bulleted list item containing a hyperlink with the specified text and

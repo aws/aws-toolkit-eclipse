@@ -42,7 +42,6 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.AwsUrls;
-import com.amazonaws.eclipse.core.OpenLinkAction;
 import com.amazonaws.eclipse.core.diagnostic.utils.EmailMessageLauncher;
 import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsUtils;
@@ -210,22 +209,22 @@ class FormsOverviewComposite extends Composite {
         composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
         overviewToolkit.newListItem(composite,
                 "AWS Toolkit for Eclipse Homepage",
-                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_HOMEPAGE_URL, new OpenLinkAction("AwsToolkitForEclipseHomepage"));
+                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_HOMEPAGE_URL);
         overviewToolkit.newListItem(composite,
                 "AWS Java Development Forum",
-                AwsUrls.JAVA_DEVELOPMENT_FORUM_URL, new OpenLinkAction("AwsJavaDevelopmentForum"));
+                AwsUrls.JAVA_DEVELOPMENT_FORUM_URL);
         overviewToolkit.newListItem(composite,
                 "Frequently Asked Questions",
-                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_FAQ_URL, new OpenLinkAction("FrequentlyAskedQuestion"));
+                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_FAQ_URL);
         overviewToolkit.newListItem(composite,
                 "AWS Toolkit for Eclipse Source Code",
-                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_GITHUB_URL, new OpenLinkAction("AwsToolkitForEclipseSourceCode"));
+                AwsUrls.AWS_TOOLKIT_FOR_ECLIPSE_GITHUB_URL);
         overviewToolkit.newListItem(composite,
                 "AWS Management Console",
-                AwsUrls.AWS_MANAGEMENT_CONSOLE_URL, new OpenLinkAction("AwsManagementConsole"));
+                AwsUrls.AWS_MANAGEMENT_CONSOLE_URL);
         overviewToolkit.newListItem(composite,
                 "Send Feedback to " + EmailMessageLauncher.AWS_ECLIPSE_FEEDBACK_AT_AMZN,
-                "mailto:" + EmailMessageLauncher.AWS_ECLIPSE_FEEDBACK_AT_AMZN, new OpenLinkAction("SendFeedback"));
+                "mailto:" + EmailMessageLauncher.AWS_ECLIPSE_FEEDBACK_AT_AMZN);
 
         return composite;
     }
@@ -262,12 +261,10 @@ class FormsOverviewComposite extends Composite {
                         for (Control control : composite.getChildren()) control.dispose();
 
                         if (items == null || items.isEmpty()) {
-                            toolkit.newListItem(composite, "AWS Java Developer Blog", JAVA_DEVELOPER_BLOG_URL, new OpenLinkAction("AWS Java Developer Blog"));
+                            toolkit.newListItem(composite, "AWS Java Developer Blog", JAVA_DEVELOPER_BLOG_URL);
                         } else {
                             for (Item message : items) {
-                                toolkit.newListItem(composite,
-                                        message.getTitle(), message.getLink(),
-                                        new OpenLinkAction("AWS Blog: " + message.getTitle()));
+                                toolkit.newListItem(composite, message.getTitle(), message.getLink());
                             }
                         }
 

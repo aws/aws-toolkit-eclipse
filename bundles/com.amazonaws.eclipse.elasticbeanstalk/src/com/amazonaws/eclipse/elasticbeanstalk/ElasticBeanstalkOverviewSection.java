@@ -22,7 +22,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.AwsUrls;
-import com.amazonaws.eclipse.core.OpenLinkAction;
 import com.amazonaws.eclipse.core.mobileanalytics.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsUtils;
 import com.amazonaws.eclipse.core.ui.overview.OverviewSection;
@@ -48,9 +47,9 @@ public class ElasticBeanstalkOverviewSection extends OverviewSection implements 
 
         Composite resourcesSection = toolkit.newSubSection(parent, "Additional Resources");
         toolkit.newListItem(resourcesSection, "Getting Started with AWS Elastic Beanstalk Deployment in Eclipse",
-                ELASTIC_BEANSTALK_GETTING_STARTED_GUIDE_URL, new OpenLinkAction("ElasticBeanstalkGettingStartedGuide"));
+                ELASTIC_BEANSTALK_GETTING_STARTED_GUIDE_URL);
         this.toolkit.newListItem(resourcesSection, "Video: Overview of AWS Elastic Beanstalk Deployment in Eclipse",
-                ELASTIC_BEANSTALK_ECLIPSE_SCREENCAST_URL, new OpenLinkAction("ElasticBeanstalkDeploymentVideo"));
+                ELASTIC_BEANSTALK_ECLIPSE_SCREENCAST_URL);
     }
 
     /** Action to open the New AWS Java Project wizard in a dialog */

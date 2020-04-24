@@ -23,19 +23,16 @@ public class CodeCommitAnalytics {
     private static final ToolkitAnalyticsManager ANALYTICS = AwsToolkitCore.getDefault().getAnalyticsManager();
 
     // Create Repository Event
-    private static final String EVENT_CREATE_REPOSITORY = "CodeCommit-CreateRepository";
+    private static final String EVENT_CREATE_REPOSITORY = "codecommit_createRepo";
     // Clone Repository Event
-    private static final String EVENT_CLONE_REPOSITORY = "CodeCommit-CloneRepository";
+    private static final String EVENT_CLONE_REPOSITORY = "codecommit_cloneRepo";
     // Delete Repository Event
-    private static final String EVENT_DELETE_REPOSITORY = "CodeCommit-DeleteRepository";
+    private static final String EVENT_DELETE_REPOSITORY = "codecommit_deleteRepo";
     // Open Repository Editor
-    private static final String EVENT_OPEN_REPOSITORY_EDITOR = "CodeCommit-OpenRepositoryEditor";
-    // Repository Type
-    private static final String EVENT_REPOSITORY_TYPE = "CodeCommit-RepositoryType";
+    private static final String EVENT_OPEN_REPOSITORY_EDITOR = "codecommit_openEditor";
 
     // Attribute
-    private static final String ATTR_NAME_END_RESULT = "EndResult";
-    private static final String ATTR_NAME_REPOSITORY_IS_MAVEN = "Maven";
+    private static final String ATTR_NAME_END_RESULT = "result";
 
     public static void trackCreateRepository(EventResult result) {
         publishEventWithAttributes(EVENT_CREATE_REPOSITORY, ATTR_NAME_END_RESULT, result.getResultText());
@@ -51,13 +48,6 @@ public class CodeCommitAnalytics {
 
     public static void trackOpenRepositoryEditor(EventResult result) {
         publishEventWithAttributes(EVENT_OPEN_REPOSITORY_EDITOR, ATTR_NAME_END_RESULT, result.getResultText());
-    }
-
-    public static void trackRepositoryIsMaven(boolean isMavenProject) {
-        ANALYTICS.publishEvent(ANALYTICS.eventBuilder()
-                .setEventType(EVENT_REPOSITORY_TYPE)
-                .addBooleanMetric(ATTR_NAME_REPOSITORY_IS_MAVEN, isMavenProject)
-                .build());
     }
 
     private static void publishEventWithAttributes(String eventType, String... attributes) {

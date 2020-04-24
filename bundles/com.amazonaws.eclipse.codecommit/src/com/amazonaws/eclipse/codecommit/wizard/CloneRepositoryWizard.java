@@ -133,7 +133,6 @@ public class CloneRepositoryWizard extends Wizard implements IImportWizard {
                         WorkbenchUtils.selectAndReveal(fileToOpen, workbench); // show in explorer
                         WorkbenchUtils.openFileInEditor(fileToOpen, workbench); // show in editor
                     }
-                    CodeCommitAnalytics.trackRepositoryIsMaven(MavenUtils.isFilePom(fileToOpen));
                     monitor.done();
                 }
             });

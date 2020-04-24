@@ -14,16 +14,20 @@
  */
 package com.amazonaws.eclipse.core.mobileanalytics;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.time.Instant;
 
 import com.amazonaws.annotation.Immutable;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.Constants;
 import com.amazonaws.eclipse.core.mobileanalytics.internal.ToolkitSession;
-import com.amazonaws.services.mobileanalytics.model.Event;
-import com.amazonaws.util.DateUtils;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetadataEntry;
+import software.amazon.awssdk.services.toolkittelemetry.model.MetricDatum;
+import software.amazon.awssdk.services.toolkittelemetry.model.Unit;
 
 @Immutable
 public class ToolkitEvent {
@@ -36,23 +40,16 @@ public class ToolkitEvent {
     private final Map<String, String> attributes = new HashMap<>();
     private final Map<String, Double> metrics = new HashMap<>();
 
-    /**
-     * @return convert to the low-level {@link Event} object that is accepted
-     *         by the Mobile Analytics service API.
-     */
-    public Event toMobileAnalyticsEvent() {
-        Event event = new Event();
+    public MetricDatum toMetricDatum() {
+        // we don't differentiate attributes/metrics anymore so add both
+        Collection<MetadataEntry> metadata = this.metrics.entrySet().stream().map((it) -> new MetadataEntry().key(it.getKey()).value(it.getValue().toString()))
+                .filter(it -> it.getValue() != null && !it.getValue().isEmpty()).collect(Collectors.toList());
+        metadata.addAll(this.attributes.entrySet().stream().map(it -> new MetadataEntry().key(it.getKey()).value(it.getValue()))
+                .filter(it -> it.getValue() != null && !it.getValue().isEmpty()).collect(Collectors.toList()));
 
-        event.setSession(this.session.toMobileAnalyticsSession());
-
-        event.setEventType(this.eventType);
-        event.setTimestamp(DateUtils.formatISO8601Date(this.timestamp));
-        event.setAttributes(this.attributes);
-        event.setMetrics(this.metrics);
-
-        event.setVersion(Constants.MOBILE_ANALYTICS_SERVICE_VERSION);
-
-        return event;
+        final MetricDatum datum = new MetricDatum().metricName(this.eventType).value(1.0).unit(Unit.None).epochTimestamp(Instant.now().toEpochMilli())
+                .metadata(metadata);
+        return datum;
     }
 
     /**
@@ -103,7 +100,8 @@ public class ToolkitEvent {
      * The constructor is intentionally marked as private; caller should use
      * ToolkitEventBuilder to create event instance
      */
-    private ToolkitEvent() {}
+    private ToolkitEvent() {
+    }
 
     public static class ToolkitEventBuilder {
 
@@ -119,8 +117,7 @@ public class ToolkitEvent {
         }
 
         /**
-         * If not specified, the timestamp is by default set to the current
-         * time.
+         * If not specified, the timestamp is by default set to the current time.
          */
         public ToolkitEventBuilder setTimestamp(Date timestamp) {
             this.event.timestamp = timestamp;
@@ -148,7 +145,5 @@ public class ToolkitEvent {
             }
             return this.event;
         }
-
     }
-
 }

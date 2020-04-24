@@ -14,6 +14,7 @@
  */
 package com.amazonaws.eclipse.core.mobileanalytics.internal;
 
+import com.amazonaws.eclipse.core.accounts.AwsPluginAccountManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitAnalyticsManager;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent;
 import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuilder;
@@ -21,7 +22,7 @@ import com.amazonaws.eclipse.core.mobileanalytics.ToolkitEvent.ToolkitEventBuild
 public class NoOpToolkitAnalyticsManager implements ToolkitAnalyticsManager {
 
     @Override
-    public void startSession(boolean forceFlushEvents) {
+	public void startSession(AwsPluginAccountManager accountManager, boolean forceFlushEvents) {
     }
 
     @Override
@@ -40,5 +41,4 @@ public class NoOpToolkitAnalyticsManager implements ToolkitAnalyticsManager {
     @Override
     public void setEnabled(boolean enabled) {
     }
-
 }
