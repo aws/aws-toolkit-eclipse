@@ -11,5 +11,6 @@ Require-Bundle: com.amazonaws.eclipse.core;bundle-version="1.0.0",
  org.eclipse.ui;bundle-version="3.4.0",
  org.junit;bundle-version="4.11.0",
  com.amazonaws.eclipse.javasdk;bundle-version="1.11.130"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: org.junit
+Automatic-Module-Name: com.amazonaws.eclipse.core.tests
