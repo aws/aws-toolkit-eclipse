@@ -1,6 +1,7 @@
 AWS Toolkit for Eclipse
 =======================
 
+
 The **AWS Toolkit for Eclipse** is an open source plug-in for the Eclipse Java IDE that makes it easier for developers to develop, debug, and deploy Java applications using [Amazon Web Services](https://aws.amazon.com/). With the AWS Toolkit for Eclipse, you’ll be able to get started faster and be more productive when building AWS applications.
 
 * [Homepage](https://aws.amazon.com/eclipse/)
