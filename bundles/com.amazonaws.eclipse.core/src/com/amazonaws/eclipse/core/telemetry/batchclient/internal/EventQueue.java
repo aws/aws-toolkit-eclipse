@@ -29,6 +29,8 @@ class EventQueue {
 
     private final ConcurrentLinkedQueue<MetricDatum> headQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<MetricDatum> tailQueue = new ConcurrentLinkedQueue<>();
+    // we can only pull 20 events out at a time due to the service
+    private final int POLL_LIMIT = 20;
 
     /**
      * Not thread safe.
@@ -60,14 +62,13 @@ class EventQueue {
      */
     public List<MetricDatum> pollAllQueuedEvents() {
         List<MetricDatum> events = new LinkedList<>();
-        events.addAll(pollAll(headQueue));
-        events.addAll(pollAll(tailQueue));
+        pollAll(events, headQueue);
+        pollAll(events, tailQueue);
         return events;
     }
 
-    private List<MetricDatum> pollAll(Queue<MetricDatum> queue) {
-        List<MetricDatum> events = new LinkedList<>();
-        while (true) {
+    private void pollAll(List<MetricDatum> events, Queue<MetricDatum> queue) {
+        while (events.size() < POLL_LIMIT) {
             MetricDatum polled = queue.poll();
             if (polled != null) {
                 events.add(polled);
@@ -75,7 +76,5 @@ class EventQueue {
                 break;
             }
         }
-        return events;
     }
-
 }
