@@ -41,7 +41,10 @@ Export-Package: com.amazonaws.eclipse.core,
  com.amazonaws.eclipse.databinding,
  com.amazonaws.eclipse.explorer,
  com.amazonaws.eclipse.explorer.sns,
- com.amazonaws.eclipse.explorer.sqs
+ com.amazonaws.eclipse.explorer.sqs,
+ software.amazon.awssdk.services.toolkittelemetry,
+ software.amazon.awssdk.services.toolkittelemetry.model,
+ software.amazon.awssdk.services.toolkittelemetry.model.transform
 Require-Bundle: org.eclipse.swt,
  org.eclipse.jface,
  org.eclipse.ui,

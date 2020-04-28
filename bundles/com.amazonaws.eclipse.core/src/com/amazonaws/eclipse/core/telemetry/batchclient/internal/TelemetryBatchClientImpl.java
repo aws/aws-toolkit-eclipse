@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.telemetry.ClientContextConfig;
 import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
 import com.amazonaws.eclipse.core.telemetry.batchclient.TelemetryBatchClient;
@@ -89,6 +90,7 @@ public class TelemetryBatchClientImpl implements TelemetryBatchClient {
 	private void tryDispatchAllEventsAsync() {
 
 		boolean contentionDetected = this.isSendingPutEventsRequest.getAndSet(true);
+		AwsToolkitCore.getDefault().logInfo("Trying to dispatch events, contention detected: " + contentionDetected);
 
 		if (!contentionDetected) {
 			dispatchAllEventsAsync();
@@ -106,8 +108,10 @@ public class TelemetryBatchClientImpl implements TelemetryBatchClient {
 			public void run(IProgressMonitor monitor) throws CoreException {
 				try {
 					telemetryClient.publish(eventsBatch);
+					AwsToolkitCore.getDefault().logInfo("Posting telemetry succeeded");
 				} catch (Exception e) {
 					eventQueue.addToHead(eventsBatch);
+					AwsToolkitCore.getDefault().logError("Unable to post telemetry", e);
 				} finally {
 					isSendingPutEventsRequest.set(false);
 				}
