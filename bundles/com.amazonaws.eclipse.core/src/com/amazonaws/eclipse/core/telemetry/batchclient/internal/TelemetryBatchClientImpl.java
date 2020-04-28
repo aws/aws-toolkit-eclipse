@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.telemetry.ClientContextConfig;
 import com.amazonaws.eclipse.core.telemetry.TelemetryClientV2;
 import com.amazonaws.eclipse.core.telemetry.batchclient.TelemetryBatchClient;
@@ -89,31 +90,49 @@ public class TelemetryBatchClientImpl implements TelemetryBatchClient {
 	private void tryDispatchAllEventsAsync() {
 
 		boolean contentionDetected = this.isSendingPutEventsRequest.getAndSet(true);
+		AwsToolkitCore.getDefault().logInfo("Trying to dispatch events, contention detected: " + contentionDetected);
 
 		if (!contentionDetected) {
 			dispatchAllEventsAsync();
 		}
 	}
 
-	/**
-	 * Only one thread can call this method at a time
-	 */
-	private void dispatchAllEventsAsync() {
-		final List<MetricDatum> eventsBatch = this.eventQueue.pollAllQueuedEvents();
+    /**
+     * Only one thread can call this method at a time
+     */
+    private void dispatchAllEventsAsync() {
+        final List<MetricDatum> eventsBatch = this.eventQueue.pollAllQueuedEvents();
+        final int POLL_LIMIT = 20;
 
-		Job j = Job.create("Posting telemetry", new ICoreRunnable() {
-			@Override
-			public void run(IProgressMonitor monitor) throws CoreException {
-				try {
-					telemetryClient.publish(eventsBatch);
-				} catch (Exception e) {
-					eventQueue.addToHead(eventsBatch);
-				} finally {
-					isSendingPutEventsRequest.set(false);
-				}
-			}
-		});
-		j.setSystem(true);
-		j.schedule();
-	}
+        Job j = Job.create("Posting telemetry", new ICoreRunnable() {
+            @Override
+            public void run(IProgressMonitor monitor) throws CoreException {
+                try {
+                    postTelemetry();
+                } finally {
+                    isSendingPutEventsRequest.set(false);
+                }
+            }
+
+            private void postTelemetry() {
+                int base = 0;
+                while (base < eventsBatch.size()) {
+                    final List<MetricDatum> events = eventsBatch.subList(base, Math.min(base + POLL_LIMIT, eventsBatch.size()));
+                    if (events.isEmpty()) {
+                        break;
+                    }
+                    try {
+                        telemetryClient.publish(events);
+                        AwsToolkitCore.getDefault().logInfo("Posting telemetry succeeded");
+                    } catch (Exception e) {
+                        eventQueue.addToHead(events);
+                        AwsToolkitCore.getDefault().logError("Unable to post telemetry", e);
+                    }
+                    base += POLL_LIMIT;
+                }
+            }
+        });
+        j.setSystem(true);
+        j.schedule();
+    }
 }
