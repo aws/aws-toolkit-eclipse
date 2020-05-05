@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+    install:
+        runtime-versions:
+            java: openjdk8
+
+    build:
+        commands:
+            - mvn -Pinstall-third-party-bundles clean install
+            - mvn -Pbuild-eclipse-devide package
+            - mvn -Pbuild-eclipse package
+
+artifacts:
+    base-directory: releng/com.amazonaws.eclipse.update/target/repository
+    files:
+        - '**/*'
+
+cache:
+    paths:
+        - 'C:/Users/ContainerAdministrator/.m2/**/*'
+
