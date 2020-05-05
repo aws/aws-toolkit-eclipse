@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+    install:
+        runtime-versions:
+            java: openjdk8
+
+    build:
+        commands:
+            - sh setup.sh
+            - mvn -Pbuild-eclipse package
+
+artifacts:
+    base-directory: releng/com.amazonaws.eclipse.update/target/repository
+    files:
+        - '**/*'
+
+cache:
+    paths:
+        - '/root/.m2/**/*'
+
