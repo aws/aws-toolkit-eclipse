@@ -89,3 +89,4 @@ Now you have imported all the plugin projects into Eclipse, but you need to set 
 
 * You can submit issues for bug reports and feature requests by using Github [issues](https://github.com/aws/aws-toolkit-eclipse/issues).
 * You can also send us email at <aws-eclipse-feedback@amazon.com> to send feedback or report issues.
+
