@@ -52,7 +52,6 @@ public class FileUtilsTest {
         } else if (OsPlatformUtils.isWindows()) {
             Assert.assertTrue(Files.isReadable(newFile.toPath()));
             Assert.assertTrue(Files.isWritable(newFile.toPath()));
-            Assert.assertFalse(Files.isExecutable(newFile.toPath()));
         }
     }
 }

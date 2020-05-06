@@ -44,7 +44,6 @@ public class FileUtils {
             File file = filePath.toFile();
             file.setReadable(true, true);
             file.setWritable(true, true);
-            file.setExecutable(false);
         } else if (OsPlatformUtils.isLinux() || OsPlatformUtils.isMac()) {
             Set<PosixFilePermission> perms = new HashSet<>();
             perms.add(PosixFilePermission.OWNER_READ);
