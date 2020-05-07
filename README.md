@@ -3,7 +3,6 @@ AWS Toolkit for Eclipse
 
 The **AWS Toolkit for Eclipse** is an open source plug-in for the Eclipse Java IDE that makes it easier for developers to develop, debug, and deploy Java applications using [Amazon Web Services](https://aws.amazon.com/). With the AWS Toolkit for Eclipse, you’ll be able to get started faster and be more productive when building AWS applications.
 
-
 * [Homepage](https://aws.amazon.com/eclipse/)
 * [User Guide](http://docs.aws.amazon.com/toolkit-for-eclipse/v1/user-guide/welcome.html) ([Source](https://github.com/awsdocs/aws-toolkit-eclipse-user-guide))
 * [Getting Started](http://docs.aws.amazon.com/toolkit-for-eclipse/v1/user-guide/getting-started.html)
@@ -90,4 +89,3 @@ Now you have imported all the plugin projects into Eclipse, but you need to set 
 
 * You can submit issues for bug reports and feature requests by using Github [issues](https://github.com/aws/aws-toolkit-eclipse/issues).
 * You can also send us email at <aws-eclipse-feedback@amazon.com> to send feedback or report issues.
-
