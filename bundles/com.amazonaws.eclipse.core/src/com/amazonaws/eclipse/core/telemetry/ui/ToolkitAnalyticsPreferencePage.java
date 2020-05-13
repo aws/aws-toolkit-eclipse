@@ -35,9 +35,9 @@ public class ToolkitAnalyticsPreferencePage extends AwsToolkitPreferencePage
     private Button analyticsEnabledButton;
 
     public ToolkitAnalyticsPreferencePage() {
-        super("Anonymous Collection of Analytics");
+        super("Collection of Analytics");
         setPreferenceStore(AwsToolkitCore.getDefault().getPreferenceStore());
-        setDescription("Anonymous Collection of Analytics");
+        setDescription("Collection of Analytics");
     }
 
     @Override
@@ -56,14 +56,15 @@ public class ToolkitAnalyticsPreferencePage extends AwsToolkitPreferencePage
         composite.setLayoutData(gridData);
 
         WizardWidgetFactory.newLink(composite, new WebLinkListener(), String.format(
-                "By leaving this box checked, you agree that AWS may anonymously " +
+                "By leaving this box checked, you agree that AWS may " +
                 "collect analytics about your usage of AWS Toolkit. AWS will handle " +
-                "all information received in accordance with the <a href=\"%s\">AWS Privacy Policy</a>.",
+                "all information received in accordance with the <a href=\"%s\">AWS Privacy Policy</a>.\n" +
+                "When available, an AWS Account ID is associated with this information.",
                 "http://aws.amazon.com/privacy/"),
                 1);
 
         analyticsEnabledButton = new Button(composite, SWT.CHECK | SWT.MULTI | SWT.WRAP);
-        analyticsEnabledButton.setText("Enable anonymous collection of analytics");
+        analyticsEnabledButton.setText("Enable collection of analytics");
         analyticsEnabledButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         analyticsEnabledButton.setSelection(getPreferenceStore().getBoolean(
                 PreferenceConstants.P_TOOLKIT_ANALYTICS_COLLECTION_ENABLED));

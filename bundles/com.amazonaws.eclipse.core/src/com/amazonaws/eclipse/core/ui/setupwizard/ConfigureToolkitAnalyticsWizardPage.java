@@ -32,7 +32,7 @@ final class ConfigureToolkitAnalyticsWizardPage extends WizardPage {
     ConfigureToolkitAnalyticsWizardPage() {
         super("initializeToolkitAnalyticsWizardPage");
 
-        setTitle("Anonymous Collection of Analytics");
+        setTitle("Collection of Analytics");
         setDescription("Help us improve AWS Toolkit by enabling analytics data collection?");
     }
 
@@ -48,20 +48,21 @@ final class ConfigureToolkitAnalyticsWizardPage extends WizardPage {
 
         Text description = new Text(composite, SWT.MULTI | SWT.BORDER | SWT.WRAP);
         description.setText(
-                "By leaving this box checked, you agree that AWS may anonymously " +
+                "By leaving this box checked, you agree that AWS may " +
                 "collect analytics about your usage of AWS Toolkit (such as " +
                 "service/feature usage and view, UI instrumentation usage, AWS " +
                 "Toolkit version and user platform). AWS will use this information " +
                 "to improve the AWS Toolkit and other Amazon products and services " +
                 "and will handle all information received in accordance with the " +
-                "AWS Privacy Policy (<http://aws.amazon.com/privacy/>)\n");
+                "AWS Privacy Policy (<http://aws.amazon.com/privacy/>)\n" +
+                "When available, an AWS Account ID is associated with this information.\n");
         description.setEditable(false);
         description.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
         enableAnalyticsButton = new Button(composite, SWT.CHECK | SWT.MULTI | SWT.WRAP);
         enableAnalyticsButton.setText(
                 "I acknowledge the legal notice above and agree to let AWS collect" +
-                " anonymous analytics about my AWS Toolkit usage.");
+                " analytics about my AWS Toolkit usage.");
         enableAnalyticsButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         enableAnalyticsButton.setSelection(true);
 
