@@ -19,7 +19,6 @@ import static com.amazonaws.eclipse.core.util.JavaProjectUtils.setDefaultJreToPr
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;

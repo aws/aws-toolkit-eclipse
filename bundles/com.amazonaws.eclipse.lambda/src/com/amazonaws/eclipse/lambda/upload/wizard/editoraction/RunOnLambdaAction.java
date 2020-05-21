@@ -16,7 +16,6 @@ package com.amazonaws.eclipse.lambda.upload.wizard.editoraction;
 
 import org.eclipse.jface.action.IAction;
 
-import com.amazonaws.eclipse.lambda.LambdaAnalytics;
 import com.amazonaws.eclipse.lambda.invoke.handler.InvokeFunctionHandler;
 
 public class RunOnLambdaAction extends AbstractLambdaEditorAction {

@@ -42,7 +42,6 @@ import com.amazonaws.eclipse.core.egit.jobs.ImportProjectJob;
 import com.amazonaws.eclipse.core.egit.ui.CloneDestinationPage;
 import com.amazonaws.eclipse.core.egit.ui.SourceBranchPage;
 import com.amazonaws.eclipse.core.exceptions.AwsActionException;
-import com.amazonaws.eclipse.core.maven.MavenUtils;
 import com.amazonaws.eclipse.core.model.GitCredentialsDataModel;
 import com.amazonaws.eclipse.core.regions.RegionUtils;
 import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;

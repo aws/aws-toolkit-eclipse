@@ -31,7 +31,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import com.amazonaws.eclipse.core.ui.WebLinkListener;
 import com.amazonaws.eclipse.core.util.OsPlatformUtils;
 import com.amazonaws.eclipse.ec2.Ec2Plugin;
-import com.amazonaws.eclipse.ec2.PlatformUtils;
 
 /**
  * Preference page for configuring how external tools (ex: ssh clients) are invoked.

@@ -44,7 +44,6 @@ import com.amazonaws.eclipse.core.egit.jobs.CloneGitRepositoryJob;
 import com.amazonaws.eclipse.core.egit.jobs.ImportProjectJob;
 import com.amazonaws.eclipse.core.egit.ui.CloneDestinationPage;
 import com.amazonaws.eclipse.core.egit.ui.SourceBranchPage;
-import com.amazonaws.eclipse.core.maven.MavenUtils;
 import com.amazonaws.eclipse.core.util.WorkbenchUtils;
 
 /**

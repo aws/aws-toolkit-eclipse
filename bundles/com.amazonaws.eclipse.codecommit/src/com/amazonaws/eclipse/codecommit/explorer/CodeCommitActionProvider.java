@@ -22,7 +22,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -48,8 +47,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonActionProvider;
 
-import com.amazonaws.eclipse.codecommit.CodeCommitAnalytics;
-import com.amazonaws.eclipse.codecommit.CodeCommitAnalytics.EventResult;
 import com.amazonaws.eclipse.codecommit.CodeCommitPlugin;
 import com.amazonaws.eclipse.codecommit.wizard.CloneRepositoryWizard;
 import com.amazonaws.eclipse.core.AwsToolkitCore;

@@ -14,8 +14,6 @@
  */
 package com.amazonaws.eclipse.core.diagnostic.ui;
 
-import static com.amazonaws.eclipse.core.ui.wizards.WizardWidgetFactory.newLink;
-
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,7 +25,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorSupportProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;

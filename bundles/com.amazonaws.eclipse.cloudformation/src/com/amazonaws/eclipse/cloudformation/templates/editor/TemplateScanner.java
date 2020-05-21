@@ -35,7 +35,6 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 import org.eclipse.jface.text.rules.WordRule;
 
-import com.amazonaws.eclipse.cloudformation.CloudFormationPlugin;
 import com.amazonaws.eclipse.cloudformation.templates.schema.IntrinsicFunction;
 import com.amazonaws.eclipse.cloudformation.templates.schema.PseudoParameter;
 import com.amazonaws.eclipse.cloudformation.templates.schema.TemplateSchemaRules;
