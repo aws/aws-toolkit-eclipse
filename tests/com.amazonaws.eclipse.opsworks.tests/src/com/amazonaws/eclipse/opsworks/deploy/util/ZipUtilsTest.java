@@ -40,7 +40,7 @@ public class ZipUtilsTest {
         unzipFileToDirectory(zipFile, target);
 
         Map<String, String> actual = Files.walk(target.toPath()).filter(p -> p.toFile().isFile()).collect(Collectors.toMap(p -> target.toPath().relativize(p).toString(), this::content));
-        assertEquals("hello foo-bar!", actual.get("foo/bar.txt"));
+        assertEquals("hello foo-bar!", actual.get("foo/bar.txt".replace('/', File.separatorChar)));
         assertEquals("hello baz!", actual.get("baz.txt"));
         assertEquals("hello root!", actual.get("root.txt"));
     }
