@@ -49,8 +49,8 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
     private final DataBindingContext bindingContext;
     private final AggregateValidationStatus aggregateValidationStatus;
 
-    private IObservableValue deploymentConfigSelected = new WritableValue();
-    private IObservableValue bucketNameSelected = new WritableValue();
+    private IObservableValue<Boolean> deploymentConfigSelected = new WritableValue<>();
+    private IObservableValue<Boolean> bucketNameSelected = new WritableValue<>();
 
     /* UI widgets */
 
@@ -125,10 +125,10 @@ public class DeploymentConfigurationPage extends WizardPageWithOnEnterHook {
         });
 
         // Validation status providers
-        bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(
+        bindingContext.addValidationStatusProvider(new ChainValidator<>(
                 deploymentConfigSelected,
                 new BooleanValidator("Please select the deployment config")));
-        bindingContext.addValidationStatusProvider(new ChainValidator<Boolean>(
+        bindingContext.addValidationStatusProvider(new ChainValidator<>(
                 bucketNameSelected,
                 new BooleanValidator("Please select the S3 bucket name")));
     }

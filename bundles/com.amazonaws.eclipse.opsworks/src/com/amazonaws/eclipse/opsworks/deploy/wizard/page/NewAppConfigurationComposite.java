@@ -61,13 +61,13 @@ public class NewAppConfigurationComposite extends Composite {
 
     private IObservableValue bucketNameSelected = new WritableValue();
 
-    private ISWTObservableValue bucketNameComboObservable;
-    private ISWTObservableValue keyNameTextObservable;
+    private ISWTObservableValue<?> bucketNameComboObservable;
+    private ISWTObservableValue<String> keyNameTextObservable;
 
-    private ISWTObservableValue enableSslCheckBoxObservable;
-    private ISWTObservableValue certTextObservable;
-    private ISWTObservableValue chainTextObservable;
-    private ISWTObservableValue privateKeyTextObservable;
+    private ISWTObservableValue<Boolean> enableSslCheckBoxObservable;
+    private ISWTObservableValue<String> certTextObservable;
+    private ISWTObservableValue<String> chainTextObservable;
+    private ISWTObservableValue<String> privateKeyTextObservable;
 
     private Combo bucketNameCombo;
     private Text keyNameText;

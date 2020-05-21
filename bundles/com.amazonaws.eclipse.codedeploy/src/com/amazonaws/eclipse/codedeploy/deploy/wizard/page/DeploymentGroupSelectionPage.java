@@ -53,8 +53,8 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
     private final DataBindingContext bindingContext;
     private final AggregateValidationStatus aggregateValidationStatus;
 
-    private IObservableValue applicationSelected = new WritableValue();
-    private IObservableValue deploymentGroupSelected = new WritableValue();
+    private IObservableValue<Boolean> applicationSelected = new WritableValue<>();
+    private IObservableValue<Boolean> deploymentGroupSelected = new WritableValue<>();
 
     /* UI widgets */
 
@@ -237,7 +237,7 @@ public class DeploymentGroupSelectionPage extends WizardPageWithOnEnterHook{
     }
 
     private void onApplicationSelectionChange() {
-        if (applicationSelected.getValue().equals(Boolean.TRUE)) {
+        if (applicationSelected.getValue()) {
             refreshDeploymentGroups();
         }
     }

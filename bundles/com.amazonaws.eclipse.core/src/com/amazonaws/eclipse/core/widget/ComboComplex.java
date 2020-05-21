@@ -39,7 +39,7 @@ import com.amazonaws.eclipse.core.model.ComboBoxItemData;
 public class ComboComplex<T extends ComboBoxItemData> {
 
     private Combo combo;
-    private ISWTObservableValue swtObservableValue;
+    private ISWTObservableValue<String> swtObservableValue;
 
     private ComboComplex(
             Composite composite,

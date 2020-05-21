@@ -43,7 +43,7 @@ class TwoPhaseValidator extends MultiValidator {
      */
     private static final long ASYNC_DELAY_MILLIS = 200;
 
-    private final IObservableValue observableInput;
+    private final IObservableValue<?> observableInput;
     private final InputValidator syncValidator;
     private final InputValidator asyncValidator;
 
@@ -58,7 +58,7 @@ class TwoPhaseValidator extends MultiValidator {
      * <p/>
      * Access is protected by a lock on the TwoPhaseValidator.
      */
-    private final IObservableMap asyncCache;
+    private final IObservableMap<Object, IStatus> asyncCache;
 
     /**
      * The currently-scheduled async validation job (or null if no job
@@ -78,7 +78,7 @@ class TwoPhaseValidator extends MultiValidator {
      * @param asyncValidator the optional asynchronous validator
      */
     public TwoPhaseValidator(
-        final IObservableValue observableInput,
+        final IObservableValue<?> observableInput,
         final InputValidator syncValidator,
         final InputValidator asyncValidator
     ) {
@@ -89,7 +89,7 @@ class TwoPhaseValidator extends MultiValidator {
         if (asyncValidator == null) {
             asyncCache = null;
         } else {
-            asyncCache = new WritableMap();
+            asyncCache = new WritableMap<>();
 
             // Observe the cache; the background validation job will write
             // it's status to the cache. If the user hasn't changed the input
@@ -135,7 +135,7 @@ class TwoPhaseValidator extends MultiValidator {
             // is one, we can go ahead and return that rather than kicking
             // off a background validation.
 
-            IStatus cachedStatus = (IStatus) asyncCache.get(input);
+            IStatus cachedStatus = asyncCache.get(input);
             if (cachedStatus != null) {
                 return cachedStatus;
             }

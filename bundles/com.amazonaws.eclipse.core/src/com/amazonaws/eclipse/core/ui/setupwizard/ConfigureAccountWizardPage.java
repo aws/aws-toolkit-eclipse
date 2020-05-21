@@ -110,7 +110,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
         secondColumnGridDataFactory.copy().indent(0, 5).applyTo(accessKeyText);
         accessKeyText.setFocus();
 
-        IObservableValue accessKeyModelObservable = PojoObservables.observeValue(dataModel, dataModel.ACCESS_KEY_ID);
+        IObservableValue<?> accessKeyModelObservable = PojoObservables.observeValue(dataModel, dataModel.ACCESS_KEY_ID);
         bindingContext.bindValue(SWTObservables.observeText(accessKeyText, SWT.Modify), accessKeyModelObservable);
         bindingContext.addValidationStatusProvider(
             new ChainValidator<String>(accessKeyModelObservable, new NotEmptyValidator("Please provide an AWS Access Key ID")));
@@ -123,7 +123,7 @@ final class ConfigureAccountWizardPage extends WizardPage {
         Text secretKeyText = new Text(composite, SWT.BORDER);
         secondColumnGridDataFactory.applyTo(secretKeyText);
 
-        IObservableValue secretKeyModelObservable = PojoObservables.observeValue(dataModel, dataModel.SECRET_ACCESS_KEY);
+        IObservableValue<?> secretKeyModelObservable = PojoObservables.observeValue(dataModel, dataModel.SECRET_ACCESS_KEY);
         bindingContext.bindValue(SWTObservables.observeText(secretKeyText, SWT.Modify), secretKeyModelObservable);
         bindingContext.addValidationStatusProvider(
             new ChainValidator<String>(secretKeyModelObservable, new NotEmptyValidator("Please provide an AWS Secret Access Key")));

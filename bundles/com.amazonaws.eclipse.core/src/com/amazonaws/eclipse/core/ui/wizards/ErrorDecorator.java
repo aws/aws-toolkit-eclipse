@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Control;
  * particular control and adds an error decoration whenever validation
  * fails.
  */
-public class ErrorDecorator implements IValueChangeListener {
+public class ErrorDecorator implements IValueChangeListener<IStatus> {
 
     private final ControlDecoration decoration;
 
@@ -55,14 +55,14 @@ public class ErrorDecorator implements IValueChangeListener {
      * @param status the status to observe
      */
     public static void bind(final Control control,
-                            final IObservableValue status) {
+                            final IObservableValue<IStatus> status) {
 
         ErrorDecorator decorator = new ErrorDecorator(control);
 
         status.addValueChangeListener(decorator);
 
         // Update the decoration with the current status value.
-        decorator.update((IStatus) status.getValue());
+        decorator.update(status.getValue());
     }
 
     /**
@@ -71,8 +71,8 @@ public class ErrorDecorator implements IValueChangeListener {
      * @param event the value change event
      */
     @Override
-    public void handleValueChange(final ValueChangeEvent event) {
-        update((IStatus) event.getObservableValue().getValue());
+    public void handleValueChange(final ValueChangeEvent<? extends IStatus> event) {
+        update(event.getObservableValue().getValue());
     }
 
     /**

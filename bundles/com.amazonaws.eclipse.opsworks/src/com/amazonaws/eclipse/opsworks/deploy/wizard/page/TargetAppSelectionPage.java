@@ -73,21 +73,21 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
     private Combo regionCombo;
 
     // Select stack
-    private IObservableValue existingStackLoaded = new WritableValue();
+    private IObservableValue<Boolean> existingStackLoaded = new WritableValue<>();
     private Combo stackNameCombo;
     private Link stackSelectionMessageLabel;
 
     // Select Java application
-    private IObservableValue existingJavaAppLoaded = new WritableValue();
+    private IObservableValue<Boolean> existingJavaAppLoaded = new WritableValue<>();
     private Button useExistingJavaAppRadioButton;
-    private ISWTObservableValue useExistingJavaAppRadioButtonObservable;
+    private ISWTObservableValue<Boolean> useExistingJavaAppRadioButtonObservable;
     private Combo existingJavaAppNameCombo;
 
     private Button createNewJavaAppRadioButton;
-    private ISWTObservableValue createNewJavaAppRadioButtonObservable;
+    private ISWTObservableValue<Boolean> createNewJavaAppRadioButtonObservable;
     private Text newApplicationNameText;
     private ControlDecoration newApplicationNameDecoration;
-    private ISWTObservableValue newApplicationNameTextObservable;
+    private ISWTObservableValue<String> newApplicationNameTextObservable;
 
     /* Other */
 
@@ -227,7 +227,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
     }
 
     private void onStackSelectionChange() {
-        if (existingStackLoaded.getValue().equals(Boolean.TRUE)) {
+        if (existingStackLoaded.getValue()) {
             Stack stack = (Stack)stackNameCombo.getData(stackNameCombo.getText());
             dataModel.setExistingStack(stack);
             refreshJavaApps();
@@ -235,7 +235,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
     }
 
     private void onJavaAppSelectionChange() {
-        if (existingJavaAppLoaded.getValue().equals(Boolean.TRUE)) {
+        if (existingJavaAppLoaded.getValue()) {
             App selectedApp = (App) existingJavaAppNameCombo
                     .getData(existingJavaAppNameCombo.getText());
             dataModel.setExistingJavaApp(selectedApp);
@@ -277,7 +277,7 @@ public class TargetAppSelectionPage extends WizardPageWithOnEnterHook {
 
     private void radioButtonSelected(Object source) {
         if ( source == useExistingJavaAppRadioButton || source == createNewJavaAppRadioButton) {
-            boolean isCreatingNewApp = (Boolean) createNewJavaAppRadioButtonObservable.getValue();
+            boolean isCreatingNewApp = createNewJavaAppRadioButtonObservable.getValue();
 
             existingJavaAppNameCombo.setEnabled(!isCreatingNewApp);
             newApplicationNameText.setEnabled(isCreatingNewApp);

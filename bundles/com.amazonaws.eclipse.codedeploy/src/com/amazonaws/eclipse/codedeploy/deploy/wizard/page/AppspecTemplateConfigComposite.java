@@ -69,12 +69,12 @@ class AppspecTemplateConfigComposite extends Composite {
      */
     private Label serverUrlPreviewLabel;
 
-    private ISWTObservableValue deployToContextPathRadioButtonObservable;
+    private ISWTObservableValue<Boolean> deployToContextPathRadioButtonObservable;
     private Text contextPathText;
-    private ISWTObservableValue contextPathTextObservable;
+    private ISWTObservableValue<String> contextPathTextObservable;
 
     private Text httpPortText;
-    private ISWTObservableValue httpPortTextObservable;
+    private ISWTObservableValue<String> httpPortTextObservable;
 
     /**
      * UI widgets for generic parameters
@@ -143,14 +143,14 @@ class AppspecTemplateConfigComposite extends Composite {
 
         if (templateModel.isUseDefaultContextPathParameter()) {
             values.put(DEPLOY_TO_ROOT_ANCHOR_TEXT,
-                    (Boolean)deployToContextPathRadioButtonObservable.getValue()
+                    deployToContextPathRadioButtonObservable.getValue()
                     ? "false" : "true");
 
-            values.put(CONTEXT_PATH_ANCHOR_TEXT, (String)contextPathTextObservable.getValue());
+            values.put(CONTEXT_PATH_ANCHOR_TEXT, contextPathTextObservable.getValue());
         }
 
         if (templateModel.isUseDefaultHttpPortParameter()) {
-            values.put(HTTP_PORT_ANCHOR_TEXT, (String)httpPortTextObservable.getValue());
+            values.put(HTTP_PORT_ANCHOR_TEXT, httpPortTextObservable.getValue());
         }
 
         for (ParameterInputGroup genericParamInput : parameterInputGroups) {
@@ -210,7 +210,7 @@ class AppspecTemplateConfigComposite extends Composite {
     }
 
     private void refreshServerUrlPreviewLabel() {
-        boolean useContextPath = (Boolean) deployToContextPathRadioButtonObservable
+        boolean useContextPath = deployToContextPathRadioButtonObservable
                 .getValue();
         String contextPath = contextPathText.getText();
         String httpPort = httpPortText.getText();
@@ -327,7 +327,7 @@ class AppspecTemplateConfigComposite extends Composite {
 
         private Text valueInputText;
         private ControlDecoration valueInputTextDecoration;
-        private ISWTObservableValue valueInputTextObservable;
+        private ISWTObservableValue<String> valueInputTextObservable;
 
         public ParameterInputGroup(Composite parent,
                 AppspecTemplateParameter parameter, DataBindingContext bindingContext) {
@@ -351,7 +351,7 @@ class AppspecTemplateConfigComposite extends Composite {
         }
 
         public String getParameterValue() {
-            return (String)valueInputTextObservable.getValue();
+            return valueInputTextObservable.getValue();
         }
 
         private void createControls(Composite composite) {

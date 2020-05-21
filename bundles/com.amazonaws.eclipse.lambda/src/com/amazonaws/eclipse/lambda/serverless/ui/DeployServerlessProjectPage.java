@@ -83,7 +83,7 @@ public class DeployServerlessProjectPage extends WizardPage {
     private SelectOrInputStackComposite stackComposite;
     private MultipleSelectionListComposite<Capability> capabilitiesSelectionComposite;
 
-    private IObservableValue templateValidated = new WritableValue();
+    private IObservableValue<String> templateValidated = new WritableValue<>();
     private ValidateTemplateThread validateTemplateThread;
     private Exception templateValidationException;
 

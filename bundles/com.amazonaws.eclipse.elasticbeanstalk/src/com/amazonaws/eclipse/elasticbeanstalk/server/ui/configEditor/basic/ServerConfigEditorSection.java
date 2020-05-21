@@ -147,7 +147,7 @@ public class ServerConfigEditorSection extends HumanReadableConfigEditorSection 
             }
         });
 
-        final IObservableValue keyPairSelection = new WritableValue();
+        final IObservableValue<String> keyPairSelection = new WritableValue<>();
         keyPairWidget.getKeyPairSelectionTable().addSelectionListener(new SelectionAdapter() {
 
             @Override

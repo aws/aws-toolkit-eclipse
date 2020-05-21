@@ -49,7 +49,7 @@ public class StartTestToolConfigurationWizardPage extends WizardPage {
 
     private final DataBindingContext context = new DataBindingContext();
 
-    private final IObservableValue portValue = new WritableValue();
+    private final IObservableValue<String> portValue = new WritableValue<>();
     private Text portInput;
 
     /**
@@ -152,7 +152,7 @@ public class StartTestToolConfigurationWizardPage extends WizardPage {
      * A validator that ensures the input is a valid port number.
      * @deprecated for {@link IntegerRangeValidator}
      */
-    private static class PortValidator implements IValidator {
+    private static class PortValidator implements IValidator<Object> {
         @Override
         public IStatus validate(final Object value) {
             if (!(value instanceof String)) {

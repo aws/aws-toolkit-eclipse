@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 public class CheckboxComplex {
 
     private final Button checkbox;
-    private ISWTObservableValue swtObservableValue;
+    private ISWTObservableValue<Boolean> swtObservableValue;
 
     private CheckboxComplex(
             Composite composite,

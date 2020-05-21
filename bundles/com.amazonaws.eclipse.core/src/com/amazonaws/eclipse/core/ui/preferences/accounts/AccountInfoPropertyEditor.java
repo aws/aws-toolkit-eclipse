@@ -84,9 +84,9 @@ public abstract class AccountInfoPropertyEditor {
             bindingWithCurrentAccountInfo.dispose();
         }
 
-        IObservableValue modelValue = BeansObservables.observeValue(
+        IObservableValue<?> modelValue = BeansObservables.observeValue(
                 accountInfo, propertyName);
-        IObservableValue viewValue = SWTObservables.observeText(getTextControl(), SWT.Modify);
+        IObservableValue<?> viewValue = SWTObservables.observeText(getTextControl(), SWT.Modify);
 
         bindingWithCurrentAccountInfo = bindingContext.bindValue(viewValue, modelValue);
     }

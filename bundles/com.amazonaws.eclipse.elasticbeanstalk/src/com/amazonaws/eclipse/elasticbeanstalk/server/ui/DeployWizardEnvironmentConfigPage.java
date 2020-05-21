@@ -50,12 +50,12 @@ class DeployWizardEnvironmentConfigPage extends AbstractDeployWizardPage {
     private Text healthCheckText;
     private Text workerQueueUrlText;
 
-    private ISWTObservableValue usingKeyPairObservable;
-    private ISWTObservableValue usingCnameObservable;
-    private ISWTObservableValue healthCheckURLObservable;
-    private ISWTObservableValue sslCertObservable;
-    private ISWTObservableValue snsTopicObservable;
-    private ISWTObservableValue workerQueueUrlObservable;
+    private ISWTObservableValue<Boolean> usingKeyPairObservable;
+    private ISWTObservableValue<Boolean> usingCnameObservable;
+    private ISWTObservableValue<String> healthCheckURLObservable;
+    private ISWTObservableValue<String> sslCertObservable;
+    private ISWTObservableValue<String> snsTopicObservable;
+    private ISWTObservableValue<String> workerQueueUrlObservable;
 
     public DeployWizardEnvironmentConfigPage(DeployWizardDataModel wizardDataModel) {
         super(wizardDataModel);

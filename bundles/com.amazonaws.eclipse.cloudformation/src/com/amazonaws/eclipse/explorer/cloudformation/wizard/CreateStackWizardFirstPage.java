@@ -106,16 +106,16 @@ class CreateStackWizardFirstPage extends WizardPage {
     /*
      * Data model
      */
-    private IObservableValue stackName;
-    private IObservableValue templateUrl;
-    private IObservableValue templateFile;
-    private IObservableValue useTemplateFile;
-    private IObservableValue useTemplateUrl;
-    private IObservableValue snsTopicArn;
-    private IObservableValue notifyWithSNS;
-    private IObservableValue timeoutMinutes;
-    private IObservableValue rollbackOnFailure;
-    private IObservableValue templateValidated = new WritableValue();
+    private IObservableValue<String> stackName;
+    private IObservableValue<String> templateUrl;
+    private IObservableValue<String> templateFile;
+    private IObservableValue<Boolean> useTemplateFile;
+    private IObservableValue<Boolean> useTemplateUrl;
+    private IObservableValue<?> snsTopicArn;
+    private IObservableValue<?> notifyWithSNS;
+    private IObservableValue<?> timeoutMinutes;
+    private IObservableValue<?> rollbackOnFailure;
+    private IObservableValue<String> templateValidated = new WritableValue<>();
     private final DataBindingContext bindingContext = new DataBindingContext();
 
     private boolean complete = false;
@@ -183,7 +183,7 @@ class CreateStackWizardFirstPage extends WizardPage {
         templateValidated.setValue(null);
         // If we already have a file template filled in, validate it
         if ( wizard.getDataModel().isUsePreselectedTemplateFile() ) {
-            validateTemplateFile((String) templateFile.getValue());
+            validateTemplateFile(templateFile.getValue());
         }
 
         setControl(comp);
@@ -203,7 +203,7 @@ class CreateStackWizardFirstPage extends WizardPage {
             Combo combo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
 
             if (stackName.getValue() != null) {
-                combo.setItems(new String[] { (String)stackName.getValue() });
+                combo.setItems(new String[] { stackName.getValue() });
                 stackNameExists = true;
             } else {
             combo.setItems(new String[] { LOADING_STACKS });
@@ -216,10 +216,10 @@ class CreateStackWizardFirstPage extends WizardPage {
             stackName.addChangeListener(new IChangeListener() {
                 @Override
                 public void handleChange(ChangeEvent event) {
-                    if ( (Boolean) useTemplateFile.getValue() ) {
-                        validateTemplateFile((String) templateFile.getValue());
+                    if ( useTemplateFile.getValue() ) {
+                        validateTemplateFile(templateFile.getValue());
                     } else {
-                        validateTemplateUrl((String) templateUrl.getValue());
+                        validateTemplateUrl(templateUrl.getValue());
                     }
                 }
             });
@@ -351,7 +351,7 @@ class CreateStackWizardFirstPage extends WizardPage {
 
             @Override
             public void handleEvent(Event event) {
-                if ( (Boolean) useTemplateFile.getValue() ) {
+                if ( useTemplateFile.getValue() ) {
                     FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
                     String result = dialog.open();
                     if ( result != null ) {
@@ -471,8 +471,8 @@ class CreateStackWizardFirstPage extends WizardPage {
 
             @Override
             public void handleChange(ChangeEvent event) {
-                if ( ((String) templateUrl.getValue()).length() > 0 ) {
-                    validateTemplateUrl((String) templateUrl.getValue());
+                if ( templateUrl.getValue().length() > 0 ) {
+                    validateTemplateUrl(templateUrl.getValue());
                 }
             }
         });
@@ -480,8 +480,8 @@ class CreateStackWizardFirstPage extends WizardPage {
 
             @Override
             public void handleChange(ChangeEvent event) {
-                if ( (Boolean) useTemplateUrl.getValue() && ((String) templateUrl.getValue()).length() > 0 ) {
-                    validateTemplateUrl((String) templateUrl.getValue());
+                if ( useTemplateUrl.getValue() && templateUrl.getValue().length() > 0 ) {
+                    validateTemplateUrl(templateUrl.getValue());
                 }
             }
         });
@@ -490,15 +490,15 @@ class CreateStackWizardFirstPage extends WizardPage {
 
             @Override
             public void handleChange(ChangeEvent event) {
-                validateTemplateFile((String) templateFile.getValue());
+                validateTemplateFile(templateFile.getValue());
             }
         });
         useTemplateFile.addChangeListener(new IChangeListener() {
 
             @Override
             public void handleChange(ChangeEvent event) {
-                if ( (Boolean) useTemplateFile.getValue() ) {
-                    validateTemplateFile((String) templateFile.getValue());
+                if ( useTemplateFile.getValue() ) {
+                    validateTemplateFile(templateFile.getValue());
                 }
             }
         });
@@ -527,13 +527,13 @@ class CreateStackWizardFirstPage extends WizardPage {
                 return ValidationStatus.ok();
             }
         };
-        bindingContext.addValidationStatusProvider(new ChainValidator<String>(templateValidated, templateValidator));
+        bindingContext.addValidationStatusProvider(new ChainValidator<>(templateValidated, templateValidator));
 
         // Also hook up this template validator to the two template fields
         // conditionally
-        addStatusDecorator(fileTemplateText, new ChainValidator<String>(templateValidated, useTemplateFile,
+        addStatusDecorator(fileTemplateText, new ChainValidator<>(templateValidated, useTemplateFile,
                 templateValidator));
-        addStatusDecorator(templateURLText, new ChainValidator<String>(templateValidated, useTemplateUrl,
+        addStatusDecorator(templateURLText, new ChainValidator<>(templateValidated, useTemplateUrl,
                 templateValidator));
 
         // Finally provide aggregate status reporting for the entire wizard page

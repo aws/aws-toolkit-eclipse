@@ -58,26 +58,26 @@ public class ExportTemplateDialog extends MessageDialog {
     private String templateName;
     private Collection<String> existingTemplateNames;
     private DataBindingContext bindingContext = new DataBindingContext();
-    private IObservableValue isCreatingNew = new WritableValue();
-    private IObservableValue newTemplateName = new WritableValue();
-    private IObservableValue existingTemplateName = new WritableValue();
-    private IObservableValue templateDescription = new WritableValue();
+    private IObservableValue<Boolean> isCreatingNew = new WritableValue<>();
+    private IObservableValue<String> newTemplateName = new WritableValue<>();
+    private IObservableValue<String> existingTemplateName = new WritableValue<>();
+    private IObservableValue<String> templateDescription = new WritableValue<>();
     private AggregateValidationStatus aggregateValidationStatus = new AggregateValidationStatus(bindingContext,
             AggregateValidationStatus.MAX_SEVERITY);
 
     public boolean isCreatingNew() {
-        return (Boolean) isCreatingNew.getValue();
+        return isCreatingNew.getValue();
     }
 
     public String getTemplateDescription() {
-        return (String) templateDescription.getValue();
+        return templateDescription.getValue();
     }
 
     public String getTemplateName() {
         if ( isCreatingNew() ) {
-            return (String) newTemplateName.getValue();
+            return newTemplateName.getValue();
         } else {
-            return (String) existingTemplateName.getValue();
+            return existingTemplateName.getValue();
         }
     }
 

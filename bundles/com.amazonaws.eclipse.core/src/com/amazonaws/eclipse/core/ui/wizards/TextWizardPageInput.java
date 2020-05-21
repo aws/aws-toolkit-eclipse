@@ -39,7 +39,7 @@ public class TextWizardPageInput implements WizardPageInput {
 
     private final String labelText;
     private final String descriptionText;
-    private final IObservableValue observableValue;
+    private final IObservableValue<?> observableValue;
     private final TwoPhaseValidator validator;
 
     /**
@@ -61,7 +61,7 @@ public class TextWizardPageInput implements WizardPageInput {
         this.labelText = labelText;
         this.descriptionText = descriptionText;
 
-        this.observableValue = new WritableValue();
+        this.observableValue = new WritableValue<>();
         this.validator = new TwoPhaseValidator(
             observableValue,
             syncValidator,

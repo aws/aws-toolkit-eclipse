@@ -18,7 +18,7 @@ import org.eclipse.core.databinding.observable.value.DecoratingObservableValue;
 import org.eclipse.jface.databinding.swt.ISWTObservableValue;
 
 final class ControlDataObservableValue extends DecoratingObservableValue {
-    private final ISWTObservableValue swtObservableValue;
+    private final ISWTObservableValue<String> swtObservableValue;
 
     // TODO: This doesn't have to be a SWTObservable, it could just be the control...
     public ControlDataObservableValue(ISWTObservableValue swtObservableValue, boolean disposeDecoratedOnDispose) {
@@ -28,7 +28,7 @@ final class ControlDataObservableValue extends DecoratingObservableValue {
 
     @Override
     public Object getValue() {
-        return swtObservableValue.getWidget().getData((String)swtObservableValue.getValue());
+        return swtObservableValue.getWidget().getData(swtObservableValue.getValue());
     }
 
     @Override

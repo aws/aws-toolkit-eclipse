@@ -85,7 +85,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
 
     // Application controls
     private Button createNewApplicationRadioButton;
-    private ISWTObservableValue createNewApplicationRadioButtonObservable;
+    private ISWTObservableValue<Boolean> createNewApplicationRadioButtonObservable;
     private Combo existingApplicationCombo;
     private Text newApplicationDescriptionText;
     private Text newApplicationNameText;
@@ -107,15 +107,15 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
 
     private IObservableSet existingEnvironmentNames = new WritableSet();
     private IObservableSet existingApplicationNames = new WritableSet();
-    private IObservableValue environmentNamesLoaded = new WritableValue();
-    private IObservableValue applicationNamesLoaded = new WritableValue();
+    private IObservableValue<Boolean> environmentNamesLoaded = new WritableValue<>();
+    private IObservableValue<Boolean> applicationNamesLoaded = new WritableValue<>();
 
-    private ISWTObservableValue newApplicationNameTextObservable;
-    private ISWTObservableValue newApplicationDescriptionTextObservable;
-    private ISWTObservableValue newEnvironmentDescriptionTextObservable;
-    private ISWTObservableValue newEnvironmentNameTextObservable;
-    private ISWTObservableValue environmentTypeComboObservable;
-    private ISWTObservableValue useNonDefaultVpcButtonObservable;
+    private ISWTObservableValue<String> newApplicationNameTextObservable;
+    private ISWTObservableValue<String> newApplicationDescriptionTextObservable;
+    private ISWTObservableValue<String> newEnvironmentDescriptionTextObservable;
+    private ISWTObservableValue<String> newEnvironmentNameTextObservable;
+    private ISWTObservableValue<String> environmentTypeComboObservable;
+    private ISWTObservableValue<?> useNonDefaultVpcButtonObservable;
 
     // Status of our connectivity to AWS Elastic Beanstalk
     private IStatus connectionStatus;
@@ -408,7 +408,7 @@ final class DeployWizardApplicationSelectionPage extends AbstractDeployWizardPag
     @Override
     protected void radioButtonSelected(Object source) {
         if ( source == existingApplicationRadioButton || source == createNewApplicationRadioButton) {
-            boolean isCreatingNewApplication = (Boolean) createNewApplicationRadioButtonObservable.getValue();
+            boolean isCreatingNewApplication = createNewApplicationRadioButtonObservable.getValue();
 
             existingApplicationCombo.setEnabled(!isCreatingNewApplication);
             newApplicationNameText.setEnabled(isCreatingNewApplication);

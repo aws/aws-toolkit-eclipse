@@ -46,7 +46,7 @@ import com.amazonaws.eclipse.databinding.DecorationChangeListener;
 public class TextComplex {
     private final Text text;
 
-    private final IObservableValue enabler = new WritableValue();
+    private final IObservableValue<Boolean> enabler = new WritableValue<>();
 
     private TextComplex(
             Composite composite,
@@ -70,7 +70,7 @@ public class TextComplex {
         text.setMessage(textMessage);
 
         ControlDecoration controlDecoration = newControlDecoration(text, "");
-        ISWTObservableValue swtObservableValue = WidgetProperties.text(SWT.Modify).observe(text);
+        ISWTObservableValue<String> swtObservableValue = WidgetProperties.text(SWT.Modify).observe(text);
         Binding binding = dataBindingContext.bindValue(swtObservableValue, pojoObservableValue);
         enabler.setValue(true);
         ChainValidator<String> validatorChain = new ChainValidator<>(swtObservableValue, enabler, validators);

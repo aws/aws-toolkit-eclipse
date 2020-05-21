@@ -231,7 +231,7 @@ final class JavaWebProjectWizardPage extends WizardPage {
 
     @SuppressWarnings("static-access")
     private void bindControls() {
-        final IObservableValue accountId = new WritableValue();
+        final IObservableValue<String> accountId = new WritableValue();
         accountId.setValue(dataModel.getAccountId());
         accountSelectionComposite.addSelectionListener(new SelectionAdapter() {
             @Override
