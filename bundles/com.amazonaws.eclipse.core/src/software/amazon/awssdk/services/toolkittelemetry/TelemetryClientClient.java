@@ -12,25 +12,11 @@
  */
 package software.amazon.awssdk.services.toolkittelemetry;
 
-import java.net.*;
 import java.util.*;
 
 import javax.annotation.Generated;
 
-import org.apache.commons.logging.*;
-
-import com.amazonaws.*;
-import com.amazonaws.opensdk.*;
-import com.amazonaws.opensdk.model.*;
-import com.amazonaws.opensdk.protect.model.transform.*;
-import com.amazonaws.auth.*;
-import com.amazonaws.handlers.*;
 import com.amazonaws.http.*;
-import com.amazonaws.internal.*;
-import com.amazonaws.metrics.*;
-import com.amazonaws.regions.*;
-import com.amazonaws.transform.*;
-import com.amazonaws.util.*;
 import com.amazonaws.protocol.json.*;
 
 import com.amazonaws.annotation.ThreadSafe;

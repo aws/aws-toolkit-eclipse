@@ -31,10 +31,8 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.amazonaws.eclipse.core.AccountAndRegionChangeListener;
 import com.amazonaws.eclipse.core.AwsToolkitCore;
-import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
 import com.amazonaws.eclipse.core.ui.IRefreshable;
 import com.amazonaws.eclipse.ec2.ui.StatusBar;
-import com.amazonaws.eclipse.explorer.AwsAction;
 
 /**
  * View to display security groups and their permission.

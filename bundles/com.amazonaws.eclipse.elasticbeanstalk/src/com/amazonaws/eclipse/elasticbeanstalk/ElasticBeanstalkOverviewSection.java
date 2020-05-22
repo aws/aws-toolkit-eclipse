@@ -22,8 +22,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 import com.amazonaws.eclipse.core.AwsUrls;
-import com.amazonaws.eclipse.core.telemetry.AwsToolkitMetricType;
-import com.amazonaws.eclipse.core.telemetry.ToolkitAnalyticsUtils;
 import com.amazonaws.eclipse.core.ui.overview.OverviewSection;
 import com.amazonaws.eclipse.elasticbeanstalk.server.ui.ImportEnvironmentsWizard;
 import com.amazonaws.eclipse.elasticbeanstalk.webproject.NewAwsJavaWebProjectWizard;

@@ -25,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 import com.amazonaws.eclipse.lambda.serverless.model.ServerlessTemplate;
 import com.amazonaws.eclipse.lambda.serverless.model.TypeProperties;

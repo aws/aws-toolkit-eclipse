@@ -14,11 +14,6 @@ package software.amazon.awssdk.services.toolkittelemetry;
 
 import javax.annotation.Generated;
 
-import com.amazonaws.*;
-import com.amazonaws.opensdk.*;
-import com.amazonaws.opensdk.model.*;
-import com.amazonaws.regions.*;
-
 import software.amazon.awssdk.services.toolkittelemetry.model.*;
 
 /**

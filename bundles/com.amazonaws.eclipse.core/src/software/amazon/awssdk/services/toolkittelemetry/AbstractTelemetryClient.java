@@ -14,9 +14,6 @@ package software.amazon.awssdk.services.toolkittelemetry;
 
 import javax.annotation.Generated;
 import software.amazon.awssdk.services.toolkittelemetry.model.*;
-import com.amazonaws.*;
-import com.amazonaws.opensdk.*;
-import com.amazonaws.opensdk.model.*;
 
 /**
  * Abstract implementation of {@code TelemetryClient}.

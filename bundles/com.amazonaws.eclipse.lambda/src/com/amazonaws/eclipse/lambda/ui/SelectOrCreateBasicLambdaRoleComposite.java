@@ -14,20 +14,15 @@
  */
 package com.amazonaws.eclipse.lambda.ui;
 
-import java.util.List;
-
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
-import com.amazonaws.eclipse.core.AwsToolkitCore;
 import com.amazonaws.eclipse.core.model.AbstractAwsResourceScopeParam.AwsResourceScopeParamBase;
 import com.amazonaws.eclipse.core.ui.SelectOrCreateComposite;
 import com.amazonaws.eclipse.core.ui.dialogs.AbstractInputDialog;
-import com.amazonaws.eclipse.lambda.ServiceApiUtils;
 import com.amazonaws.eclipse.lambda.model.SelectOrCreateBasicLambdaRoleDataModel;
 import com.amazonaws.eclipse.lambda.upload.wizard.dialog.CreateBasicLambdaRoleDialog;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.Role;
 
 public class SelectOrCreateBasicLambdaRoleComposite
