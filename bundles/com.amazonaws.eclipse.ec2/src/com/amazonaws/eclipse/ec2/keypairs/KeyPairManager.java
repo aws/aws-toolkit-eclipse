@@ -152,11 +152,8 @@ public class KeyPairManager {
 
         String privateKey = keyPair.getKeyMaterial();
 
-        FileWriter writer = new FileWriter(privateKeyFile);
-        try {
+        try (FileWriter writer = new FileWriter(privateKeyFile)) {
             writer.write(privateKey);
-        } finally {
-            writer.close();
         }
 
         registerKeyPair(accountId, keyPairName, privateKeyFile.getAbsolutePath());
@@ -271,15 +268,12 @@ public class KeyPairManager {
         File pluginStateLocation = plugin.getStateLocation().toFile();
         File registeredKeyPairsFile = new File(pluginStateLocation, getKeyPropertiesFileName(accountId));
         registeredKeyPairsFile.createNewFile();
-        FileInputStream fileInputStream = new FileInputStream(registeredKeyPairsFile);
 
-        try {
+        try (FileInputStream fileInputStream = new FileInputStream(registeredKeyPairsFile)) {
             Properties registeredKeyPairs = new Properties();
             registeredKeyPairs.load(fileInputStream);
 
             return registeredKeyPairs;
-        } finally {
-            fileInputStream.close();
         }
     }
 
@@ -287,11 +281,8 @@ public class KeyPairManager {
         File pluginStateLocation = Ec2Plugin.getDefault().getStateLocation().toFile();
         File registeredKeyPairsFile = new File(pluginStateLocation, getKeyPropertiesFileName(accountId));
         registeredKeyPairsFile.createNewFile();
-        FileOutputStream fileOutputStream = new FileOutputStream(registeredKeyPairsFile);
-        try {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(registeredKeyPairsFile)) {
             registeredKeyPairs.store(fileOutputStream, null);
-        } finally {
-            fileOutputStream.close();
         }
     }
 

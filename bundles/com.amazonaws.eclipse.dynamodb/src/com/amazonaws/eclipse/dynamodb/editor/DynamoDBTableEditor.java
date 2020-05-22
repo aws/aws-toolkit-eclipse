@@ -511,9 +511,9 @@ public class DynamoDBTableEditor extends EditorPart {
             private void writeCsvFile(final String csvFile) {
                 try {
                     // truncate file before writing
-                    RandomAccessFile raf = new RandomAccessFile(new File(csvFile), "rw");
-                    raf.setLength(0L);
-                    raf.close();
+                    try (RandomAccessFile raf = new RandomAccessFile(new File(csvFile), "rw")) {
+                        raf.setLength(0L);
+                    }
 
                     List<Map<String, AttributeValue>> items = new LinkedList<>();
 
@@ -523,39 +523,38 @@ public class DynamoDBTableEditor extends EditorPart {
                         items.add(e);
                     }
 
-                    BufferedWriter out = new BufferedWriter(new FileWriter(csvFile));
-                    boolean seenOne = false;
-                    for (String col : contentProvider.getColumns()) {
-                        if ( seenOne ) {
-                            out.write(",");
-                        } else {
-                            seenOne = true;
-                        }
-                        out.write(col);
-                    }
-                    out.write("\n");
-
-                    for ( Map<String, AttributeValue> item : items ) {
-                        seenOne = false;
+                    try (BufferedWriter out = new BufferedWriter(new FileWriter(csvFile))) {
+                        boolean seenOne = false;
                         for (String col : contentProvider.getColumns()) {
-                            if (seenOne) {
+                            if ( seenOne ) {
                                 out.write(",");
                             } else {
                                 seenOne = true;
                             }
-                            AttributeValue values = item.get(col);
-                            if (values != null) {
-                                String value = format(values);
-                                // For csv files, we need to quote all values and escape all quotes
-                                value = value.replaceAll("\"", "\"\"");
-                                value = "\"" + value + "\"";
-                                out.write(value);
-                            }
+                            out.write(col);
                         }
                         out.write("\n");
-                    }
 
-                    out.close();
+                        for ( Map<String, AttributeValue> item : items ) {
+                            seenOne = false;
+                            for (String col : contentProvider.getColumns()) {
+                                if (seenOne) {
+                                    out.write(",");
+                                } else {
+                                    seenOne = true;
+                                }
+                                AttributeValue values = item.get(col);
+                                if (values != null) {
+                                    String value = format(values);
+                                    // For csv files, we need to quote all values and escape all quotes
+                                    value = value.replaceAll("\"", "\"\"");
+                                    value = "\"" + value + "\"";
+                                    out.write(value);
+                                }
+                            }
+                            out.write("\n");
+                        }
+                    }
                     actionSucceeded();
 
                 } catch (Exception e) {

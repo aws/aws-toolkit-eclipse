@@ -114,13 +114,13 @@ public class NewAccessKeyDialog extends MessageDialog {
         }
         String content = "";
         FileWriter fstream = new FileWriter(f.getAbsoluteFile());
-        BufferedWriter out = new BufferedWriter(fstream);
-        out.write("\"User Name\",\"Access Key Id\",\"Secret Access Key\"\n");
-        content += "\"" + userName + "\",";
-        content += "\"" + createAccessKeyResult.getAccessKey().getAccessKeyId() + "\",";
-        content += "\"" + createAccessKeyResult.getAccessKey().getSecretAccessKey() + "\"";
-        out.write(content);
-        out.close();
+        try (BufferedWriter out = new BufferedWriter(fstream)) {
+            out.write("\"User Name\",\"Access Key Id\",\"Secret Access Key\"\n");
+            content += "\"" + userName + "\",";
+            content += "\"" + createAccessKeyResult.getAccessKey().getAccessKeyId() + "\",";
+            content += "\"" + createAccessKeyResult.getAccessKey().getSecretAccessKey() + "\"";
+            out.write(content);
+        }
     }
 
     // Create the new access key and update the UI

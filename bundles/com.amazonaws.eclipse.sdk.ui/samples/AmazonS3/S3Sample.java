@@ -198,13 +198,13 @@ public class S3Sample {
         File file = File.createTempFile("aws-java-sdk-", ".txt");
         file.deleteOnExit();
 
-        Writer writer = new OutputStreamWriter(new FileOutputStream(file));
-        writer.write("abcdefghijklmnopqrstuvwxyz\n");
-        writer.write("01234567890112345678901234\n");
-        writer.write("!@#$%^&*()-=[]{};':',.<>/?\n");
-        writer.write("01234567890112345678901234\n");
-        writer.write("abcdefghijklmnopqrstuvwxyz\n");
-        writer.close();
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(file))) {
+            writer.write("abcdefghijklmnopqrstuvwxyz\n");
+            writer.write("01234567890112345678901234\n");
+            writer.write("!@#$%^&*()-=[]{};':',.<>/?\n");
+            writer.write("01234567890112345678901234\n");
+            writer.write("abcdefghijklmnopqrstuvwxyz\n");
+        }
 
         return file;
     }

@@ -125,11 +125,11 @@ public class NewAwsJavaProjectWizard extends AbstractAwsProjectWizard {
                 IFileStore projectSourceFolderDestination = EFS.getLocalFileSystem().fromLocalFile(
                         srcPath.append(sampleSourceFile.getName()).toFile());
 
-                PrintStream ps = new PrintStream(
+                try (PrintStream ps = new PrintStream(
                         projectSourceFolderDestination.openOutputStream(
-                                EFS.OVERWRITE, null));
-                ps.print(sampleContent);
-                ps.close();
+                                EFS.OVERWRITE, null))) {
+                    ps.print(sampleContent);
+                }
             }
         }
     }

@@ -176,9 +176,7 @@ public class Startup implements IStartup {
             return registeredPlugins;
         }
 
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(dataFile);
+        try (InputStream inputStream = new FileInputStream(dataFile)) {
             Properties properties = new Properties();
             properties.load(inputStream);
 
@@ -189,8 +187,6 @@ public class Startup implements IStartup {
             }
         } catch (IOException e) {
             AwsToolkitCore.getDefault().logError("Unable to read currently registered AWS Toolkit components.", e);
-        } finally {
-            try {inputStream.close();} catch (IOException ioe) {}
         }
 
         return registeredPlugins;
@@ -238,14 +234,10 @@ public class Startup implements IStartup {
             properties.put(pluginName, pluginVersion);
         }
 
-        OutputStream outputStream = null;
-        try {
-            outputStream = new FileOutputStream(dataFile);
+        try (OutputStream outputStream = new FileOutputStream(dataFile)) {
             properties.store(outputStream, null);
         } catch (IOException e) {
             AwsToolkitCore.getDefault().logError("Unable to record registered components.", e);
-        } finally {
-            try {outputStream.close();} catch (IOException ioe) {}
         }
     }
 

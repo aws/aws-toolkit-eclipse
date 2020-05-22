@@ -363,8 +363,7 @@ public class TestToolManager {
     private void unzip(final File zipFile, final File unzipped)
             throws IOException {
 
-        ZipInputStream zip = new ZipInputStream(new FileInputStream(zipFile));
-        try {
+        try (ZipInputStream zip = new ZipInputStream(new FileInputStream(zipFile))) {
 
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
@@ -378,17 +377,11 @@ public class TestToolManager {
                         );
                     }
                 } else {
-                    FileOutputStream output = new FileOutputStream(dest);
-                    try {
+                    try (FileOutputStream output = new FileOutputStream(dest)) {
                         IOUtils.copy(zip, output);
-                    } finally {
-                        output.close();
                     }
                 }
             }
-
-        } finally {
-            zip.close();
         }
     }
 
@@ -557,10 +550,8 @@ public class TestToolManager {
     private List<TestToolVersion> parseManifest(final File file)
             throws IOException {
 
-        FileInputStream stream = null;
-        try {
+        try (FileInputStream stream = new FileInputStream(file)) {
 
-            stream = new FileInputStream(file);
             BufferedReader buffer = new BufferedReader(
                 new InputStreamReader(stream)
             );
@@ -577,10 +568,6 @@ public class TestToolManager {
         } catch (SAXException exception) {
             throw new IOException("Error parsing DynamoDB Local manifest file",
                                   exception);
-        } finally {
-            if (stream != null) {
-                stream.close();
-            }
         }
     }
 

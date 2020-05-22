@@ -320,9 +320,9 @@ public class FunctionProjectUtil {
 
         File targetFile = targetFileStore.toLocalFile(EFS.NONE, null);
         targetFile.getParentFile().mkdirs();
-        PrintStream ps = new PrintStream(new FileOutputStream(targetFile));
-        ps.print(fileContent);
-        ps.close();
+        try (PrintStream ps = new PrintStream(new FileOutputStream(targetFile))) {
+            ps.print(fileContent);
+        }
 
         return targetFile;
     }

@@ -343,9 +343,9 @@ public class QueryEditor extends EditorPart {
 
         private void writeCsvFile(final String csvFile) {
             try {
-                RandomAccessFile raf = new RandomAccessFile(new File(csvFile), "rw");
-                raf.setLength(0L);
-                raf.close();
+                try (RandomAccessFile raf = new RandomAccessFile(new File(csvFile), "rw")) {
+                    raf.setLength(0L);
+                }
 
                 List<SimpleDBItem> items = new LinkedList<>();
                 Set<String> columns = new LinkedHashSet<>();
@@ -357,31 +357,31 @@ public class QueryEditor extends EditorPart {
                     items.add(e);
                 }
 
-                BufferedWriter out = new BufferedWriter(new FileWriter(csvFile));
-                out.write(SimpleDBItemName.ITEM_HEADER);
-                for (String col : columns) {
-                    out.write(",");
-                    out.write(col);
-                }
-                out.write("\n");
-
-                for ( SimpleDBItem item : items ) {
-                    out.write(item.itemName);
+                try (BufferedWriter out = new BufferedWriter(new FileWriter(csvFile))) {
+                    out.write(SimpleDBItemName.ITEM_HEADER);
                     for (String col : columns) {
                         out.write(",");
-                        Collection<String> values = item.attributes.get(col);
-                        if (values != null) {
-                            String value = join(values);
-                            // For csv files, we need to quote all values and escape all quotes
-                            value = value.replaceAll("\"", "\"\"");
-                            value = "\"" + value + "\"";
-                            out.write(value);
-                        }
+                        out.write(col);
                     }
                     out.write("\n");
-                }
 
-                out.close();
+                    for ( SimpleDBItem item : items ) {
+                        out.write(item.itemName);
+                        for (String col : columns) {
+                            out.write(",");
+                            Collection<String> values = item.attributes.get(col);
+                            if (values != null) {
+                                String value = join(values);
+                                // For csv files, we need to quote all values and escape all quotes
+                                value = value.replaceAll("\"", "\"\"");
+                                value = "\"" + value + "\"";
+                                out.write(value);
+                            }
+                        }
+                        out.write("\n");
+                    }
+
+                }
 
             } catch (Exception e) {
                 AwsToolkitCore.getDefault().logError("Couldn't save CSV file", e);
