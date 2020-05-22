@@ -29,13 +29,11 @@ public class ZipUtilsTest {
     public void canUnpackAZipFileToDirectory() throws IOException {
         File zipFile = folder.newFile("file.zip");
         File target = folder.newFolder("target");
-        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile));
-
-        writeEntry(zipOutputStream, "foo/bar.txt", "hello foo-bar!");
-        writeEntry(zipOutputStream, "baz.txt", "hello baz!");
-        writeEntry(zipOutputStream, "foo/../root.txt", "hello root!");
-
-        zipOutputStream.close();
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile))) {
+            writeEntry(zipOutputStream, "foo/bar.txt", "hello foo-bar!");
+            writeEntry(zipOutputStream, "baz.txt", "hello baz!");
+            writeEntry(zipOutputStream, "foo/../root.txt", "hello root!");
+        }
 
         unzipFileToDirectory(zipFile, target);
 
@@ -49,12 +47,10 @@ public class ZipUtilsTest {
     public void exceptionThrownIfRelativeFileAttemptsToLeaveParentDirectory() throws IOException {
         File zipFile = folder.newFile("file.zip");
         File target = folder.newFolder("target");
-        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile));
-
-        writeEntry(zipOutputStream, "foo/bar.txt", "hello foo-bar!");
-        writeEntry(zipOutputStream, "../baz.txt", "hello baz!");
-
-        zipOutputStream.close();
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile))) {
+            writeEntry(zipOutputStream, "foo/bar.txt", "hello foo-bar!");
+            writeEntry(zipOutputStream, "../baz.txt", "hello baz!");
+        }
 
         unzipFileToDirectory(zipFile, target);
     }

@@ -216,8 +216,6 @@ public class RemoteCommandUtils {
 
         StringBuilder output = new StringBuilder();
         StringBuilder errors = new StringBuilder();
-        BufferedInputStream in = null;
-        BufferedInputStream err = null;
 
         try {
             session = createSshSession(instance);
@@ -226,21 +224,22 @@ public class RemoteCommandUtils {
             channel.setCommand(command);
             channel.setInputStream(null);
             channel.setErrStream(System.err);
-            in = new BufferedInputStream(channel.getInputStream());
-            err = new BufferedInputStream(channel.getErrStream());
+            try (BufferedInputStream in = new BufferedInputStream(channel.getInputStream());
+                    BufferedInputStream err = new BufferedInputStream(channel.getErrStream())) {
 
-            channel.connect();
+                channel.connect();
 
-            while (true) {
-                drainInputStream(in, output);
-                drainInputStream(err, errors);
+                while (true) {
+                    drainInputStream(in, output);
+                    drainInputStream(err, errors);
 
-                if (channel.isClosed()) {
-                    return new ShellCommandResults(
-                            output.toString(), errors.toString(), channel.getExitStatus());
+                    if (channel.isClosed()) {
+                        return new ShellCommandResults(
+                                output.toString(), errors.toString(), channel.getExitStatus());
+                    }
+
+                    try {Thread.sleep(1000);} catch (Exception e) {}
                 }
-
-                try {Thread.sleep(1000);} catch (Exception e) {}
             }
         } catch (JSchException e) {
             e.printStackTrace();
@@ -249,9 +248,6 @@ public class RemoteCommandUtils {
         } finally {
             logger.info(" - output: " + output.toString() + "\n"
                         + " - errors: " + errors.toString());
-
-            try {in.close();}  catch (Exception e) {}
-            try {err.close();} catch (Exception e) {}
 
             try {channel.disconnect();} catch (Exception e) {}
             try {session.disconnect();} catch (Exception e) {}
@@ -320,14 +316,9 @@ public class RemoteCommandUtils {
             channel = (ChannelExec)session.openChannel("exec");
             channel.setCommand(command);
 
-            OutputStream out = null;
-            InputStream in = null;
-            InputStream ext = null;
-
-            try {
-                out = channel.getOutputStream();
-                in  = channel.getInputStream();
-                ext = channel.getExtInputStream();
+            try (OutputStream out = channel.getOutputStream();
+                InputStream in  = channel.getInputStream();
+                InputStream ext = channel.getExtInputStream()) {
 
                 StringBuilder extStringBuilder = new StringBuilder();
 
@@ -357,10 +348,6 @@ public class RemoteCommandUtils {
                     results.setErrorMessage("Error sending file data on the secure channel");
                     return results;
                 }
-            } finally {
-                try {out.close();} catch (Exception e) {}
-                try {in.close();}  catch (Exception e) {}
-                try {ext.close();} catch (Exception e) {}
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -486,9 +473,8 @@ public class RemoteCommandUtils {
      */
     private void sendFileData(String localFile, OutputStream out)
             throws FileNotFoundException, IOException {
-        FileInputStream fis = new FileInputStream(localFile);
 
-        try {
+        try (FileInputStream fis = new FileInputStream(localFile)) {
             byte[] buf = new byte[1024];
             while (true) {
                 int len = fis.read(buf, 0, buf.length);
@@ -496,8 +482,6 @@ public class RemoteCommandUtils {
                     break;
                 out.write(buf, 0, len);
             }
-        } finally {
-            fis.close();
         }
 
         out.write('\0');

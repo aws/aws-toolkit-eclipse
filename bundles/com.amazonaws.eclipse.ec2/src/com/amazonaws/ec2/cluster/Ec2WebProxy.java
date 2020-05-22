@@ -158,11 +158,8 @@ public class Ec2WebProxy extends Ec2Server {
         logger.fine("Publishing proxy configuration:\n" + proxyConfiguration);
 
         File f = File.createTempFile("haproxyConfig", ".cfg");
-        FileWriter writer = new FileWriter(f);
-        try {
+        try (FileWriter writer = new FileWriter(f)) {
             writer.write(proxyConfiguration);
-        } finally {
-            writer.close();
         }
 
         String remoteFile = "/tmp/" + f.getName();

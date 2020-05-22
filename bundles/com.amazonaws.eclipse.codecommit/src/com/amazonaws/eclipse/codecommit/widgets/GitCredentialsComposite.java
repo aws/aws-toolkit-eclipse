@@ -227,10 +227,8 @@ public class GitCredentialsComposite extends Composite {
     }
 
     private GitCredential loadGitCredential(File csvFile) {
-        BufferedReader bufferedReader = null;
         GitCredential gitCredential = new GitCredential("", "");
-        try {
-            bufferedReader = new BufferedReader(new FileReader(csvFile));
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(csvFile))) {
             String line = bufferedReader.readLine();    // the first line of the default csv file is metadata
             if (line == null) {
                 throw new ParseException("The csv file is empty", 1);
@@ -250,13 +248,6 @@ public class GitCredentialsComposite extends Composite {
             AwsToolkitCore.getDefault().logWarning("Failed to load gitCredentials file for Git credentials!", e);
             new MessageDialog(getShell(), "Error loading Git credentials!",
                     null, e.getMessage(), MessageDialog.ERROR, new String[] {"OK"}, 0).open();
-        } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                }
-            }
         }
         return gitCredential;
     }

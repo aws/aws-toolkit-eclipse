@@ -120,9 +120,9 @@ public class S3ObjectSummaryDropAction implements IDropActionDelegate {
 
                 // For a new file this is a no-op, but it truncates an
                 // existing file for overwrite.
-                RandomAccessFile raf = new RandomAccessFile(outputFile, "rw");
-                raf.setLength(0);
-                raf.close();
+                try (RandomAccessFile raf = new RandomAccessFile(outputFile, "rw")) {
+                    raf.setLength(0);
+                }
 
                 fos = new FileOutputStream(outputFile);
                 InputStream is = object.getObjectContent();

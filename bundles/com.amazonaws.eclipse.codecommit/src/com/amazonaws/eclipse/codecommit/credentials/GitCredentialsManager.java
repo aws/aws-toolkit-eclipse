@@ -55,9 +55,7 @@ public class GitCredentialsManager {
     public static void loadGitCredentials() {
         File gitCredentialsFile = getGitCredentialsFile();
         if (gitCredentialsFile.exists() && gitCredentialsFile.isFile()) {
-            BufferedReader bufferedReader = null;
-            try {
-                bufferedReader = new BufferedReader(new FileReader(gitCredentialsFile));
+            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(gitCredentialsFile))) {
                 String line;
                 int lineNumber = 0;
                 while ((line = bufferedReader.readLine()) != null) {
@@ -72,13 +70,6 @@ public class GitCredentialsManager {
                 }
             } catch (Exception e) {
                 AwsToolkitCore.getDefault().reportException("Failed to load gitCredentials file for git credentials!", e);
-            } finally {
-                if (bufferedReader != null) {
-                    try {
-                        bufferedReader.close();
-                    } catch (IOException e) {
-                    }
-                }
             }
         }
     }
@@ -119,19 +110,13 @@ public class GitCredentialsManager {
             }
         }
 
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(new FileWriter(gitCredentialsFile));
+        try (PrintWriter writer = new PrintWriter(new FileWriter(gitCredentialsFile))) {
             for (Entry<String, GitCredential> entry : GIT_CREDENTIALS.entrySet()) {
                 writer.println(String.format("%s,%s,%s",entry.getKey(), entry.getValue().getUsername(), entry.getValue().getPassword()));
             }
             writer.flush();
         } catch (Exception e) {
             AwsToolkitCore.getDefault().logWarning("Failed to write git credential to file!", e);
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
         }
     }
 

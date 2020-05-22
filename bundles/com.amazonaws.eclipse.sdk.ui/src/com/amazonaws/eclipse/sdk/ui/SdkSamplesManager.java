@@ -50,9 +50,7 @@ public class SdkSamplesManager {
         }
 
         for (File file : sampleDirectories) {
-            FileInputStream inputStream = null;
-            try {
-                inputStream = new FileInputStream(new File(file, "sample.properties"));
+            try (FileInputStream inputStream = new FileInputStream(new File(file, "sample.properties"))) {
                 Properties properties = new Properties();
                 properties.load(inputStream);
                 samples.add(new SdkSample(
@@ -61,8 +59,6 @@ public class SdkSamplesManager {
                         new Path(file.getAbsolutePath())));
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                try {inputStream.close();} catch (Exception e) {}
             }
         }
 
