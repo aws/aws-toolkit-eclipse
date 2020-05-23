@@ -100,7 +100,9 @@ public class FunctionTagsTable extends Composite {
                     .getTags();
             List<String> tagKeysToBeRemoved = new ArrayList<>();
             for (String key : oldTagMap.keySet()) {
-                if (!tagsDataModel.getPairSet().contains(key)) {
+                boolean keyExists = tagsDataModel.getPairSet().stream()
+                        .filter(p -> p.getKey().equals(key)).count() != 0;
+                if (!keyExists) {
                     tagKeysToBeRemoved.add(key);
                 }
             }
