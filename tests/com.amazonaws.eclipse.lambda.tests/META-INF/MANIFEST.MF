@@ -4,7 +4,7 @@ Bundle-Name: AWS Toolkit Lambda Tests
 Bundle-SymbolicName: com.amazonaws.eclipse.lambda.tests
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Amazon Web Services
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .
 Import-Package: com.fasterxml.jackson.core,
  com.fasterxml.jackson.databind,

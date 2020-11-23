@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?>
+<target name="com.amazonaws.eclipse.20209" sequenceNumber="21">
+    <locations>
+        <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <unit id="org.eclipse.datatools.sdk.feature.feature.group"/>
+            <unit id="org.eclipse.sdk.feature.group"/>
+            <unit id="org.eclipse.datatools.intro.feature.group"/>
+            <unit id="org.eclipse.datatools.enablement.mysql.feature.feature.group"/>
+            <unit id="org.eclipse.datatools.connectivity.feature.feature.group"/>
+            <unit id="org.eclipse.datatools.sqldevtools.data.feature.feature.group"/>
+            <unit id="org.eclipse.swtbot.ide.feature.group"/>
+            <unit id="org.eclipse.egit.feature.group"/>
+            <unit id="org.eclipse.datatools.sqldevtools.parsers.feature.feature.group"/>
+            <unit id="org.eclipse.datatools.sqldevtools.feature.feature.group"/>
+            <unit id="org.eclipse.m2e.feature.feature.group"/>
+            <unit id="org.eclipse.datatools.sqldevtools.sqlbuilder.feature.feature.group"/>
+            <unit id="org.eclipse.jst.web_ui.feature.feature.group"/>
+            <unit id="org.eclipse.datatools.enablement.sdk.feature.feature.group"/>
+            <unit id="org.eclipse.m2e.wtp.feature.feature.group"/>
+            <unit id="org.eclipse.datatools.enablement.feature.feature.group"/>
+			<unit id="org.eclipse.m2e.sdk.feature.feature.group"/>
+			<unit id="org.eclipse.mylyn.commons.feature.group"/>
+            <repository location="https://download.eclipse.org/releases/2020-09/"/>
+        </location>
+	    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+		    <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk"/>
+            <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group"/>
+		    <unit id="org.eclipse.wst.common.fproj.sdk"/>
+            <unit id="org.eclipse.wst.common.fproj.sdk.feature.group"/>
+            <unit id="org.eclipse.jst.web_sdk.feature.feature.group"/>
+            <unit id="org.eclipse.wst.web_sdk.feature.feature.group"/>
+            <unit id="org.eclipse.jst.server_sdk.feature.feature.group"/>
+            <unit id="org.eclipse.wst.server_adapters.sdk.feature.feature.group"/>
+		    <repository location="https://download.eclipse.org/webtools/repository/2020-09/"/>
+	    </location>
+    </locations>
+</target>

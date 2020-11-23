@@ -4,7 +4,7 @@ Bundle-Name: AWS OpsWorks Plugin Tests
 Bundle-SymbolicName: com.amazonaws.eclipse.opsworks.tests
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: AMAZONAWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .
 Require-Bundle: 
  com.amazonaws.eclipse.opsworks;bundle-version="1.0.0",

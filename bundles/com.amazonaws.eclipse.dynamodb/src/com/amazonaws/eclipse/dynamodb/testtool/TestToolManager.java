@@ -121,7 +121,7 @@ public class TestToolManager {
             JavaRuntime.getExecutionEnvironmentsManager();
 
         IExecutionEnvironment environment =
-            manager.getEnvironment("JavaSE-1.7");
+            manager.getEnvironment("JavaSE-1.8");
         if (environment == null) {
             // This version of Eclipse doesn't even know that Java 7 exists.
             return null;
