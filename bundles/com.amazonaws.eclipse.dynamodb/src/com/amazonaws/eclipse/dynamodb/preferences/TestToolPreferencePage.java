@@ -87,7 +87,7 @@ public class TestToolPreferencePage extends AwsToolkitPreferencePage
 
             Label warning = new Label(composite, SWT.WRAP);
             warning.setText("The DynamoDB Local Test Tool requires a "
-                            + "JavaSE-1.7 compatible execution environment!");
+                            + "JavaSE-1.8 compatible execution environment!");
 
             GridData data = new GridData(SWT.LEFT, SWT.TOP, true, false);
             data.widthHint = 500;
