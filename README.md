@@ -51,6 +51,7 @@ To contribute to the AWS Toolkit for Eclipse, you need to have at least these re
 5. Build and test with Maven using 2019.6 platform: ```mvn -Pbuild-eclipse -Declipse.target=20196 clean verify```
 5. Build and test with Maven using 2019.9 platform: ```mvn -Pbuild-eclipse -Declipse.target=20199 clean verify```
 6. Build and test with Maven using 2020.3 platform: ```mvn -Pbuild-eclipse -Declipse.target=20203 clean verify```
+6. Build and test with Maven using 2020.9 platform: ```mvn -Pbuild-eclipse -Declipse.target=20209 clean verify```
 
 **note, 2019-3 and 2019-12 do not build because we reach into Eclipse internals, but it will work on those versions**
 
