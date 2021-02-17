@@ -9,7 +9,7 @@
     <version>1.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>com.amazonaws.eclipse.javasdk</artifactId>
-  <version>1.11.248</version>
+  <version>1.11.948</version>
   <packaging>bundle</packaging>
 
   <dependencies>

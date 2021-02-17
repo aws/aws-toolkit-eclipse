@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.Contract;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.amazonaws.eclipse.core.AccountInfo;
@@ -47,7 +47,7 @@ import com.amazonaws.eclipse.core.ui.preferences.AwsAccountPreferencePage;
  * configured via different ways (e.g. by the Eclipse preference store system,
  * or loaded from the local credentials file).
  */
-@NotThreadSafe
+@Contract (threading = org.apache.http.annotation.ThreadingBehavior.UNSAFE)
 public final class AwsPluginAccountManager {
 
     /**

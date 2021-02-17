@@ -14,7 +14,7 @@
    <feature id="org.eclipse.wst.common.fproj.sdk" version="0.0.0"/>
    <feature id="org.eclipse.wst.web_sdk.feature" version="0.0.0"/>
    <feature id="org.eclipse.wst.server_adapters.sdk.feature" version="0.0.0"/>
-   <bundle id="com.amazonaws.eclipse.javasdk" version="1.11.248"/>
+   <bundle id="com.amazonaws.eclipse.javasdk" version="1.11.948"/>
    <bundle id="org.eclipse.datatools.sqltools.sql" version="1.2.100.201801242337"/>
    <bundle id="org.eclipse.datatools.sqltools.sql.ui" version="1.2.100.201801242337"/>
    <bundle id="org.eclipse.datatools.sqltools.common.ui"/>
