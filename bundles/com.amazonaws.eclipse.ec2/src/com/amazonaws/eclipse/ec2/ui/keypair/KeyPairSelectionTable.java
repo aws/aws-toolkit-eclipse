@@ -91,7 +91,7 @@ public class KeyPairSelectionTable extends SelectionTable {
         listeners.add(listener);
     }
 
-    public synchronized void removeRefreshListener(KeyPairSelectionTable listener) {
+    public synchronized void removeRefreshListener(KeyPairRefreshListener listener) {
         listeners.remove(listener);
     }
 
