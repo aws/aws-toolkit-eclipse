@@ -230,15 +230,18 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
             }
         }
 
-        final ExportTemplateDialog dialog = new ExportTemplateDialog(getSite().getShell(), existingTemplateNames,
-                "newTemplate" + System.currentTimeMillis());
-        dialog.open();
+        try(final ExportTemplateDialog dialog = new ExportTemplateDialog(getSite().getShell(), existingTemplateNames,
+                "newTemplate" + System.currentTimeMillis())) {
 
-        if ( dialog.getReturnCode() == MessageDialog.OK ) {
+                  dialog.open();
+                  if ( dialog.getReturnCode() == MessageDialog.OK ) {
 
-            new ExportConfigurationJob(environment, dialog.getTemplateName(), dialog.getTemplateDescription(), model.createConfigurationOptions(),
-                    dialog.isCreatingNew()).schedule();
-        }
+                    new ExportConfigurationJob(environment, dialog.getTemplateName(), dialog.getTemplateDescription(), model.createConfigurationOptions(),
+         	                dialog.isCreatingNew()).schedule();
+        	        }
+        } catch (Exception exception) {
+		        System.out.println(exception);
+	      }
     }
 
     /**
@@ -414,5 +417,3 @@ public class EnvironmentConfigEditorPart extends AbstractEnvironmentConfigEditor
     }
 
 }
-
-
