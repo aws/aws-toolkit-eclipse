@@ -155,6 +155,7 @@ public class DeployServerlessProjectWizard extends AbstractAwsJobWizard {
         while (!upload.isDone() && !monitor.isCanceled()) {
             Thread.sleep(500L); // Sleep for half a second
         }
+        tm.shutdownNow();
         if (upload.isDone()) {
             long uploadTime = System.currentTimeMillis() - startTime;
             LambdaAnalytics.trackUploadS3BucketTime(uploadTime);
