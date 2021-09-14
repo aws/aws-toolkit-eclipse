@@ -691,10 +691,11 @@ public class AWSClientFactory {
 
         @SuppressWarnings("unchecked")
         public synchronized <T> T getClient(String region, Class<T> clientClass) {
-            if (cachedClients.get(clientClass) == null) {
+            var client = cachedClients.get(clientClass);
+            if (client == null) {
                 return null;
             }
-            return (T)cachedClients.get(clientClass).get(region);
+            return (T)client.get(region);
         }
 
         public synchronized <T> void cacheClient(String region, T client) {
