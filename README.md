@@ -1,6 +1,16 @@
 AWS Toolkit for Eclipse
 =======================
 
+The AWS Toolkit for Eclipse will reach end of life on *May 31, 2023*. After this date, the Toolkit will not receive any updates including security patches. We don’t encourage using the Toolkit for Eclipse after this date. The AWS Toolkit for Eclipse open source project on GitHub will be archived, meaning its issues, pull requests, code, labels, milestones, projects, wiki, releases, commits, tags, branches, reactions, code scanning alerts, comments and permissions will become read-only for all users. 
+
+Your existing workloads on AWS will not be impacted. You can continue to use Eclipse as your preferred IDE with AWS CLI, AWS SAM CLI, AWS Console or the AWS SDKs, to supplement your development tasks in the IDE. We don’t encourage using the AWS Toolkit for Eclipse (the IDE plugin/extension) after it’s end-of-life date.
+
+In addition, AWS will continue to support the AWS Toolkit for Microsoft’s Visual Studio ([Learn More](https://aws.amazon.com/visualstudio/)) and Visual Studio Code ([Learn More](https://aws.amazon.com/visualstudiocode/)) and the AWS Toolkit for JetBrains ([Learn More](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)), which supports IntelliJ for Java, WebStorm for Node.js, Rider for .NET, PyCharm for Python, GoLand for Go, CLion for C & C++, and RubyMine for Ruby. 
+
+Direct any questions, issues, or concerns to [AWS Support](https://aws.amazon.com/support) or to the developer team on GitHub. 
+
+---
+
 The **AWS Toolkit for Eclipse** is an open source plug-in for the Eclipse Java IDE that makes it easier for developers to develop, debug, and deploy Java applications using [Amazon Web Services](https://aws.amazon.com/). With the AWS Toolkit for Eclipse, you’ll be able to get started faster and be more productive when building AWS applications.
 
 * [Homepage](https://aws.amazon.com/eclipse/)
