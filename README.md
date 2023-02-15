@@ -9,6 +9,7 @@ In addition, AWS will continue to support the AWS Toolkit for Microsoft’s Visu
 
 Direct any questions, issues, or concerns to [AWS Support](https://aws.amazon.com/support) or to the developer team on GitHub. 
 
+---
 
 The **AWS Toolkit for Eclipse** is an open source plug-in for the Eclipse Java IDE that makes it easier for developers to develop, debug, and deploy Java applications using [Amazon Web Services](https://aws.amazon.com/). With the AWS Toolkit for Eclipse, you’ll be able to get started faster and be more productive when building AWS applications.
 
